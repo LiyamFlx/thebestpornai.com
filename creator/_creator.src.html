@@ -47,7 +47,7 @@
 const MY = "c4"; // Alex's creator id
 const myVideos = ()=> DATA.videos.filter(v=>v.creator===MY).concat(DATA.videos.filter(v=>v.creator==="c1")); // show some originals as managed
 function freshUpload(){ return {step:0, title:"", desc:"", visibility:"public", monet:true,
-  file:null, url:"", duration:"0:00", thumb:"", thumbOptions:[], category:"Technology"}; }
+  file:null, url:"", duration:"0:00", thumb:"", thumbOptions:[], category:"POV"}; }
 let cstate = { page:"dashboard", upload:freshUpload() };
 
 function go(p){ cstate.page=p; render(); }
@@ -122,7 +122,7 @@ function uPublish(){
   if(!u.url){ toast("No file selected"); cstate.upload.step=0; render(); return; }
   DATA.videos.unshift({
     id:Date.now(), title:u.title||"Untitled Upload", creator:MY, type:"ugc",
-    category:u.category||"Technology", views:0, likes:0, dislikes:0, comments:0, favorites:0,
+    category:u.category||"POV", views:0, likes:0, dislikes:0, comments:0, favorites:0,
     duration:u.duration||"0:00", uploaded:"2026-06-28",
     src:u.url, thumb:u.thumb||"",
     status:u.visibility==="public"?"published":(u.visibility==="private"?"private":"published"),

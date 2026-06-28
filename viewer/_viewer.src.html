@@ -100,11 +100,7 @@ function renderHome(){
     ${rowSection("Recommended For You", trending().slice(0,6))}
     ${rowSection("Trending Now", trending().slice(0,6))}
     ${rowSection("House Originals", DATA.videos.filter(v=>v.type==="original"))}
-    ${rowSection("Technology", byCat("Technology"))}
-    ${rowSection("AI", byCat("AI"))}
-    ${rowSection("Business", byCat("Business"))}
-    ${rowSection("Gaming", byCat("Gaming"))}
-    ${rowSection("Music", byCat("Music"))}
+    ${DATA.categories.map(c=>rowSection(c, byCat(c))).join("")}
     ${rowSection("Recently Uploaded", [...DATA.videos].sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0,6))}
   `;
 }

@@ -320,17 +320,17 @@ const DATA = {
     { id:"c4", name:"Alex",            handle:"@alex",  subs:1240,     verified:false },
   ],
 
-  categories: ["Originals","Technology","AI","Business","Gaming","Music","Lifestyle"],
+  categories: ["POV","Big","Beauty","AI","Boy Girl","Girl Girl","Boy Boy"],
 
   videos: [
-    { id:1, title:"Spotlight Premiere", creator:"c1", type:"original", category:"Originals", views:22000, likes:2400, dislikes:30, comments:3, favorites:0, duration:"0:10", uploaded:"2026-06-01", src:"../media/sample-1.mp4", status:"published", flagged:false },
-    { id:2, title:"Late Night Sessions", creator:"c2", type:"ugc", category:"Music", views:3400, likes:310, dislikes:8, comments:1, favorites:0, duration:"0:10", uploaded:"2026-06-12", src:"../media/sample-2.mp4", status:"published", flagged:false },
-    { id:3, title:"Behind The Scenes", creator:"c3", type:"ugc", category:"Lifestyle", views:7800, likes:640, dislikes:12, comments:2, favorites:0, duration:"0:10", uploaded:"2026-06-09", src:"../media/sample-3.mp4", status:"published", flagged:true },
-    { id:4, title:"Featured Exclusive", creator:"c1", type:"original", category:"Originals", views:18500, likes:1900, dislikes:20, comments:0, favorites:0, duration:"0:10", uploaded:"2026-05-28", src:"../media/sample-1.mp4", status:"published", flagged:false },
-    { id:5, title:"Creator Spotlight", creator:"c2", type:"ugc", category:"Business", views:5200, likes:480, dislikes:5, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-18", src:"../media/sample-2.mp4", status:"published", flagged:false },
-    { id:6, title:"Fan Favorites", creator:"c4", type:"ugc", category:"Gaming", views:2100, likes:190, dislikes:3, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-20", src:"../media/sample-3.mp4", status:"published", flagged:false },
-    { id:7, title:"Headliner Feature", creator:"c1", type:"original", category:"Originals", views:14300, likes:1500, dislikes:18, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-03", src:"../media/sample-1.mp4", status:"published", flagged:false },
-    { id:8, title:"Trending Now", creator:"c3", type:"ugc", category:"Technology", views:9100, likes:720, dislikes:9, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-22", src:"../media/sample-2.mp4", status:"review", flagged:true },
+    { id:1, title:"Spotlight Premiere", creator:"c1", type:"original", category:"POV", views:22000, likes:2400, dislikes:30, comments:3, favorites:0, duration:"0:10", uploaded:"2026-06-01", src:"../media/sample-1.mp4", status:"published", flagged:false },
+    { id:2, title:"Late Night Sessions", creator:"c2", type:"ugc", category:"Boy Girl", views:3400, likes:310, dislikes:8, comments:1, favorites:0, duration:"0:10", uploaded:"2026-06-12", src:"../media/sample-2.mp4", status:"published", flagged:false },
+    { id:3, title:"Behind The Scenes", creator:"c3", type:"ugc", category:"Girl Girl", views:7800, likes:640, dislikes:12, comments:2, favorites:0, duration:"0:10", uploaded:"2026-06-09", src:"../media/sample-3.mp4", status:"published", flagged:true },
+    { id:4, title:"Featured Exclusive", creator:"c1", type:"original", category:"Beauty", views:18500, likes:1900, dislikes:20, comments:0, favorites:0, duration:"0:10", uploaded:"2026-05-28", src:"../media/sample-1.mp4", status:"published", flagged:false },
+    { id:5, title:"Creator Spotlight", creator:"c2", type:"ugc", category:"Boy Boy", views:5200, likes:480, dislikes:5, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-18", src:"../media/sample-2.mp4", status:"published", flagged:false },
+    { id:6, title:"Fan Favorites", creator:"c4", type:"ugc", category:"POV", views:2100, likes:190, dislikes:3, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-20", src:"../media/sample-3.mp4", status:"published", flagged:false },
+    { id:7, title:"Headliner Feature", creator:"c1", type:"original", category:"Big", views:14300, likes:1500, dislikes:18, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-03", src:"../media/sample-1.mp4", status:"published", flagged:false },
+    { id:8, title:"Trending Now", creator:"c3", type:"ugc", category:"Beauty", views:9100, likes:720, dislikes:9, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-22", src:"../media/sample-2.mp4", status:"review", flagged:true },
     { id:9, title:"Community Picks", creator:"c4", type:"ugc", category:"AI", views:4600, likes:410, dislikes:6, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-24", src:"../media/sample-3.mp4", status:"published", flagged:false },
   ],
 
@@ -443,7 +443,7 @@ function distRows(arr){
 const MY = "c4"; // Alex's creator id
 const myVideos = ()=> DATA.videos.filter(v=>v.creator===MY).concat(DATA.videos.filter(v=>v.creator==="c1")); // show some originals as managed
 function freshUpload(){ return {step:0, title:"", desc:"", visibility:"public", monet:true,
-  file:null, url:"", duration:"0:00", thumb:"", thumbOptions:[], category:"Technology"}; }
+  file:null, url:"", duration:"0:00", thumb:"", thumbOptions:[], category:"POV"}; }
 let cstate = { page:"dashboard", upload:freshUpload() };
 
 function go(p){ cstate.page=p; render(); }
@@ -518,7 +518,7 @@ function uPublish(){
   if(!u.url){ toast("No file selected"); cstate.upload.step=0; render(); return; }
   DATA.videos.unshift({
     id:Date.now(), title:u.title||"Untitled Upload", creator:MY, type:"ugc",
-    category:u.category||"Technology", views:0, likes:0, dislikes:0, comments:0, favorites:0,
+    category:u.category||"POV", views:0, likes:0, dislikes:0, comments:0, favorites:0,
     duration:u.duration||"0:00", uploaded:"2026-06-28",
     src:u.url, thumb:u.thumb||"",
     status:u.visibility==="public"?"published":(u.visibility==="private"?"private":"published"),
