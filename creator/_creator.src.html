@@ -47,8 +47,15 @@
 const MY = "c4"; // Alex's creator id
 const myVideos = ()=> DATA.videos.filter(v=>v.creator===MY).concat(DATA.videos.filter(v=>v.creator==="c1")); // show some originals as managed
 function freshUpload(){ return {step:0, title:"", desc:"", visibility:"public", monet:true,
-  file:null, url:"", duration:"0:00", thumb:"", thumbOptions:[], category:"POV"}; }
+  file:null, url:"", duration:"0:00", thumb:"", thumbOptions:[], category:"POV",
+  createdWith:"", tags:[]}; }
 let cstate = { page:"dashboard", upload:freshUpload() };
+
+/* Options for the Metadata step */
+const AI_TOOLS = ["Joi.ai","Candy.ai","Ourdream.ai","Zen Creator","Spicy AI","Grok","ComfyUI"];
+const TAG_LIBRARY = ["Hentai","Milf","Pinay","Lesbian","Anal","Big","Anime","Japanese","Latina",
+  "Asian","Step","Creampie","Threesome","Animation","Massage","Cosplay","Ebony","Blowjob","Trans",
+  "Gangbang","BBC","Wife","3D","POV","JOI","Real","Squirt","BBW","Teacher"];
 
 function go(p){ cstate.page=p; render(); }
 
@@ -56,7 +63,17 @@ function go(p){ cstate.page=p; render(); }
 const STEPS = ["Upload","Processing","AI Thumbnail","Metadata","Visibility","Scheduling","Monetization","Publish"];
 function uNext(){ cstate.upload.step=Math.min(cstate.upload.step+1,STEPS.length-1); render(); }
 function uPrev(){ cstate.upload.step=Math.max(cstate.upload.step-1,0); render(); }
-function uSaveMeta(){ cstate.upload.title=document.getElementById("uTitle").value; cstate.upload.desc=document.getElementById("uDesc").value; uNext(); }
+function uSaveMeta(){
+  const t=document.getElementById("uTitle"); if(t) cstate.upload.title=t.value;
+  const d=document.getElementById("uDesc"); if(d) cstate.upload.desc=d.value;
+  uNext();
+}
+function uToggleTag(tag){
+  const tags=cstate.upload.tags;
+  const i=tags.indexOf(tag);
+  if(i>=0) tags.splice(i,1); else tags.push(tag);
+  render();
+}
 
 /* format seconds -> M:SS */
 function fmtDur(sec){ sec=Math.round(sec||0); const m=Math.floor(sec/60), s=sec%60; return m+":"+String(s).padStart(2,"0"); }
@@ -123,8 +140,9 @@ function uPublish(){
   DATA.videos.unshift({
     id:Date.now(), title:u.title||"Untitled Upload", creator:MY, type:"ugc",
     category:u.category||"POV", views:0, likes:0, dislikes:0, comments:0, favorites:0,
-    duration:u.duration||"0:00", uploaded:"2026-06-28",
+    duration:u.duration||"0:00", uploaded:"2026-06-29",
     src:u.url, thumb:u.thumb||"",
+    createdWith:u.createdWith||"", tags:u.tags.slice(),
     status:u.visibility==="public"?"published":(u.visibility==="private"?"private":"published"),
     flagged:false
   });
@@ -181,37 +199,68 @@ function renderUpload(){
           <div class="video-thumb" style="height:90px;border:2px solid ${u.thumb===t&&t?'var(--accent)':'transparent'}" onclick="uChooseThumb(${i})">
             ${t?`<img src="${t}" style="width:100%;height:100%;object-fit:cover"/>`:'<div class="small" style="padding:30px">no preview</div>'}
           </div>`).join("")}
-      </div><br/><button class="btn" onclick="uNext()">Use selected</button>`,
+      </div>`,
     `<label class="lbl">Title</label><input class="fld" id="uTitle" value="${u.title}" placeholder="Add a title"/>
       <label class="lbl">Description</label><textarea class="fld" id="uDesc" placeholder="Tell viewers about your video">${u.desc}</textarea>
       <label class="lbl">Category</label>
       <select class="fld" onchange="cstate.upload.category=this.value">
         ${DATA.categories.map(c=>`<option ${u.category===c?'selected':''}>${c}</option>`).join("")}</select>
-      <label class="lbl">Tags</label><input class="fld" placeholder="ai, tech, tutorial"/><br/><br/><button class="btn" onclick="uSaveMeta()">Next</button>`,
+      <label class="lbl">Created using</label>
+      <select class="fld" onchange="cstate.upload.createdWith=this.value">
+        <option value="">— Select tool —</option>
+        ${AI_TOOLS.map(t=>`<option ${u.createdWith===t?'selected':''}>${t}</option>`).join("")}</select>
+      <label class="lbl">Tags ${u.tags.length?`<span class="small">(${u.tags.length} selected)</span>`:''}</label>
+      <div class="tag-picker">
+        ${TAG_LIBRARY.map(t=>`<button type="button" class="tag-chip ${u.tags.includes(t)?'on':''}" onclick="uToggleTag('${t}')">${t}</button>`).join("")}
+      </div>`,
     `<label class="lbl">Visibility</label>
       <select class="fld" onchange="cstate.upload.visibility=this.value">
-        <option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select>
-      <br/><br/><button class="btn" onclick="uNext()">Next</button>`,
+        <option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select>`,
     `<p><b>Scheduling</b></p><label class="lbl">Publish</label>
       <select class="fld"><option>Now</option><option>Schedule for later</option></select>
-      <label class="lbl">Date</label><input class="fld" type="date"/><br/><br/><button class="btn" onclick="uNext()">Next</button>`,
+      <label class="lbl">Date</label><input class="fld" type="date"/>`,
     `<p><b>Monetization</b></p>
       <label class="lbl"><input type="checkbox" checked onchange="cstate.upload.monet=this.checked"/> Enable ads</label>
       <label class="lbl"><input type="checkbox" checked/> Allow Premium revenue</label>
-      <label class="lbl"><input type="checkbox"/> Accept tips</label><br/><button class="btn" onclick="uNext()">Next</button>`,
+      <label class="lbl"><input type="checkbox"/> Accept tips</label>`,
     `<p><b>Ready to publish</b></p>
       <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">
         <div class="video-thumb" style="width:140px;height:80px;margin:0;flex:none">
           ${u.thumb?`<img src="${u.thumb}" style="width:100%;height:100%;object-fit:cover"/>`:''}
         </div>
-        <div><b>${u.title||'Untitled'}</b><div class="small">${u.category} · ${u.visibility} · ${u.duration}</div></div>
-      </div>
-      <button class="btn" onclick="uPublish()">🚀 Publish Video</button>`,
+        <div><b>${u.title||'Untitled'}</b>
+          <div class="small">${u.category} · ${u.visibility} · ${u.duration}${u.createdWith?` · ${u.createdWith}`:''}</div>
+          ${u.tags.length?`<div class="small" style="margin-top:4px">${u.tags.join(', ')}</div>`:''}
+        </div>
+      </div>`,
   ][s];
+
+  // Shared footer: Back on the left, primary action on the bottom-right.
+  // Step 1 (Processing) is auto-advancing, so no buttons.
+  const primary = [
+    null,                                                            // 0 Upload (file picker advances)
+    null,                                                            // 1 Processing (auto)
+    {label:"Use selected", fn:"uNext()"},                            // 2 Thumbnail
+    {label:"Next →",        fn:"uSaveMeta()"},                       // 3 Metadata
+    {label:"Next →",        fn:"uNext()"},                           // 4 Visibility
+    {label:"Next →",        fn:"uNext()"},                           // 5 Scheduling
+    {label:"Next →",        fn:"uNext()"},                           // 6 Monetization
+    {label:"🚀 Publish Video", fn:"uPublish()"},                     // 7 Publish
+  ][s];
+
+  const showBack = s>0 && s!==1;
+  const footer = (showBack || primary) ? `
+    <div class="wizard-footer">
+      <div>${showBack?`<button class="btn ghost sm" onclick="uPrev()">← Back</button>`:''}</div>
+      <div>${primary?`<button class="btn" onclick="${primary.fn}">${primary.label}</button>`:''}</div>
+    </div>` : '';
+
   return `<h1>Upload</h1><p class="sub">Step ${s+1} of ${STEPS.length} — ${STEPS[s]}</p>
     <div class="steps">${STEPS.map((_,i)=>`<div class="dot ${i<=s?'active':''}"></div>`).join("")}</div>
-    <div class="panel" style="max-width:640px">${body}
-      ${s>0&&s!==1?`<br/><button class="btn ghost sm" onclick="uPrev()">← Back</button>`:''}</div>`;
+    <div class="panel" style="max-width:640px">
+      <div class="wizard-body">${body}</div>
+      ${footer}
+    </div>`;
 }
 
 function renderAnalytics(){

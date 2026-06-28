@@ -229,6 +229,22 @@ table.data tr:hover td{background:var(--surface2)}
 .steps .dot{height:5px;flex:1;min-width:24px;border-radius:999px;background:var(--surface3)}
 .steps .dot.active{background:linear-gradient(90deg,var(--accent),var(--accent2))}
 
+/* Upload wizard footer — Back left, primary action bottom-right */
+.wizard-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border);
+}
+.wizard-footer .btn{margin-right:0}
+
+/* Tag picker */
+.tag-picker{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.tag-chip{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  font-size:12px;padding:6px 12px;border-radius:999px;cursor:pointer;transition:.15s;
+}
+.tag-chip:hover{border-color:var(--accent)}
+.tag-chip.on{background:var(--accent);border-color:transparent;color:#fff;font-weight:600}
+
 /* Watch layout */
 .watch{display:grid;grid-template-columns:2fr 1fr;gap:20px}
 @media(max-width:900px){.watch{grid-template-columns:1fr}}
