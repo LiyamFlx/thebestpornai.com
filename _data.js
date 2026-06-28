@@ -12,7 +12,7 @@ const DATA = {
     { id:"c4", name:"Alex",            handle:"@alex",  subs:1240,     verified:false },
   ],
 
-  categories: ["POV","Big","Beauty","AI","Boy Girl","Girl Girl","Boy Boy"],
+  categories: ["POV","Big","Beauty","AI","Boy Girl","Girl Girl","Boy Boy","Blowjob","Threesome","Blond","18-25","Amateur","Asian","Babe","Anal"],
 
   videos: [
     { id:1, title:"Spotlight Premiere", creator:"c1", type:"original", category:"POV", views:22000, likes:2400, dislikes:30, comments:3, favorites:0, duration:"0:10", uploaded:"2026-06-01", src:"../media/sample-1.mp4", status:"published", flagged:false },
