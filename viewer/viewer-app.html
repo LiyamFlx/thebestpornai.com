@@ -394,8 +394,10 @@ function playerEmbed(v){
 }
 
 function videoCard(v, opts={}){
-  const thumb = (!v.thumb && v.src && !ytId(v.src))
-    ? `<video class="thumb-video" src="${v.src}#t=0.1" muted preload="metadata" playsinline></video>` : ``;
+  const thumb = v.thumb
+    ? `<img class="thumb-video" src="${v.thumb}" alt=""/>`
+    : (v.src && !ytId(v.src)
+        ? `<video class="thumb-video" src="${v.src}#t=0.1" muted preload="metadata" playsinline></video>` : ``);
   return `
     <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
       <div class="video-thumb ${v.type==='original'?'original':''}">

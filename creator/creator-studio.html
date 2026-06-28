@@ -393,8 +393,10 @@ function playerEmbed(v){
 }
 
 function videoCard(v, opts={}){
-  const thumb = (!v.thumb && v.src && !ytId(v.src))
-    ? `<video class="thumb-video" src="${v.src}#t=0.1" muted preload="metadata" playsinline></video>` : ``;
+  const thumb = v.thumb
+    ? `<img class="thumb-video" src="${v.thumb}" alt=""/>`
+    : (v.src && !ytId(v.src)
+        ? `<video class="thumb-video" src="${v.src}#t=0.1" muted preload="metadata" playsinline></video>` : ``);
   return `
     <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
       <div class="video-thumb ${v.type==='original'?'original':''}">
@@ -440,20 +442,90 @@ function distRows(arr){
 /* ===================== CREATOR STUDIO ===================== */
 const MY = "c4"; // Alex's creator id
 const myVideos = ()=> DATA.videos.filter(v=>v.creator===MY).concat(DATA.videos.filter(v=>v.creator==="c1")); // show some originals as managed
-let cstate = { page:"dashboard", upload:{step:0, title:"", desc:"", visibility:"public", monet:true} };
+function freshUpload(){ return {step:0, title:"", desc:"", visibility:"public", monet:true,
+  file:null, url:"", duration:"0:00", thumb:"", thumbOptions:[], category:"Technology"}; }
+let cstate = { page:"dashboard", upload:freshUpload() };
 
 function go(p){ cstate.page=p; render(); }
 
-/* ---- Upload wizard ---- */
+/* ---- Upload wizard (REAL, browser-based) ---- */
 const STEPS = ["Upload","Processing","AI Thumbnail","Metadata","Visibility","Scheduling","Monetization","Publish"];
 function uNext(){ cstate.upload.step=Math.min(cstate.upload.step+1,STEPS.length-1); render(); }
 function uPrev(){ cstate.upload.step=Math.max(cstate.upload.step-1,0); render(); }
 function uSaveMeta(){ cstate.upload.title=document.getElementById("uTitle").value; cstate.upload.desc=document.getElementById("uDesc").value; uNext(); }
-function uProcess(){ uNext(); setTimeout(()=>{ if(cstate.page==="upload"&&cstate.upload.step===1) uNext(); },1600); }
+
+/* format seconds -> M:SS */
+function fmtDur(sec){ sec=Math.round(sec||0); const m=Math.floor(sec/60), s=sec%60; return m+":"+String(s).padStart(2,"0"); }
+
+/* User picked a real file: create object URL, read real duration, advance to Processing */
+function uPickFile(input){
+  const f = input.files && input.files[0];
+  if(!f) return;
+  if(!f.type.startsWith("video/")){ toast("Please choose a video file"); return; }
+  if(cstate.upload.url) URL.revokeObjectURL(cstate.upload.url);
+  const u = freshUpload();
+  u.file = f; u.url = URL.createObjectURL(f);
+  u.title = f.name.replace(/\.[^.]+$/,"").replace(/[-_]/g," ");
+  u.step = 1;                       // -> Processing
+  cstate.upload = u; render();
+  // Read real metadata, then real first-frame thumbnails
+  uProbe();
+}
+
+/* Read real duration from the file and generate REAL thumbnails from frames */
+function uProbe(){
+  const u = cstate.upload;
+  const v = document.createElement("video");
+  v.preload = "metadata"; v.muted = true; v.src = u.url;
+  v.onloadedmetadata = ()=>{
+    u.duration = fmtDur(v.duration);
+    // capture frames at a few timestamps for real "AI thumbnail" options
+    const stamps = [0.1, Math.min(1, v.duration*0.33), Math.min(2, v.duration*0.66)].filter((x,i,a)=>a.indexOf(x)===i);
+    captureFrames(v, stamps, (thumbs)=>{
+      u.thumbOptions = thumbs;
+      u.thumb = thumbs[0] || "";
+      if(cstate.page==="upload" && cstate.upload.step===1) uNext();  // -> AI Thumbnail
+      else render();
+    });
+  };
+  v.onerror = ()=>{ toast("Couldn't read that file"); };
+}
+
+/* Grab still frames into data URLs using a canvas */
+function captureFrames(video, stamps, done){
+  const canvas = document.createElement("canvas");
+  const out = []; let i = 0;
+  const grab = ()=>{
+    if(i >= stamps.length){ done(out); return; }
+    video.currentTime = stamps[i];
+  };
+  video.onseeked = ()=>{
+    const w = video.videoWidth || 320, h = video.videoHeight || 180;
+    canvas.width = 320; canvas.height = Math.round(320 * h / w);
+    try{
+      canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+      out.push(canvas.toDataURL("image/jpeg", 0.7));
+    }catch(e){ /* tainted/decode issue — skip */ }
+    i++; grab();
+  };
+  grab();
+}
+
+function uChooseThumb(idx){ cstate.upload.thumb = cstate.upload.thumbOptions[idx]; render(); }
+
 function uPublish(){
-  DATA.videos.unshift({id:Date.now(),title:cstate.upload.title||"Untitled Upload",creator:MY,type:"ugc",category:"Technology",views:0,likes:0,dislikes:0,comments:0,favorites:0,duration:"0:10",uploaded:"2026-06-28",src:DATA.videos[5].src,status:cstate.upload.visibility==="public"?"published":"private",flagged:false});
-  toast(`Published "${cstate.upload.title||'Untitled'}"`);
-  cstate.upload={step:0,title:"",desc:"",visibility:"public",monet:true}; cstate.page="content"; render();
+  const u = cstate.upload;
+  if(!u.url){ toast("No file selected"); cstate.upload.step=0; render(); return; }
+  DATA.videos.unshift({
+    id:Date.now(), title:u.title||"Untitled Upload", creator:MY, type:"ugc",
+    category:u.category||"Technology", views:0, likes:0, dislikes:0, comments:0, favorites:0,
+    duration:u.duration||"0:00", uploaded:"2026-06-28",
+    src:u.url, thumb:u.thumb||"",
+    status:u.visibility==="public"?"published":(u.visibility==="private"?"private":"published"),
+    flagged:false
+  });
+  toast(`Published "${u.title||'Untitled'}" — now live in your channel`);
+  cstate.upload = freshUpload(); cstate.page="content"; render();
 }
 
 function metric(label,value,delta,up){ return `<div class="metric"><div class="label">${label}</div><div class="value">${value}</div>${delta?`<div class="delta ${up?'up':'down'}">${up?'▲':'▼'} ${delta}</div>`:''}</div>`; }
@@ -490,13 +562,27 @@ function renderContent(){
 
 function renderUpload(){
   const s=cstate.upload.step;
+  const u = cstate.upload;
   const body = [
-    `<p><b>Select your video file</b></p><div class="empty" style="cursor:pointer" onclick="uNext()">⤒ Drag & drop or click to choose a file</div>`,
-    `<p><b>Processing…</b></p><p class="small">Transcoding → generating HLS renditions</p><div class="loader"></div><br/><button class="btn" onclick="uNext()">Simulate complete</button>`,
-    `<p><b>AI Thumbnail</b></p><p class="small">We generated 3 options:</p>
-      <div class="grid" style="grid-template-columns:repeat(3,1fr)">${[5,6,8].map(i=>`<div class="video-thumb" style="height:90px"><video class="thumb-video" src="${DATA.videos[i-1].src}#t=0.${i}" muted preload="metadata"></video></div>`).join("")}</div><br/><button class="btn" onclick="uNext()">Use selected</button>`,
-    `<label class="lbl">Title</label><input class="fld" id="uTitle" value="${cstate.upload.title}" placeholder="Add a title"/>
-      <label class="lbl">Description</label><textarea class="fld" id="uDesc" placeholder="Tell viewers about your video">${cstate.upload.desc}</textarea>
+    `<p><b>Select your video file</b></p>
+      <label class="empty" style="cursor:pointer;display:block">
+        ⤒ Click to choose a video file<div class="small" style="margin-top:6px">MP4, WebM, MOV — plays instantly, no upload wait</div>
+        <input type="file" accept="video/*" style="display:none" onchange="uPickFile(this)"/>
+      </label>`,
+    `<p><b>Reading your video…</b></p><p class="small">Extracting duration and generating thumbnails from real frames</p><div class="loader"></div>
+      ${u.url?`<br/><video class="player" style="height:180px" src="${u.url}" muted></video>`:''}`,
+    `<p><b>Thumbnail</b></p><p class="small">Captured from your actual video — pick one:</p>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+        ${(u.thumbOptions.length?u.thumbOptions:['']).map((t,i)=>`
+          <div class="video-thumb" style="height:90px;border:2px solid ${u.thumb===t&&t?'var(--accent)':'transparent'}" onclick="uChooseThumb(${i})">
+            ${t?`<img src="${t}" style="width:100%;height:100%;object-fit:cover"/>`:'<div class="small" style="padding:30px">no preview</div>'}
+          </div>`).join("")}
+      </div><br/><button class="btn" onclick="uNext()">Use selected</button>`,
+    `<label class="lbl">Title</label><input class="fld" id="uTitle" value="${u.title}" placeholder="Add a title"/>
+      <label class="lbl">Description</label><textarea class="fld" id="uDesc" placeholder="Tell viewers about your video">${u.desc}</textarea>
+      <label class="lbl">Category</label>
+      <select class="fld" onchange="cstate.upload.category=this.value">
+        ${DATA.categories.map(c=>`<option ${u.category===c?'selected':''}>${c}</option>`).join("")}</select>
       <label class="lbl">Tags</label><input class="fld" placeholder="ai, tech, tutorial"/><br/><br/><button class="btn" onclick="uSaveMeta()">Next</button>`,
     `<label class="lbl">Visibility</label>
       <select class="fld" onchange="cstate.upload.visibility=this.value">
@@ -509,7 +595,14 @@ function renderUpload(){
       <label class="lbl"><input type="checkbox" checked onchange="cstate.upload.monet=this.checked"/> Enable ads</label>
       <label class="lbl"><input type="checkbox" checked/> Allow Premium revenue</label>
       <label class="lbl"><input type="checkbox"/> Accept tips</label><br/><button class="btn" onclick="uNext()">Next</button>`,
-    `<p><b>Ready to publish</b></p><p class="small">"${cstate.upload.title||'Untitled'}" · ${cstate.upload.visibility}</p><button class="btn" onclick="uPublish()">🚀 Publish Video</button>`,
+    `<p><b>Ready to publish</b></p>
+      <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">
+        <div class="video-thumb" style="width:140px;height:80px;margin:0;flex:none">
+          ${u.thumb?`<img src="${u.thumb}" style="width:100%;height:100%;object-fit:cover"/>`:''}
+        </div>
+        <div><b>${u.title||'Untitled'}</b><div class="small">${u.category} · ${u.visibility} · ${u.duration}</div></div>
+      </div>
+      <button class="btn" onclick="uPublish()">🚀 Publish Video</button>`,
   ][s];
   return `<h1>Upload</h1><p class="sub">Step ${s+1} of ${STEPS.length} — ${STEPS[s]}</p>
     <div class="steps">${STEPS.map((_,i)=>`<div class="dot ${i<=s?'active':''}"></div>`).join("")}</div>
