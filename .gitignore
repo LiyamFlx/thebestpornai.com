@@ -1,8 +1,9 @@
-# Video media (excluded from the repo — distributed separately)
+# Video media — exclude private/source videos, but allow royalty-free demo samples
 media/*.mp4
 media/*.mov
 media/*.webm
 media/*.mkv
+!media/sample-*.mp4
 
 # OS / editor cruft
 .DS_Store

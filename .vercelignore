@@ -1,0 +1,16 @@
+# Do not upload private videos to the public host (policy + privacy)
+media/*.mp4
+media/*.mov
+media/*.webm
+media/*.mkv
+# ...but DO deploy the royalty-free demo samples so the live site plays video
+!media/sample-*.mp4
+
+# Editor sources / build tooling — not needed at runtime
+*.src.html
+build.js
+Start.command
+Start.bat
+.playwright-mcp/
+*.zip
+.DS_Store
