@@ -87,7 +87,7 @@ function renderHome(){
   const hero = DATA.videos.find(v=>v.type==="original");
   return `
     <div class="hero">
-      <video src="${hero.src}" muted autoplay loop playsinline></video>
+      <video src="${mediaUrl(hero.src)}" muted autoplay loop playsinline></video>
       <div class="hero-body">
         <span class="tag">HOUSE ORIGINAL</span>
         <h1>${hero.title}</h1>
@@ -151,7 +151,7 @@ function renderWatch(){
         ${trending().filter(u=>u.id!==v.id).slice(0,6).map(u=>`
           <div class="card" style="display:flex;gap:10px;margin-bottom:10px;padding:8px" onclick="openVideo(${u.id})">
             <div class="video-thumb ${u.type==='original'?'original':''}" style="width:120px;height:68px;margin:0;flex:none">
-              <video class="thumb-video" src="${u.src}#t=0.1" muted preload="metadata"></video>
+              <video class="thumb-video" src="${mediaUrl(u.src)}#t=0.1" muted preload="metadata"></video>
             </div>
             <div><div class="title">${u.title}</div><div class="meta">${creatorName(u.creator)}</div><div class="small">${fmt(u.views)} views</div></div>
           </div>`).join("")}
@@ -211,7 +211,7 @@ function renderPlaylists(){
   return `<h2>Playlists</h2><p class="sub">Your collections</p>
     <div class="grid">
       ${["My Mix","Chill","Tech Deep-Dives"].map((p,i)=>`
-        <div class="card"><div class="video-thumb"><video class="thumb-video" src="${DATA.videos[i].src}#t=0.1" muted preload="metadata"></video></div>
+        <div class="card"><div class="video-thumb"><video class="thumb-video" src="${mediaUrl(DATA.videos[i].src)}#t=0.1" muted preload="metadata"></video></div>
         <div class="title">${p}</div><div class="meta">${(i+2)} videos</div></div>`).join("")}
     </div>`;
 }

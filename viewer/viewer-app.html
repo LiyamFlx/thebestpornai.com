@@ -311,6 +311,22 @@ iframe.player{display:block}
    SHARED SAMPLE DATA MODEL — Hybrid Video Platform
    Used by viewer / creator / manager apps.
    ============================================================ */
+
+/* Where video files are streamed from.
+   - ""  -> use the local ../media/ files (offline / Start.command)
+   - CDN -> stream from Bunny.net so the PUBLIC deploy can play them
+   Files on the CDN must be named vid-1.mp4 … vid-31.mp4 (+ sample-*.mp4). */
+const MEDIA_BASE = "https://streamhub-media.b-cdn.net";
+
+/* Rewrite a "../media/x.mp4" path to the CDN when MEDIA_BASE is set */
+function mediaUrl(src){
+  if(!src) return src;
+  if(/^https?:\/\//.test(src) || src.startsWith("blob:") || src.startsWith("data:")) return src;
+  if(!MEDIA_BASE) return src;                       // local mode, keep relative path
+  const file = src.split("/").pop();                // -> vid-1.mp4
+  return MEDIA_BASE.replace(/\/$/,"") + "/" + file;
+}
+
 const DATA = {
   user: { id:"u1", name:"Alex", handle:"@alex", avatar:"A", subscriptions:42, role:"viewer" },
 
@@ -411,7 +427,7 @@ function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?
 function playerEmbed(v){
   const yt = ytId(v.src);
   if(yt) return `<iframe class="player" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-  if(v.src) return `<video class="player" src="${v.src}" controls></video>`;
+  if(v.src) return `<video class="player" src="${mediaUrl(v.src)}" controls></video>`;
   return `<div class="player">VIDEO STREAM — ${v.title}</div>`;
 }
 
@@ -419,7 +435,7 @@ function videoCard(v, opts={}){
   const thumb = v.thumb
     ? `<img class="thumb-video" src="${v.thumb}" alt=""/>`
     : (v.src && !ytId(v.src)
-        ? `<video class="thumb-video" src="${v.src}#t=0.1" muted preload="metadata" playsinline></video>` : ``);
+        ? `<video class="thumb-video" src="${mediaUrl(v.src)}#t=0.1" muted preload="metadata" playsinline></video>` : ``);
   return `
     <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
       <div class="video-thumb ${v.type==='original'?'original':''}">
@@ -505,7 +521,7 @@ function renderHome(){
   const hero = DATA.videos.find(v=>v.type==="original");
   return `
     <div class="hero">
-      <video src="${hero.src}" muted autoplay loop playsinline></video>
+      <video src="${mediaUrl(hero.src)}" muted autoplay loop playsinline></video>
       <div class="hero-body">
         <span class="tag">HOUSE ORIGINAL</span>
         <h1>${hero.title}</h1>
@@ -569,7 +585,7 @@ function renderWatch(){
         ${trending().filter(u=>u.id!==v.id).slice(0,6).map(u=>`
           <div class="card" style="display:flex;gap:10px;margin-bottom:10px;padding:8px" onclick="openVideo(${u.id})">
             <div class="video-thumb ${u.type==='original'?'original':''}" style="width:120px;height:68px;margin:0;flex:none">
-              <video class="thumb-video" src="${u.src}#t=0.1" muted preload="metadata"></video>
+              <video class="thumb-video" src="${mediaUrl(u.src)}#t=0.1" muted preload="metadata"></video>
             </div>
             <div><div class="title">${u.title}</div><div class="meta">${creatorName(u.creator)}</div><div class="small">${fmt(u.views)} views</div></div>
           </div>`).join("")}
@@ -629,7 +645,7 @@ function renderPlaylists(){
   return `<h2>Playlists</h2><p class="sub">Your collections</p>
     <div class="grid">
       ${["My Mix","Chill","Tech Deep-Dives"].map((p,i)=>`
-        <div class="card"><div class="video-thumb"><video class="thumb-video" src="${DATA.videos[i].src}#t=0.1" muted preload="metadata"></video></div>
+        <div class="card"><div class="video-thumb"><video class="thumb-video" src="${mediaUrl(DATA.videos[i].src)}#t=0.1" muted preload="metadata"></video></div>
         <div class="title">${p}</div><div class="meta">${(i+2)} videos</div></div>`).join("")}
     </div>`;
 }

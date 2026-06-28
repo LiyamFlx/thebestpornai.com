@@ -2,6 +2,22 @@
    SHARED SAMPLE DATA MODEL — Hybrid Video Platform
    Used by viewer / creator / manager apps.
    ============================================================ */
+
+/* Where video files are streamed from.
+   - ""  -> use the local ../media/ files (offline / Start.command)
+   - CDN -> stream from Bunny.net so the PUBLIC deploy can play them
+   Files on the CDN must be named vid-1.mp4 … vid-31.mp4 (+ sample-*.mp4). */
+const MEDIA_BASE = "https://streamhub-media.b-cdn.net";
+
+/* Rewrite a "../media/x.mp4" path to the CDN when MEDIA_BASE is set */
+function mediaUrl(src){
+  if(!src) return src;
+  if(/^https?:\/\//.test(src) || src.startsWith("blob:") || src.startsWith("data:")) return src;
+  if(!MEDIA_BASE) return src;                       // local mode, keep relative path
+  const file = src.split("/").pop();                // -> vid-1.mp4
+  return MEDIA_BASE.replace(/\/$/,"") + "/" + file;
+}
+
 const DATA = {
   user: { id:"u1", name:"Alex", handle:"@alex", avatar:"A", subscriptions:42, role:"viewer" },
 
@@ -102,7 +118,7 @@ function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?
 function playerEmbed(v){
   const yt = ytId(v.src);
   if(yt) return `<iframe class="player" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-  if(v.src) return `<video class="player" src="${v.src}" controls></video>`;
+  if(v.src) return `<video class="player" src="${mediaUrl(v.src)}" controls></video>`;
   return `<div class="player">VIDEO STREAM — ${v.title}</div>`;
 }
 
@@ -110,7 +126,7 @@ function videoCard(v, opts={}){
   const thumb = v.thumb
     ? `<img class="thumb-video" src="${v.thumb}" alt=""/>`
     : (v.src && !ytId(v.src)
-        ? `<video class="thumb-video" src="${v.src}#t=0.1" muted preload="metadata" playsinline></video>` : ``);
+        ? `<video class="thumb-video" src="${mediaUrl(v.src)}#t=0.1" muted preload="metadata" playsinline></video>` : ``);
   return `
     <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
       <div class="video-thumb ${v.type==='original'?'original':''}">

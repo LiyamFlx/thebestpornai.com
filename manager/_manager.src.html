@@ -127,7 +127,7 @@ function renderModeration(){
     <div class="tabs"><button class="active">Flagged Videos</button><button onclick="toast('Comments queue')">Comments</button>
       <button onclick="toast('Copyright queue')">Copyright</button><button onclick="toast('Appeals')">Appeals</button></div>
     ${flagged.map(v=>`<div class="panel" style="margin-bottom:10px;display:flex;gap:14px;align-items:center">
-      <div class="video-thumb" style="width:120px;height:68px;margin:0;flex:none"><video class="thumb-video" src="${v.src}#t=0.1" muted preload="metadata"></video></div>
+      <div class="video-thumb" style="width:120px;height:68px;margin:0;flex:none"><video class="thumb-video" src="${mediaUrl(v.src)}#t=0.1" muted preload="metadata"></video></div>
       <div style="flex:1"><b>${v.title}</b><div class="small">${creatorName(v.creator)} • AI flag: ${['NSFW','Spam','Copyright'][v.id%3]}</div></div>
       <div><button class="chip" style="color:var(--good);border-color:var(--good)" onclick="toast('Approved')">Approve</button>
            <button class="chip" style="color:var(--accent2);border-color:var(--accent2)" onclick="toast('Removed')">Remove</button>
