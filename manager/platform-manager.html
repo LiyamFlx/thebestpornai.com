@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StreamHub — Platform Manager</title>
+<style>:root{
+  --bg:#0A0A0A;
+  --surface:#141414;
+  --surface2:#1E1E1E;
+  --surface3:#262626;
+  --text:#FFFFFF;
+  --muted:#A0A0A0;
+  --accent:#E50914;
+  --accent2:#FF3B3B;
+  --good:#FF5252;
+  --warn:#FFB020;
+  --danger:#FF1A1A;
+  --border:rgba(255,255,255,0.10);
+  --shadow:0 20px 60px rgba(0,0,0,0.6);
+  --radius:14px;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+
+/* Layout */
+.app{display:flex;height:100vh}
+.sidebar{
+  width:240px;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  padding:16px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  overflow:auto;
+}
+.brand{
+  font-weight:800;
+  letter-spacing:0.5px;
+  font-size:15px;
+  color:var(--accent);
+  padding:6px 10px 14px;
+  display:flex;align-items:center;gap:8px;
+}
+.brand .dot{width:10px;height:10px;border-radius:3px;background:var(--accent)}
+.nav-label{
+  font-size:10px;text-transform:uppercase;letter-spacing:1px;
+  color:var(--muted);margin:12px 10px 4px;
+}
+.nav button{
+  width:100%;
+  background:transparent;border:none;
+  color:var(--muted);
+  padding:9px 10px;border-radius:8px;
+  text-align:left;cursor:pointer;
+  font-size:13px;transition:.15s;
+  display:flex;align-items:center;gap:9px;
+}
+.nav button:hover{background:var(--surface2);color:var(--text)}
+.nav button.active{background:rgba(229,9,20,0.15);color:#fff;font-weight:600}
+.nav button .ico{width:16px;text-align:center;opacity:.9}
+
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{
+  min-height:58px;display:flex;align-items:center;justify-content:space-between;
+  padding:10px 22px;border-bottom:1px solid var(--border);
+  background:rgba(20,20,20,0.7);backdrop-filter:blur(10px);
+  gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:20;
+}
+.topbar .left{display:flex;align-items:center;gap:14px;font-weight:600}
+.topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.search-input{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:8px 14px;border-radius:999px;font-size:13px;width:240px;outline:none;
+}
+.search-input:focus{border-color:var(--accent)}
+.icon-btn{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:7px 12px;border-radius:999px;cursor:pointer;font-size:12px;transition:.2s;
+}
+.icon-btn:hover{border-color:var(--accent)}
+.icon-btn.on{border-color:var(--accent2);background:rgba(255,59,59,0.15)}
+.avatar{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#7A0008);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;
+}
+
+.content{padding:24px;overflow:auto;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+h1{font-size:24px;margin:0 0 4px}
+h2{font-size:20px;margin:0 0 4px}
+h3{font-size:15px;margin:18px 0 10px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+.small{font-size:11px;color:var(--muted)}
+
+/* Cards / grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.row-scroll{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px}
+.row-scroll .card{min-width:220px}
+
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px;cursor:pointer;transition:all .22s ease;
+}
+.card:hover{transform:translateY(-4px);border-color:var(--accent)}
+.card:active{transform:scale(.985)}
+
+.video-thumb{
+  position:relative;height:124px;border-radius:10px;overflow:hidden;margin-bottom:10px;
+  background:linear-gradient(135deg,var(--accent),#7A0008);
+}
+.video-thumb.original{background:linear-gradient(135deg,#7A0008,#E50914)}
+.thumb-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.play-badge{
+  position:absolute;bottom:8px;right:8px;width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.55);border-radius:50%;font-size:11px;color:#fff;backdrop-filter:blur(4px);
+}
+.dur-badge{
+  position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.7);
+  padding:1px 6px;border-radius:6px;font-size:10px;
+}
+.title{font-size:13px;font-weight:600}
+.meta{font-size:11px;color:var(--muted);margin-top:2px}
+
+.card-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.chip{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  font-size:11px;padding:4px 9px;border-radius:999px;cursor:pointer;transition:.2s;
+}
+.chip:hover{border-color:var(--accent)}
+.chip.on{border-color:var(--accent2);color:var(--accent2)}
+.chip.score{cursor:default;color:var(--accent2);border-color:transparent;background:rgba(229,9,20,0.10)}
+
+/* Panels */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.panel h3{margin-top:0}
+.panel pre{
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:12px;overflow:auto;font-size:12px;color:var(--muted);line-height:1.7;
+}
+
+/* Metric cards */
+.metrics{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:8px}
+.metric{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;
+}
+.metric .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.metric .value{font-size:26px;font-weight:800;margin-top:6px}
+.metric .delta{font-size:11px;margin-top:4px}
+.metric .delta.up{color:var(--good)}
+.metric .delta.down{color:var(--muted)}
+
+/* Hero */
+.hero{
+  position:relative;height:300px;border-radius:18px;overflow:hidden;margin-bottom:24px;
+  display:flex;align-items:flex-end;
+  background:linear-gradient(135deg,#2A0307,#0A0A0A);
+  border:1px solid var(--border);
+}
+.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+.hero .hero-body{position:relative;padding:28px;max-width:560px;
+  background:linear-gradient(90deg,rgba(10,10,10,.9),transparent)}
+.hero h1{font-size:30px}
+.hero .tag{display:inline-block;background:var(--accent);color:#fff;font-size:10px;
+  padding:3px 8px;border-radius:6px;letter-spacing:1px;margin-bottom:10px}
+
+/* Buttons */
+.btn{
+  background:var(--accent);border:none;color:#fff;padding:10px 18px;border-radius:10px;
+  cursor:pointer;font-size:13px;font-weight:600;transition:.2s;margin-right:6px;
+}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text);font-weight:500}
+.btn.sm{padding:7px 12px;font-size:12px}
+
+/* Inputs */
+input.fld, textarea.fld, select.fld{
+  width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);border-radius:10px;outline:none;font-family:inherit;font-size:13px;
+}
+input.fld:focus,textarea.fld:focus,select.fld:focus{border-color:var(--accent)}
+textarea.fld{min-height:90px;resize:vertical}
+label.lbl{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px}
+
+/* Tables */
+table.data{width:100%;border-collapse:collapse;font-size:13px}
+table.data th{
+  text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;
+  letter-spacing:.5px;padding:10px 12px;border-bottom:1px solid var(--border);
+}
+table.data td{padding:11px 12px;border-bottom:1px solid var(--border)}
+table.data tr:hover td{background:var(--surface2)}
+.tag-pill{font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid var(--border)}
+.tag-pill.green{color:var(--good);border-color:rgba(255,82,82,.4)}
+.tag-pill.warn{color:var(--warn);border-color:rgba(255,176,32,.4)}
+.tag-pill.red{color:var(--accent2);border-color:rgba(255,59,59,.4)}
+.tag-pill.muted{color:var(--muted)}
+
+/* Bar chart (pure CSS) */
+.bars{display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:10px}
+.bars .bar{flex:1;background:linear-gradient(180deg,var(--accent),#7A0008);
+  border-radius:6px 6px 0 0;min-height:4px;position:relative;transition:.3s}
+.bars .bar:hover{filter:brightness(1.2)}
+.bars .bar span{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:10px;color:var(--muted)}
+.bars-x{display:flex;gap:8px;margin-top:6px}
+.bars-x div{flex:1;text-align:center;font-size:10px;color:var(--muted)}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.tabs button{
+  background:transparent;border:none;color:var(--muted);padding:10px 14px;cursor:pointer;
+  font-size:13px;border-bottom:2px solid transparent;
+}
+.tabs button.active{color:#fff;border-bottom-color:var(--accent)}
+
+/* Stepper */
+.steps{display:flex;gap:6px;margin:14px 0 18px;flex-wrap:wrap}
+.steps .dot{height:5px;flex:1;min-width:24px;border-radius:999px;background:var(--surface3)}
+.steps .dot.active{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+
+/* Watch layout */
+.watch{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+@media(max-width:900px){.watch{grid-template-columns:1fr}}
+.player{
+  width:100%;height:380px;border-radius:14px;background:#000;border:none;
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:#555;
+}
+video.player{object-fit:contain}
+iframe.player{display:block}
+
+/* Loader */
+.loader{width:100%;height:6px;background:var(--surface3);border-radius:999px;overflow:hidden;margin-top:10px}
+.loader::after{content:"";display:block;width:40%;height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));animation:load 1.2s infinite}
+@keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--accent);
+  padding:12px 16px;border-radius:12px;box-shadow:var(--shadow);font-size:13px;
+  opacity:0;transform:translateY(10px);transition:.3s;z-index:80;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* Badge */
+.badge{background:var(--accent);color:#fff;border-radius:999px;padding:1px 6px;font-size:10px;margin-left:4px}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;
+  justify-content:center;z-index:90}
+.modal-bg.show{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:22px;width:440px;max-width:92vw;box-shadow:var(--shadow)}
+
+/* Empty / skeleton */
+.empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:14px}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.filter-pill{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  font-size:12px;padding:6px 12px;border-radius:999px;cursor:pointer}
+.filter-pill.active{background:var(--accent);border-color:transparent}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="brand"><span class="dot"></span> MANAGER</div>
+    <div class="nav" id="nav">
+      <div class="nav-label">Operate</div>
+      <button data-page="overview" onclick="go('overview')"><span class="ico">▦</span> Overview</button>
+      <button data-page="users" onclick="go('users')"><span class="ico">👤</span> Users</button>
+      <button data-page="creators" onclick="go('creators')"><span class="ico">🎥</span> Creators</button>
+      <button data-page="videos" onclick="go('videos')"><span class="ico">🎞</span> Videos</button>
+      <button data-page="originals" onclick="go('originals')"><span class="ico">🎬</span> Originals</button>
+      <button data-page="moderation" onclick="go('moderation')"><span class="ico">🛡</span> Moderation</button>
+      <div class="nav-label">Curate</div>
+      <button data-page="categories" onclick="go('categories')"><span class="ico">▤</span> Categories</button>
+      <button data-page="recommendations" onclick="go('recommendations')"><span class="ico">✨</span> Recommendations</button>
+      <button data-page="homepage" onclick="go('homepage')"><span class="ico">▥</span> Homepage Builder</button>
+      <button data-page="live" onclick="go('live')"><span class="ico">🔴</span> Live Operations</button>
+      <div class="nav-label">Monetize</div>
+      <button data-page="revenue" onclick="go('revenue')"><span class="ico">💰</span> Revenue</button>
+      <button data-page="subscriptions" onclick="go('subscriptions')"><span class="ico">💳</span> Subscriptions</button>
+      <button data-page="ads" onclick="go('ads')"><span class="ico">📣</span> Ads</button>
+      <div class="nav-label">Intelligence</div>
+      <button data-page="reports" onclick="go('reports')"><span class="ico">📄</span> Reports</button>
+      <button data-page="analytics" onclick="go('analytics')"><span class="ico">📈</span> Analytics</button>
+      <button data-page="aimod" onclick="go('aimod')"><span class="ico">🤖</span> AI Moderation</button>
+      <div class="nav-label">Infrastructure</div>
+      <button data-page="storage" onclick="go('storage')"><span class="ico">🗄</span> Storage</button>
+      <button data-page="processing" onclick="go('processing')"><span class="ico">⚙</span> Processing</button>
+      <button data-page="notifications" onclick="go('notifications')"><span class="ico">🔔</span> Notifications</button>
+      <button data-page="flags" onclick="go('flags')"><span class="ico">🚩</span> Feature Flags</button>
+      <button data-page="integrations" onclick="go('integrations')"><span class="ico">🔌</span> Integrations</button>
+      <div class="nav-label">Governance</div>
+      <button data-page="security" onclick="go('security')"><span class="ico">🔒</span> Security</button>
+      <button data-page="roles" onclick="go('roles')"><span class="ico">🗝</span> Roles</button>
+      <button data-page="audit" onclick="go('audit')"><span class="ico">📜</span> Audit Log</button>
+      <button data-page="health" onclick="go('health')"><span class="ico">❤</span> System Health</button>
+      <button data-page="settings" onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="left">Platform Manager</div>
+      <div class="topbar-actions">
+        <span class="tag-pill green">● All systems operational</span>
+        <div class="avatar">OP</div>
+      </div>
+    </div>
+    <div class="content" id="view"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>/* ============================================================
+   SHARED SAMPLE DATA MODEL — Hybrid Video Platform
+   Used by viewer / creator / manager apps.
+   ============================================================ */
+const DATA = {
+  user: { id:"u1", name:"Alex", handle:"@alex", avatar:"A", subscriptions:42, role:"viewer" },
+
+  creators: [
+    { id:"c1", name:"House Originals", handle:"@house", subs:1240000, verified:true },
+    { id:"c2", name:"Maya Chen",       handle:"@maya",  subs:84000,   verified:true },
+    { id:"c3", name:"DevTalks",        handle:"@devtalks", subs:31000, verified:false },
+    { id:"c4", name:"Alex",            handle:"@alex",  subs:1240,     verified:false },
+  ],
+
+  categories: ["Originals","Technology","AI","Business","Gaming","Music","Lifestyle"],
+
+  videos: [
+    { id:1, title:"Spotlight Premiere", creator:"c1", type:"original", category:"Originals", views:22000, likes:2400, dislikes:30, comments:3, favorites:0, duration:"0:10", uploaded:"2026-06-01", src:"../media/exemple-1.mp4", status:"published", flagged:false },
+    { id:2, title:"Late Night Sessions", creator:"c2", type:"ugc", category:"Music", views:3400, likes:310, dislikes:8, comments:1, favorites:0, duration:"0:10", uploaded:"2026-06-12", src:"../media/exemple-2.mp4", status:"published", flagged:false },
+    { id:3, title:"Behind The Scenes", creator:"c3", type:"ugc", category:"Lifestyle", views:7800, likes:640, dislikes:12, comments:2, favorites:0, duration:"0:10", uploaded:"2026-06-09", src:"../media/exemple-3.mp4", status:"published", flagged:true },
+    { id:4, title:"Featured Exclusive", creator:"c1", type:"original", category:"Originals", views:18500, likes:1900, dislikes:20, comments:0, favorites:0, duration:"0:10", uploaded:"2026-05-28", src:"../media/exemple-4.mp4", status:"published", flagged:false },
+    { id:5, title:"Creator Spotlight", creator:"c2", type:"ugc", category:"Business", views:5200, likes:480, dislikes:5, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-18", src:"../media/exemple-5.mp4", status:"published", flagged:false },
+    { id:6, title:"Fan Favorites", creator:"c4", type:"ugc", category:"Gaming", views:2100, likes:190, dislikes:3, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-20", src:"../media/exemple-6.mp4", status:"published", flagged:false },
+    { id:7, title:"Headliner Feature", creator:"c1", type:"original", category:"Originals", views:14300, likes:1500, dislikes:18, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-03", src:"../media/exemple-7.mp4", status:"published", flagged:false },
+    { id:8, title:"Trending Now", creator:"c3", type:"ugc", category:"Technology", views:9100, likes:720, dislikes:9, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-22", src:"../media/exemple-8.mp4", status:"review", flagged:true },
+    { id:9, title:"Community Picks", creator:"c4", type:"ugc", category:"AI", views:4600, likes:410, dislikes:6, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-24", src:"../media/exemple-9.mp4", status:"published", flagged:false },
+  ],
+
+  comments: [
+    { id:"m1", video:1, user:"Maya Chen",  text:"This is incredible quality!", time:"2h" },
+    { id:"m2", video:1, user:"DevTalks",   text:"Loved the pacing on this one.", time:"5h" },
+    { id:"m3", video:1, user:"Alex",       text:"House Originals never miss.", time:"1d" },
+    { id:"m4", video:2, user:"Alex",       text:"Great vibe 🎵", time:"3h" },
+    { id:"m5", video:3, user:"Maya Chen",  text:"spam link here buy now", time:"1h", flagged:true },
+  ],
+
+  revenue: { total:18420, ads:7200, premium:6100, subscriptions:3400, tips:920, affiliate:800,
+    history:[ {m:"Jan",v:9200},{m:"Feb",v:10100},{m:"Mar",v:11800},{m:"Apr",v:13400},{m:"May",v:15600},{m:"Jun",v:18420} ] },
+
+  analytics: {
+    views7d:[4200,5100,4800,6300,7100,6800,8200],
+    retention:[100,82,71,63,55,49,44,41,38,36],
+    countries:[ {c:"United States",p:38},{c:"India",p:14},{c:"Germany",p:9},{c:"Brazil",p:7},{c:"France",p:6},{c:"Other",p:26} ],
+    devices:[ {c:"Mobile",p:58},{c:"Desktop",p:31},{c:"TV",p:8},{c:"Tablet",p:3} ],
+    traffic:[ {c:"Recommendations",p:44},{c:"Search",p:22},{c:"External",p:16},{c:"Direct",p:11},{c:"Channels",p:7} ],
+  },
+
+  system: {
+    dau:84200, mau:1240000, uptime:"99.98%", uploadsToday:312,
+    moderationQueue:14, storageTB:48.2, processingQueue:6, errors:3,
+    bandwidthTB:128, cdnCost:4120,
+  },
+
+  users: [
+    { id:"u1", name:"Alex", email:"alex@mail.com", role:"creator", status:"active", subs:"Premium", joined:"2025-11-02" },
+    { id:"u2", name:"Maya Chen", email:"maya@mail.com", role:"creator", status:"active", subs:"Premium", joined:"2025-09-14" },
+    { id:"u3", name:"Sam Rivera", email:"sam@mail.com", role:"viewer", status:"suspended", subs:"Free", joined:"2026-01-20" },
+    { id:"u4", name:"Jordan Lee", email:"jordan@mail.com", role:"viewer", status:"active", subs:"Premium", joined:"2026-03-05" },
+    { id:"u5", name:"Casey Kim", email:"casey@mail.com", role:"viewer", status:"banned", subs:"Free", joined:"2026-02-11" },
+  ],
+
+  flags: [
+    { key:"new_homepage", desc:"New homepage layout A/B test", on:true, rollout:50 },
+    { key:"ai_thumbnails", desc:"AI thumbnail generation", on:true, rollout:100 },
+    { key:"live_streaming", desc:"Creator live streaming", on:false, rollout:0 },
+    { key:"watch_parties", desc:"Synchronized watch parties", on:false, rollout:10 },
+    { key:"short_form_feed", desc:"Vertical short-form feed", on:true, rollout:25 },
+  ],
+
+  moderation: {
+    classes:[ {c:"NSFW",n:18},{c:"Violence",n:4},{c:"Spam",n:23},{c:"Copyright",n:7},{c:"Hate Speech",n:2},{c:"Deepfake",n:1},{c:"Fake Engagement",n:11} ],
+  },
+};
+
+/* ---------- shared helpers ---------- */
+function creatorName(id){ const c = DATA.creators.find(x=>x.id===id); return c?c.name:"Unknown"; }
+function fmt(n){ return n>=1000000 ? (n/1000000).toFixed(1)+"M" : n>=1000 ? (n/1000).toFixed(1)+"K" : ""+n; }
+function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m?m[1]:null; }
+
+function playerEmbed(v){
+  const yt = ytId(v.src);
+  if(yt) return `<iframe class="player" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  if(v.src) return `<video class="player" src="${v.src}" controls></video>`;
+  return `<div class="player">VIDEO STREAM — ${v.title}</div>`;
+}
+
+function videoCard(v, opts={}){
+  const thumb = (!v.thumb && v.src && !ytId(v.src))
+    ? `<video class="thumb-video" src="${v.src}#t=0.1" muted preload="metadata" playsinline></video>` : ``;
+  return `
+    <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
+      <div class="video-thumb ${v.type==='original'?'original':''}">
+        ${thumb}
+        ${v.duration?`<span class="dur-badge">${v.duration}</span>`:``}
+        ${v.src?`<span class="play-badge">▶</span>`:``}
+      </div>
+      <div class="title">${v.title}</div>
+      <div class="meta">${creatorName(v.creator)} • ${fmt(v.views)} views</div>
+      ${opts.extra ? opts.extra(v) : ``}
+    </div>`;
+}
+
+/* toast (expects a #toast element) */
+let _toastTimer;
+function toast(msg){
+  const t=document.getElementById("toast"); if(!t) return;
+  t.textContent=msg; t.classList.add("show");
+  clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>t.classList.remove("show"),2400);
+}
+
+/* simple CSS bar chart */
+function barChart(values, labels){
+  const max = Math.max(...values,1);
+  return `
+    <div class="bars">${values.map(v=>`<div class="bar" style="height:${Math.round(v/max*100)}%"></div>`).join("")}</div>
+    <div class="bars-x">${(labels||values.map((_,i)=>i+1)).map(l=>`<div>${l}</div>`).join("")}</div>`;
+}
+/* horizontal distribution rows */
+function distRows(arr){
+  return arr.map(d=>`
+    <div style="margin:10px 0">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span>${d.c}</span><span class="small">${d.p}%</span>
+      </div>
+      <div style="height:6px;background:var(--surface3);border-radius:999px;overflow:hidden">
+        <div style="height:100%;width:${d.p}%;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div>
+      </div>
+    </div>`).join("");
+}
+</script>
+<script>
+/* ===================== PLATFORM MANAGER ===================== */
+let mstate = { page:"overview" };
+function go(p){ mstate.page=p; render(); }
+function metric(label,value,delta,up){ return `<div class="metric"><div class="label">${label}</div><div class="value">${value}</div>${delta?`<div class="delta ${up?'up':'down'}">${delta}</div>`:''}</div>`; }
+
+function renderOverview(){
+  const s=DATA.system;
+  return `<h1>Overview</h1><p class="sub">Platform operating system — real-time state</p>
+    <div class="metrics">
+      ${metric("DAU",fmt(s.dau),"▲ 3.2%",true)}
+      ${metric("MAU",fmt(s.mau),"▲ 1.8%",true)}
+      ${metric("Revenue (mo)","$184K","▲ 12%",true)}
+      ${metric("Watch Time","2.4M hrs","▲ 6%",true)}
+      ${metric("Uploads Today",s.uploadsToday,"",true)}
+      ${metric("Moderation Queue",s.moderationQueue,"needs review")}
+      ${metric("Storage",s.storageTB+" TB","")}
+      ${metric("Processing Queue",s.processingQueue,"")}
+      ${metric("Errors (24h)",s.errors,"")}
+      ${metric("System Status","Healthy","99.98% uptime",true)}
+    </div>
+    <div class="grid" style="grid-template-columns:2fr 1fr;margin-top:18px">
+      <div class="panel"><h3 style="margin-top:0">Daily Active Users</h3>${barChart([72,75,79,81,80,83,84],["M","T","W","T","F","S","S"])}</div>
+      <div class="panel"><h3 style="margin-top:0">Moderation Queue</h3>${distRows(DATA.moderation.classes.map(c=>({c:c.c,p:Math.min(c.n*4,100)})))}</div>
+    </div>`;
+}
+
+function renderUsers(){
+  return `<h1>Users</h1><p class="sub">${DATA.users.length} accounts</p>
+    <input class="search-input" style="width:260px;margin-bottom:14px" placeholder="Search users…"/>
+    <div class="panel" style="padding:0"><table class="data">
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Plan</th><th>Joined</th><th>Actions</th></tr></thead><tbody>
+      ${DATA.users.map(u=>`<tr>
+        <td><b>${u.name}</b></td><td class="small">${u.email}</td><td>${u.role}</td>
+        <td><span class="tag-pill ${u.status==='active'?'green':u.status==='suspended'?'warn':'red'}">${u.status}</span></td>
+        <td>${u.subs}</td><td class="small">${u.joined}</td>
+        <td><button class="chip" onclick="toast('Warned ${u.name}')">Warn</button>
+            <button class="chip" onclick="toast('Suspended ${u.name}')">Suspend</button>
+            <button class="chip" style="color:var(--accent2);border-color:var(--accent2)" onclick="toast('Banned ${u.name}')">Ban</button></td></tr>`).join("")}
+    </tbody></table></div>`;
+}
+
+function renderCreators(){
+  return `<h1>Creators</h1><p class="sub">${DATA.creators.length} channels</p>
+    <div class="grid">${DATA.creators.map(c=>`<div class="card">
+      <div style="display:flex;align-items:center;gap:10px"><div class="avatar">${c.name[0]}</div>
+      <div><div class="title">${c.name} ${c.verified?'✔️':''}</div><div class="meta">${fmt(c.subs)} subscribers</div></div></div>
+      <div class="card-actions"><span class="chip" onclick="toast('Viewing ${c.name}')">View</span><span class="chip" onclick="toast('Featured ${c.name}')">Feature</span></div>
+    </div>`).join("")}</div>`;
+}
+
+function renderVideos(){
+  return `<h1>Videos</h1><p class="sub">Full catalog · ${DATA.videos.length} videos</p>
+    <div class="panel" style="padding:0"><table class="data">
+      <thead><tr><th>Title</th><th>Creator</th><th>Category</th><th>Views</th><th>Status</th><th>Flag</th></tr></thead><tbody>
+      ${DATA.videos.map(v=>`<tr>
+        <td><b>${v.title}</b></td><td>${creatorName(v.creator)}</td><td>${v.category}</td><td>${fmt(v.views)}</td>
+        <td><span class="tag-pill ${v.status==='published'?'green':'warn'}">${v.status}</span></td>
+        <td>${v.flagged?'<span class="tag-pill red">⚑ flagged</span>':'<span class="small">—</span>'}</td></tr>`).join("")}
+    </tbody></table></div>`;
+}
+
+function renderModeration(){
+  const flagged=DATA.videos.filter(v=>v.flagged);
+  return `<h1>Content Moderation</h1><p class="sub">${flagged.length} items in queue</p>
+    <div class="tabs"><button class="active">Flagged Videos</button><button onclick="toast('Comments queue')">Comments</button>
+      <button onclick="toast('Copyright queue')">Copyright</button><button onclick="toast('Appeals')">Appeals</button></div>
+    ${flagged.map(v=>`<div class="panel" style="margin-bottom:10px;display:flex;gap:14px;align-items:center">
+      <div class="video-thumb" style="width:120px;height:68px;margin:0;flex:none"><video class="thumb-video" src="${v.src}#t=0.1" muted preload="metadata"></video></div>
+      <div style="flex:1"><b>${v.title}</b><div class="small">${creatorName(v.creator)} • AI flag: ${['NSFW','Spam','Copyright'][v.id%3]}</div></div>
+      <div><button class="chip" style="color:var(--good);border-color:var(--good)" onclick="toast('Approved')">Approve</button>
+           <button class="chip" style="color:var(--accent2);border-color:var(--accent2)" onclick="toast('Removed')">Remove</button>
+           <button class="chip" onclick="toast('Escalated')">Escalate</button></div>
+    </div>`).join("")}`;
+}
+
+function renderHomepage(){
+  const blocks=["Hero","Continue Watching","Trending","Categories","Recommendations","Sponsored","Originals"];
+  return `<h1>Homepage Builder</h1><p class="sub">Arrange the viewer home layout (drag to reorder — simulated)</p>
+    <div style="max-width:560px">${blocks.map((b,i)=>`<div class="panel" style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;cursor:grab">
+      <span>⠿ <b>${b}</b></span><div><button class="chip" onclick="toast('Moved ${b} up')">↑</button><button class="chip" onclick="toast('Moved ${b} down')">↓</button><button class="chip" onclick="toast('Hidden ${b}')">Hide</button></div>
+    </div>`).join("")}</div><br/><button class="btn" onclick="toast('Homepage layout published')">Publish Layout</button>`;
+}
+
+function renderRecommendations(){
+  return `<h1>Recommendation Engine</h1><p class="sub">Tune ranking signals</p>
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <div class="panel"><h3 style="margin-top:0">Ranking Signal Weights</h3>
+        ${[["Watch time",70],["Likes",55],["Freshness",40],["Click-through",60],["Subscriptions",45]].map(([k,v])=>`
+          <label class="lbl">${k} — ${v}%</label><input type="range" min="0" max="100" value="${v}" style="width:100%" oninput="this.previousElementSibling.textContent='${k} — '+this.value+'%'"/>`).join("")}
+        <br/><button class="btn sm" onclick="toast('Weights saved')">Save</button></div>
+      <div class="panel"><h3 style="margin-top:0">A/B Tests</h3>
+        <table class="data"><thead><tr><th>Test</th><th>Split</th><th>Status</th></tr></thead><tbody>
+        <tr><td>New ranking v2</td><td>50/50</td><td><span class="tag-pill green">Running</span></td></tr>
+        <tr><td>Cold-start boost</td><td>20/80</td><td><span class="tag-pill warn">Paused</span></td></tr>
+        </tbody></table></div>
+    </div>`;
+}
+
+function renderAImod(){
+  return `<h1>AI Moderation</h1><p class="sub">Automated detection across content</p>
+    <div class="metrics">${DATA.moderation.classes.map(c=>metric(c.c,c.n,"flags")).join("")}</div>
+    <div class="panel" style="margin-top:16px"><h3 style="margin-top:0">Detection Volume</h3>
+      ${distRows(DATA.moderation.classes.map(c=>({c:c.c,p:Math.min(c.n*4,100)})))}</div>`;
+}
+
+function renderStorage(){
+  const s=DATA.system;
+  return `<h1>Storage</h1><p class="sub">Infrastructure usage & cost</p>
+    <div class="metrics">
+      ${metric("Total Storage",s.storageTB+" TB")}${metric("Bandwidth (mo)",s.bandwidthTB+" TB")}
+      ${metric("CDN Cost (mo)","$"+s.cdnCost.toLocaleString())}${metric("Transcoding Jobs",s.processingQueue+" active")}
+    </div>
+    <div class="panel" style="margin-top:8px"><h3 style="margin-top:0">Storage Breakdown</h3>
+      ${distRows([{c:"Videos",p:74},{c:"Images",p:12},{c:"Cache",p:9},{c:"Other",p:5}])}</div>`;
+}
+
+function renderFlags(){
+  return `<h1>Feature Flags</h1><p class="sub">Roll out features safely</p>
+    <div class="panel" style="padding:0"><table class="data">
+      <thead><tr><th>Flag</th><th>Description</th><th>Rollout</th><th>State</th><th></th></tr></thead><tbody>
+      ${DATA.flags.map(f=>`<tr><td><code>${f.key}</code></td><td class="small">${f.desc}</td><td>${f.rollout}%</td>
+        <td><span class="tag-pill ${f.on?'green':'muted'}">${f.on?'ON':'OFF'}</span></td>
+        <td><button class="chip" onclick="toast('Toggled ${f.key}')">Toggle</button></td></tr>`).join("")}
+    </tbody></table></div>`;
+}
+
+function renderAudit(){
+  const logs=[["op@hub","Banned user Casey Kim","2m ago"],["mod-ai","Auto-removed spam comment","18m ago"],["op@hub","Featured House Originals","1h ago"],["system","Scaled processing workers","3h ago"],["op@hub","Updated ranking weights","5h ago"]];
+  return `<h1>Audit Log</h1><p class="sub">Immutable record of platform actions</p>
+    <div class="panel" style="padding:0"><table class="data"><thead><tr><th>Actor</th><th>Action</th><th>Time</th></tr></thead><tbody>
+    ${logs.map(l=>`<tr><td><code>${l[0]}</code></td><td>${l[1]}</td><td class="small">${l[2]}</td></tr>`).join("")}</tbody></table></div>`;
+}
+
+function renderHealth(){
+  const svc=[["API Gateway","operational"],["Auth Service","operational"],["Firestore","operational"],["Video Pipeline (Mux)","operational"],["CDN","degraded"],["Search","operational"]];
+  return `<h1>System Health</h1><p class="sub">Service status</p>
+    <div class="grid">${svc.map(([n,st])=>`<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center">
+      <b>${n}</b><span class="tag-pill ${st==='operational'?'green':'warn'}">${st}</span></div></div>`).join("")}</div>
+    <div class="panel" style="margin-top:16px"><h3 style="margin-top:0">Request Latency (ms)</h3>${barChart([42,38,45,51,47,40,39])}</div>`;
+}
+
+function simplePage(title,sub,items){
+  return `<h1>${title}</h1><p class="sub">${sub}</p><div class="grid">${items.map(i=>`<div class="card" onclick="toast('${i} (simulated)')"><div class="title">${i}</div></div>`).join("")}</div>`;
+}
+
+function render(){
+  const v=document.getElementById("view"); const p=mstate.page;
+  const map={overview:renderOverview,users:renderUsers,creators:renderCreators,videos:renderVideos,
+    moderation:renderModeration,homepage:renderHomepage,recommendations:renderRecommendations,
+    aimod:renderAImod,storage:renderStorage,flags:renderFlags,audit:renderAudit,health:renderHealth};
+  if(map[p]) v.innerHTML=map[p]();
+  else if(p==="originals")     v.innerHTML=renderVideos();
+  else if(p==="categories")    v.innerHTML=simplePage("Categories","Manage content taxonomy",DATA.categories.concat(["+ Add Category"]));
+  else if(p==="live")          v.innerHTML=simplePage("Live Operations","Monitor active streams",["Active Streams","Stream Health","Incidents","Capacity"]);
+  else if(p==="revenue")       v.innerHTML=simplePage("Revenue","Platform-wide finance",["Gross Revenue","Creator Payouts","Platform Margin","Forecasts"]);
+  else if(p==="subscriptions") v.innerHTML=simplePage("Subscriptions","Plan management",["Plans","Churn","Trials","Coupons","Billing"]);
+  else if(p==="ads")           v.innerHTML=simplePage("Ads","Advertising operations",["Campaigns","Inventory","Fill Rate","Advertisers","Pricing"]);
+  else if(p==="reports")       v.innerHTML=simplePage("Reports","Scheduled exports",["Daily Summary","Revenue Report","Moderation Report","Growth Report"]);
+  else if(p==="analytics")     v.innerHTML=simplePage("Analytics","Deep platform metrics",["Engagement","Funnels","Cohorts","Retention","Geo"]);
+  else if(p==="processing")    v.innerHTML=simplePage("Processing","Transcoding pipeline",["Queue","Workers","Failed Jobs","Renditions","Throughput"]);
+  else if(p==="notifications") v.innerHTML=simplePage("Notifications","Messaging system",["Push","Email","In-App","Templates","Delivery"]);
+  else if(p==="integrations")  v.innerHTML=simplePage("Integrations","Connected services",["Stripe","Mux","Firebase","Segment","Slack","PagerDuty"]);
+  else if(p==="security")      v.innerHTML=simplePage("Security","Platform protection",["Access Control","API Tokens","Rate Limits","Threats","Compliance"]);
+  else if(p==="roles")         v.innerHTML=simplePage("Roles","Team permissions",["Admin","Moderator","Support","Analyst","Read-only"]);
+  else if(p==="settings")      v.innerHTML=simplePage("Settings","Platform configuration",["General","Branding","Regions","Limits","Danger Zone"]);
+  else v.innerHTML=renderOverview();
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
+}
+render();
+</script>
+</body>
+</html>

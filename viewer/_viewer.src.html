@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StreamHub — Watch</title>
+<style>/*__SHARED_CSS__*/</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="brand"><span class="dot"></span> STREAMHUB</div>
+    <div class="nav" id="nav">
+      <button data-page="home"        onclick="go('home')"><span class="ico">🏠</span> Home</button>
+      <button data-page="explore"     onclick="go('explore')"><span class="ico">🧭</span> Explore</button>
+      <button data-page="categories"  onclick="go('categories')"><span class="ico">▦</span> Categories</button>
+      <button data-page="trending"    onclick="go('trending')"><span class="ico">🔥</span> Trending</button>
+      <button data-page="subscriptions" onclick="go('subscriptions')"><span class="ico">📺</span> Subscriptions</button>
+      <button data-page="later"       onclick="go('later')"><span class="ico">🕒</span> Watch Later</button>
+      <button data-page="favorites"   onclick="go('favorites')"><span class="ico">★</span> Favorites</button>
+      <button data-page="history"     onclick="go('history')"><span class="ico">↺</span> History</button>
+      <button data-page="downloads"   onclick="go('downloads')"><span class="ico">⤓</span> Downloads</button>
+      <button data-page="playlists"   onclick="go('playlists')"><span class="ico">≣</span> Playlists</button>
+      <button data-page="live"        onclick="go('live')"><span class="ico">🔴</span> Live</button>
+      <button data-page="originals"   onclick="go('originals')"><span class="ico">🎬</span> Originals</button>
+      <button data-page="settings"    onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
+    </div>
+  </div>
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="left">StreamHub</div>
+      <div class="topbar-actions">
+        <input class="search-input" id="searchInput" placeholder="Search videos, creators, playlists…" oninput="doSearch()"/>
+        <button class="icon-btn" onclick="go('later')">Watch Later</button>
+        <div class="avatar" onclick="go('profile')" title="Profile">A</div>
+      </div>
+    </div>
+    <div class="content" id="view"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>/*__SHARED_JS__*/</script>
+<script>
+/* ===================== VIEWER APP ===================== */
+let vstate = {
+  page:"home", current:null,
+  favorites:[], later:[], history:[], downloads:[],
+  subs:["c1","c2"],
+};
+
+function go(p){ vstate.page=p; render(); }
+function openVideo(id){
+  vstate.current = DATA.videos.find(v=>v.id===id);
+  if(!vstate.history.includes(id)) vstate.history.unshift(id);
+  vstate.page="watch"; render();
+}
+function toggleFav(id){
+  vstate.favorites.includes(id) ? vstate.favorites=vstate.favorites.filter(x=>x!==id) : vstate.favorites.push(id);
+  toast(vstate.favorites.includes(id)?"Added to Favorites":"Removed from Favorites"); render();
+}
+function toggleLater(id){
+  vstate.later.includes(id) ? vstate.later=vstate.later.filter(x=>x!==id) : vstate.later.push(id);
+  toast(vstate.later.includes(id)?"Saved to Watch Later":"Removed"); render();
+}
+function download(id){ if(!vstate.downloads.includes(id))vstate.downloads.push(id); toast("Download started (simulated)"); render(); }
+function likeVideo(id){ const v=DATA.videos.find(x=>x.id===id); v.likes++; toast("Liked"); render(); }
+function dislikeVideo(id){ const v=DATA.videos.find(x=>x.id===id); v.dislikes++; toast("Disliked"); render(); }
+function subscribe(cid){ vstate.subs.includes(cid)?vstate.subs=vstate.subs.filter(x=>x!==cid):vstate.subs.push(cid); render(); }
+function addComment(id){
+  const box=document.getElementById("cbox"); const t=(box.value||"").trim(); if(!t)return;
+  DATA.comments.push({id:"m"+Date.now(),video:id,user:DATA.user.name,text:t,time:"now"});
+  render();
+}
+
+const trending = ()=> [...DATA.videos].sort((a,b)=> (b.likes*1.2+b.views*0.01) - (a.likes*1.2+a.views*0.01));
+const byCat = (c)=> DATA.videos.filter(v=>v.category===c);
+
+function rowSection(title, list){
+  if(!list.length) return "";
+  return `<h3>${title}</h3><div class="row-scroll">${list.map(v=>videoCard(v)).join("")}</div>`;
+}
+
+function renderHome(){
+  const hero = DATA.videos.find(v=>v.type==="original");
+  return `
+    <div class="hero">
+      <video src="${hero.src}" muted autoplay loop playsinline></video>
+      <div class="hero-body">
+        <span class="tag">HOUSE ORIGINAL</span>
+        <h1>${hero.title}</h1>
+        <p class="sub">${creatorName(hero.creator)} • ${fmt(hero.views)} views</p>
+        <button class="btn" onclick="openVideo(${hero.id})">▶ Play</button>
+        <button class="btn ghost" onclick="toggleLater(${hero.id})">+ Watch Later</button>
+      </div>
+    </div>
+    ${vstate.history.length ? rowSection("Continue Watching", vstate.history.map(id=>DATA.videos.find(v=>v.id===id)).filter(Boolean)) : ""}
+    ${rowSection("Recommended For You", trending().slice(0,6))}
+    ${rowSection("Trending Now", trending().slice(0,6))}
+    ${rowSection("House Originals", DATA.videos.filter(v=>v.type==="original"))}
+    ${rowSection("Technology", byCat("Technology"))}
+    ${rowSection("AI", byCat("AI"))}
+    ${rowSection("Business", byCat("Business"))}
+    ${rowSection("Gaming", byCat("Gaming"))}
+    ${rowSection("Music", byCat("Music"))}
+    ${rowSection("Recently Uploaded", [...DATA.videos].sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0,6))}
+  `;
+}
+
+function renderWatch(){
+  const v = vstate.current || DATA.videos[0];
+  const c = DATA.creators.find(x=>x.id===v.creator);
+  const subbed = vstate.subs.includes(v.creator);
+  const cms = DATA.comments.filter(m=>m.video===v.id);
+  return `
+    <div class="watch">
+      <div>
+        ${playerEmbed(v)}
+        <h2 style="margin-top:14px">${v.title}</h2>
+        <p class="sub">${fmt(v.views)} views • ${v.uploaded}</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+          <button class="chip" onclick="likeVideo(${v.id})">👍 ${fmt(v.likes)}</button>
+          <button class="chip" onclick="dislikeVideo(${v.id})">👎 ${v.dislikes}</button>
+          <button class="chip ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})">★ Favorite</button>
+          <button class="chip" onclick="toast('Share link copied (simulated)')">↗ Share</button>
+          <button class="chip ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})">+ Save</button>
+          <button class="chip" onclick="download(${v.id})">⤓ Download</button>
+        </div>
+        <div class="panel" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="avatar">${c.name[0]}</div>
+            <div><b>${c.name}</b> ${c.verified?'✔️':''}<div class="small">${fmt(c.subs)} subscribers</div></div>
+          </div>
+          <button class="btn ${subbed?'ghost':''}" onclick="subscribe('${c.id}')">${subbed?'Subscribed':'Subscribe'}</button>
+        </div>
+        <div class="panel" style="margin-bottom:14px">
+          <p class="small">Description</p>
+          <p style="font-size:13px">A premium ${v.category} feature from ${c.name}. Watch in full quality with chapters and transcript support.</p>
+        </div>
+        <div class="tabs">
+          <button class="active">Comments (${cms.length})</button>
+          <button onclick="toast('Transcript: auto-generated (simulated)')">Transcript</button>
+          <button onclick="toast('Chapters: 0:00 Intro · 0:05 Main (simulated)')">Chapters</button>
+        </div>
+        <div class="panel" style="margin-bottom:10px">
+          ${cms.length? cms.map(m=>`<div style="padding:6px 0"><b>${m.user}</b> <span class="small">${m.time}</span><br><span style="font-size:13px">${m.text}</span></div>`).join("") : `<div class="small">No comments yet.</div>`}
+        </div>
+        <input class="fld" id="cbox" placeholder="Add a comment…" onkeydown="if(event.key==='Enter')addComment(${v.id})"/>
+        <br/><button class="btn sm" onclick="addComment(${v.id})">Comment</button>
+      </div>
+      <div>
+        <h3 style="margin-top:0">Suggested Videos</h3>
+        ${trending().filter(u=>u.id!==v.id).slice(0,6).map(u=>`
+          <div class="card" style="display:flex;gap:10px;margin-bottom:10px;padding:8px" onclick="openVideo(${u.id})">
+            <div class="video-thumb ${u.type==='original'?'original':''}" style="width:120px;height:68px;margin:0;flex:none">
+              <video class="thumb-video" src="${u.src}#t=0.1" muted preload="metadata"></video>
+            </div>
+            <div><div class="title">${u.title}</div><div class="meta">${creatorName(u.creator)}</div><div class="small">${fmt(u.views)} views</div></div>
+          </div>`).join("")}
+      </div>
+    </div>`;
+}
+
+function listPage(title, list, emptyMsg){
+  return `<h2>${title}</h2><p class="sub">${list.length} item${list.length!==1?'s':''}</p>
+    ${list.length?`<div class="grid">${list.map(v=>videoCard(v)).join("")}</div>`:`<div class="empty">${emptyMsg}</div>`}`;
+}
+
+function renderCategories(){
+  return `<h2>Categories</h2><p class="sub">Browse by topic</p>
+    ${DATA.categories.map(c=>`<h3>${c}</h3><div class="row-scroll">${byCat(c).map(v=>videoCard(v)).join("")||'<div class="small">No videos yet.</div>'}</div>`).join("")}`;
+}
+function renderSubs(){
+  const list = DATA.videos.filter(v=>vstate.subs.includes(v.creator));
+  return `<h2>Subscriptions</h2><p class="sub">Latest from creators you follow</p>
+    <div class="pill-row">${DATA.creators.filter(c=>vstate.subs.includes(c.id)).map(c=>`<span class="filter-pill active">${c.name}</span>`).join("")}</div>
+    <div class="grid">${list.map(v=>videoCard(v)).join("")}</div>`;
+}
+function renderProfile(){
+  return `<h2>Your Profile</h2>
+    <div class="panel" style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+      <div class="avatar" style="width:60px;height:60px;font-size:24px">A</div>
+      <div><h3 style="margin:0">${DATA.user.name}</h3><div class="small">${DATA.user.handle} • ${vstate.subs.length} subscriptions</div></div>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="label">Favorites</div><div class="value">${vstate.favorites.length}</div></div>
+      <div class="metric"><div class="label">Watch Later</div><div class="value">${vstate.later.length}</div></div>
+      <div class="metric"><div class="label">History</div><div class="value">${vstate.history.length}</div></div>
+      <div class="metric"><div class="label">Downloads</div><div class="value">${vstate.downloads.length}</div></div>
+    </div>
+    <h3>Achievements</h3>
+    <div class="pill-row"><span class="filter-pill">🏆 Early Adopter</span><span class="filter-pill">🔥 7-Day Streak</span><span class="filter-pill">⭐ Super Fan</span></div>`;
+}
+function renderSettings(){
+  return `<h2>Settings</h2>
+    <div class="panel" style="max-width:520px">
+      <label class="lbl">Playback Quality</label>
+      <select class="fld"><option>Auto</option><option>1080p</option><option>720p</option><option>480p</option></select>
+      <label class="lbl">Autoplay next video</label>
+      <select class="fld"><option>On</option><option>Off</option></select>
+      <label class="lbl">Language</label>
+      <select class="fld"><option>English</option><option>Español</option><option>Français</option></select>
+      <label class="lbl">Theme</label>
+      <select class="fld"><option>Dark (Red)</option></select>
+      <br/><br/><button class="btn" onclick="toast('Settings saved')">Save Changes</button>
+    </div>`;
+}
+function renderLive(){
+  return `<h2>Live</h2><p class="sub">Streams happening now</p>
+    <div class="grid">${DATA.videos.slice(0,3).map(v=>videoCard(v,{extra:()=>`<div class="card-actions"><span class="chip" style="color:var(--accent2);border-color:var(--accent2)">● LIVE</span><span class="chip">${fmt(v.views)} watching</span></div>`})).join("")}</div>`;
+}
+function renderPlaylists(){
+  return `<h2>Playlists</h2><p class="sub">Your collections</p>
+    <div class="grid">
+      ${["My Mix","Chill","Tech Deep-Dives"].map((p,i)=>`
+        <div class="card"><div class="video-thumb"><video class="thumb-video" src="${DATA.videos[i].src}#t=0.1" muted preload="metadata"></video></div>
+        <div class="title">${p}</div><div class="meta">${(i+2)} videos</div></div>`).join("")}
+    </div>`;
+}
+
+function doSearch(){
+  const q=(document.getElementById("searchInput").value||"").toLowerCase();
+  if(!q){ render(); return; }
+  const vids = DATA.videos.filter(v=>v.title.toLowerCase().includes(q));
+  const crs  = DATA.creators.filter(c=>c.name.toLowerCase().includes(q));
+  document.getElementById("view").innerHTML = `
+    <h2>Search: "${q}"</h2>
+    <div class="pill-row"><span class="filter-pill active">All</span><span class="filter-pill">Videos</span><span class="filter-pill">Creators</span><span class="filter-pill">Playlists</span></div>
+    <h3>Creators</h3>${crs.length?`<div class="pill-row">${crs.map(c=>`<span class="filter-pill">${c.name} ${c.verified?'✔️':''}</span>`).join("")}</div>`:'<div class="small">None</div>'}
+    <h3>Videos</h3>${vids.length?`<div class="grid">${vids.map(v=>videoCard(v)).join("")}</div>`:'<div class="empty">No videos found.</div>'}`;
+}
+
+function render(){
+  const v=document.getElementById("view"); const p=vstate.page;
+  const map={
+    home:renderHome, watch:renderWatch, categories:renderCategories, subscriptions:renderSubs,
+    profile:renderProfile, settings:renderSettings, live:renderLive, playlists:renderPlaylists,
+  };
+  if(map[p]) v.innerHTML = map[p]();
+  else if(p==="explore")   v.innerHTML = listPage("Explore", trending(), "");
+  else if(p==="trending")  v.innerHTML = listPage("Trending", trending(), "");
+  else if(p==="originals") v.innerHTML = listPage("House Originals", DATA.videos.filter(x=>x.type==="original"), "");
+  else if(p==="favorites") v.innerHTML = listPage("Favorites", DATA.videos.filter(x=>vstate.favorites.includes(x.id)), "Tap ★ on any video to save it here.");
+  else if(p==="later")     v.innerHTML = listPage("Watch Later", DATA.videos.filter(x=>vstate.later.includes(x.id)), "Nothing saved yet.");
+  else if(p==="history")   v.innerHTML = listPage("History", vstate.history.map(id=>DATA.videos.find(x=>x.id===id)).filter(Boolean), "No watch history yet.");
+  else if(p==="downloads") v.innerHTML = listPage("Downloads", DATA.videos.filter(x=>vstate.downloads.includes(x.id)), "No downloads yet.");
+  else v.innerHTML = renderHome();
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
+}
+render();
+</script>
+</body>
+</html>

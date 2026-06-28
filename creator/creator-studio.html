@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StreamHub Studio — Creator</title>
+<style>:root{
+  --bg:#0A0A0A;
+  --surface:#141414;
+  --surface2:#1E1E1E;
+  --surface3:#262626;
+  --text:#FFFFFF;
+  --muted:#A0A0A0;
+  --accent:#E50914;
+  --accent2:#FF3B3B;
+  --good:#FF5252;
+  --warn:#FFB020;
+  --danger:#FF1A1A;
+  --border:rgba(255,255,255,0.10);
+  --shadow:0 20px 60px rgba(0,0,0,0.6);
+  --radius:14px;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+
+/* Layout */
+.app{display:flex;height:100vh}
+.sidebar{
+  width:240px;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  padding:16px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  overflow:auto;
+}
+.brand{
+  font-weight:800;
+  letter-spacing:0.5px;
+  font-size:15px;
+  color:var(--accent);
+  padding:6px 10px 14px;
+  display:flex;align-items:center;gap:8px;
+}
+.brand .dot{width:10px;height:10px;border-radius:3px;background:var(--accent)}
+.nav-label{
+  font-size:10px;text-transform:uppercase;letter-spacing:1px;
+  color:var(--muted);margin:12px 10px 4px;
+}
+.nav button{
+  width:100%;
+  background:transparent;border:none;
+  color:var(--muted);
+  padding:9px 10px;border-radius:8px;
+  text-align:left;cursor:pointer;
+  font-size:13px;transition:.15s;
+  display:flex;align-items:center;gap:9px;
+}
+.nav button:hover{background:var(--surface2);color:var(--text)}
+.nav button.active{background:rgba(229,9,20,0.15);color:#fff;font-weight:600}
+.nav button .ico{width:16px;text-align:center;opacity:.9}
+
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{
+  min-height:58px;display:flex;align-items:center;justify-content:space-between;
+  padding:10px 22px;border-bottom:1px solid var(--border);
+  background:rgba(20,20,20,0.7);backdrop-filter:blur(10px);
+  gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:20;
+}
+.topbar .left{display:flex;align-items:center;gap:14px;font-weight:600}
+.topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.search-input{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:8px 14px;border-radius:999px;font-size:13px;width:240px;outline:none;
+}
+.search-input:focus{border-color:var(--accent)}
+.icon-btn{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:7px 12px;border-radius:999px;cursor:pointer;font-size:12px;transition:.2s;
+}
+.icon-btn:hover{border-color:var(--accent)}
+.icon-btn.on{border-color:var(--accent2);background:rgba(255,59,59,0.15)}
+.avatar{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#7A0008);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;
+}
+
+.content{padding:24px;overflow:auto;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+h1{font-size:24px;margin:0 0 4px}
+h2{font-size:20px;margin:0 0 4px}
+h3{font-size:15px;margin:18px 0 10px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+.small{font-size:11px;color:var(--muted)}
+
+/* Cards / grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.row-scroll{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px}
+.row-scroll .card{min-width:220px}
+
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px;cursor:pointer;transition:all .22s ease;
+}
+.card:hover{transform:translateY(-4px);border-color:var(--accent)}
+.card:active{transform:scale(.985)}
+
+.video-thumb{
+  position:relative;height:124px;border-radius:10px;overflow:hidden;margin-bottom:10px;
+  background:linear-gradient(135deg,var(--accent),#7A0008);
+}
+.video-thumb.original{background:linear-gradient(135deg,#7A0008,#E50914)}
+.thumb-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.play-badge{
+  position:absolute;bottom:8px;right:8px;width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.55);border-radius:50%;font-size:11px;color:#fff;backdrop-filter:blur(4px);
+}
+.dur-badge{
+  position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.7);
+  padding:1px 6px;border-radius:6px;font-size:10px;
+}
+.title{font-size:13px;font-weight:600}
+.meta{font-size:11px;color:var(--muted);margin-top:2px}
+
+.card-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.chip{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  font-size:11px;padding:4px 9px;border-radius:999px;cursor:pointer;transition:.2s;
+}
+.chip:hover{border-color:var(--accent)}
+.chip.on{border-color:var(--accent2);color:var(--accent2)}
+.chip.score{cursor:default;color:var(--accent2);border-color:transparent;background:rgba(229,9,20,0.10)}
+
+/* Panels */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.panel h3{margin-top:0}
+.panel pre{
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:12px;overflow:auto;font-size:12px;color:var(--muted);line-height:1.7;
+}
+
+/* Metric cards */
+.metrics{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:8px}
+.metric{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;
+}
+.metric .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.metric .value{font-size:26px;font-weight:800;margin-top:6px}
+.metric .delta{font-size:11px;margin-top:4px}
+.metric .delta.up{color:var(--good)}
+.metric .delta.down{color:var(--muted)}
+
+/* Hero */
+.hero{
+  position:relative;height:300px;border-radius:18px;overflow:hidden;margin-bottom:24px;
+  display:flex;align-items:flex-end;
+  background:linear-gradient(135deg,#2A0307,#0A0A0A);
+  border:1px solid var(--border);
+}
+.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+.hero .hero-body{position:relative;padding:28px;max-width:560px;
+  background:linear-gradient(90deg,rgba(10,10,10,.9),transparent)}
+.hero h1{font-size:30px}
+.hero .tag{display:inline-block;background:var(--accent);color:#fff;font-size:10px;
+  padding:3px 8px;border-radius:6px;letter-spacing:1px;margin-bottom:10px}
+
+/* Buttons */
+.btn{
+  background:var(--accent);border:none;color:#fff;padding:10px 18px;border-radius:10px;
+  cursor:pointer;font-size:13px;font-weight:600;transition:.2s;margin-right:6px;
+}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text);font-weight:500}
+.btn.sm{padding:7px 12px;font-size:12px}
+
+/* Inputs */
+input.fld, textarea.fld, select.fld{
+  width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);border-radius:10px;outline:none;font-family:inherit;font-size:13px;
+}
+input.fld:focus,textarea.fld:focus,select.fld:focus{border-color:var(--accent)}
+textarea.fld{min-height:90px;resize:vertical}
+label.lbl{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px}
+
+/* Tables */
+table.data{width:100%;border-collapse:collapse;font-size:13px}
+table.data th{
+  text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;
+  letter-spacing:.5px;padding:10px 12px;border-bottom:1px solid var(--border);
+}
+table.data td{padding:11px 12px;border-bottom:1px solid var(--border)}
+table.data tr:hover td{background:var(--surface2)}
+.tag-pill{font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid var(--border)}
+.tag-pill.green{color:var(--good);border-color:rgba(255,82,82,.4)}
+.tag-pill.warn{color:var(--warn);border-color:rgba(255,176,32,.4)}
+.tag-pill.red{color:var(--accent2);border-color:rgba(255,59,59,.4)}
+.tag-pill.muted{color:var(--muted)}
+
+/* Bar chart (pure CSS) */
+.bars{display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:10px}
+.bars .bar{flex:1;background:linear-gradient(180deg,var(--accent),#7A0008);
+  border-radius:6px 6px 0 0;min-height:4px;position:relative;transition:.3s}
+.bars .bar:hover{filter:brightness(1.2)}
+.bars .bar span{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:10px;color:var(--muted)}
+.bars-x{display:flex;gap:8px;margin-top:6px}
+.bars-x div{flex:1;text-align:center;font-size:10px;color:var(--muted)}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.tabs button{
+  background:transparent;border:none;color:var(--muted);padding:10px 14px;cursor:pointer;
+  font-size:13px;border-bottom:2px solid transparent;
+}
+.tabs button.active{color:#fff;border-bottom-color:var(--accent)}
+
+/* Stepper */
+.steps{display:flex;gap:6px;margin:14px 0 18px;flex-wrap:wrap}
+.steps .dot{height:5px;flex:1;min-width:24px;border-radius:999px;background:var(--surface3)}
+.steps .dot.active{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+
+/* Watch layout */
+.watch{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+@media(max-width:900px){.watch{grid-template-columns:1fr}}
+.player{
+  width:100%;height:380px;border-radius:14px;background:#000;border:none;
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:#555;
+}
+video.player{object-fit:contain}
+iframe.player{display:block}
+
+/* Loader */
+.loader{width:100%;height:6px;background:var(--surface3);border-radius:999px;overflow:hidden;margin-top:10px}
+.loader::after{content:"";display:block;width:40%;height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));animation:load 1.2s infinite}
+@keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--accent);
+  padding:12px 16px;border-radius:12px;box-shadow:var(--shadow);font-size:13px;
+  opacity:0;transform:translateY(10px);transition:.3s;z-index:80;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* Badge */
+.badge{background:var(--accent);color:#fff;border-radius:999px;padding:1px 6px;font-size:10px;margin-left:4px}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;
+  justify-content:center;z-index:90}
+.modal-bg.show{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:22px;width:440px;max-width:92vw;box-shadow:var(--shadow)}
+
+/* Empty / skeleton */
+.empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:14px}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.filter-pill{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  font-size:12px;padding:6px 12px;border-radius:999px;cursor:pointer}
+.filter-pill.active{background:var(--accent);border-color:transparent}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="brand"><span class="dot"></span> STUDIO</div>
+    <div class="nav" id="nav">
+      <button data-page="dashboard"  onclick="go('dashboard')"><span class="ico">▤</span> Dashboard</button>
+      <button data-page="content"    onclick="go('content')"><span class="ico">🎞</span> Content</button>
+      <button data-page="upload"     onclick="go('upload')"><span class="ico">⤒</span> Upload</button>
+      <button data-page="analytics"  onclick="go('analytics')"><span class="ico">📈</span> Analytics</button>
+      <button data-page="revenue"    onclick="go('revenue')"><span class="ico">💰</span> Revenue</button>
+      <button data-page="subscribers" onclick="go('subscribers')"><span class="ico">👥</span> Subscribers</button>
+      <button data-page="comments"   onclick="go('comments')"><span class="ico">💬</span> Comments</button>
+      <button data-page="playlists"  onclick="go('playlists')"><span class="ico">≣</span> Playlists</button>
+      <button data-page="livestream" onclick="go('livestream')"><span class="ico">🔴</span> Livestream</button>
+      <button data-page="series"     onclick="go('series')"><span class="ico">🎬</span> Original Series</button>
+      <button data-page="copyright"  onclick="go('copyright')"><span class="ico">©</span> Copyright</button>
+      <button data-page="ai"         onclick="go('ai')"><span class="ico">✨</span> AI Assistant</button>
+      <button data-page="integrations" onclick="go('integrations')"><span class="ico">🔌</span> Integrations</button>
+      <button data-page="api"        onclick="go('api')"><span class="ico">⚙</span> API</button>
+      <button data-page="settings"   onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="left">Creator Studio · Alex</div>
+      <div class="topbar-actions">
+        <button class="btn sm" onclick="go('upload')">＋ Upload</button>
+        <div class="avatar">A</div>
+      </div>
+    </div>
+    <div class="content" id="view"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>/* ============================================================
+   SHARED SAMPLE DATA MODEL — Hybrid Video Platform
+   Used by viewer / creator / manager apps.
+   ============================================================ */
+const DATA = {
+  user: { id:"u1", name:"Alex", handle:"@alex", avatar:"A", subscriptions:42, role:"viewer" },
+
+  creators: [
+    { id:"c1", name:"House Originals", handle:"@house", subs:1240000, verified:true },
+    { id:"c2", name:"Maya Chen",       handle:"@maya",  subs:84000,   verified:true },
+    { id:"c3", name:"DevTalks",        handle:"@devtalks", subs:31000, verified:false },
+    { id:"c4", name:"Alex",            handle:"@alex",  subs:1240,     verified:false },
+  ],
+
+  categories: ["Originals","Technology","AI","Business","Gaming","Music","Lifestyle"],
+
+  videos: [
+    { id:1, title:"Spotlight Premiere", creator:"c1", type:"original", category:"Originals", views:22000, likes:2400, dislikes:30, comments:3, favorites:0, duration:"0:10", uploaded:"2026-06-01", src:"../media/exemple-1.mp4", status:"published", flagged:false },
+    { id:2, title:"Late Night Sessions", creator:"c2", type:"ugc", category:"Music", views:3400, likes:310, dislikes:8, comments:1, favorites:0, duration:"0:10", uploaded:"2026-06-12", src:"../media/exemple-2.mp4", status:"published", flagged:false },
+    { id:3, title:"Behind The Scenes", creator:"c3", type:"ugc", category:"Lifestyle", views:7800, likes:640, dislikes:12, comments:2, favorites:0, duration:"0:10", uploaded:"2026-06-09", src:"../media/exemple-3.mp4", status:"published", flagged:true },
+    { id:4, title:"Featured Exclusive", creator:"c1", type:"original", category:"Originals", views:18500, likes:1900, dislikes:20, comments:0, favorites:0, duration:"0:10", uploaded:"2026-05-28", src:"../media/exemple-4.mp4", status:"published", flagged:false },
+    { id:5, title:"Creator Spotlight", creator:"c2", type:"ugc", category:"Business", views:5200, likes:480, dislikes:5, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-18", src:"../media/exemple-5.mp4", status:"published", flagged:false },
+    { id:6, title:"Fan Favorites", creator:"c4", type:"ugc", category:"Gaming", views:2100, likes:190, dislikes:3, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-20", src:"../media/exemple-6.mp4", status:"published", flagged:false },
+    { id:7, title:"Headliner Feature", creator:"c1", type:"original", category:"Originals", views:14300, likes:1500, dislikes:18, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-03", src:"../media/exemple-7.mp4", status:"published", flagged:false },
+    { id:8, title:"Trending Now", creator:"c3", type:"ugc", category:"Technology", views:9100, likes:720, dislikes:9, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-22", src:"../media/exemple-8.mp4", status:"review", flagged:true },
+    { id:9, title:"Community Picks", creator:"c4", type:"ugc", category:"AI", views:4600, likes:410, dislikes:6, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-24", src:"../media/exemple-9.mp4", status:"published", flagged:false },
+  ],
+
+  comments: [
+    { id:"m1", video:1, user:"Maya Chen",  text:"This is incredible quality!", time:"2h" },
+    { id:"m2", video:1, user:"DevTalks",   text:"Loved the pacing on this one.", time:"5h" },
+    { id:"m3", video:1, user:"Alex",       text:"House Originals never miss.", time:"1d" },
+    { id:"m4", video:2, user:"Alex",       text:"Great vibe 🎵", time:"3h" },
+    { id:"m5", video:3, user:"Maya Chen",  text:"spam link here buy now", time:"1h", flagged:true },
+  ],
+
+  revenue: { total:18420, ads:7200, premium:6100, subscriptions:3400, tips:920, affiliate:800,
+    history:[ {m:"Jan",v:9200},{m:"Feb",v:10100},{m:"Mar",v:11800},{m:"Apr",v:13400},{m:"May",v:15600},{m:"Jun",v:18420} ] },
+
+  analytics: {
+    views7d:[4200,5100,4800,6300,7100,6800,8200],
+    retention:[100,82,71,63,55,49,44,41,38,36],
+    countries:[ {c:"United States",p:38},{c:"India",p:14},{c:"Germany",p:9},{c:"Brazil",p:7},{c:"France",p:6},{c:"Other",p:26} ],
+    devices:[ {c:"Mobile",p:58},{c:"Desktop",p:31},{c:"TV",p:8},{c:"Tablet",p:3} ],
+    traffic:[ {c:"Recommendations",p:44},{c:"Search",p:22},{c:"External",p:16},{c:"Direct",p:11},{c:"Channels",p:7} ],
+  },
+
+  system: {
+    dau:84200, mau:1240000, uptime:"99.98%", uploadsToday:312,
+    moderationQueue:14, storageTB:48.2, processingQueue:6, errors:3,
+    bandwidthTB:128, cdnCost:4120,
+  },
+
+  users: [
+    { id:"u1", name:"Alex", email:"alex@mail.com", role:"creator", status:"active", subs:"Premium", joined:"2025-11-02" },
+    { id:"u2", name:"Maya Chen", email:"maya@mail.com", role:"creator", status:"active", subs:"Premium", joined:"2025-09-14" },
+    { id:"u3", name:"Sam Rivera", email:"sam@mail.com", role:"viewer", status:"suspended", subs:"Free", joined:"2026-01-20" },
+    { id:"u4", name:"Jordan Lee", email:"jordan@mail.com", role:"viewer", status:"active", subs:"Premium", joined:"2026-03-05" },
+    { id:"u5", name:"Casey Kim", email:"casey@mail.com", role:"viewer", status:"banned", subs:"Free", joined:"2026-02-11" },
+  ],
+
+  flags: [
+    { key:"new_homepage", desc:"New homepage layout A/B test", on:true, rollout:50 },
+    { key:"ai_thumbnails", desc:"AI thumbnail generation", on:true, rollout:100 },
+    { key:"live_streaming", desc:"Creator live streaming", on:false, rollout:0 },
+    { key:"watch_parties", desc:"Synchronized watch parties", on:false, rollout:10 },
+    { key:"short_form_feed", desc:"Vertical short-form feed", on:true, rollout:25 },
+  ],
+
+  moderation: {
+    classes:[ {c:"NSFW",n:18},{c:"Violence",n:4},{c:"Spam",n:23},{c:"Copyright",n:7},{c:"Hate Speech",n:2},{c:"Deepfake",n:1},{c:"Fake Engagement",n:11} ],
+  },
+};
+
+/* ---------- shared helpers ---------- */
+function creatorName(id){ const c = DATA.creators.find(x=>x.id===id); return c?c.name:"Unknown"; }
+function fmt(n){ return n>=1000000 ? (n/1000000).toFixed(1)+"M" : n>=1000 ? (n/1000).toFixed(1)+"K" : ""+n; }
+function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m?m[1]:null; }
+
+function playerEmbed(v){
+  const yt = ytId(v.src);
+  if(yt) return `<iframe class="player" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  if(v.src) return `<video class="player" src="${v.src}" controls></video>`;
+  return `<div class="player">VIDEO STREAM — ${v.title}</div>`;
+}
+
+function videoCard(v, opts={}){
+  const thumb = (!v.thumb && v.src && !ytId(v.src))
+    ? `<video class="thumb-video" src="${v.src}#t=0.1" muted preload="metadata" playsinline></video>` : ``;
+  return `
+    <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
+      <div class="video-thumb ${v.type==='original'?'original':''}">
+        ${thumb}
+        ${v.duration?`<span class="dur-badge">${v.duration}</span>`:``}
+        ${v.src?`<span class="play-badge">▶</span>`:``}
+      </div>
+      <div class="title">${v.title}</div>
+      <div class="meta">${creatorName(v.creator)} • ${fmt(v.views)} views</div>
+      ${opts.extra ? opts.extra(v) : ``}
+    </div>`;
+}
+
+/* toast (expects a #toast element) */
+let _toastTimer;
+function toast(msg){
+  const t=document.getElementById("toast"); if(!t) return;
+  t.textContent=msg; t.classList.add("show");
+  clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>t.classList.remove("show"),2400);
+}
+
+/* simple CSS bar chart */
+function barChart(values, labels){
+  const max = Math.max(...values,1);
+  return `
+    <div class="bars">${values.map(v=>`<div class="bar" style="height:${Math.round(v/max*100)}%"></div>`).join("")}</div>
+    <div class="bars-x">${(labels||values.map((_,i)=>i+1)).map(l=>`<div>${l}</div>`).join("")}</div>`;
+}
+/* horizontal distribution rows */
+function distRows(arr){
+  return arr.map(d=>`
+    <div style="margin:10px 0">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span>${d.c}</span><span class="small">${d.p}%</span>
+      </div>
+      <div style="height:6px;background:var(--surface3);border-radius:999px;overflow:hidden">
+        <div style="height:100%;width:${d.p}%;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div>
+      </div>
+    </div>`).join("");
+}
+</script>
+<script>
+/* ===================== CREATOR STUDIO ===================== */
+const MY = "c4"; // Alex's creator id
+const myVideos = ()=> DATA.videos.filter(v=>v.creator===MY).concat(DATA.videos.filter(v=>v.creator==="c1")); // show some originals as managed
+let cstate = { page:"dashboard", upload:{step:0, title:"", desc:"", visibility:"public", monet:true} };
+
+function go(p){ cstate.page=p; render(); }
+
+/* ---- Upload wizard ---- */
+const STEPS = ["Upload","Processing","AI Thumbnail","Metadata","Visibility","Scheduling","Monetization","Publish"];
+function uNext(){ cstate.upload.step=Math.min(cstate.upload.step+1,STEPS.length-1); render(); }
+function uPrev(){ cstate.upload.step=Math.max(cstate.upload.step-1,0); render(); }
+function uSaveMeta(){ cstate.upload.title=document.getElementById("uTitle").value; cstate.upload.desc=document.getElementById("uDesc").value; uNext(); }
+function uProcess(){ uNext(); setTimeout(()=>{ if(cstate.page==="upload"&&cstate.upload.step===1) uNext(); },1600); }
+function uPublish(){
+  DATA.videos.unshift({id:Date.now(),title:cstate.upload.title||"Untitled Upload",creator:MY,type:"ugc",category:"Technology",views:0,likes:0,dislikes:0,comments:0,favorites:0,duration:"0:10",uploaded:"2026-06-28",src:DATA.videos[5].src,status:cstate.upload.visibility==="public"?"published":"private",flagged:false});
+  toast(`Published "${cstate.upload.title||'Untitled'}"`);
+  cstate.upload={step:0,title:"",desc:"",visibility:"public",monet:true}; cstate.page="content"; render();
+}
+
+function metric(label,value,delta,up){ return `<div class="metric"><div class="label">${label}</div><div class="value">${value}</div>${delta?`<div class="delta ${up?'up':'down'}">${up?'▲':'▼'} ${delta}</div>`:''}</div>`; }
+
+function renderDashboard(){
+  const r=DATA.revenue;
+  return `<h1>Dashboard</h1><p class="sub">Welcome back, Alex — here's how your channel is doing.</p>
+    <div class="metrics">
+      ${metric("Revenue (mo)","$"+r.history[5].v.toLocaleString(),"18%",true)}
+      ${metric("Subscribers",fmt(DATA.creators.find(c=>c.id==='c4').subs),"4.2%",true)}
+      ${metric("Views (7d)",fmt(DATA.analytics.views7d.reduce((a,b)=>a+b,0)),"9%",true)}
+      ${metric("Watch Time","54.2K min","6%",true)}
+      ${metric("CTR","7.8%","0.4%",true)}
+      ${metric("Engagement","12.4%","1.1%",true)}
+      ${metric("Comments",DATA.comments.length,"3",true)}
+      ${metric("Growth","+312","subs",true)}
+    </div>
+    <div class="grid" style="grid-template-columns:2fr 1fr;margin-top:18px">
+      <div class="panel"><h3 style="margin-top:0">Views — last 7 days</h3>${barChart(DATA.analytics.views7d,["M","T","W","T","F","S","S"])}</div>
+      <div class="panel"><h3 style="margin-top:0">Top Traffic Sources</h3>${distRows(DATA.analytics.traffic)}</div>
+    </div>`;
+}
+
+function renderContent(){
+  return `<h1>Content</h1><p class="sub">Manage your videos</p>
+    <div class="panel" style="padding:0">
+    <table class="data"><thead><tr><th>Video</th><th>Status</th><th>Views</th><th>Likes</th><th>Comments</th><th>Date</th></tr></thead><tbody>
+    ${myVideos().map(v=>`<tr style="cursor:pointer" onclick="toast('Opening editor for: ${v.title}')">
+      <td><b>${v.title}</b><div class="small">${v.category}</div></td>
+      <td><span class="tag-pill ${v.status==='published'?'green':v.status==='review'?'warn':'muted'}">${v.status}</span></td>
+      <td>${fmt(v.views)}</td><td>${fmt(v.likes)}</td><td>${v.comments}</td><td class="small">${v.uploaded}</td></tr>`).join("")}
+    </tbody></table></div>`;
+}
+
+function renderUpload(){
+  const s=cstate.upload.step;
+  const body = [
+    `<p><b>Select your video file</b></p><div class="empty" style="cursor:pointer" onclick="uNext()">⤒ Drag & drop or click to choose a file</div>`,
+    `<p><b>Processing…</b></p><p class="small">Transcoding → generating HLS renditions</p><div class="loader"></div><br/><button class="btn" onclick="uNext()">Simulate complete</button>`,
+    `<p><b>AI Thumbnail</b></p><p class="small">We generated 3 options:</p>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr)">${[5,6,8].map(i=>`<div class="video-thumb" style="height:90px"><video class="thumb-video" src="${DATA.videos[i-1].src}#t=0.${i}" muted preload="metadata"></video></div>`).join("")}</div><br/><button class="btn" onclick="uNext()">Use selected</button>`,
+    `<label class="lbl">Title</label><input class="fld" id="uTitle" value="${cstate.upload.title}" placeholder="Add a title"/>
+      <label class="lbl">Description</label><textarea class="fld" id="uDesc" placeholder="Tell viewers about your video">${cstate.upload.desc}</textarea>
+      <label class="lbl">Tags</label><input class="fld" placeholder="ai, tech, tutorial"/><br/><br/><button class="btn" onclick="uSaveMeta()">Next</button>`,
+    `<label class="lbl">Visibility</label>
+      <select class="fld" onchange="cstate.upload.visibility=this.value">
+        <option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select>
+      <br/><br/><button class="btn" onclick="uNext()">Next</button>`,
+    `<p><b>Scheduling</b></p><label class="lbl">Publish</label>
+      <select class="fld"><option>Now</option><option>Schedule for later</option></select>
+      <label class="lbl">Date</label><input class="fld" type="date"/><br/><br/><button class="btn" onclick="uNext()">Next</button>`,
+    `<p><b>Monetization</b></p>
+      <label class="lbl"><input type="checkbox" checked onchange="cstate.upload.monet=this.checked"/> Enable ads</label>
+      <label class="lbl"><input type="checkbox" checked/> Allow Premium revenue</label>
+      <label class="lbl"><input type="checkbox"/> Accept tips</label><br/><button class="btn" onclick="uNext()">Next</button>`,
+    `<p><b>Ready to publish</b></p><p class="small">"${cstate.upload.title||'Untitled'}" · ${cstate.upload.visibility}</p><button class="btn" onclick="uPublish()">🚀 Publish Video</button>`,
+  ][s];
+  return `<h1>Upload</h1><p class="sub">Step ${s+1} of ${STEPS.length} — ${STEPS[s]}</p>
+    <div class="steps">${STEPS.map((_,i)=>`<div class="dot ${i<=s?'active':''}"></div>`).join("")}</div>
+    <div class="panel" style="max-width:640px">${body}
+      ${s>0&&s!==1?`<br/><button class="btn ghost sm" onclick="uPrev()">← Back</button>`:''}</div>`;
+}
+
+function renderAnalytics(){
+  const a=DATA.analytics;
+  return `<h1>Analytics</h1><p class="sub">Performance overview</p>
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <div class="panel"><h3 style="margin-top:0">Views</h3>${barChart(a.views7d,["M","T","W","T","F","S","S"])}</div>
+      <div class="panel"><h3 style="margin-top:0">Retention</h3>${barChart(a.retention)}</div>
+      <div class="panel"><h3 style="margin-top:0">Audience by Country</h3>${distRows(a.countries)}</div>
+      <div class="panel"><h3 style="margin-top:0">Devices</h3>${distRows(a.devices)}</div>
+      <div class="panel"><h3 style="margin-top:0">Traffic Sources</h3>${distRows(a.traffic)}</div>
+      <div class="panel"><h3 style="margin-top:0">Revenue Trend</h3>${barChart(DATA.revenue.history.map(h=>h.v),DATA.revenue.history.map(h=>h.m))}</div>
+    </div>`;
+}
+
+function renderRevenue(){
+  const r=DATA.revenue;
+  const rows=[["Ad Revenue",r.ads],["Premium Revenue",r.premium],["Subscriptions",r.subscriptions],["Tips",r.tips],["Affiliate",r.affiliate],["Sponsors",1200]];
+  return `<h1>Revenue</h1><p class="sub">Total this period: <b style="color:#fff">$${r.total.toLocaleString()}</b></p>
+    <div class="metrics">${rows.map(([k,v])=>metric(k,"$"+v.toLocaleString())).join("")}</div>
+    <h3>Payout History</h3>
+    <div class="panel" style="padding:0"><table class="data"><thead><tr><th>Date</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead><tbody>
+      ${r.history.slice().reverse().map(h=>`<tr><td>${h.m} 2026</td><td>Bank Transfer</td><td>$${h.v.toLocaleString()}</td><td><span class="tag-pill green">Paid</span></td></tr>`).join("")}
+    </tbody></table></div>`;
+}
+
+function renderSubscribers(){
+  return `<h1>Subscribers</h1><p class="sub">${fmt(DATA.creators.find(c=>c.id==='c4').subs)} total</p>
+    <div class="panel"><h3 style="margin-top:0">Growth</h3>${barChart([820,910,980,1050,1140,1240],["Jan","Feb","Mar","Apr","May","Jun"])}</div>
+    <h3>Recent Subscribers</h3>
+    <div class="panel" style="padding:0"><table class="data"><thead><tr><th>User</th><th>Tier</th><th>Joined</th></tr></thead><tbody>
+      ${DATA.users.filter(u=>u.role==='viewer').map(u=>`<tr><td>${u.name}</td><td><span class="tag-pill ${u.subs==='Premium'?'green':'muted'}">${u.subs}</span></td><td class="small">${u.joined}</td></tr>`).join("")}
+    </tbody></table></div>`;
+}
+
+function renderComments(){
+  return `<h1>Comments</h1><p class="sub">Across all your videos</p>
+    ${DATA.comments.map(m=>`<div class="panel" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+      <div><b>${m.user}</b> <span class="small">on "${DATA.videos.find(v=>v.id===m.video)?.title}"</span><div style="font-size:13px;margin-top:4px">${m.text}</div></div>
+      <div><button class="chip" onclick="toast('Replied (simulated)')">Reply</button> <button class="chip" onclick="toast('Hearted')">♥</button></div>
+    </div>`).join("")}`;
+}
+
+function renderAI(){
+  const tools=["Generate Title","Generate Description","Generate Thumbnail","Generate Tags","SEO Optimization","Chapter Generator","Subtitle Generator","Translate","Social Posts","Repurpose Video"];
+  return `<h1>Creator AI</h1><p class="sub">Generate metadata and assets in one click</p>
+    <div class="grid">${tools.map(t=>`<div class="card" onclick="toast('${t}: generated ✓ (simulated)')"><div class="title">✨ ${t}</div><div class="meta">Tap to generate</div></div>`).join("")}</div>`;
+}
+
+function renderAPI(){
+  const items=["API Keys","OAuth","Webhooks","SDK","Uploads","Analytics API","Documentation","Usage","Logs"];
+  return `<h1>API Center</h1><p class="sub">Build on top of your channel</p>
+    <div class="panel" style="margin-bottom:16px"><h3 style="margin-top:0">Your API Key</h3>
+      <code style="background:var(--bg);padding:8px 12px;border-radius:8px;display:inline-block">sk_live_••••••••••••4f2a</code>
+      <button class="btn sm" style="margin-left:8px" onclick="toast('Key copied')">Copy</button></div>
+    <div class="grid">${items.map(i=>`<div class="card" onclick="toast('${i} (simulated)')"><div class="title">${i}</div></div>`).join("")}</div>`;
+}
+
+function simplePage(title,sub,items){
+  return `<h1>${title}</h1><p class="sub">${sub}</p><div class="grid">${items.map(i=>`<div class="card" onclick="toast('${i} (simulated)')"><div class="title">${i}</div></div>`).join("")}</div>`;
+}
+
+function render(){
+  const v=document.getElementById("view"); const p=cstate.page;
+  const map={dashboard:renderDashboard,content:renderContent,upload:renderUpload,analytics:renderAnalytics,
+    revenue:renderRevenue,subscribers:renderSubscribers,comments:renderComments,ai:renderAI,api:renderAPI};
+  if(map[p]) v.innerHTML=map[p]();
+  else if(p==="playlists")  v.innerHTML=simplePage("Playlists","Organize your content",["Create Playlist","My Mix","Tutorials","Originals"]);
+  else if(p==="livestream") v.innerHTML=simplePage("Livestream","Go live to your audience",["Start Stream","Stream Key","Chat Settings","Past Streams"]);
+  else if(p==="series")     v.innerHTML=simplePage("Original Series","Episodic content",["New Series","Season 1","Drafts","Schedule"]);
+  else if(p==="copyright")  v.innerHTML=simplePage("Copyright","Protect your content",["Content ID","Claims","Disputes","Strikes"]);
+  else if(p==="integrations")v.innerHTML=simplePage("Integrations","Connect your tools",["Discord","Stripe","Zapier","Patreon","Shopify","Mailchimp"]);
+  else if(p==="settings")   v.innerHTML=simplePage("Settings","Channel preferences",["Channel Info","Branding","Permissions","Defaults","Danger Zone"]);
+  else v.innerHTML=renderDashboard();
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
+}
+render();
+</script>
+</body>
+</html>

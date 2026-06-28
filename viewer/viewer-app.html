@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StreamHub — Watch</title>
+<style>:root{
+  --bg:#0A0A0A;
+  --surface:#141414;
+  --surface2:#1E1E1E;
+  --surface3:#262626;
+  --text:#FFFFFF;
+  --muted:#A0A0A0;
+  --accent:#E50914;
+  --accent2:#FF3B3B;
+  --good:#FF5252;
+  --warn:#FFB020;
+  --danger:#FF1A1A;
+  --border:rgba(255,255,255,0.10);
+  --shadow:0 20px 60px rgba(0,0,0,0.6);
+  --radius:14px;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+
+/* Layout */
+.app{display:flex;height:100vh}
+.sidebar{
+  width:240px;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  padding:16px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  overflow:auto;
+}
+.brand{
+  font-weight:800;
+  letter-spacing:0.5px;
+  font-size:15px;
+  color:var(--accent);
+  padding:6px 10px 14px;
+  display:flex;align-items:center;gap:8px;
+}
+.brand .dot{width:10px;height:10px;border-radius:3px;background:var(--accent)}
+.nav-label{
+  font-size:10px;text-transform:uppercase;letter-spacing:1px;
+  color:var(--muted);margin:12px 10px 4px;
+}
+.nav button{
+  width:100%;
+  background:transparent;border:none;
+  color:var(--muted);
+  padding:9px 10px;border-radius:8px;
+  text-align:left;cursor:pointer;
+  font-size:13px;transition:.15s;
+  display:flex;align-items:center;gap:9px;
+}
+.nav button:hover{background:var(--surface2);color:var(--text)}
+.nav button.active{background:rgba(229,9,20,0.15);color:#fff;font-weight:600}
+.nav button .ico{width:16px;text-align:center;opacity:.9}
+
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{
+  min-height:58px;display:flex;align-items:center;justify-content:space-between;
+  padding:10px 22px;border-bottom:1px solid var(--border);
+  background:rgba(20,20,20,0.7);backdrop-filter:blur(10px);
+  gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:20;
+}
+.topbar .left{display:flex;align-items:center;gap:14px;font-weight:600}
+.topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.search-input{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:8px 14px;border-radius:999px;font-size:13px;width:240px;outline:none;
+}
+.search-input:focus{border-color:var(--accent)}
+.icon-btn{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:7px 12px;border-radius:999px;cursor:pointer;font-size:12px;transition:.2s;
+}
+.icon-btn:hover{border-color:var(--accent)}
+.icon-btn.on{border-color:var(--accent2);background:rgba(255,59,59,0.15)}
+.avatar{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#7A0008);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;
+}
+
+.content{padding:24px;overflow:auto;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+h1{font-size:24px;margin:0 0 4px}
+h2{font-size:20px;margin:0 0 4px}
+h3{font-size:15px;margin:18px 0 10px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+.small{font-size:11px;color:var(--muted)}
+
+/* Cards / grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.row-scroll{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px}
+.row-scroll .card{min-width:220px}
+
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px;cursor:pointer;transition:all .22s ease;
+}
+.card:hover{transform:translateY(-4px);border-color:var(--accent)}
+.card:active{transform:scale(.985)}
+
+.video-thumb{
+  position:relative;height:124px;border-radius:10px;overflow:hidden;margin-bottom:10px;
+  background:linear-gradient(135deg,var(--accent),#7A0008);
+}
+.video-thumb.original{background:linear-gradient(135deg,#7A0008,#E50914)}
+.thumb-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.play-badge{
+  position:absolute;bottom:8px;right:8px;width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.55);border-radius:50%;font-size:11px;color:#fff;backdrop-filter:blur(4px);
+}
+.dur-badge{
+  position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.7);
+  padding:1px 6px;border-radius:6px;font-size:10px;
+}
+.title{font-size:13px;font-weight:600}
+.meta{font-size:11px;color:var(--muted);margin-top:2px}
+
+.card-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.chip{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  font-size:11px;padding:4px 9px;border-radius:999px;cursor:pointer;transition:.2s;
+}
+.chip:hover{border-color:var(--accent)}
+.chip.on{border-color:var(--accent2);color:var(--accent2)}
+.chip.score{cursor:default;color:var(--accent2);border-color:transparent;background:rgba(229,9,20,0.10)}
+
+/* Panels */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.panel h3{margin-top:0}
+.panel pre{
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:12px;overflow:auto;font-size:12px;color:var(--muted);line-height:1.7;
+}
+
+/* Metric cards */
+.metrics{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:8px}
+.metric{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;
+}
+.metric .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.metric .value{font-size:26px;font-weight:800;margin-top:6px}
+.metric .delta{font-size:11px;margin-top:4px}
+.metric .delta.up{color:var(--good)}
+.metric .delta.down{color:var(--muted)}
+
+/* Hero */
+.hero{
+  position:relative;height:300px;border-radius:18px;overflow:hidden;margin-bottom:24px;
+  display:flex;align-items:flex-end;
+  background:linear-gradient(135deg,#2A0307,#0A0A0A);
+  border:1px solid var(--border);
+}
+.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+.hero .hero-body{position:relative;padding:28px;max-width:560px;
+  background:linear-gradient(90deg,rgba(10,10,10,.9),transparent)}
+.hero h1{font-size:30px}
+.hero .tag{display:inline-block;background:var(--accent);color:#fff;font-size:10px;
+  padding:3px 8px;border-radius:6px;letter-spacing:1px;margin-bottom:10px}
+
+/* Buttons */
+.btn{
+  background:var(--accent);border:none;color:#fff;padding:10px 18px;border-radius:10px;
+  cursor:pointer;font-size:13px;font-weight:600;transition:.2s;margin-right:6px;
+}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text);font-weight:500}
+.btn.sm{padding:7px 12px;font-size:12px}
+
+/* Inputs */
+input.fld, textarea.fld, select.fld{
+  width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);border-radius:10px;outline:none;font-family:inherit;font-size:13px;
+}
+input.fld:focus,textarea.fld:focus,select.fld:focus{border-color:var(--accent)}
+textarea.fld{min-height:90px;resize:vertical}
+label.lbl{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px}
+
+/* Tables */
+table.data{width:100%;border-collapse:collapse;font-size:13px}
+table.data th{
+  text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;
+  letter-spacing:.5px;padding:10px 12px;border-bottom:1px solid var(--border);
+}
+table.data td{padding:11px 12px;border-bottom:1px solid var(--border)}
+table.data tr:hover td{background:var(--surface2)}
+.tag-pill{font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid var(--border)}
+.tag-pill.green{color:var(--good);border-color:rgba(255,82,82,.4)}
+.tag-pill.warn{color:var(--warn);border-color:rgba(255,176,32,.4)}
+.tag-pill.red{color:var(--accent2);border-color:rgba(255,59,59,.4)}
+.tag-pill.muted{color:var(--muted)}
+
+/* Bar chart (pure CSS) */
+.bars{display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:10px}
+.bars .bar{flex:1;background:linear-gradient(180deg,var(--accent),#7A0008);
+  border-radius:6px 6px 0 0;min-height:4px;position:relative;transition:.3s}
+.bars .bar:hover{filter:brightness(1.2)}
+.bars .bar span{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:10px;color:var(--muted)}
+.bars-x{display:flex;gap:8px;margin-top:6px}
+.bars-x div{flex:1;text-align:center;font-size:10px;color:var(--muted)}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.tabs button{
+  background:transparent;border:none;color:var(--muted);padding:10px 14px;cursor:pointer;
+  font-size:13px;border-bottom:2px solid transparent;
+}
+.tabs button.active{color:#fff;border-bottom-color:var(--accent)}
+
+/* Stepper */
+.steps{display:flex;gap:6px;margin:14px 0 18px;flex-wrap:wrap}
+.steps .dot{height:5px;flex:1;min-width:24px;border-radius:999px;background:var(--surface3)}
+.steps .dot.active{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+
+/* Watch layout */
+.watch{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+@media(max-width:900px){.watch{grid-template-columns:1fr}}
+.player{
+  width:100%;height:380px;border-radius:14px;background:#000;border:none;
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:#555;
+}
+video.player{object-fit:contain}
+iframe.player{display:block}
+
+/* Loader */
+.loader{width:100%;height:6px;background:var(--surface3);border-radius:999px;overflow:hidden;margin-top:10px}
+.loader::after{content:"";display:block;width:40%;height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));animation:load 1.2s infinite}
+@keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--accent);
+  padding:12px 16px;border-radius:12px;box-shadow:var(--shadow);font-size:13px;
+  opacity:0;transform:translateY(10px);transition:.3s;z-index:80;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* Badge */
+.badge{background:var(--accent);color:#fff;border-radius:999px;padding:1px 6px;font-size:10px;margin-left:4px}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;
+  justify-content:center;z-index:90}
+.modal-bg.show{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:22px;width:440px;max-width:92vw;box-shadow:var(--shadow)}
+
+/* Empty / skeleton */
+.empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:14px}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.filter-pill{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  font-size:12px;padding:6px 12px;border-radius:999px;cursor:pointer}
+.filter-pill.active{background:var(--accent);border-color:transparent}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="brand"><span class="dot"></span> STREAMHUB</div>
+    <div class="nav" id="nav">
+      <button data-page="home"        onclick="go('home')"><span class="ico">🏠</span> Home</button>
+      <button data-page="explore"     onclick="go('explore')"><span class="ico">🧭</span> Explore</button>
+      <button data-page="categories"  onclick="go('categories')"><span class="ico">▦</span> Categories</button>
+      <button data-page="trending"    onclick="go('trending')"><span class="ico">🔥</span> Trending</button>
+      <button data-page="subscriptions" onclick="go('subscriptions')"><span class="ico">📺</span> Subscriptions</button>
+      <button data-page="later"       onclick="go('later')"><span class="ico">🕒</span> Watch Later</button>
+      <button data-page="favorites"   onclick="go('favorites')"><span class="ico">★</span> Favorites</button>
+      <button data-page="history"     onclick="go('history')"><span class="ico">↺</span> History</button>
+      <button data-page="downloads"   onclick="go('downloads')"><span class="ico">⤓</span> Downloads</button>
+      <button data-page="playlists"   onclick="go('playlists')"><span class="ico">≣</span> Playlists</button>
+      <button data-page="live"        onclick="go('live')"><span class="ico">🔴</span> Live</button>
+      <button data-page="originals"   onclick="go('originals')"><span class="ico">🎬</span> Originals</button>
+      <button data-page="settings"    onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
+    </div>
+  </div>
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="left">StreamHub</div>
+      <div class="topbar-actions">
+        <input class="search-input" id="searchInput" placeholder="Search videos, creators, playlists…" oninput="doSearch()"/>
+        <button class="icon-btn" onclick="go('later')">Watch Later</button>
+        <div class="avatar" onclick="go('profile')" title="Profile">A</div>
+      </div>
+    </div>
+    <div class="content" id="view"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>/* ============================================================
+   SHARED SAMPLE DATA MODEL — Hybrid Video Platform
+   Used by viewer / creator / manager apps.
+   ============================================================ */
+const DATA = {
+  user: { id:"u1", name:"Alex", handle:"@alex", avatar:"A", subscriptions:42, role:"viewer" },
+
+  creators: [
+    { id:"c1", name:"House Originals", handle:"@house", subs:1240000, verified:true },
+    { id:"c2", name:"Maya Chen",       handle:"@maya",  subs:84000,   verified:true },
+    { id:"c3", name:"DevTalks",        handle:"@devtalks", subs:31000, verified:false },
+    { id:"c4", name:"Alex",            handle:"@alex",  subs:1240,     verified:false },
+  ],
+
+  categories: ["Originals","Technology","AI","Business","Gaming","Music","Lifestyle"],
+
+  videos: [
+    { id:1, title:"Spotlight Premiere", creator:"c1", type:"original", category:"Originals", views:22000, likes:2400, dislikes:30, comments:3, favorites:0, duration:"0:10", uploaded:"2026-06-01", src:"../media/exemple-1.mp4", status:"published", flagged:false },
+    { id:2, title:"Late Night Sessions", creator:"c2", type:"ugc", category:"Music", views:3400, likes:310, dislikes:8, comments:1, favorites:0, duration:"0:10", uploaded:"2026-06-12", src:"../media/exemple-2.mp4", status:"published", flagged:false },
+    { id:3, title:"Behind The Scenes", creator:"c3", type:"ugc", category:"Lifestyle", views:7800, likes:640, dislikes:12, comments:2, favorites:0, duration:"0:10", uploaded:"2026-06-09", src:"../media/exemple-3.mp4", status:"published", flagged:true },
+    { id:4, title:"Featured Exclusive", creator:"c1", type:"original", category:"Originals", views:18500, likes:1900, dislikes:20, comments:0, favorites:0, duration:"0:10", uploaded:"2026-05-28", src:"../media/exemple-4.mp4", status:"published", flagged:false },
+    { id:5, title:"Creator Spotlight", creator:"c2", type:"ugc", category:"Business", views:5200, likes:480, dislikes:5, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-18", src:"../media/exemple-5.mp4", status:"published", flagged:false },
+    { id:6, title:"Fan Favorites", creator:"c4", type:"ugc", category:"Gaming", views:2100, likes:190, dislikes:3, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-20", src:"../media/exemple-6.mp4", status:"published", flagged:false },
+    { id:7, title:"Headliner Feature", creator:"c1", type:"original", category:"Originals", views:14300, likes:1500, dislikes:18, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-03", src:"../media/exemple-7.mp4", status:"published", flagged:false },
+    { id:8, title:"Trending Now", creator:"c3", type:"ugc", category:"Technology", views:9100, likes:720, dislikes:9, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-22", src:"../media/exemple-8.mp4", status:"review", flagged:true },
+    { id:9, title:"Community Picks", creator:"c4", type:"ugc", category:"AI", views:4600, likes:410, dislikes:6, comments:0, favorites:0, duration:"0:10", uploaded:"2026-06-24", src:"../media/exemple-9.mp4", status:"published", flagged:false },
+  ],
+
+  comments: [
+    { id:"m1", video:1, user:"Maya Chen",  text:"This is incredible quality!", time:"2h" },
+    { id:"m2", video:1, user:"DevTalks",   text:"Loved the pacing on this one.", time:"5h" },
+    { id:"m3", video:1, user:"Alex",       text:"House Originals never miss.", time:"1d" },
+    { id:"m4", video:2, user:"Alex",       text:"Great vibe 🎵", time:"3h" },
+    { id:"m5", video:3, user:"Maya Chen",  text:"spam link here buy now", time:"1h", flagged:true },
+  ],
+
+  revenue: { total:18420, ads:7200, premium:6100, subscriptions:3400, tips:920, affiliate:800,
+    history:[ {m:"Jan",v:9200},{m:"Feb",v:10100},{m:"Mar",v:11800},{m:"Apr",v:13400},{m:"May",v:15600},{m:"Jun",v:18420} ] },
+
+  analytics: {
+    views7d:[4200,5100,4800,6300,7100,6800,8200],
+    retention:[100,82,71,63,55,49,44,41,38,36],
+    countries:[ {c:"United States",p:38},{c:"India",p:14},{c:"Germany",p:9},{c:"Brazil",p:7},{c:"France",p:6},{c:"Other",p:26} ],
+    devices:[ {c:"Mobile",p:58},{c:"Desktop",p:31},{c:"TV",p:8},{c:"Tablet",p:3} ],
+    traffic:[ {c:"Recommendations",p:44},{c:"Search",p:22},{c:"External",p:16},{c:"Direct",p:11},{c:"Channels",p:7} ],
+  },
+
+  system: {
+    dau:84200, mau:1240000, uptime:"99.98%", uploadsToday:312,
+    moderationQueue:14, storageTB:48.2, processingQueue:6, errors:3,
+    bandwidthTB:128, cdnCost:4120,
+  },
+
+  users: [
+    { id:"u1", name:"Alex", email:"alex@mail.com", role:"creator", status:"active", subs:"Premium", joined:"2025-11-02" },
+    { id:"u2", name:"Maya Chen", email:"maya@mail.com", role:"creator", status:"active", subs:"Premium", joined:"2025-09-14" },
+    { id:"u3", name:"Sam Rivera", email:"sam@mail.com", role:"viewer", status:"suspended", subs:"Free", joined:"2026-01-20" },
+    { id:"u4", name:"Jordan Lee", email:"jordan@mail.com", role:"viewer", status:"active", subs:"Premium", joined:"2026-03-05" },
+    { id:"u5", name:"Casey Kim", email:"casey@mail.com", role:"viewer", status:"banned", subs:"Free", joined:"2026-02-11" },
+  ],
+
+  flags: [
+    { key:"new_homepage", desc:"New homepage layout A/B test", on:true, rollout:50 },
+    { key:"ai_thumbnails", desc:"AI thumbnail generation", on:true, rollout:100 },
+    { key:"live_streaming", desc:"Creator live streaming", on:false, rollout:0 },
+    { key:"watch_parties", desc:"Synchronized watch parties", on:false, rollout:10 },
+    { key:"short_form_feed", desc:"Vertical short-form feed", on:true, rollout:25 },
+  ],
+
+  moderation: {
+    classes:[ {c:"NSFW",n:18},{c:"Violence",n:4},{c:"Spam",n:23},{c:"Copyright",n:7},{c:"Hate Speech",n:2},{c:"Deepfake",n:1},{c:"Fake Engagement",n:11} ],
+  },
+};
+
+/* ---------- shared helpers ---------- */
+function creatorName(id){ const c = DATA.creators.find(x=>x.id===id); return c?c.name:"Unknown"; }
+function fmt(n){ return n>=1000000 ? (n/1000000).toFixed(1)+"M" : n>=1000 ? (n/1000).toFixed(1)+"K" : ""+n; }
+function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m?m[1]:null; }
+
+function playerEmbed(v){
+  const yt = ytId(v.src);
+  if(yt) return `<iframe class="player" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  if(v.src) return `<video class="player" src="${v.src}" controls></video>`;
+  return `<div class="player">VIDEO STREAM — ${v.title}</div>`;
+}
+
+function videoCard(v, opts={}){
+  const thumb = (!v.thumb && v.src && !ytId(v.src))
+    ? `<video class="thumb-video" src="${v.src}#t=0.1" muted preload="metadata" playsinline></video>` : ``;
+  return `
+    <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
+      <div class="video-thumb ${v.type==='original'?'original':''}">
+        ${thumb}
+        ${v.duration?`<span class="dur-badge">${v.duration}</span>`:``}
+        ${v.src?`<span class="play-badge">▶</span>`:``}
+      </div>
+      <div class="title">${v.title}</div>
+      <div class="meta">${creatorName(v.creator)} • ${fmt(v.views)} views</div>
+      ${opts.extra ? opts.extra(v) : ``}
+    </div>`;
+}
+
+/* toast (expects a #toast element) */
+let _toastTimer;
+function toast(msg){
+  const t=document.getElementById("toast"); if(!t) return;
+  t.textContent=msg; t.classList.add("show");
+  clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>t.classList.remove("show"),2400);
+}
+
+/* simple CSS bar chart */
+function barChart(values, labels){
+  const max = Math.max(...values,1);
+  return `
+    <div class="bars">${values.map(v=>`<div class="bar" style="height:${Math.round(v/max*100)}%"></div>`).join("")}</div>
+    <div class="bars-x">${(labels||values.map((_,i)=>i+1)).map(l=>`<div>${l}</div>`).join("")}</div>`;
+}
+/* horizontal distribution rows */
+function distRows(arr){
+  return arr.map(d=>`
+    <div style="margin:10px 0">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span>${d.c}</span><span class="small">${d.p}%</span>
+      </div>
+      <div style="height:6px;background:var(--surface3);border-radius:999px;overflow:hidden">
+        <div style="height:100%;width:${d.p}%;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div>
+      </div>
+    </div>`).join("");
+}
+</script>
+<script>
+/* ===================== VIEWER APP ===================== */
+let vstate = {
+  page:"home", current:null,
+  favorites:[], later:[], history:[], downloads:[],
+  subs:["c1","c2"],
+};
+
+function go(p){ vstate.page=p; render(); }
+function openVideo(id){
+  vstate.current = DATA.videos.find(v=>v.id===id);
+  if(!vstate.history.includes(id)) vstate.history.unshift(id);
+  vstate.page="watch"; render();
+}
+function toggleFav(id){
+  vstate.favorites.includes(id) ? vstate.favorites=vstate.favorites.filter(x=>x!==id) : vstate.favorites.push(id);
+  toast(vstate.favorites.includes(id)?"Added to Favorites":"Removed from Favorites"); render();
+}
+function toggleLater(id){
+  vstate.later.includes(id) ? vstate.later=vstate.later.filter(x=>x!==id) : vstate.later.push(id);
+  toast(vstate.later.includes(id)?"Saved to Watch Later":"Removed"); render();
+}
+function download(id){ if(!vstate.downloads.includes(id))vstate.downloads.push(id); toast("Download started (simulated)"); render(); }
+function likeVideo(id){ const v=DATA.videos.find(x=>x.id===id); v.likes++; toast("Liked"); render(); }
+function dislikeVideo(id){ const v=DATA.videos.find(x=>x.id===id); v.dislikes++; toast("Disliked"); render(); }
+function subscribe(cid){ vstate.subs.includes(cid)?vstate.subs=vstate.subs.filter(x=>x!==cid):vstate.subs.push(cid); render(); }
+function addComment(id){
+  const box=document.getElementById("cbox"); const t=(box.value||"").trim(); if(!t)return;
+  DATA.comments.push({id:"m"+Date.now(),video:id,user:DATA.user.name,text:t,time:"now"});
+  render();
+}
+
+const trending = ()=> [...DATA.videos].sort((a,b)=> (b.likes*1.2+b.views*0.01) - (a.likes*1.2+a.views*0.01));
+const byCat = (c)=> DATA.videos.filter(v=>v.category===c);
+
+function rowSection(title, list){
+  if(!list.length) return "";
+  return `<h3>${title}</h3><div class="row-scroll">${list.map(v=>videoCard(v)).join("")}</div>`;
+}
+
+function renderHome(){
+  const hero = DATA.videos.find(v=>v.type==="original");
+  return `
+    <div class="hero">
+      <video src="${hero.src}" muted autoplay loop playsinline></video>
+      <div class="hero-body">
+        <span class="tag">HOUSE ORIGINAL</span>
+        <h1>${hero.title}</h1>
+        <p class="sub">${creatorName(hero.creator)} • ${fmt(hero.views)} views</p>
+        <button class="btn" onclick="openVideo(${hero.id})">▶ Play</button>
+        <button class="btn ghost" onclick="toggleLater(${hero.id})">+ Watch Later</button>
+      </div>
+    </div>
+    ${vstate.history.length ? rowSection("Continue Watching", vstate.history.map(id=>DATA.videos.find(v=>v.id===id)).filter(Boolean)) : ""}
+    ${rowSection("Recommended For You", trending().slice(0,6))}
+    ${rowSection("Trending Now", trending().slice(0,6))}
+    ${rowSection("House Originals", DATA.videos.filter(v=>v.type==="original"))}
+    ${rowSection("Technology", byCat("Technology"))}
+    ${rowSection("AI", byCat("AI"))}
+    ${rowSection("Business", byCat("Business"))}
+    ${rowSection("Gaming", byCat("Gaming"))}
+    ${rowSection("Music", byCat("Music"))}
+    ${rowSection("Recently Uploaded", [...DATA.videos].sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0,6))}
+  `;
+}
+
+function renderWatch(){
+  const v = vstate.current || DATA.videos[0];
+  const c = DATA.creators.find(x=>x.id===v.creator);
+  const subbed = vstate.subs.includes(v.creator);
+  const cms = DATA.comments.filter(m=>m.video===v.id);
+  return `
+    <div class="watch">
+      <div>
+        ${playerEmbed(v)}
+        <h2 style="margin-top:14px">${v.title}</h2>
+        <p class="sub">${fmt(v.views)} views • ${v.uploaded}</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+          <button class="chip" onclick="likeVideo(${v.id})">👍 ${fmt(v.likes)}</button>
+          <button class="chip" onclick="dislikeVideo(${v.id})">👎 ${v.dislikes}</button>
+          <button class="chip ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})">★ Favorite</button>
+          <button class="chip" onclick="toast('Share link copied (simulated)')">↗ Share</button>
+          <button class="chip ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})">+ Save</button>
+          <button class="chip" onclick="download(${v.id})">⤓ Download</button>
+        </div>
+        <div class="panel" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="avatar">${c.name[0]}</div>
+            <div><b>${c.name}</b> ${c.verified?'✔️':''}<div class="small">${fmt(c.subs)} subscribers</div></div>
+          </div>
+          <button class="btn ${subbed?'ghost':''}" onclick="subscribe('${c.id}')">${subbed?'Subscribed':'Subscribe'}</button>
+        </div>
+        <div class="panel" style="margin-bottom:14px">
+          <p class="small">Description</p>
+          <p style="font-size:13px">A premium ${v.category} feature from ${c.name}. Watch in full quality with chapters and transcript support.</p>
+        </div>
+        <div class="tabs">
+          <button class="active">Comments (${cms.length})</button>
+          <button onclick="toast('Transcript: auto-generated (simulated)')">Transcript</button>
+          <button onclick="toast('Chapters: 0:00 Intro · 0:05 Main (simulated)')">Chapters</button>
+        </div>
+        <div class="panel" style="margin-bottom:10px">
+          ${cms.length? cms.map(m=>`<div style="padding:6px 0"><b>${m.user}</b> <span class="small">${m.time}</span><br><span style="font-size:13px">${m.text}</span></div>`).join("") : `<div class="small">No comments yet.</div>`}
+        </div>
+        <input class="fld" id="cbox" placeholder="Add a comment…" onkeydown="if(event.key==='Enter')addComment(${v.id})"/>
+        <br/><button class="btn sm" onclick="addComment(${v.id})">Comment</button>
+      </div>
+      <div>
+        <h3 style="margin-top:0">Suggested Videos</h3>
+        ${trending().filter(u=>u.id!==v.id).slice(0,6).map(u=>`
+          <div class="card" style="display:flex;gap:10px;margin-bottom:10px;padding:8px" onclick="openVideo(${u.id})">
+            <div class="video-thumb ${u.type==='original'?'original':''}" style="width:120px;height:68px;margin:0;flex:none">
+              <video class="thumb-video" src="${u.src}#t=0.1" muted preload="metadata"></video>
+            </div>
+            <div><div class="title">${u.title}</div><div class="meta">${creatorName(u.creator)}</div><div class="small">${fmt(u.views)} views</div></div>
+          </div>`).join("")}
+      </div>
+    </div>`;
+}
+
+function listPage(title, list, emptyMsg){
+  return `<h2>${title}</h2><p class="sub">${list.length} item${list.length!==1?'s':''}</p>
+    ${list.length?`<div class="grid">${list.map(v=>videoCard(v)).join("")}</div>`:`<div class="empty">${emptyMsg}</div>`}`;
+}
+
+function renderCategories(){
+  return `<h2>Categories</h2><p class="sub">Browse by topic</p>
+    ${DATA.categories.map(c=>`<h3>${c}</h3><div class="row-scroll">${byCat(c).map(v=>videoCard(v)).join("")||'<div class="small">No videos yet.</div>'}</div>`).join("")}`;
+}
+function renderSubs(){
+  const list = DATA.videos.filter(v=>vstate.subs.includes(v.creator));
+  return `<h2>Subscriptions</h2><p class="sub">Latest from creators you follow</p>
+    <div class="pill-row">${DATA.creators.filter(c=>vstate.subs.includes(c.id)).map(c=>`<span class="filter-pill active">${c.name}</span>`).join("")}</div>
+    <div class="grid">${list.map(v=>videoCard(v)).join("")}</div>`;
+}
+function renderProfile(){
+  return `<h2>Your Profile</h2>
+    <div class="panel" style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+      <div class="avatar" style="width:60px;height:60px;font-size:24px">A</div>
+      <div><h3 style="margin:0">${DATA.user.name}</h3><div class="small">${DATA.user.handle} • ${vstate.subs.length} subscriptions</div></div>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="label">Favorites</div><div class="value">${vstate.favorites.length}</div></div>
+      <div class="metric"><div class="label">Watch Later</div><div class="value">${vstate.later.length}</div></div>
+      <div class="metric"><div class="label">History</div><div class="value">${vstate.history.length}</div></div>
+      <div class="metric"><div class="label">Downloads</div><div class="value">${vstate.downloads.length}</div></div>
+    </div>
+    <h3>Achievements</h3>
+    <div class="pill-row"><span class="filter-pill">🏆 Early Adopter</span><span class="filter-pill">🔥 7-Day Streak</span><span class="filter-pill">⭐ Super Fan</span></div>`;
+}
+function renderSettings(){
+  return `<h2>Settings</h2>
+    <div class="panel" style="max-width:520px">
+      <label class="lbl">Playback Quality</label>
+      <select class="fld"><option>Auto</option><option>1080p</option><option>720p</option><option>480p</option></select>
+      <label class="lbl">Autoplay next video</label>
+      <select class="fld"><option>On</option><option>Off</option></select>
+      <label class="lbl">Language</label>
+      <select class="fld"><option>English</option><option>Español</option><option>Français</option></select>
+      <label class="lbl">Theme</label>
+      <select class="fld"><option>Dark (Red)</option></select>
+      <br/><br/><button class="btn" onclick="toast('Settings saved')">Save Changes</button>
+    </div>`;
+}
+function renderLive(){
+  return `<h2>Live</h2><p class="sub">Streams happening now</p>
+    <div class="grid">${DATA.videos.slice(0,3).map(v=>videoCard(v,{extra:()=>`<div class="card-actions"><span class="chip" style="color:var(--accent2);border-color:var(--accent2)">● LIVE</span><span class="chip">${fmt(v.views)} watching</span></div>`})).join("")}</div>`;
+}
+function renderPlaylists(){
+  return `<h2>Playlists</h2><p class="sub">Your collections</p>
+    <div class="grid">
+      ${["My Mix","Chill","Tech Deep-Dives"].map((p,i)=>`
+        <div class="card"><div class="video-thumb"><video class="thumb-video" src="${DATA.videos[i].src}#t=0.1" muted preload="metadata"></video></div>
+        <div class="title">${p}</div><div class="meta">${(i+2)} videos</div></div>`).join("")}
+    </div>`;
+}
+
+function doSearch(){
+  const q=(document.getElementById("searchInput").value||"").toLowerCase();
+  if(!q){ render(); return; }
+  const vids = DATA.videos.filter(v=>v.title.toLowerCase().includes(q));
+  const crs  = DATA.creators.filter(c=>c.name.toLowerCase().includes(q));
+  document.getElementById("view").innerHTML = `
+    <h2>Search: "${q}"</h2>
+    <div class="pill-row"><span class="filter-pill active">All</span><span class="filter-pill">Videos</span><span class="filter-pill">Creators</span><span class="filter-pill">Playlists</span></div>
+    <h3>Creators</h3>${crs.length?`<div class="pill-row">${crs.map(c=>`<span class="filter-pill">${c.name} ${c.verified?'✔️':''}</span>`).join("")}</div>`:'<div class="small">None</div>'}
+    <h3>Videos</h3>${vids.length?`<div class="grid">${vids.map(v=>videoCard(v)).join("")}</div>`:'<div class="empty">No videos found.</div>'}`;
+}
+
+function render(){
+  const v=document.getElementById("view"); const p=vstate.page;
+  const map={
+    home:renderHome, watch:renderWatch, categories:renderCategories, subscriptions:renderSubs,
+    profile:renderProfile, settings:renderSettings, live:renderLive, playlists:renderPlaylists,
+  };
+  if(map[p]) v.innerHTML = map[p]();
+  else if(p==="explore")   v.innerHTML = listPage("Explore", trending(), "");
+  else if(p==="trending")  v.innerHTML = listPage("Trending", trending(), "");
+  else if(p==="originals") v.innerHTML = listPage("House Originals", DATA.videos.filter(x=>x.type==="original"), "");
+  else if(p==="favorites") v.innerHTML = listPage("Favorites", DATA.videos.filter(x=>vstate.favorites.includes(x.id)), "Tap ★ on any video to save it here.");
+  else if(p==="later")     v.innerHTML = listPage("Watch Later", DATA.videos.filter(x=>vstate.later.includes(x.id)), "Nothing saved yet.");
+  else if(p==="history")   v.innerHTML = listPage("History", vstate.history.map(id=>DATA.videos.find(x=>x.id===id)).filter(Boolean), "No watch history yet.");
+  else if(p==="downloads") v.innerHTML = listPage("Downloads", DATA.videos.filter(x=>vstate.downloads.includes(x.id)), "No downloads yet.");
+  else v.innerHTML = renderHome();
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
+}
+render();
+</script>
+</body>
+</html>

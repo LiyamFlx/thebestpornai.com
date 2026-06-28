@@ -1,0 +1,15 @@
+# Video media (excluded from the repo — distributed separately)
+media/*.mp4
+media/*.mov
+media/*.webm
+media/*.mkv
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+
+# Build / dev artifacts
+.playwright-mcp/
+*.zip
+node_modules/

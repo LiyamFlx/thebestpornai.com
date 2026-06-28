@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StreamHub Studio — Creator</title>
+<style>/*__SHARED_CSS__*/</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="brand"><span class="dot"></span> STUDIO</div>
+    <div class="nav" id="nav">
+      <button data-page="dashboard"  onclick="go('dashboard')"><span class="ico">▤</span> Dashboard</button>
+      <button data-page="content"    onclick="go('content')"><span class="ico">🎞</span> Content</button>
+      <button data-page="upload"     onclick="go('upload')"><span class="ico">⤒</span> Upload</button>
+      <button data-page="analytics"  onclick="go('analytics')"><span class="ico">📈</span> Analytics</button>
+      <button data-page="revenue"    onclick="go('revenue')"><span class="ico">💰</span> Revenue</button>
+      <button data-page="subscribers" onclick="go('subscribers')"><span class="ico">👥</span> Subscribers</button>
+      <button data-page="comments"   onclick="go('comments')"><span class="ico">💬</span> Comments</button>
+      <button data-page="playlists"  onclick="go('playlists')"><span class="ico">≣</span> Playlists</button>
+      <button data-page="livestream" onclick="go('livestream')"><span class="ico">🔴</span> Livestream</button>
+      <button data-page="series"     onclick="go('series')"><span class="ico">🎬</span> Original Series</button>
+      <button data-page="copyright"  onclick="go('copyright')"><span class="ico">©</span> Copyright</button>
+      <button data-page="ai"         onclick="go('ai')"><span class="ico">✨</span> AI Assistant</button>
+      <button data-page="integrations" onclick="go('integrations')"><span class="ico">🔌</span> Integrations</button>
+      <button data-page="api"        onclick="go('api')"><span class="ico">⚙</span> API</button>
+      <button data-page="settings"   onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="left">Creator Studio · Alex</div>
+      <div class="topbar-actions">
+        <button class="btn sm" onclick="go('upload')">＋ Upload</button>
+        <div class="avatar">A</div>
+      </div>
+    </div>
+    <div class="content" id="view"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>/*__SHARED_JS__*/</script>
+<script>
+/* ===================== CREATOR STUDIO ===================== */
+const MY = "c4"; // Alex's creator id
+const myVideos = ()=> DATA.videos.filter(v=>v.creator===MY).concat(DATA.videos.filter(v=>v.creator==="c1")); // show some originals as managed
+let cstate = { page:"dashboard", upload:{step:0, title:"", desc:"", visibility:"public", monet:true} };
+
+function go(p){ cstate.page=p; render(); }
+
+/* ---- Upload wizard ---- */
+const STEPS = ["Upload","Processing","AI Thumbnail","Metadata","Visibility","Scheduling","Monetization","Publish"];
+function uNext(){ cstate.upload.step=Math.min(cstate.upload.step+1,STEPS.length-1); render(); }
+function uPrev(){ cstate.upload.step=Math.max(cstate.upload.step-1,0); render(); }
+function uSaveMeta(){ cstate.upload.title=document.getElementById("uTitle").value; cstate.upload.desc=document.getElementById("uDesc").value; uNext(); }
+function uProcess(){ uNext(); setTimeout(()=>{ if(cstate.page==="upload"&&cstate.upload.step===1) uNext(); },1600); }
+function uPublish(){
+  DATA.videos.unshift({id:Date.now(),title:cstate.upload.title||"Untitled Upload",creator:MY,type:"ugc",category:"Technology",views:0,likes:0,dislikes:0,comments:0,favorites:0,duration:"0:10",uploaded:"2026-06-28",src:DATA.videos[5].src,status:cstate.upload.visibility==="public"?"published":"private",flagged:false});
+  toast(`Published "${cstate.upload.title||'Untitled'}"`);
+  cstate.upload={step:0,title:"",desc:"",visibility:"public",monet:true}; cstate.page="content"; render();
+}
+
+function metric(label,value,delta,up){ return `<div class="metric"><div class="label">${label}</div><div class="value">${value}</div>${delta?`<div class="delta ${up?'up':'down'}">${up?'▲':'▼'} ${delta}</div>`:''}</div>`; }
+
+function renderDashboard(){
+  const r=DATA.revenue;
+  return `<h1>Dashboard</h1><p class="sub">Welcome back, Alex — here's how your channel is doing.</p>
+    <div class="metrics">
+      ${metric("Revenue (mo)","$"+r.history[5].v.toLocaleString(),"18%",true)}
+      ${metric("Subscribers",fmt(DATA.creators.find(c=>c.id==='c4').subs),"4.2%",true)}
+      ${metric("Views (7d)",fmt(DATA.analytics.views7d.reduce((a,b)=>a+b,0)),"9%",true)}
+      ${metric("Watch Time","54.2K min","6%",true)}
+      ${metric("CTR","7.8%","0.4%",true)}
+      ${metric("Engagement","12.4%","1.1%",true)}
+      ${metric("Comments",DATA.comments.length,"3",true)}
+      ${metric("Growth","+312","subs",true)}
+    </div>
+    <div class="grid" style="grid-template-columns:2fr 1fr;margin-top:18px">
+      <div class="panel"><h3 style="margin-top:0">Views — last 7 days</h3>${barChart(DATA.analytics.views7d,["M","T","W","T","F","S","S"])}</div>
+      <div class="panel"><h3 style="margin-top:0">Top Traffic Sources</h3>${distRows(DATA.analytics.traffic)}</div>
+    </div>`;
+}
+
+function renderContent(){
+  return `<h1>Content</h1><p class="sub">Manage your videos</p>
+    <div class="panel" style="padding:0">
+    <table class="data"><thead><tr><th>Video</th><th>Status</th><th>Views</th><th>Likes</th><th>Comments</th><th>Date</th></tr></thead><tbody>
+    ${myVideos().map(v=>`<tr style="cursor:pointer" onclick="toast('Opening editor for: ${v.title}')">
+      <td><b>${v.title}</b><div class="small">${v.category}</div></td>
+      <td><span class="tag-pill ${v.status==='published'?'green':v.status==='review'?'warn':'muted'}">${v.status}</span></td>
+      <td>${fmt(v.views)}</td><td>${fmt(v.likes)}</td><td>${v.comments}</td><td class="small">${v.uploaded}</td></tr>`).join("")}
+    </tbody></table></div>`;
+}
+
+function renderUpload(){
+  const s=cstate.upload.step;
+  const body = [
+    `<p><b>Select your video file</b></p><div class="empty" style="cursor:pointer" onclick="uNext()">⤒ Drag & drop or click to choose a file</div>`,
+    `<p><b>Processing…</b></p><p class="small">Transcoding → generating HLS renditions</p><div class="loader"></div><br/><button class="btn" onclick="uNext()">Simulate complete</button>`,
+    `<p><b>AI Thumbnail</b></p><p class="small">We generated 3 options:</p>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr)">${[5,6,8].map(i=>`<div class="video-thumb" style="height:90px"><video class="thumb-video" src="${DATA.videos[i-1].src}#t=0.${i}" muted preload="metadata"></video></div>`).join("")}</div><br/><button class="btn" onclick="uNext()">Use selected</button>`,
+    `<label class="lbl">Title</label><input class="fld" id="uTitle" value="${cstate.upload.title}" placeholder="Add a title"/>
+      <label class="lbl">Description</label><textarea class="fld" id="uDesc" placeholder="Tell viewers about your video">${cstate.upload.desc}</textarea>
+      <label class="lbl">Tags</label><input class="fld" placeholder="ai, tech, tutorial"/><br/><br/><button class="btn" onclick="uSaveMeta()">Next</button>`,
+    `<label class="lbl">Visibility</label>
+      <select class="fld" onchange="cstate.upload.visibility=this.value">
+        <option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select>
+      <br/><br/><button class="btn" onclick="uNext()">Next</button>`,
+    `<p><b>Scheduling</b></p><label class="lbl">Publish</label>
+      <select class="fld"><option>Now</option><option>Schedule for later</option></select>
+      <label class="lbl">Date</label><input class="fld" type="date"/><br/><br/><button class="btn" onclick="uNext()">Next</button>`,
+    `<p><b>Monetization</b></p>
+      <label class="lbl"><input type="checkbox" checked onchange="cstate.upload.monet=this.checked"/> Enable ads</label>
+      <label class="lbl"><input type="checkbox" checked/> Allow Premium revenue</label>
+      <label class="lbl"><input type="checkbox"/> Accept tips</label><br/><button class="btn" onclick="uNext()">Next</button>`,
+    `<p><b>Ready to publish</b></p><p class="small">"${cstate.upload.title||'Untitled'}" · ${cstate.upload.visibility}</p><button class="btn" onclick="uPublish()">🚀 Publish Video</button>`,
+  ][s];
+  return `<h1>Upload</h1><p class="sub">Step ${s+1} of ${STEPS.length} — ${STEPS[s]}</p>
+    <div class="steps">${STEPS.map((_,i)=>`<div class="dot ${i<=s?'active':''}"></div>`).join("")}</div>
+    <div class="panel" style="max-width:640px">${body}
+      ${s>0&&s!==1?`<br/><button class="btn ghost sm" onclick="uPrev()">← Back</button>`:''}</div>`;
+}
+
+function renderAnalytics(){
+  const a=DATA.analytics;
+  return `<h1>Analytics</h1><p class="sub">Performance overview</p>
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <div class="panel"><h3 style="margin-top:0">Views</h3>${barChart(a.views7d,["M","T","W","T","F","S","S"])}</div>
+      <div class="panel"><h3 style="margin-top:0">Retention</h3>${barChart(a.retention)}</div>
+      <div class="panel"><h3 style="margin-top:0">Audience by Country</h3>${distRows(a.countries)}</div>
+      <div class="panel"><h3 style="margin-top:0">Devices</h3>${distRows(a.devices)}</div>
+      <div class="panel"><h3 style="margin-top:0">Traffic Sources</h3>${distRows(a.traffic)}</div>
+      <div class="panel"><h3 style="margin-top:0">Revenue Trend</h3>${barChart(DATA.revenue.history.map(h=>h.v),DATA.revenue.history.map(h=>h.m))}</div>
+    </div>`;
+}
+
+function renderRevenue(){
+  const r=DATA.revenue;
+  const rows=[["Ad Revenue",r.ads],["Premium Revenue",r.premium],["Subscriptions",r.subscriptions],["Tips",r.tips],["Affiliate",r.affiliate],["Sponsors",1200]];
+  return `<h1>Revenue</h1><p class="sub">Total this period: <b style="color:#fff">$${r.total.toLocaleString()}</b></p>
+    <div class="metrics">${rows.map(([k,v])=>metric(k,"$"+v.toLocaleString())).join("")}</div>
+    <h3>Payout History</h3>
+    <div class="panel" style="padding:0"><table class="data"><thead><tr><th>Date</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead><tbody>
+      ${r.history.slice().reverse().map(h=>`<tr><td>${h.m} 2026</td><td>Bank Transfer</td><td>$${h.v.toLocaleString()}</td><td><span class="tag-pill green">Paid</span></td></tr>`).join("")}
+    </tbody></table></div>`;
+}
+
+function renderSubscribers(){
+  return `<h1>Subscribers</h1><p class="sub">${fmt(DATA.creators.find(c=>c.id==='c4').subs)} total</p>
+    <div class="panel"><h3 style="margin-top:0">Growth</h3>${barChart([820,910,980,1050,1140,1240],["Jan","Feb","Mar","Apr","May","Jun"])}</div>
+    <h3>Recent Subscribers</h3>
+    <div class="panel" style="padding:0"><table class="data"><thead><tr><th>User</th><th>Tier</th><th>Joined</th></tr></thead><tbody>
+      ${DATA.users.filter(u=>u.role==='viewer').map(u=>`<tr><td>${u.name}</td><td><span class="tag-pill ${u.subs==='Premium'?'green':'muted'}">${u.subs}</span></td><td class="small">${u.joined}</td></tr>`).join("")}
+    </tbody></table></div>`;
+}
+
+function renderComments(){
+  return `<h1>Comments</h1><p class="sub">Across all your videos</p>
+    ${DATA.comments.map(m=>`<div class="panel" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+      <div><b>${m.user}</b> <span class="small">on "${DATA.videos.find(v=>v.id===m.video)?.title}"</span><div style="font-size:13px;margin-top:4px">${m.text}</div></div>
+      <div><button class="chip" onclick="toast('Replied (simulated)')">Reply</button> <button class="chip" onclick="toast('Hearted')">♥</button></div>
+    </div>`).join("")}`;
+}
+
+function renderAI(){
+  const tools=["Generate Title","Generate Description","Generate Thumbnail","Generate Tags","SEO Optimization","Chapter Generator","Subtitle Generator","Translate","Social Posts","Repurpose Video"];
+  return `<h1>Creator AI</h1><p class="sub">Generate metadata and assets in one click</p>
+    <div class="grid">${tools.map(t=>`<div class="card" onclick="toast('${t}: generated ✓ (simulated)')"><div class="title">✨ ${t}</div><div class="meta">Tap to generate</div></div>`).join("")}</div>`;
+}
+
+function renderAPI(){
+  const items=["API Keys","OAuth","Webhooks","SDK","Uploads","Analytics API","Documentation","Usage","Logs"];
+  return `<h1>API Center</h1><p class="sub">Build on top of your channel</p>
+    <div class="panel" style="margin-bottom:16px"><h3 style="margin-top:0">Your API Key</h3>
+      <code style="background:var(--bg);padding:8px 12px;border-radius:8px;display:inline-block">sk_live_••••••••••••4f2a</code>
+      <button class="btn sm" style="margin-left:8px" onclick="toast('Key copied')">Copy</button></div>
+    <div class="grid">${items.map(i=>`<div class="card" onclick="toast('${i} (simulated)')"><div class="title">${i}</div></div>`).join("")}</div>`;
+}
+
+function simplePage(title,sub,items){
+  return `<h1>${title}</h1><p class="sub">${sub}</p><div class="grid">${items.map(i=>`<div class="card" onclick="toast('${i} (simulated)')"><div class="title">${i}</div></div>`).join("")}</div>`;
+}
+
+function render(){
+  const v=document.getElementById("view"); const p=cstate.page;
+  const map={dashboard:renderDashboard,content:renderContent,upload:renderUpload,analytics:renderAnalytics,
+    revenue:renderRevenue,subscribers:renderSubscribers,comments:renderComments,ai:renderAI,api:renderAPI};
+  if(map[p]) v.innerHTML=map[p]();
+  else if(p==="playlists")  v.innerHTML=simplePage("Playlists","Organize your content",["Create Playlist","My Mix","Tutorials","Originals"]);
+  else if(p==="livestream") v.innerHTML=simplePage("Livestream","Go live to your audience",["Start Stream","Stream Key","Chat Settings","Past Streams"]);
+  else if(p==="series")     v.innerHTML=simplePage("Original Series","Episodic content",["New Series","Season 1","Drafts","Schedule"]);
+  else if(p==="copyright")  v.innerHTML=simplePage("Copyright","Protect your content",["Content ID","Claims","Disputes","Strikes"]);
+  else if(p==="integrations")v.innerHTML=simplePage("Integrations","Connect your tools",["Discord","Stripe","Zapier","Patreon","Shopify","Mailchimp"]);
+  else if(p==="settings")   v.innerHTML=simplePage("Settings","Channel preferences",["Channel Info","Branding","Permissions","Defaults","Danger Zone"]);
+  else v.innerHTML=renderDashboard();
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
+}
+render();
+</script>
+</body>
+</html>

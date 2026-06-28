@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StreamHub — Choose Experience</title>
+<style>
+:root{--bg:#0A0A0A;--surface:#141414;--text:#FFF;--muted:#A0A0A0;--accent:#E50914;--accent2:#FF3B3B;--border:rgba(255,255,255,.1)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 500px at 50% -10%,#2A0307,#0A0A0A);color:var(--text);
+  font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px}
+.logo{font-weight:800;letter-spacing:1px;color:var(--accent);font-size:18px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.logo .dot{width:12px;height:12px;border-radius:4px;background:var(--accent)}
+h1{font-size:34px;margin:6px 0 4px;text-align:center}
+.sub{color:var(--muted);margin:0 0 36px;text-align:center;max-width:520px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:920px;width:100%}
+@media(max-width:780px){.cards{grid-template-columns:1fr}}
+.persona{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:26px;
+  cursor:pointer;transition:.25s;text-decoration:none;color:inherit;display:block}
+.persona:hover{transform:translateY(-6px);border-color:var(--accent);box-shadow:0 24px 60px rgba(229,9,20,.18)}
+.persona .ic{font-size:30px;margin-bottom:14px}
+.persona h2{margin:0 0 8px;font-size:19px}
+.persona p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
+.persona .go{margin-top:18px;display:inline-block;background:var(--accent);color:#fff;
+  padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600}
+.foot{margin-top:34px;color:var(--muted);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+  <div class="logo"><span class="dot"></span> STREAMHUB</div>
+  <h1>One ecosystem. Three experiences.</h1>
+  <p class="sub">A premium hybrid video platform — choose how you want to enter. Each persona is its own full application sharing one design system and data model.</p>
+  <div class="cards">
+    <a class="persona" href="viewer/viewer-app.html">
+      <div class="ic">📺</div><h2>Viewer</h2>
+      <p>Stream originals and community videos. Browse, search, favorite, comment, build playlists.</p>
+      <span class="go">Enter StreamHub →</span>
+    </a>
+    <a class="persona" href="creator/creator-studio.html">
+      <div class="ic">🎬</div><h2>Creator Studio</h2>
+      <p>Upload, manage content, analytics, revenue, subscribers, AI tools, and developer APIs.</p>
+      <span class="go">Open Studio →</span>
+    </a>
+    <a class="persona" href="manager/platform-manager.html">
+      <div class="ic">🛡</div><h2>Platform Manager</h2>
+      <p>The company OS — users, moderation, recommendations, homepage builder, infra & governance.</p>
+      <span class="go">Open Console →</span>
+    </a>
+  </div>
+  <div class="foot">Tip: launch via Start.command (Mac) / Start.bat (Windows) so videos play smoothly.</div>
+</body>
+</html>
