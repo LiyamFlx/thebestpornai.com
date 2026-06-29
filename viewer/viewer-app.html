@@ -972,21 +972,26 @@ function render(){
 /* Lazy-load video thumbnails: only fetch a thumbnail's metadata once its card
    scrolls near the viewport. Without this, ~180 <video> elements would all
    request metadata from the CDN on load and crawl the page. */
+function revealThumb(el){
+  if(el.dataset.src){ el.src = el.dataset.src; el.preload = "metadata"; el.removeAttribute("data-src"); }
+  el.classList.remove("lazy");
+}
+/* Asymmetric margin: generous vertical lookahead for the scrolling grid pages,
+   tighter horizontal so off-screen cards in `.row-scroll` rows aren't all
+   fetched at once on the home feed. */
 const _lazyObserver = ("IntersectionObserver" in window)
   ? new IntersectionObserver((entries, obs)=>{
       entries.forEach(e=>{
         if(!e.isIntersecting) return;
-        const el = e.target;
-        if(el.dataset.src){ el.src = el.dataset.src; el.preload = "metadata"; el.removeAttribute("data-src"); }
-        el.classList.remove("lazy");
-        obs.unobserve(el);
+        revealThumb(e.target);
+        obs.unobserve(e.target);
       });
-    }, { rootMargin: "300px" })
+    }, { rootMargin: "250px 80px" })
   : null;
 function lazyLoadThumbs(){
   const els = document.querySelectorAll("video.lazy[data-src]");
   if(_lazyObserver){ els.forEach(el=>_lazyObserver.observe(el)); }
-  else { els.forEach(el=>{ el.src = el.dataset.src; el.preload="metadata"; el.removeAttribute("data-src"); el.classList.remove("lazy"); }); }
+  else { els.forEach(revealThumb); }   // no IntersectionObserver: load eagerly
 }
 if(location.hash) applyHash();
 render();
