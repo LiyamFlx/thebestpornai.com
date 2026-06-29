@@ -14,3 +14,10 @@ Thumbs.db
 .playwright-mcp/
 *.zip
 node_modules/
+
+# Local bulk-upload staging — videos live on Bunny CDN, not in repo
+media/new balk uplode/
+media/**/*.mp4
+media/**/*.mov
+media/**/*.webm
+media/**/*.mkv
