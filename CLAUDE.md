@@ -104,6 +104,14 @@ there's one source of truth.)
   tracked videos are the royalty-free `media/sample-*.mp4`.
 - Default branch is `master`. Pushing to it triggers Vercel (but not the live domain).
 
+## Subfolders on Bunny
+
+`mediaUrl()` now preserves the full path after `media/` (encoding each segment),
+so videos inside a Bunny subfolder work: `src:"../media/<folder>/<file>.mp4"` →
+`b-cdn.net/<folder>/<file>.mp4`. (Earlier it did `split('/').pop()` and dropped
+the folder, 404ing every subfolder video — red thumbnails.) When importing from a
+subfolder, the catalog `src` MUST include the folder.
+
 ## Gotchas that have bitten us
 
 - "I uploaded but don't see them live" → the **30-day Pull Zone cache**. Purge it.

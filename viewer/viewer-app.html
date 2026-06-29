@@ -691,12 +691,26 @@ let vstate = {
   subs:["c1","c2"],
 };
 
-function go(p){ vstate.page=p; render(); }
+function go(p){ vstate.page=p; setHash(p==="home"?"":p); render(); }
 function openVideo(id){
   vstate.current = DATA.videos.find(v=>v.id===id);
+  if(!vstate.current) return;
   if(!vstate.history.includes(id)) vstate.history.unshift(id);
-  vstate.page="watch"; render();
+  vstate.page="watch"; setHash("video/"+id); render();
 }
+/* ---- URL hash routing: shareable/bookmarkable per-video URLs ---- */
+let _suppressHash=false;
+function setHash(h){ _suppressHash=true; location.hash = h?("#"+h):""; setTimeout(()=>_suppressHash=false,0); }
+function applyHash(){
+  const h=(location.hash||"").replace(/^#/,"");
+  const m=h.match(/^video\/(\d+)$/);
+  if(m){
+    const vid=DATA.videos.find(v=>v.id===+m[1]);
+    if(vid){ vstate.current=vid; if(!vstate.history.includes(vid.id)) vstate.history.unshift(vid.id); vstate.page="watch"; return; }
+  }
+  vstate.page = h || "home";
+}
+window.addEventListener("hashchange",()=>{ if(_suppressHash) return; applyHash(); render(); });
 function toggleFav(id){
   vstate.favorites.includes(id) ? vstate.favorites=vstate.favorites.filter(x=>x!==id) : vstate.favorites.push(id);
   toast(vstate.favorites.includes(id)?"Added to Favorites":"Removed from Favorites"); render();
@@ -885,6 +899,7 @@ function render(){
   else v.innerHTML = renderHome();
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
 }
+if(location.hash) applyHash();
 render();
 </script>
 </body>
