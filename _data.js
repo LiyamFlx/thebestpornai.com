@@ -14,8 +14,11 @@ function mediaUrl(src){
   if(!src) return src;
   if(/^https?:\/\//.test(src) || src.startsWith("blob:") || src.startsWith("data:")) return src;
   if(!MEDIA_BASE) return src;                       // local mode, keep relative path
-  const file = src.split("/").pop();                // -> original filename
-  return MEDIA_BASE.replace(/\/$/,"") + "/" + encodeURIComponent(file);
+  // strip leading "../media/" (or "media/") then keep the rest of the path,
+  // URL-encoding each segment so spaces/subfolders work.
+  const rel = src.replace(/^(\.\.\/)?media\//, "");
+  const path = rel.split("/").map(encodeURIComponent).join("/");
+  return MEDIA_BASE.replace(/\/$/,"") + "/" + path;
 }
 
 const DATA = {
