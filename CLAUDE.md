@@ -85,11 +85,12 @@ videos, update ALL of these:
 - `creator/creator-studio.html`
 - `_data.js`  (source of truth for `build.js`, but **not loaded at runtime**)
 
-`build.js` inlines `_data.js` + `_shared.css` into the `*.src.html` templates to
-produce the served HTML, but **Vercel does not run it** (no `vercel.json`/`package.json`),
-and the live site is served from Bunny anyway. So in practice you edit the built
-HTML files directly. (Refactor opportunity: make pages load `_data.js` at runtime so
-there's one source of truth.)
+**You edit the built HTML files directly.** There used to be a `build.js` that
+inlined `_data.js` + `_shared.css` into `*.src.html` templates, but it was never
+run by CI/Vercel, the templates drifted badly behind the real pages, and running it
+would have clobbered the live files. It's been moved to `_archive/` (see
+`_archive/README.md`) — do not revive it. (Refactor opportunity: make pages load
+`_data.js` at runtime so there's one source of truth.)
 
 ## Local dev
 
