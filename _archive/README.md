@@ -25,8 +25,12 @@ Running `node build.js` would have **overwritten the live HTML files with the st
 template output**, silently wiping all of the above. Moving these out of the working
 tree makes that impossible by accident.
 
-## If you ever want a real build pipeline again
+`_data.js` is also here. It was the "source of truth" the build pipeline inlined,
+but it too drifted (its helper functions lagged the live pages) and was never loaded
+at runtime. It is superseded by `../catalog.js`, which the pages now load directly.
 
-Don't revive these. Start fresh: the better fix (noted in `../CLAUDE.md`) is to have
-each page load `_data.js` at runtime so the catalog lives in one place, instead of
-being inlined into four files.
+## The catalog is now in one place
+
+The 4-file catalog sync was solved (2026-06-30): the catalog moved to
+`../catalog.js`, loaded at runtime by every page. See `../CLAUDE.md`. Do not revive
+`build.js`, the `*.src.html` templates, or `_data.js`.

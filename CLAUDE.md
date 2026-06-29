@@ -19,12 +19,12 @@ thebestpornai.com  ──►  Bunny Pull Zone (id 6077029)  ──►  Bunny Sto
 
 ## Deploy checklist (to update the live site)
 
-1. Edit the catalog (see "Adding videos" below).
-2. Upload the 4 HTML files to Bunny storage (overwrites live):
-   - `viewer/viewer-app.html`
-   - `manager/platform-manager.html`
-   - `creator/creator-studio.html`
-   - `index.html`
+1. Edit the catalog in `catalog.js` (see "Adding videos" below).
+2. Upload to Bunny storage (overwrites live) whatever you changed:
+   - `catalog.js`  ← the catalog (one file; covers all pages)
+   - `viewer/viewer-app.html` / `manager/platform-manager.html` /
+     `creator/creator-studio.html` / `index.html`  ← only if you changed their
+     markup/logic (NOT needed for a catalog-only change)
 3. **Purge the Pull Zone cache** (30-day TTL — site won't update otherwise):
    Bunny dashboard → CDN → Pull Zone `streamhub-media` → Purge Cache → empty tag → Purge.
 4. (Optional) `git commit && git push` to keep GitHub/Vercel in sync.
@@ -65,7 +65,8 @@ before committing — do not assume sequential numbering (e.g. comshot files ski
 Steps to add videos:
 1. Upload the `.mp4` files to the Bunny storage zone (dashboard or PUT API).
 2. Get the EXACT filenames from the storage listing (API call above).
-3. Add an entry per video to the `videos: [...]` array. Entry shape:
+3. Add an entry per video to the `videos: [...]` array **in `catalog.js`** (the
+   single source of truth — see below). Entry shape:
    ```js
    { id:<n>, title:"...", creator:"c1", type:"ugc", category:"Cumshot",
      categories:["Cumshot"], views:0, likes:0, dislikes:0, comments:0, favorites:0,
@@ -74,23 +75,28 @@ Steps to add videos:
    ```
 4. Verify each CDN URL returns 200:
    `curl -sI "https://streamhub-media.b-cdn.net/<urlencoded filename>"`
-5. Deploy (see checklist above).
+5. Deploy: upload `catalog.js` to Bunny storage and purge the cache (see checklist).
 
-### ⚠️ The catalog is duplicated in 4 places — keep them in sync
+### ✅ The catalog lives in ONE place: `catalog.js`
 
-The same `videos: [...]` array is **inlined** into every page. When you add/edit
-videos, update ALL of these:
-- `viewer/viewer-app.html`
-- `manager/platform-manager.html`
-- `creator/creator-studio.html`
-- `_data.js`  (source of truth for `build.js`, but **not loaded at runtime**)
+`catalog.js` (at the repo root) defines the globals `MEDIA_BASE`, `mediaUrl()`, and
+`DATA` (videos/creators/categories/comments/moderation/user). Every app page loads it
+at runtime via `<script src="../catalog.js"></script>` **before** its own inline
+script, so all three pages share one catalog. **Edit `catalog.js` only** — no more
+4-file sync.
 
-**You edit the built HTML files directly.** There used to be a `build.js` that
-inlined `_data.js` + `_shared.css` into `*.src.html` templates, but it was never
-run by CI/Vercel, the templates drifted badly behind the real pages, and running it
-would have clobbered the live files. It's been moved to `_archive/` (see
-`_archive/README.md`) — do not revive it. (Refactor opportunity: make pages load
-`_data.js` at runtime so there's one source of truth.)
+- Pages: `viewer/viewer-app.html`, `creator/creator-studio.html`,
+  `manager/platform-manager.html` (each loads `../catalog.js` → resolves to
+  `/catalog.js` at the CDN root). `index.html` is a static picker, no catalog.
+- **Deploy:** when you change the catalog, upload **`catalog.js`** to Bunny storage
+  (`https://storage.bunnycdn.com/streamhub-media/catalog.js`) and purge the Pull Zone
+  cache — same as the HTML files. The pages themselves only need re-uploading if you
+  changed their markup/logic, not the catalog.
+- Per-page **helper functions** (`videoCard`, `fmt`, `playerEmbed`, …) are still
+  inlined per page and have drifted (e.g. the viewer's `videoCard` is lazy-loaded).
+  They are NOT shared — only the catalog is. Unifying helpers is a separate task.
+- Abandoned build pipeline (`build.js`, `*.src.html`) and the old `_data.js` live in
+  `_archive/` (see `_archive/README.md`) — do not revive them.
 
 ## Local dev
 
