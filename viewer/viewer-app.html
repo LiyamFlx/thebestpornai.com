@@ -286,6 +286,61 @@ table.data tr:hover td{background:var(--surface2)}
 /* Watch layout */
 .watch{display:grid;grid-template-columns:2fr 1fr;gap:20px}
 @media(max-width:900px){.watch{grid-template-columns:1fr}}
+
+/* Mobile bottom tab bar — hidden on desktop, shown under 760px */
+.bottom-nav{display:none}
+@media(max-width:760px){
+  .bottom-nav{
+    display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;
+    background:rgba(20,20,20,0.96);backdrop-filter:blur(12px);
+    border-top:1px solid var(--border);
+    padding:6px 4px;padding-bottom:calc(6px + env(safe-area-inset-bottom));
+  }
+  .bottom-nav button{
+    flex:1;background:none;border:none;color:var(--muted);
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    min-height:48px;padding:4px 0;font-size:10px;cursor:pointer;
+  }
+  .bottom-nav button .ico{font-size:19px;line-height:1}
+  .bottom-nav button.active{color:#fff}
+}
+
+/* ---- Mobile layout (≤760px) ---- */
+@media(max-width:760px){
+  .app{flex-direction:column;height:auto;min-height:100vh}
+  .sidebar{display:none}
+  .main{min-height:100vh}
+  .content{padding:14px;padding-bottom:84px}   /* clear the bottom nav */
+
+  .topbar{padding:10px 14px;gap:8px}
+  .topbar .left{font-size:16px}
+  .topbar-actions{flex:1;justify-content:flex-end}
+  .search-input{width:100%;flex:1;min-width:0;font-size:16px} /* 16px avoids iOS zoom */
+  .topbar-actions .icon-btn{display:none}      /* declutter; Search/Later live in bottom nav */
+
+  /* Comfortable 2-up grid instead of one giant column */
+  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .grid .card,.row-scroll .card{padding:8px}
+  .row-scroll .card{min-width:150px}
+  .video-thumb{height:96px}
+  .title{font-size:12px}
+  .card:hover{transform:none}                  /* no hover-lift on touch */
+
+  /* Hero scaled down */
+  .hero{height:200px;border-radius:14px;margin-bottom:18px}
+  .hero .hero-body{padding:18px;max-width:100%}
+  .hero h1{font-size:21px}
+
+  h1{font-size:20px}h2{font-size:18px}
+
+  /* Watch page tweaks */
+  .player{height:auto;aspect-ratio:16/9}
+  .modal{width:94vw;max-height:88vh}
+
+  /* Bigger tap targets */
+  .btn{padding:11px 18px}
+  .chip{padding:7px 12px;font-size:12px}
+}
 .player{
   width:100%;height:380px;border-radius:14px;background:#000;border:none;
   display:flex;align-items:center;justify-content:center;font-size:12px;color:#555;
@@ -358,6 +413,14 @@ iframe.player{display:block}
     </div>
     <div class="content" id="view"></div>
   </div>
+  <!-- Mobile bottom tab bar (hidden on desktop via CSS) -->
+  <nav class="bottom-nav" id="bottomNav" aria-label="Primary">
+    <button data-page="home"    onclick="go('home')"><span class="ico">🏠</span><span>Home</span></button>
+    <button data-page="explore" onclick="go('explore')"><span class="ico">🧭</span><span>Explore</span></button>
+    <button data-page="_search" onclick="focusSearch()"><span class="ico">🔍</span><span>Search</span></button>
+    <button data-page="later"   onclick="go('later')"><span class="ico">🕒</span><span>Later</span></button>
+    <button data-page="profile" onclick="go('profile')"><span class="ico">👤</span><span>You</span></button>
+  </nav>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -641,7 +704,7 @@ function videoCard(v, opts={}){
   const thumb = v.thumb
     ? `<img class="thumb-video" src="${v.thumb}" alt=""/>`
     : (v.src && !ytId(v.src)
-        ? `<video class="thumb-video" src="${mediaUrl(v.src)}#t=0.1" muted preload="metadata" playsinline></video>` : ``);
+        ? `<video class="thumb-video lazy" data-src="${mediaUrl(v.src)}#t=0.1" muted preload="none" playsinline></video>` : ``);
   return `
     <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
       <div class="video-thumb ${v.type==='original'?'original':''}">
@@ -692,6 +755,10 @@ let vstate = {
 };
 
 function go(p){ vstate.page=p; setHash(p==="home"?"":p); render(); }
+function focusSearch(){
+  const i=document.getElementById("searchInput");
+  if(i){ i.scrollIntoView({block:"start",behavior:"smooth"}); i.focus(); }
+}
 function openVideo(id){
   vstate.current = DATA.videos.find(v=>v.id===id);
   if(!vstate.current) return;
@@ -805,7 +872,7 @@ function renderWatch(){
         ${trending().filter(u=>u.id!==v.id).slice(0,6).map(u=>`
           <div class="card" style="display:flex;gap:10px;margin-bottom:10px;padding:8px" onclick="openVideo(${u.id})">
             <div class="video-thumb ${u.type==='original'?'original':''}" style="width:120px;height:68px;margin:0;flex:none">
-              <video class="thumb-video" src="${mediaUrl(u.src)}#t=0.1" muted preload="metadata"></video>
+              <video class="thumb-video lazy" data-src="${mediaUrl(u.src)}#t=0.1" muted preload="none"></video>
             </div>
             <div><div class="title">${u.title}</div><div class="meta">${creatorName(u.creator)}</div><div class="small">${fmt(u.views)} views</div></div>
           </div>`).join("")}
@@ -865,7 +932,7 @@ function renderPlaylists(){
   return `<h2>Playlists</h2><p class="sub">Your collections</p>
     <div class="grid">
       ${["My Mix","Chill","Tech Deep-Dives"].map((p,i)=>`
-        <div class="card"><div class="video-thumb"><video class="thumb-video" src="${mediaUrl(DATA.videos[i].src)}#t=0.1" muted preload="metadata"></video></div>
+        <div class="card"><div class="video-thumb"><video class="thumb-video lazy" data-src="${mediaUrl(DATA.videos[i].src)}#t=0.1" muted preload="none"></video></div>
         <div class="title">${p}</div><div class="meta">${(i+2)} videos</div></div>`).join("")}
     </div>`;
 }
@@ -880,6 +947,7 @@ function doSearch(){
     <div class="pill-row"><span class="filter-pill active">All</span><span class="filter-pill">Videos</span><span class="filter-pill">Creators</span><span class="filter-pill">Playlists</span></div>
     <h3>Creators</h3>${crs.length?`<div class="pill-row">${crs.map(c=>`<span class="filter-pill">${c.name} ${c.verified?'✔️':''}</span>`).join("")}</div>`:'<div class="small">None</div>'}
     <h3>Videos</h3>${vids.length?`<div class="grid">${vids.map(v=>videoCard(v)).join("")}</div>`:'<div class="empty">No videos found.</div>'}`;
+  lazyLoadThumbs();
 }
 
 function render(){
@@ -897,7 +965,28 @@ function render(){
   else if(p==="history")   v.innerHTML = listPage("History", vstate.history.map(id=>DATA.videos.find(x=>x.id===id)).filter(Boolean), "No watch history yet.");
   else if(p==="downloads") v.innerHTML = listPage("Downloads", DATA.videos.filter(x=>vstate.downloads.includes(x.id)), "No downloads yet.");
   else v.innerHTML = renderHome();
-  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
+  document.querySelectorAll("#nav button, #bottomNav button").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
+  lazyLoadThumbs();
+}
+
+/* Lazy-load video thumbnails: only fetch a thumbnail's metadata once its card
+   scrolls near the viewport. Without this, ~180 <video> elements would all
+   request metadata from the CDN on load and crawl the page. */
+const _lazyObserver = ("IntersectionObserver" in window)
+  ? new IntersectionObserver((entries, obs)=>{
+      entries.forEach(e=>{
+        if(!e.isIntersecting) return;
+        const el = e.target;
+        if(el.dataset.src){ el.src = el.dataset.src; el.preload = "metadata"; el.removeAttribute("data-src"); }
+        el.classList.remove("lazy");
+        obs.unobserve(el);
+      });
+    }, { rootMargin: "300px" })
+  : null;
+function lazyLoadThumbs(){
+  const els = document.querySelectorAll("video.lazy[data-src]");
+  if(_lazyObserver){ els.forEach(el=>_lazyObserver.observe(el)); }
+  else { els.forEach(el=>{ el.src = el.dataset.src; el.preload="metadata"; el.removeAttribute("data-src"); el.classList.remove("lazy"); }); }
 }
 if(location.hash) applyHash();
 render();
