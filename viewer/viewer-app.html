@@ -486,14 +486,16 @@ function openVideo(id){
   if(!vstate.current) return;
   if(!vstate.history.includes(id)) vstate.history.unshift(id);
   vstate.page="watch"; setHash("video/"+id); render();
-  _persist(()=> ShAPI.addView(id));   // record a real view (fire-and-forget)
   hydrateWatch(id);   // fetch real counts/comments and patch them in (non-blocking)
 }
 
 /* Pull persisted likes/comments from Supabase and patch the already-rendered
-   watch page. Best-effort: any failure leaves the seeded values in place. */
+   watch page. Best-effort: any failure leaves the seeded values in place.
+   Also records the view here so it fires on BOTH the click path (openVideo) and
+   the direct-link/refresh path (applyHash -> render -> pending hydrate). */
 async function hydrateWatch(id){
   if(typeof ShAPI==="undefined" || !ShAPI.enabled) return;
+  _persist(()=> ShAPI.addView(id));   // record a real view (fire-and-forget)
   try {
     const [counts, comments, views, favCount] = await Promise.all([
       ShAPI.likeCounts(id), ShAPI.listComments(id), ShAPI.viewCount(id), ShAPI.favoriteCount(id)
