@@ -70,6 +70,22 @@ const ShAPI = {
     return rows && rows[0];
   },
 
+  /* ---- VIEWS ---- */
+  async addView(videoId){
+    await _req(`/views`, { method:"POST", body: JSON.stringify({ video_id: videoId }) });
+  },
+  async viewCount(videoId){
+    // HEAD with count header is cheapest, but keep it simple: count ids.
+    const rows = await _req(`/views?video_id=eq.${videoId}&select=id`);
+    return (rows||[]).length;
+  },
+
+  /* ---- FAVORITE COUNT (how many people favorited a video) ---- */
+  async favoriteCount(videoId){
+    const rows = await _req(`/favorites?video_id=eq.${videoId}&select=id`);
+    return (rows||[]).length;
+  },
+
   /* ---- FAVORITES (per-browser via client_id) ---- */
   async myFavorites(){
     const rows = await _req(`/favorites?client_id=eq.${encodeURIComponent(shClientId())}&select=video_id`);

@@ -486,6 +486,7 @@ function openVideo(id){
   if(!vstate.current) return;
   if(!vstate.history.includes(id)) vstate.history.unshift(id);
   vstate.page="watch"; setHash("video/"+id); render();
+  _persist(()=> ShAPI.addView(id));   // record a real view (fire-and-forget)
   hydrateWatch(id);   // fetch real counts/comments and patch them in (non-blocking)
 }
 
@@ -494,13 +495,21 @@ function openVideo(id){
 async function hydrateWatch(id){
   if(typeof ShAPI==="undefined" || !ShAPI.enabled) return;
   try {
-    const [counts, comments] = await Promise.all([ ShAPI.likeCounts(id), ShAPI.listComments(id) ]);
+    const [counts, comments, views, favCount] = await Promise.all([
+      ShAPI.likeCounts(id), ShAPI.listComments(id), ShAPI.viewCount(id), ShAPI.favoriteCount(id)
+    ]);
     if(vstate.current && vstate.current.id===id && onWatch()){
       const v = vstate.current;
-      // Show seeded baseline + real persisted events, so counts only ever grow.
+      // Show seeded baseline + real persisted events, so counts are realistic AND grow.
       const likeBtn=document.getElementById("btnLike"), disBtn=document.getElementById("btnDislike");
       if(likeBtn) likeBtn.textContent = "👍 " + fmt(v.likes + (counts.like||0));
-      if(disBtn)  disBtn.textContent  = "👎 " + (v.dislikes + (counts.dislike||0));
+      if(disBtn)  disBtn.textContent  = "👎 " + fmt(v.dislikes + (counts.dislike||0));
+      // Views (seed + real) in the sub line.
+      const subEl=document.getElementById("watchSub");
+      if(subEl) subEl.textContent = fmt(v.views + (views||0)) + " views • " + v.uploaded;
+      // Favorites count chip.
+      const favCountEl=document.getElementById("favCount");
+      if(favCountEl) favCountEl.textContent = favCount ? (" ("+fmt(favCount)+")") : "";
       if(comments && comments.length){
         // Merge persisted comments into DATA.comments (avoid dupes) and re-render the list region.
         for(const c of comments){
@@ -620,11 +629,11 @@ function renderWatch(){
       <div>
         ${playerEmbed(v)}
         <h2 style="margin-top:14px">${esc(v.title)}</h2>
-        <p class="sub">${fmt(v.views)} views • ${esc(v.uploaded)}</p>
+        <p class="sub" id="watchSub">${fmt(v.views)} views • ${esc(v.uploaded)}</p>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
           <button id="btnLike" class="chip" onclick="likeVideo(${v.id})">👍 ${fmt(v.likes)}</button>
           <button id="btnDislike" class="chip" onclick="dislikeVideo(${v.id})">👎 ${v.dislikes}</button>
-          <button id="btnFav" class="chip ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})">★ Favorite</button>
+          <button id="btnFav" class="chip ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})">★ Favorite<span id="favCount"></span></button>
           <button class="chip" onclick="toast('Share link copied (simulated)')">↗ Share</button>
           <button id="btnLater" class="chip ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})">+ Save</button>
           <button class="chip" onclick="download(${v.id})">⤓ Download</button>
