@@ -383,6 +383,8 @@ iframe.player{display:block}
 
 <!-- Catalog: single source of truth, loaded at runtime (see /catalog.js) -->
 <script src="../catalog.js?v=3"></script>
+<!-- Persistence + moderation API (Supabase) -->
+<script src="../streamhub-api.js?v=2"></script>
 <script>
 /* creatorName(), fmt(), toast() are shared — defined in catalog.js */
 
@@ -409,7 +411,7 @@ function distRows(arr){
 <script>
 /* ===================== PLATFORM MANAGER ===================== */
 let mstate = { page:"overview" };
-function go(p){ mstate.page=p; render(); }
+function go(p){ mstate.page=p; render(); if(p==="moderation") loadModeration(); }
 function metric(label,value,delta,up){ return `<div class="metric"><div class="label">${label}</div><div class="value">${value}</div>${delta?`<div class="delta ${up?'up':'down'}">${delta}</div>`:''}</div>`; }
 
 function renderOverview(){
@@ -468,18 +470,50 @@ function renderVideos(){
     </tbody></table></div>`;
 }
 
+/* Moderation queue = flagged catalog videos + creator uploads awaiting review.
+   _modDecisions holds the latest persisted decision per video so actioned items
+   drop out of the queue across reloads/sessions. */
+let _modDecisions = {};
+let _modUploads = [];
+
+async function loadModeration(){
+  if(typeof ShAPI==="undefined" || !ShAPI.enabled) return;
+  try {
+    const [dec, ups] = await Promise.all([ ShAPI.latestDecisions(), ShAPI.listUploadedVideos() ]);
+    // Merge server decisions in WITHOUT clobbering optimistic local ones.
+    _modDecisions = Object.assign({}, dec, _modDecisions);
+    _modUploads = ups;
+    if(mstate.page==="moderation") render();
+  } catch(_){}
+}
+
+async function modAction(videoId, action){
+  _modDecisions[String(videoId)] = action;   // optimistic: leave the queue now
+  toast(action.charAt(0).toUpperCase()+action.slice(1)+"d");
+  if(typeof ShAPI!=="undefined" && ShAPI.enabled){
+    let mod=""; try{ if(typeof ShAuth!=="undefined"){ const u=await ShAuth.user(); mod=u&&u.email||""; } }catch(_){}
+    try { await ShAPI.moderate(videoId, action, null, mod); } catch(_){}
+  }
+  render();
+}
+
 function renderModeration(){
-  const flagged=DATA.videos.filter(v=>v.flagged);
-  return `<h1>Content Moderation</h1><p class="sub">${flagged.length} items in queue</p>
-    <div class="tabs"><button class="active">Flagged Videos</button><button onclick="toast('Comments queue')">Comments</button>
-      <button onclick="toast('Copyright queue')">Copyright</button><button onclick="toast('Appeals')">Appeals</button></div>
-    ${flagged.map(v=>`<div class="panel" style="margin-bottom:10px;display:flex;gap:14px;align-items:center">
-      <div class="video-thumb" style="width:120px;height:68px;margin:0;flex:none">${v.src?`<video class="thumb-video lazy" data-src="${mediaUrl(v.src)}#t=0.1" muted preload="none"></video>`:``}</div>
-      <div style="flex:1"><b>${esc(v.title)}</b><div class="small">${esc(creatorName(v.creator))} • AI flag: ${['NSFW','Spam','Copyright'][v.id%3]}</div></div>
-      <div><button class="chip" style="color:var(--good);border-color:var(--good)" onclick="toast('Approved')">Approve</button>
-           <button class="chip" style="color:var(--accent2);border-color:var(--accent2)" onclick="toast('Removed')">Remove</button>
-           <button class="chip" onclick="toast('Escalated')">Escalate</button></div>
-    </div>`).join("")}`;
+  const decided = id => { const d=_modDecisions[String(id)]; return d==="approve"||d==="remove"; };
+  const flagged = DATA.videos.filter(v=>v.flagged && !decided(v.id));
+  const reviews = (_modUploads||[]).filter(u=>(u.status==="review") && !decided(u.id) && !decided(u.src));
+  const queue = [
+    ...reviews.map(u=>({ id:u.id, title:u.title, who:u.creator||"upload", src:u.src, why:"New upload — pending review", isUpload:true })),
+    ...flagged.map(v=>({ id:v.id, title:v.title, who:creatorName(v.creator), src:v.src, why:"AI flag: "+['NSFW','Spam','Copyright'][v.id%3], isUpload:false })),
+  ];
+  return `<h1>Content Moderation</h1><p class="sub">${queue.length} items in queue</p>
+    <div class="tabs"><button class="active">Review Queue</button><button onclick="loadModeration()">↻ Refresh</button></div>
+    ${queue.length? queue.map(it=>`<div class="panel" style="margin-bottom:10px;display:flex;gap:14px;align-items:center">
+      <div class="video-thumb" style="width:120px;height:68px;margin:0;flex:none">${it.src?`<video class="thumb-video lazy" data-src="${mediaUrl(it.src)}#t=0.1" muted preload="none"></video>`:``}</div>
+      <div style="flex:1"><b>${esc(it.title)}</b>${it.isUpload?' <span class="tag-pill warn">upload</span>':''}<div class="small">${esc(it.who)} • ${esc(it.why)}</div></div>
+      <div><button class="chip" style="color:var(--good);border-color:var(--good)" onclick="modAction('${esc(String(it.id))}','approve')">Approve</button>
+           <button class="chip" style="color:var(--accent2);border-color:var(--accent2)" onclick="modAction('${esc(String(it.id))}','remove')">Remove</button>
+           <button class="chip" onclick="modAction('${esc(String(it.id))}','escalate')">Escalate</button></div>
+    </div>`).join("") : `<div class="empty">Queue clear — nothing awaiting review. 🎉</div>`}`;
 }
 
 function renderHomepage(){

@@ -123,6 +123,23 @@ const ShAPI = {
     return (rows||[]).length;
   },
 
+  /* ---- MODERATION (real moderator decisions) ---- */
+  async moderate(videoId, action, reason, moderator){
+    await _req(`/moderation`, { method:"POST", body: JSON.stringify({
+      video_id:String(videoId), action, reason:reason||null, moderator:moderator||null
+    }) });
+  },
+  async moderationLog(limit=50){
+    return (await _req(`/moderation?select=*&order=created_at.desc&limit=${limit}`)) || [];
+  },
+  /* Latest decision per video (so the queue can hide already-actioned items). */
+  async latestDecisions(){
+    const rows = await _req(`/moderation?select=video_id,action,created_at&order=created_at.desc`) || [];
+    const seen = {};
+    for(const r of rows){ if(!(r.video_id in seen)) seen[r.video_id]=r.action; }
+    return seen;   // { "<video_id>": "remove"|"approve"|... }
+  },
+
   /* ---- FAVORITE COUNT (how many people favorited a video) ---- */
   async favoriteCount(videoId){
     const rows = await _req(`/favorites?video_id=eq.${videoId}&select=id`);
