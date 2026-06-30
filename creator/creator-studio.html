@@ -576,21 +576,54 @@ function captureFrames(video, stamps, done){
 
 function uChooseThumb(idx){ cstate.upload.thumb = cstate.upload.thumbOptions[idx]; render(); }
 
-function uPublish(){
+async function uPublish(){
   const u = cstate.upload;
-  if(!u.url){ toast("No file selected"); cstate.upload.step=0; render(); return; }
+  if(!u.file){ toast("No file selected"); cstate.upload.step=0; render(); return; }
+
+  // Realistic seed counts for the new video (10k-15k views, 100-300 likes).
+  const seedViews = 10000 + Math.floor(Math.random()*5001);
+  const seedLikes = 100 + Math.floor(Math.random()*201);
+
+  // Add to the local list immediately with a temporary local URL (optimistic),
+  // so the creator sees it right away while it uploads in the background.
+  const localId = Date.now();
   DATA.videos.unshift({
-    id:Date.now(), title:u.title||"Untitled Upload", creator:MY, type:"ugc",
-    category:u.categories[0]||"POV",          // primary category (back-compat with viewer filters)
-    categories:u.categories.slice(),          // full multi-select
-    views:0, likes:0, dislikes:0, comments:0, favorites:0,
-    duration:u.duration||"0:00", uploaded:"2026-06-29",
+    id:localId, title:u.title||"Untitled Upload", creator:MY, type:"ugc",
+    category:u.categories[0]||"POV", categories:u.categories.slice(),
+    views:seedViews, likes:seedLikes, dislikes:5, comments:0, favorites:0,
+    duration:u.duration||"0:00", uploaded:new Date().toISOString().slice(0,10),
     src:u.url, thumb:u.thumb||"",
     createdWith:u.createdWith.slice(), tags:u.tags.slice(),
-    status:u.visibility==="public"?"published":(u.visibility==="private"?"private":"published"),
+    status:"review",   // enters moderation queue (3d)
     flagged:false
   });
-  toast(`Published "${u.title||'Untitled'}" — now live in your channel`);
+
+  // Real upload to Bunny Storage + persist metadata, if the API is available.
+  if(typeof ShAPI!=="undefined" && ShAPI.enabled){
+    toast("Uploading video…");
+    try {
+      const up = await ShAPI.uploadVideo(u.file, u.title||"Untitled", pct=>{
+        const el=document.getElementById("authMsg")||null; // reuse if present
+      });
+      // point the local entry at the real CDN src and persist metadata for everyone
+      const vid = DATA.videos.find(v=>v.id===localId); if(vid) vid.src = up.src;
+      const me = (typeof ShAuth!=="undefined" && ShAuth.session()) ? ShAuth.session() : null;
+      let uploaderEmail = "";
+      if(typeof ShAuth!=="undefined"){ try{ const usr=await ShAuth.user(); uploaderEmail = usr && usr.email || ""; }catch(_){ } }
+      await ShAPI.saveUploadedVideo({
+        title:u.title||"Untitled", creator:MY, src:up.src,
+        category:u.categories[0]||"POV", categories:u.categories.slice(), tags:u.tags.slice(),
+        duration:u.duration||"0:00", views_seed:seedViews, likes_seed:seedLikes,
+        status:"review", uploader:uploaderEmail
+      });
+      toast(`Published "${u.title||'Untitled'}" — uploaded and sent for review`);
+    } catch(e){
+      toast("Upload failed: "+(e.message||"saved locally only"));
+    }
+  } else {
+    toast(`Published "${u.title||'Untitled'}" (local preview only)`);
+  }
+
   cstate.upload = freshUpload(); cstate.page="content"; render();
 }
 

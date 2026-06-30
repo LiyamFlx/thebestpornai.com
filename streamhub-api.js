@@ -129,6 +129,43 @@ const ShAPI = {
     return (rows||[]).length;
   },
 
+  /* ---- VIDEO UPLOAD (Bunny Storage via the serverless relay) ---- */
+  /* Base for the upload function. The static site is on Bunny but the function
+     runs on Vercel, so set this to your Vercel URL (e.g. https://x.vercel.app).
+     Empty = same origin (works when both are served together). */
+  uploadApiBase: (typeof SH_UPLOAD_API_BASE!=="undefined" ? SH_UPLOAD_API_BASE : ""),
+  async uploadVideo(file, title, onProgress){
+    if(typeof ShAuth==="undefined" || !ShAuth.isSignedIn()) throw new Error("sign in required");
+    // POST the raw file bytes to our relay, which streams them to Bunny Storage.
+    const info = await new Promise((resolve, reject)=>{
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", (this.uploadApiBase||"") + "/api/upload", true);
+      xhr.setRequestHeader("Content-Type", "application/octet-stream");
+      xhr.setRequestHeader("X-Filename", (file.name||"video.mp4"));
+      if(onProgress) xhr.upload.onprogress = e=>{ if(e.lengthComputable) onProgress(Math.round(e.loaded/e.total*100)); };
+      xhr.onload = ()=>{
+        if(xhr.status>=200 && xhr.status<300){ try{ resolve(JSON.parse(xhr.responseText)); }catch(_){ reject(new Error("bad response")); } }
+        else reject(new Error("upload "+xhr.status));
+      };
+      xhr.onerror = ()=> reject(new Error("upload network error"));
+      xhr.send(file);
+    });
+    return info;   // { ok, src, url, path }
+  },
+
+  /* Persist an uploaded video's metadata so it appears in the catalog for
+     everyone (until uploads are folded into the catalog build). */
+  async saveUploadedVideo(meta){
+    const rows = await _req(`/uploads`, {
+      method:"POST", headers:{ "Prefer":"return=representation" },
+      body: JSON.stringify(meta),
+    });
+    return rows && rows[0];
+  },
+  async listUploadedVideos(){
+    return (await _req(`/uploads?select=*&order=created_at.desc`)) || [];
+  },
+
   /* ---- FAVORITES (per-browser via client_id) ---- */
   async myFavorites(){
     const rows = await _req(`/favorites?client_id=eq.${encodeURIComponent(shClientId())}&select=video_id`);
