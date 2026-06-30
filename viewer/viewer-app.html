@@ -435,7 +435,7 @@ iframe.player{display:block}
 <!-- Catalog: single source of truth, loaded at runtime (see /catalog.js) -->
 <script src="../catalog.js?v=3"></script>
 <!-- Persistence API: real likes/comments/favorites via Supabase (graceful fallback) -->
-<script src="../streamhub-api.js?v=1"></script>
+<script src="../streamhub-api.js?v=3"></script>
 <script>
 /* creatorName(), fmt(), toast() are shared — defined in catalog.js */
 function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m?m[1]:null; }
