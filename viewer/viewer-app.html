@@ -434,6 +434,8 @@ iframe.player{display:block}
 
 <!-- Catalog: single source of truth, loaded at runtime (see /catalog.js) -->
 <script src="../catalog.js?v=2"></script>
+<!-- Persistence API: real likes/comments/favorites via Supabase (graceful fallback) -->
+<script src="../streamhub-api.js?v=1"></script>
 <script>
 /* creatorName(), fmt(), toast() are shared — defined in catalog.js */
 function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m?m[1]:null; }
@@ -484,16 +486,43 @@ function openVideo(id){
   if(!vstate.current) return;
   if(!vstate.history.includes(id)) vstate.history.unshift(id);
   vstate.page="watch"; setHash("video/"+id); render();
+  hydrateWatch(id);   // fetch real counts/comments and patch them in (non-blocking)
+}
+
+/* Pull persisted likes/comments from Supabase and patch the already-rendered
+   watch page. Best-effort: any failure leaves the seeded values in place. */
+async function hydrateWatch(id){
+  if(typeof ShAPI==="undefined" || !ShAPI.enabled) return;
+  try {
+    const [counts, comments] = await Promise.all([ ShAPI.likeCounts(id), ShAPI.listComments(id) ]);
+    if(vstate.current && vstate.current.id===id && onWatch()){
+      const v = vstate.current;
+      // Show seeded baseline + real persisted events, so counts only ever grow.
+      const likeBtn=document.getElementById("btnLike"), disBtn=document.getElementById("btnDislike");
+      if(likeBtn) likeBtn.textContent = "👍 " + fmt(v.likes + (counts.like||0));
+      if(disBtn)  disBtn.textContent  = "👎 " + (v.dislikes + (counts.dislike||0));
+      if(comments && comments.length){
+        // Merge persisted comments into DATA.comments (avoid dupes) and re-render the list region.
+        for(const c of comments){
+          const key = "db"+c.id;
+          if(!DATA.comments.some(m=>m.id===key))
+            DATA.comments.push({ id:key, video:id, user:c.author, text:c.body, time:"" });
+        }
+        if(vstate.current && vstate.current.id===id && onWatch()) render();
+      }
+    }
+  } catch(_){ /* offline / API down -> keep seeded values */ }
 }
 /* ---- URL hash routing: shareable/bookmarkable per-video URLs ---- */
 let _suppressHash=false;
+let _pendingHydrate=null;   // video id to hydrate after the next render (direct-link/refresh path)
 function setHash(h){ _suppressHash=true; location.hash = h?("#"+h):""; setTimeout(()=>_suppressHash=false,0); }
 function applyHash(){
   const h=(location.hash||"").replace(/^#/,"");
   const m=h.match(/^video\/(\d+)$/);
   if(m){
     const vid=DATA.videos.find(v=>v.id===+m[1]);
-    if(vid){ vstate.current=vid; if(!vstate.history.includes(vid.id)) vstate.history.unshift(vid.id); vstate.page="watch"; return; }
+    if(vid){ vstate.current=vid; if(!vstate.history.includes(vid.id)) vstate.history.unshift(vid.id); vstate.page="watch"; _pendingHydrate=vid.id; return; }
   }
   vstate.page = h || "home";
 }
@@ -505,10 +534,18 @@ window.addEventListener("hashchange",()=>{ if(_suppressHash) return; applyHash()
    card), so list pages that depend on the state still refresh. */
 function onWatch(){ return vstate.page==="watch"; }
 
+/* Fire-and-forget persistence: never let an API failure break the UI. The
+   optimistic in-memory update has already been applied by the caller, so if
+   Supabase is down we simply keep that (today's fallback behavior). */
+function _persist(promiseFn){
+  try { if(typeof ShAPI!=="undefined" && ShAPI.enabled) Promise.resolve(promiseFn()).catch(()=>{}); } catch(_){}
+}
+
 function toggleFav(id){
   const on = vstate.favorites.includes(id);
   on ? vstate.favorites=vstate.favorites.filter(x=>x!==id) : vstate.favorites.push(id);
   toast(!on?"Added to Favorites":"Removed from Favorites");
+  _persist(()=> on ? ShAPI.removeFavorite(id) : ShAPI.addFavorite(id));
   const btn=document.getElementById("btnFav");
   if(onWatch() && btn) btn.classList.toggle("on", !on); else render();
 }
@@ -522,11 +559,13 @@ function toggleLater(id){
 function download(id){ if(!vstate.downloads.includes(id))vstate.downloads.push(id); toast("Download started (simulated)"); }
 function likeVideo(id){
   const v=DATA.videos.find(x=>x.id===id); if(!v)return; v.likes++; toast("Liked");
+  _persist(()=> ShAPI.addLike(id,"like"));
   const btn=document.getElementById("btnLike");
   if(onWatch() && btn) btn.textContent="👍 "+fmt(v.likes); else render();
 }
 function dislikeVideo(id){
   const v=DATA.videos.find(x=>x.id===id); if(!v)return; v.dislikes++; toast("Disliked");
+  _persist(()=> ShAPI.addLike(id,"dislike"));
   const btn=document.getElementById("btnDislike");
   if(onWatch() && btn) btn.textContent="👎 "+v.dislikes; else render();
 }
@@ -534,6 +573,7 @@ function subscribe(cid){ vstate.subs.includes(cid)?vstate.subs=vstate.subs.filte
 function addComment(id){
   const box=document.getElementById("cbox"); const t=(box.value||"").trim(); if(!t)return;
   DATA.comments.push({id:"m"+Date.now(),video:id,user:DATA.user.name,text:t,time:"now"});
+  _persist(()=> ShAPI.addComment(id, DATA.user.name, t));
   render();
 }
 
@@ -714,6 +754,7 @@ function render(){
   else v.innerHTML = renderHome();
   document.querySelectorAll("#nav button, #bottomNav button").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
   lazyLoadThumbs();
+  if(_pendingHydrate!=null){ const hid=_pendingHydrate; _pendingHydrate=null; hydrateWatch(hid); }
 }
 
 /* Lazy-load video thumbnails: only fetch a thumbnail's metadata once its card
@@ -742,6 +783,19 @@ function lazyLoadThumbs(){
 }
 if(location.hash) applyHash();
 render();
+
+/* Restore this browser's persisted favorites (per-visitor via client_id), then
+   re-render so the favorites page / heart states reflect them. Best-effort. */
+(async ()=>{
+  if(typeof ShAPI==="undefined" || !ShAPI.enabled) return;
+  try {
+    const favs = await ShAPI.myFavorites();
+    if(favs && favs.length){
+      for(const id of favs) if(!vstate.favorites.includes(id)) vstate.favorites.push(id);
+      render();
+    }
+  } catch(_){}
+})();
 </script>
 </body>
 </html>
