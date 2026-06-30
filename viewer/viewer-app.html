@@ -295,21 +295,60 @@ table.data tr:hover td{background:var(--surface2)}
 .watch{display:grid;grid-template-columns:2fr 1fr;gap:20px}
 @media(max-width:900px){.watch{grid-template-columns:1fr}}
 
-/* Clean watch-page layout */
-.watch-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
-.watch-actions .chip{padding:8px 14px;font-size:13px}
-.creator-row{
-  display:flex;align-items:center;gap:12px;
-  padding:12px 0;margin-bottom:18px;
-  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
-}
-.comments-head{margin:0 0 12px;font-size:16px}
-.comment-form{display:flex;gap:8px;align-items:center;margin-bottom:18px}
-.comment-form .fld{flex:1}
-.comment-form .btn{flex:none;white-space:nowrap}
-.comment-list .comment{padding:10px 0;border-top:1px solid var(--border)}
+/* ===== Watch page — redesigned ===== */
+.watch-title{margin:16px 0 6px;font-size:26px;font-weight:800}
+.watch-sub{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:14px;margin:0 0 18px}
+.watch-sub .ic-eye{opacity:.8}
+.dot-sep{opacity:.5}
+
+/* action row */
+.watch-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.vote-pill{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:999px;overflow:hidden}
+.vote-btn{display:flex;align-items:center;gap:7px;background:none;border:none;color:var(--text);
+  padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+.vote-btn:hover{background:var(--surface3)}
+.vote-btn .ic{filter:saturate(1.4)}
+.vote-div{width:1px;align-self:stretch;background:var(--border)}
+.act-btn{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);padding:10px 18px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+.act-btn:hover{background:var(--surface3);border-color:var(--muted)}
+.act-btn.on{color:var(--accent2);border-color:var(--accent2)}
+.act-btn .ic{font-size:15px}
+.act-more{padding:10px 16px;letter-spacing:1px}
+
+/* creator card with subtle red glow */
+.creator-card{display:flex;align-items:center;gap:14px;padding:16px 18px;margin-bottom:18px;
+  border:1px solid var(--border);border-radius:16px;
+  background:radial-gradient(120% 180% at 100% 50%, rgba(229,9,20,.10), var(--surface) 60%)}
+.avatar-lg{width:50px;height:50px;font-size:19px;flex:none}
+.avatar-sm{width:34px;height:34px;font-size:13px;flex:none}
+.creator-name{font-weight:700;font-size:16px;display:flex;align-items:center;gap:6px}
+.verified{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;
+  background:var(--muted);color:var(--bg);font-size:10px;font-weight:900}
+.subscribe-btn{display:flex;align-items:center;gap:7px;padding:11px 22px;border-radius:999px;font-size:14px}
+
+/* comments card */
+.comments-card{border:1px solid var(--border);border-radius:16px;padding:20px;background:var(--surface);margin-bottom:24px}
+.comments-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.comments-title{font-size:18px;font-weight:800;display:flex;align-items:center;gap:10px}
+.count-bubble{background:var(--surface3);color:var(--muted);font-size:12px;font-weight:700;
+  min-width:22px;height:22px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;padding:0 7px}
+.sort-select{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:8px 12px;border-radius:10px;font-size:13px;cursor:pointer;outline:none}
+.comment-form{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.comment-form .fld{flex:1;border-radius:12px}
+.comment-form .btn{flex:none;white-space:nowrap;border-radius:12px}
+.comment-list{margin-top:6px}
+.comment-list .comment{display:flex;gap:10px;padding:12px 0;border-top:1px solid var(--border)}
 .comment-list .comment:first-child{border-top:none}
-.comment-text{font-size:13px;margin-top:3px}
+.comment-text{font-size:14px;margin-top:3px;line-height:1.5}
+.comments-empty{text-align:center;padding:30px 10px}
+.ce-icon{font-size:30px;margin-bottom:8px;opacity:.85}
+.ce-title{font-weight:700;margin-bottom:3px}
+
+/* related-below: only shown when the sidebar is hidden (mobile) */
+.related-below{display:none}
+.related-below h3{margin:8px 0 12px}
 
 /* Mobile bottom tab bar — hidden on desktop, shown under 760px */
 .bottom-nav{display:none}
@@ -335,6 +374,16 @@ table.data tr:hover td{background:var(--surface2)}
   .sidebar{display:none}
   .main{min-height:100vh}
   .content{padding:14px;padding-bottom:84px}   /* clear the bottom nav */
+
+  /* Watch: drop the side column, show Related below instead */
+  .watch-side{display:none}
+  .related-below{display:block}
+  .watch-title{font-size:21px}
+  .watch-actions{gap:8px}
+  .act-btn,.vote-btn{padding:9px 13px;font-size:13px}
+  .creator-card{padding:13px}
+  .comments-card{padding:14px}
+  .comments-title{font-size:16px}
 
   .topbar{padding:10px 14px;gap:8px}
   .topbar .left{font-size:16px}
@@ -519,12 +568,12 @@ async function hydrateWatch(id){
     if(vstate.current && vstate.current.id===id && onWatch()){
       const v = vstate.current;
       // Show seeded baseline + real persisted events, so counts are realistic AND grow.
-      const likeBtn=document.getElementById("btnLike"), disBtn=document.getElementById("btnDislike");
-      if(likeBtn) likeBtn.textContent = "👍 " + fmt(v.likes + (counts.like||0));
-      if(disBtn)  disBtn.textContent  = "👎 " + fmt(v.dislikes + (counts.dislike||0));
+      const likeNum=document.getElementById("likeNum"), disNum=document.getElementById("disNum");
+      if(likeNum) likeNum.textContent = fmt(v.likes + (counts.like||0));
+      if(disNum)  disNum.textContent  = fmt(v.dislikes + (counts.dislike||0));
       // Views (seed + real) in the sub line.
       const subEl=document.getElementById("watchSub");
-      if(subEl) subEl.textContent = fmt(v.views + (views||0)) + " views • " + v.uploaded;
+      if(subEl) subEl.innerHTML = "👁 " + fmt(v.views + (views||0)) + " views <span class='dot-sep'>•</span> " + esc(v.uploaded);
       // Favorites count chip.
       const favCountEl=document.getElementById("favCount");
       if(favCountEl) favCountEl.textContent = favCount ? (" ("+fmt(favCount)+")") : "";
@@ -587,14 +636,14 @@ function download(id){ if(!vstate.downloads.includes(id))vstate.downloads.push(i
 function likeVideo(id){
   const v=DATA.videos.find(x=>x.id===id); if(!v)return; v.likes++; toast("Liked");
   _persist(()=> ShAPI.addLike(id,"like"));
-  const btn=document.getElementById("btnLike");
-  if(onWatch() && btn) btn.textContent="👍 "+fmt(v.likes); else render();
+  const num=document.getElementById("likeNum");
+  if(onWatch() && num) num.textContent=fmt(v.likes); else render();
 }
 function dislikeVideo(id){
   const v=DATA.videos.find(x=>x.id===id); if(!v)return; v.dislikes++; toast("Disliked");
   _persist(()=> ShAPI.addLike(id,"dislike"));
-  const btn=document.getElementById("btnDislike");
-  if(onWatch() && btn) btn.textContent="👎 "+v.dislikes; else render();
+  const num=document.getElementById("disNum");
+  if(onWatch() && num) num.textContent=fmt(v.dislikes); else render();
 }
 function subscribe(cid){ vstate.subs.includes(cid)?vstate.subs=vstate.subs.filter(x=>x!==cid):vstate.subs.push(cid); render(); }
 function addComment(id){
@@ -642,46 +691,87 @@ function renderWatch(){
   const c = DATA.creators.find(x=>x.id===v.creator) || { name:"Unknown", id:"", verified:false, subs:0 };
   const subbed = vstate.subs.includes(v.creator);
   const cms = DATA.comments.filter(m=>m.video===v.id);
+  const related = trending().filter(u=>u.id!==v.id).slice(0,6);
+  const suggestedCard = u=>`
+    <div class="card" style="display:flex;gap:10px;margin-bottom:10px;padding:8px" onclick="openVideo(${u.id})">
+      <div class="video-thumb ${u.type==='original'?'original':''}" style="width:120px;height:68px;margin:0;flex:none">
+        <video class="thumb-video lazy" data-src="${mediaUrl(u.src)}#t=0.1" muted preload="none"></video>
+      </div>
+      <div><div class="title">${esc(u.title)}</div><div class="meta">${esc(creatorName(u.creator))}</div><div class="small">${fmt(u.views)} views</div></div>
+    </div>`;
   return `
     <div class="watch">
       <div>
         ${playerEmbed(v)}
-        <h2 style="margin-top:14px">${esc(v.title)}</h2>
-        <p class="sub" id="watchSub">${fmt(v.views)} views • ${esc(v.uploaded)}</p>
+        <h2 class="watch-title">${esc(v.title)}</h2>
+        <p class="sub watch-sub" id="watchSub"><span class="ic-eye">👁</span> ${fmt(v.views)} views <span class="dot-sep">•</span> ${esc(v.uploaded)}</p>
+
         <div class="watch-actions">
-          <button id="btnLike" class="chip" onclick="likeVideo(${v.id})">👍 ${fmt(v.likes)}</button>
-          <button id="btnDislike" class="chip" onclick="dislikeVideo(${v.id})">👎 ${v.dislikes}</button>
-          <button id="btnFav" class="chip ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})">★ Favorite<span id="favCount"></span></button>
-          <button id="btnLater" class="chip ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})">+ Save</button>
+          <div class="vote-pill">
+            <button id="btnLike" class="vote-btn" onclick="likeVideo(${v.id})"><span class="ic">👍</span> <span id="likeNum">${fmt(v.likes)}</span></button>
+            <span class="vote-div"></span>
+            <button id="btnDislike" class="vote-btn" onclick="dislikeVideo(${v.id})"><span class="ic">👎</span> <span id="disNum">${v.dislikes}</span></button>
+          </div>
+          <button id="btnFav" class="act-btn ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})"><span class="ic">♥</span> Favorite</button>
+          <button id="btnLater" class="act-btn ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})"><span class="ic">🔖</span> Save</button>
+          <button class="act-btn" onclick="shareVideo(${v.id})"><span class="ic">↗</span> Share</button>
+          <button class="act-btn act-more" onclick="toast('Report submitted (simulated)')" title="More" aria-label="More">···</button>
         </div>
-        <div class="creator-row">
-          <div class="avatar">${esc((c.name||"?")[0])}</div>
+
+        <div class="creator-card">
+          <div class="avatar avatar-lg">${esc((c.name||"?")[0])}</div>
           <div style="flex:1;min-width:0">
-            <div><b>${esc(c.name)}</b> ${c.verified?'<span style="color:var(--muted)">✓</span>':''}</div>
+            <div class="creator-name">${esc(c.name)} ${c.verified?'<span class="verified" title="Verified">✓</span>':''}</div>
             <div class="small">${fmt(c.subs)} subscribers</div>
           </div>
-          <button class="btn ${subbed?'ghost':''}" onclick="subscribe('${esc(c.id)}')">${subbed?'Subscribed':'Subscribe'}</button>
+          <button class="btn subscribe-btn ${subbed?'ghost':''}" onclick="subscribe('${esc(c.id)}')">${subbed?'Subscribed':'＋ Subscribe'}</button>
         </div>
-        <h3 class="comments-head">Comments${cms.length?` · ${cms.length}`:''}</h3>
-        <div class="comment-form">
-          <input class="fld" id="cbox" placeholder="Add a comment…" onkeydown="if(event.key==='Enter')addComment(${v.id})"/>
-          <button class="btn sm" onclick="addComment(${v.id})">Comment</button>
+
+        <div class="comments-card">
+          <div class="comments-top">
+            <div class="comments-title">Comments <span class="count-bubble">${cms.length}</span></div>
+            <select class="sort-select" id="cSort" onchange="render()">
+              <option value="new">Newest first</option>
+              <option value="old">Oldest first</option>
+            </select>
+          </div>
+          <div class="comment-form">
+            <div class="avatar avatar-sm">${esc((DATA.user.name||'?')[0])}</div>
+            <input class="fld" id="cbox" placeholder="Add a comment…" onkeydown="if(event.key==='Enter')addComment(${v.id})"/>
+            <button class="btn" onclick="addComment(${v.id})">Comment</button>
+          </div>
+          <div class="comment-list">
+            ${cms.length
+              ? sortComments(cms).map(m=>`<div class="comment"><div class="avatar avatar-sm">${esc((m.user||'?')[0])}</div><div style="flex:1;min-width:0"><div><b>${esc(m.user)}</b> <span class="small">${esc(m.time)}</span></div><div class="comment-text">${esc(m.text)}</div></div></div>`).join("")
+              : `<div class="comments-empty"><div class="ce-icon">💬</div><div class="ce-title">No comments yet.</div><div class="small">Be the first to share your thoughts!</div></div>`}
+          </div>
         </div>
-        <div class="comment-list">
-          ${cms.length? cms.map(m=>`<div class="comment"><b>${esc(m.user)}</b> <span class="small">${esc(m.time)}</span><div class="comment-text">${esc(m.text)}</div></div>`).join("") : `<div class="small" style="padding:8px 0">No comments yet. Be the first.</div>`}
+
+        <div class="related-below">
+          <h3>Related Videos</h3>
+          <div class="grid">${related.map(u=>videoCard(u)).join("")}</div>
         </div>
       </div>
-      <div>
+      <div class="watch-side">
         <h3 style="margin-top:0">Suggested Videos</h3>
-        ${trending().filter(u=>u.id!==v.id).slice(0,6).map(u=>`
-          <div class="card" style="display:flex;gap:10px;margin-bottom:10px;padding:8px" onclick="openVideo(${u.id})">
-            <div class="video-thumb ${u.type==='original'?'original':''}" style="width:120px;height:68px;margin:0;flex:none">
-              <video class="thumb-video lazy" data-src="${mediaUrl(u.src)}#t=0.1" muted preload="none"></video>
-            </div>
-            <div><div class="title">${esc(u.title)}</div><div class="meta">${esc(creatorName(u.creator))}</div><div class="small">${fmt(u.views)} views</div></div>
-          </div>`).join("")}
+        ${related.map(suggestedCard).join("")}
       </div>
     </div>`;
+}
+
+/* Sort comments by the stored time. DB comments use ISO-ish via created_at; the
+   merged objects keep a 'time' label, so we sort by id (monotonic) as a proxy:
+   db ids increase with time; local 'now' comments use Date.now()-based ids. */
+function sortComments(cms){
+  const order = (document.getElementById("cSort")||{}).value || "new";
+  const key = m => { const s=String(m.id); const n=parseInt(s.replace(/\D/g,""),10); return isNaN(n)?0:n; };
+  const sorted = [...cms].sort((a,b)=> key(b)-key(a));   // newest first
+  return order==="old" ? sorted.reverse() : sorted;
+}
+function shareVideo(id){
+  const url = location.href.split("#")[0] + "#video/" + id;
+  if(navigator.clipboard) navigator.clipboard.writeText(url).then(()=>toast("Link copied"),()=>toast("Link: "+url));
+  else toast("Link: "+url);
 }
 
 function listPage(title, list, emptyMsg){
