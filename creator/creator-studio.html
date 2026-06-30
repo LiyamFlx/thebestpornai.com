@@ -365,7 +365,9 @@ iframe.player{display:block}
 <div class="toast" id="toast"></div>
 
 <!-- Catalog: single source of truth, loaded at runtime (see /catalog.js) -->
-<script src="../catalog.js?v=2"></script>
+<script src="../catalog.js?v=3"></script>
+<!-- Persistence + auth API (Supabase). Auth gates uploads. -->
+<script src="../streamhub-api.js?v=2"></script>
 <script>
 /* creatorName(), fmt(), toast() are shared — defined in catalog.js */
 
@@ -624,7 +626,35 @@ function renderContent(){
     </tbody></table></div>`;
 }
 
+/* ---- Auth gate: uploading requires sign-in (magic link). ---- */
+function authReady(){ return typeof ShAuth!=="undefined"; }
+function renderSignIn(){
+  return `<h1>Sign in to upload</h1>
+    <p class="sub">Uploading a video requires a quick sign-in. We'll email you a secure link — no password needed.</p>
+    <div class="panel" style="max-width:440px">
+      <label class="lbl">Your email</label>
+      <input class="fld" id="authEmail" type="email" placeholder="you@example.com" autocomplete="email"/>
+      <div id="authMsg" class="small" style="margin:10px 0;min-height:16px"></div>
+      <button class="btn" onclick="sendMagicLink()">Email me a sign-in link</button>
+    </div>`;
+}
+async function sendMagicLink(){
+  const el=document.getElementById("authEmail"); const email=(el&&el.value||"").trim();
+  const msg=document.getElementById("authMsg");
+  if(!email || email.indexOf("@")<1){ if(msg) msg.textContent="Please enter a valid email."; return; }
+  if(msg){ msg.style.color="var(--muted)"; msg.textContent="Sending…"; }
+  try {
+    await ShAuth.sendMagicLink(email);
+    if(msg){ msg.style.color="var(--good)"; msg.textContent="Check your inbox — click the link to finish signing in, then you'll return here ready to upload."; }
+  } catch(e){
+    if(msg){ msg.style.color="var(--accent2)"; msg.textContent="Couldn't send link: "+(e.message||"try again"); }
+  }
+}
+function signOutCreatorAuth(){ if(authReady()) ShAuth.signOut(); toast("Signed out"); render(); }
+
 function renderUpload(){
+  // Gate: must be signed in to upload.
+  if(authReady() && !ShAuth.isSignedIn()) return renderSignIn();
   const s=cstate.upload.step;
   const u = cstate.upload;
   const body = [
@@ -841,7 +871,13 @@ function syncChrome(){
 function render(){
   const v=document.getElementById("view"); const p=cstate.page;
 
-  // GATE: must subscribe + create a profile first
+  // REAL auth gate for uploads: a magic-link sign-in is required to upload,
+  // independent of the demo "become a creator" onboarding. Show it first.
+  if(p==="upload" && typeof ShAuth!=="undefined" && !ShAuth.isSignedIn()){
+    v.innerHTML = renderSignIn(); syncChrome(); return;
+  }
+
+  // GATE: must subscribe + create a profile first (demo onboarding)
   if(!creator){ v.innerHTML = renderOnboarding(); syncChrome(); return; }
 
   const map={dashboard:renderDashboard,content:renderContent,upload:renderUpload,analytics:renderAnalytics,
@@ -856,6 +892,11 @@ function render(){
   else v.innerHTML=renderDashboard();
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
   syncChrome();
+}
+/* If we just returned from a magic link, capture the session and land on Upload. */
+if(typeof ShAuth!=="undefined"){
+  const sess = ShAuth.captureSessionFromUrl();
+  if(sess){ cstate.page="upload"; toast("Signed in — you can upload now"); }
 }
 render();
 </script>

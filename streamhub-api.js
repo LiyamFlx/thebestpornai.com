@@ -42,6 +42,49 @@ async function _req(path, opts={}){
 /* Is the API configured/available? (cheap guard the pages can check.) */
 const SH_API_ENABLED = !!(SUPABASE_URL && SUPABASE_KEY);
 
+/* ---------- AUTH (magic link / email OTP via Supabase GoTrue) ---------- */
+const _AUTH = SUPABASE_URL.replace(/\/$/, "") + "/auth/v1";
+const ShAuth = {
+  /* Email the user a magic sign-in link. redirectTo brings them back here. */
+  async sendMagicLink(email){
+    const r = await fetch(_AUTH + "/otp", {
+      method:"POST",
+      headers:{ "apikey": SUPABASE_KEY, "Content-Type":"application/json" },
+      body: JSON.stringify({ email, create_user:true, options:{ email_redirect_to: location.href.split("#")[0] } }),
+    });
+    if(!r.ok){ let m=""; try{ m=(await r.json()).msg||(await r.json()).error_description||""; }catch(_){} throw new Error(m||("auth "+r.status)); }
+    return true;
+  },
+  /* If we returned from a magic link, the tokens are in the URL hash. Capture +
+     persist them, then clean the URL. Returns the session or null. */
+  captureSessionFromUrl(){
+    const h = location.hash || "";
+    if(h.indexOf("access_token=")===-1) return null;
+    const p = new URLSearchParams(h.replace(/^#/,""));
+    const at = p.get("access_token");
+    if(!at) return null;
+    const sess = { access_token: at, refresh_token: p.get("refresh_token"), expires_at: Date.now() + (parseInt(p.get("expires_in")||"3600",10)*1000) };
+    localStorage.setItem("sh_session", JSON.stringify(sess));
+    // strip the auth params from the hash so they don't linger / re-trigger
+    history.replaceState(null, "", location.pathname + location.search);
+    return sess;
+  },
+  session(){
+    try { const s = JSON.parse(localStorage.getItem("sh_session")||"null"); if(s && s.expires_at>Date.now()) return s; } catch(_){}
+    return null;
+  },
+  async user(){
+    const s = this.session(); if(!s) return null;
+    try {
+      const r = await fetch(_AUTH + "/user", { headers:{ "apikey": SUPABASE_KEY, "Authorization":"Bearer "+s.access_token } });
+      if(!r.ok) return null;
+      return await r.json();
+    } catch(_){ return null; }
+  },
+  signOut(){ localStorage.removeItem("sh_session"); },
+  isSignedIn(){ return !!this.session(); },
+};
+
 const ShAPI = {
   enabled: SH_API_ENABLED,
   clientId: shClientId,
