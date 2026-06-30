@@ -433,11 +433,9 @@ iframe.player{display:block}
 <div class="toast" id="toast"></div>
 
 <!-- Catalog: single source of truth, loaded at runtime (see /catalog.js) -->
-<script src="../catalog.js"></script>
+<script src="../catalog.js?v=2"></script>
 <script>
-/* ---------- shared helpers ---------- */
-function creatorName(id){ const c = DATA.creators.find(x=>x.id===id); return c?c.name:"Unknown"; }
-function fmt(n){ return n>=1000000 ? (n/1000000).toFixed(1)+"M" : n>=1000 ? (n/1000).toFixed(1)+"K" : ""+n; }
+/* creatorName(), fmt(), toast() are shared — defined in catalog.js */
 function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m?m[1]:null; }
 
 function playerEmbed(v){
@@ -465,13 +463,7 @@ function videoCard(v, opts={}){
     </div>`;
 }
 
-/* toast (expects a #toast element) */
-let _toastTimer;
-function toast(msg){
-  const t=document.getElementById("toast"); if(!t) return;
-  t.textContent=msg; t.classList.add("show");
-  clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>t.classList.remove("show"),2400);
-}
+/* toast() is shared — defined in catalog.js */
 
 </script>
 <script>

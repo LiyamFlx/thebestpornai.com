@@ -21,6 +21,22 @@ function esc(s){
     .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 }
 
+/* ---------- shared helpers (identical across all pages; defined once here) ---------- */
+
+/* Look up a creator's display name by id. */
+function creatorName(id){ const c = DATA.creators.find(x=>x.id===id); return c?c.name:"Unknown"; }
+
+/* Format a number compactly: 1.2M / 3.4K / 567. */
+function fmt(n){ return n>=1000000 ? (n/1000000).toFixed(1)+"M" : n>=1000 ? (n/1000).toFixed(1)+"K" : ""+n; }
+
+/* Transient toast notification. Expects a #toast element on the page. */
+let _toastTimer;
+function toast(msg){
+  const t=document.getElementById("toast"); if(!t) return;
+  t.textContent=msg; t.classList.add("show");
+  clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>t.classList.remove("show"),2400);
+}
+
 /* Rewrite a "../media/x.mp4" path to the CDN when MEDIA_BASE is set */
 function mediaUrl(src){
   if(!src) return src;
