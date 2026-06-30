@@ -506,17 +506,38 @@ function applyHash(){
   vstate.page = h || "home";
 }
 window.addEventListener("hashchange",()=>{ if(_suppressHash) return; applyHash(); render(); });
+/* These actions update one on-screen control. When we're on the watch page we
+   patch just that button — a full render() would rebuild #view (player + layout)
+   and reset the scroll position, causing a visible "jump". We only fall back to
+   render() when the relevant button isn't on screen (e.g. favoriting from a grid
+   card), so list pages that depend on the state still refresh. */
+function onWatch(){ return vstate.page==="watch"; }
+
 function toggleFav(id){
-  vstate.favorites.includes(id) ? vstate.favorites=vstate.favorites.filter(x=>x!==id) : vstate.favorites.push(id);
-  toast(vstate.favorites.includes(id)?"Added to Favorites":"Removed from Favorites"); render();
+  const on = vstate.favorites.includes(id);
+  on ? vstate.favorites=vstate.favorites.filter(x=>x!==id) : vstate.favorites.push(id);
+  toast(!on?"Added to Favorites":"Removed from Favorites");
+  const btn=document.getElementById("btnFav");
+  if(onWatch() && btn) btn.classList.toggle("on", !on); else render();
 }
 function toggleLater(id){
-  vstate.later.includes(id) ? vstate.later=vstate.later.filter(x=>x!==id) : vstate.later.push(id);
-  toast(vstate.later.includes(id)?"Saved to Watch Later":"Removed"); render();
+  const on = vstate.later.includes(id);
+  on ? vstate.later=vstate.later.filter(x=>x!==id) : vstate.later.push(id);
+  toast(!on?"Saved to Watch Later":"Removed");
+  const btn=document.getElementById("btnLater");
+  if(onWatch() && btn) btn.classList.toggle("on", !on); else render();
 }
-function download(id){ if(!vstate.downloads.includes(id))vstate.downloads.push(id); toast("Download started (simulated)"); render(); }
-function likeVideo(id){ const v=DATA.videos.find(x=>x.id===id); v.likes++; toast("Liked"); render(); }
-function dislikeVideo(id){ const v=DATA.videos.find(x=>x.id===id); v.dislikes++; toast("Disliked"); render(); }
+function download(id){ if(!vstate.downloads.includes(id))vstate.downloads.push(id); toast("Download started (simulated)"); }
+function likeVideo(id){
+  const v=DATA.videos.find(x=>x.id===id); if(!v)return; v.likes++; toast("Liked");
+  const btn=document.getElementById("btnLike");
+  if(onWatch() && btn) btn.textContent="👍 "+fmt(v.likes); else render();
+}
+function dislikeVideo(id){
+  const v=DATA.videos.find(x=>x.id===id); if(!v)return; v.dislikes++; toast("Disliked");
+  const btn=document.getElementById("btnDislike");
+  if(onWatch() && btn) btn.textContent="👎 "+v.dislikes; else render();
+}
 function subscribe(cid){ vstate.subs.includes(cid)?vstate.subs=vstate.subs.filter(x=>x!==cid):vstate.subs.push(cid); render(); }
 function addComment(id){
   const box=document.getElementById("cbox"); const t=(box.value||"").trim(); if(!t)return;
@@ -569,11 +590,11 @@ function renderWatch(){
         <h2 style="margin-top:14px">${esc(v.title)}</h2>
         <p class="sub">${fmt(v.views)} views • ${esc(v.uploaded)}</p>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
-          <button class="chip" onclick="likeVideo(${v.id})">👍 ${fmt(v.likes)}</button>
-          <button class="chip" onclick="dislikeVideo(${v.id})">👎 ${v.dislikes}</button>
-          <button class="chip ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})">★ Favorite</button>
+          <button id="btnLike" class="chip" onclick="likeVideo(${v.id})">👍 ${fmt(v.likes)}</button>
+          <button id="btnDislike" class="chip" onclick="dislikeVideo(${v.id})">👎 ${v.dislikes}</button>
+          <button id="btnFav" class="chip ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})">★ Favorite</button>
           <button class="chip" onclick="toast('Share link copied (simulated)')">↗ Share</button>
-          <button class="chip ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})">+ Save</button>
+          <button id="btnLater" class="chip ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})">+ Save</button>
           <button class="chip" onclick="download(${v.id})">⤓ Download</button>
         </div>
         <div class="panel" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
