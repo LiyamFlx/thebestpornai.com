@@ -295,6 +295,22 @@ table.data tr:hover td{background:var(--surface2)}
 .watch{display:grid;grid-template-columns:2fr 1fr;gap:20px}
 @media(max-width:900px){.watch{grid-template-columns:1fr}}
 
+/* Clean watch-page layout */
+.watch-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.watch-actions .chip{padding:8px 14px;font-size:13px}
+.creator-row{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 0;margin-bottom:18px;
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+}
+.comments-head{margin:0 0 12px;font-size:16px}
+.comment-form{display:flex;gap:8px;align-items:center;margin-bottom:18px}
+.comment-form .fld{flex:1}
+.comment-form .btn{flex:none;white-space:nowrap}
+.comment-list .comment{padding:10px 0;border-top:1px solid var(--border)}
+.comment-list .comment:first-child{border-top:none}
+.comment-text{font-size:13px;margin-top:3px}
+
 /* Mobile bottom tab bar — hidden on desktop, shown under 760px */
 .bottom-nav{display:none}
 @media(max-width:760px){
@@ -632,35 +648,28 @@ function renderWatch(){
         ${playerEmbed(v)}
         <h2 style="margin-top:14px">${esc(v.title)}</h2>
         <p class="sub" id="watchSub">${fmt(v.views)} views • ${esc(v.uploaded)}</p>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+        <div class="watch-actions">
           <button id="btnLike" class="chip" onclick="likeVideo(${v.id})">👍 ${fmt(v.likes)}</button>
           <button id="btnDislike" class="chip" onclick="dislikeVideo(${v.id})">👎 ${v.dislikes}</button>
           <button id="btnFav" class="chip ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})">★ Favorite<span id="favCount"></span></button>
-          <button class="chip" onclick="toast('Share link copied (simulated)')">↗ Share</button>
           <button id="btnLater" class="chip ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})">+ Save</button>
-          <button class="chip" onclick="download(${v.id})">⤓ Download</button>
         </div>
-        <div class="panel" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div class="avatar">${esc((c.name||"?")[0])}</div>
-            <div><b>${esc(c.name)}</b> ${c.verified?'✔️':''}<div class="small">${fmt(c.subs)} subscribers</div></div>
+        <div class="creator-row">
+          <div class="avatar">${esc((c.name||"?")[0])}</div>
+          <div style="flex:1;min-width:0">
+            <div><b>${esc(c.name)}</b> ${c.verified?'<span style="color:var(--muted)">✓</span>':''}</div>
+            <div class="small">${fmt(c.subs)} subscribers</div>
           </div>
           <button class="btn ${subbed?'ghost':''}" onclick="subscribe('${esc(c.id)}')">${subbed?'Subscribed':'Subscribe'}</button>
         </div>
-        <div class="panel" style="margin-bottom:14px">
-          <p class="small">Description</p>
-          <p style="font-size:13px">A premium ${esc(v.category)} feature from ${esc(c.name)}. Watch in full quality with chapters and transcript support.</p>
+        <h3 class="comments-head">Comments${cms.length?` · ${cms.length}`:''}</h3>
+        <div class="comment-form">
+          <input class="fld" id="cbox" placeholder="Add a comment…" onkeydown="if(event.key==='Enter')addComment(${v.id})"/>
+          <button class="btn sm" onclick="addComment(${v.id})">Comment</button>
         </div>
-        <div class="tabs">
-          <button class="active">Comments (${cms.length})</button>
-          <button onclick="toast('Transcript: auto-generated (simulated)')">Transcript</button>
-          <button onclick="toast('Chapters: 0:00 Intro · 0:05 Main (simulated)')">Chapters</button>
+        <div class="comment-list">
+          ${cms.length? cms.map(m=>`<div class="comment"><b>${esc(m.user)}</b> <span class="small">${esc(m.time)}</span><div class="comment-text">${esc(m.text)}</div></div>`).join("") : `<div class="small" style="padding:8px 0">No comments yet. Be the first.</div>`}
         </div>
-        <div class="panel" style="margin-bottom:10px">
-          ${cms.length? cms.map(m=>`<div style="padding:6px 0"><b>${esc(m.user)}</b> <span class="small">${esc(m.time)}</span><br><span style="font-size:13px">${esc(m.text)}</span></div>`).join("") : `<div class="small">No comments yet.</div>`}
-        </div>
-        <input class="fld" id="cbox" placeholder="Add a comment…" onkeydown="if(event.key==='Enter')addComment(${v.id})"/>
-        <br/><button class="btn sm" onclick="addComment(${v.id})">Comment</button>
       </div>
       <div>
         <h3 style="margin-top:0">Suggested Videos</h3>
