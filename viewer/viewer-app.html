@@ -4,6 +4,14 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>StreamHub — Watch</title>
+<meta name="description" content="StreamHub — stream originals and community videos. Browse, search, favorite, and build playlists."/>
+<meta name="theme-color" content="#E50914"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23E50914'/%3E%3C/svg%3E"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="StreamHub"/>
+<meta property="og:title" content="StreamHub"/>
+<meta property="og:description" content="Stream originals and community videos."/>
+<meta name="twitter:card" content="summary"/>
 <style>:root{
   --bg:#0A0A0A;
   --surface:#141414;
@@ -436,7 +444,7 @@ function playerEmbed(v){
   const yt = ytId(v.src);
   if(yt) return `<iframe class="player" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
   if(v.src) return `<video class="player" src="${mediaUrl(v.src)}" controls></video>`;
-  return `<div class="player">VIDEO STREAM — ${v.title}</div>`;
+  return `<div class="player">VIDEO STREAM — ${esc(v.title)}</div>`;
 }
 
 function videoCard(v, opts={}){
@@ -448,11 +456,11 @@ function videoCard(v, opts={}){
     <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
       <div class="video-thumb ${v.type==='original'?'original':''}">
         ${thumb}
-        ${v.duration?`<span class="dur-badge">${v.duration}</span>`:``}
+        ${v.duration?`<span class="dur-badge">${esc(v.duration)}</span>`:``}
         ${v.src?`<span class="play-badge">▶</span>`:``}
       </div>
-      <div class="title">${v.title}</div>
-      <div class="meta">${creatorName(v.creator)} • ${fmt(v.views)} views</div>
+      <div class="title">${esc(v.title)}</div>
+      <div class="meta">${esc(creatorName(v.creator))} • ${fmt(v.views)} views</div>
       ${opts.extra ? opts.extra(v) : ``}
     </div>`;
 }
@@ -465,25 +473,6 @@ function toast(msg){
   clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>t.classList.remove("show"),2400);
 }
 
-/* simple CSS bar chart */
-function barChart(values, labels){
-  const max = Math.max(...values,1);
-  return `
-    <div class="bars">${values.map(v=>`<div class="bar" style="height:${Math.round(v/max*100)}%"></div>`).join("")}</div>
-    <div class="bars-x">${(labels||values.map((_,i)=>i+1)).map(l=>`<div>${l}</div>`).join("")}</div>`;
-}
-/* horizontal distribution rows */
-function distRows(arr){
-  return arr.map(d=>`
-    <div style="margin:10px 0">
-      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
-        <span>${d.c}</span><span class="small">${d.p}%</span>
-      </div>
-      <div style="height:6px;background:var(--surface3);border-radius:999px;overflow:hidden">
-        <div style="height:100%;width:${d.p}%;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div>
-      </div>
-    </div>`).join("");
-}
 </script>
 <script>
 /* ===================== VIEWER APP ===================== */
@@ -544,21 +533,23 @@ function rowSection(title, list){
 }
 
 function renderHome(){
-  const hero = DATA.videos.find(v=>v.type==="original");
+  const hero = DATA.videos.find(v=>v.type==="original") || DATA.videos[0];
+  if(!hero) return `<div class="empty">No videos available yet.</div>`;
+  const top = trending();   // compute once; reused by the two rows below
   return `
     <div class="hero">
       <video src="${mediaUrl(hero.src)}" muted autoplay loop playsinline></video>
       <div class="hero-body">
         <span class="tag">HOUSE ORIGINAL</span>
-        <h1>${hero.title}</h1>
-        <p class="sub">${creatorName(hero.creator)} • ${fmt(hero.views)} views</p>
+        <h1>${esc(hero.title)}</h1>
+        <p class="sub">${esc(creatorName(hero.creator))} • ${fmt(hero.views)} views</p>
         <button class="btn" onclick="openVideo(${hero.id})">▶ Play</button>
         <button class="btn ghost" onclick="toggleLater(${hero.id})">+ Watch Later</button>
       </div>
     </div>
     ${vstate.history.length ? rowSection("Continue Watching", vstate.history.map(id=>DATA.videos.find(v=>v.id===id)).filter(Boolean)) : ""}
-    ${rowSection("Recommended For You", trending().slice(0,6))}
-    ${rowSection("Trending Now", trending().slice(0,6))}
+    ${rowSection("Recommended For You", top.slice(0,6))}
+    ${rowSection("Trending Now", top.slice(0,6))}
     ${rowSection("House Originals", DATA.videos.filter(v=>v.type==="original"))}
     ${DATA.categories.map(c=>rowSection(c, byCat(c))).join("")}
     ${rowSection("Recently Uploaded", [...DATA.videos].sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0,6))}
@@ -567,15 +558,16 @@ function renderHome(){
 
 function renderWatch(){
   const v = vstate.current || DATA.videos[0];
-  const c = DATA.creators.find(x=>x.id===v.creator);
+  if(!v) return `<div class="empty">No video selected.</div>`;
+  const c = DATA.creators.find(x=>x.id===v.creator) || { name:"Unknown", id:"", verified:false, subs:0 };
   const subbed = vstate.subs.includes(v.creator);
   const cms = DATA.comments.filter(m=>m.video===v.id);
   return `
     <div class="watch">
       <div>
         ${playerEmbed(v)}
-        <h2 style="margin-top:14px">${v.title}</h2>
-        <p class="sub">${fmt(v.views)} views • ${v.uploaded}</p>
+        <h2 style="margin-top:14px">${esc(v.title)}</h2>
+        <p class="sub">${fmt(v.views)} views • ${esc(v.uploaded)}</p>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
           <button class="chip" onclick="likeVideo(${v.id})">👍 ${fmt(v.likes)}</button>
           <button class="chip" onclick="dislikeVideo(${v.id})">👎 ${v.dislikes}</button>
@@ -586,14 +578,14 @@ function renderWatch(){
         </div>
         <div class="panel" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
           <div style="display:flex;align-items:center;gap:12px">
-            <div class="avatar">${c.name[0]}</div>
-            <div><b>${c.name}</b> ${c.verified?'✔️':''}<div class="small">${fmt(c.subs)} subscribers</div></div>
+            <div class="avatar">${esc((c.name||"?")[0])}</div>
+            <div><b>${esc(c.name)}</b> ${c.verified?'✔️':''}<div class="small">${fmt(c.subs)} subscribers</div></div>
           </div>
-          <button class="btn ${subbed?'ghost':''}" onclick="subscribe('${c.id}')">${subbed?'Subscribed':'Subscribe'}</button>
+          <button class="btn ${subbed?'ghost':''}" onclick="subscribe('${esc(c.id)}')">${subbed?'Subscribed':'Subscribe'}</button>
         </div>
         <div class="panel" style="margin-bottom:14px">
           <p class="small">Description</p>
-          <p style="font-size:13px">A premium ${v.category} feature from ${c.name}. Watch in full quality with chapters and transcript support.</p>
+          <p style="font-size:13px">A premium ${esc(v.category)} feature from ${esc(c.name)}. Watch in full quality with chapters and transcript support.</p>
         </div>
         <div class="tabs">
           <button class="active">Comments (${cms.length})</button>
@@ -601,7 +593,7 @@ function renderWatch(){
           <button onclick="toast('Chapters: 0:00 Intro · 0:05 Main (simulated)')">Chapters</button>
         </div>
         <div class="panel" style="margin-bottom:10px">
-          ${cms.length? cms.map(m=>`<div style="padding:6px 0"><b>${m.user}</b> <span class="small">${m.time}</span><br><span style="font-size:13px">${m.text}</span></div>`).join("") : `<div class="small">No comments yet.</div>`}
+          ${cms.length? cms.map(m=>`<div style="padding:6px 0"><b>${esc(m.user)}</b> <span class="small">${esc(m.time)}</span><br><span style="font-size:13px">${esc(m.text)}</span></div>`).join("") : `<div class="small">No comments yet.</div>`}
         </div>
         <input class="fld" id="cbox" placeholder="Add a comment…" onkeydown="if(event.key==='Enter')addComment(${v.id})"/>
         <br/><button class="btn sm" onclick="addComment(${v.id})">Comment</button>
@@ -613,7 +605,7 @@ function renderWatch(){
             <div class="video-thumb ${u.type==='original'?'original':''}" style="width:120px;height:68px;margin:0;flex:none">
               <video class="thumb-video lazy" data-src="${mediaUrl(u.src)}#t=0.1" muted preload="none"></video>
             </div>
-            <div><div class="title">${u.title}</div><div class="meta">${creatorName(u.creator)}</div><div class="small">${fmt(u.views)} views</div></div>
+            <div><div class="title">${esc(u.title)}</div><div class="meta">${esc(creatorName(u.creator))}</div><div class="small">${fmt(u.views)} views</div></div>
           </div>`).join("")}
       </div>
     </div>`;
@@ -626,19 +618,19 @@ function listPage(title, list, emptyMsg){
 
 function renderCategories(){
   return `<h2>Categories</h2><p class="sub">Browse by topic</p>
-    ${DATA.categories.map(c=>`<h3>${c}</h3><div class="row-scroll">${byCat(c).map(v=>videoCard(v)).join("")||'<div class="small">No videos yet.</div>'}</div>`).join("")}`;
+    ${DATA.categories.map(c=>`<h3>${esc(c)}</h3><div class="row-scroll">${byCat(c).map(v=>videoCard(v)).join("")||'<div class="small">No videos yet.</div>'}</div>`).join("")}`;
 }
 function renderSubs(){
   const list = DATA.videos.filter(v=>vstate.subs.includes(v.creator));
   return `<h2>Subscriptions</h2><p class="sub">Latest from creators you follow</p>
-    <div class="pill-row">${DATA.creators.filter(c=>vstate.subs.includes(c.id)).map(c=>`<span class="filter-pill active">${c.name}</span>`).join("")}</div>
+    <div class="pill-row">${DATA.creators.filter(c=>vstate.subs.includes(c.id)).map(c=>`<span class="filter-pill active">${esc(c.name)}</span>`).join("")}</div>
     <div class="grid">${list.map(v=>videoCard(v)).join("")}</div>`;
 }
 function renderProfile(){
   return `<h2>Your Profile</h2>
     <div class="panel" style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
       <div class="avatar" style="width:60px;height:60px;font-size:24px">A</div>
-      <div><h3 style="margin:0">${DATA.user.name}</h3><div class="small">${DATA.user.handle} • ${vstate.subs.length} subscriptions</div></div>
+      <div><h3 style="margin:0">${esc(DATA.user.name)}</h3><div class="small">${esc(DATA.user.handle)} • ${vstate.subs.length} subscriptions</div></div>
     </div>
     <div class="metrics">
       <div class="metric"><div class="label">Favorites</div><div class="value">${vstate.favorites.length}</div></div>
@@ -670,9 +662,12 @@ function renderLive(){
 function renderPlaylists(){
   return `<h2>Playlists</h2><p class="sub">Your collections</p>
     <div class="grid">
-      ${["My Mix","Chill","Tech Deep-Dives"].map((p,i)=>`
-        <div class="card"><div class="video-thumb"><video class="thumb-video lazy" data-src="${mediaUrl(DATA.videos[i].src)}#t=0.1" muted preload="none"></video></div>
-        <div class="title">${p}</div><div class="meta">${(i+2)} videos</div></div>`).join("")}
+      ${["My Mix","Chill","Tech Deep-Dives"].map((p,i)=>{
+        const pv = DATA.videos[i];
+        const thumb = pv ? `<video class="thumb-video lazy" data-src="${mediaUrl(pv.src)}#t=0.1" muted preload="none"></video>` : ``;
+        return `<div class="card"><div class="video-thumb">${thumb}</div>
+        <div class="title">${esc(p)}</div><div class="meta">${(i+2)} videos</div></div>`;
+      }).join("")}
     </div>`;
 }
 
@@ -682,9 +677,9 @@ function doSearch(){
   const vids = DATA.videos.filter(v=>v.title.toLowerCase().includes(q));
   const crs  = DATA.creators.filter(c=>c.name.toLowerCase().includes(q));
   document.getElementById("view").innerHTML = `
-    <h2>Search: "${q}"</h2>
+    <h2>Search: "${esc(q)}"</h2>
     <div class="pill-row"><span class="filter-pill active">All</span><span class="filter-pill">Videos</span><span class="filter-pill">Creators</span><span class="filter-pill">Playlists</span></div>
-    <h3>Creators</h3>${crs.length?`<div class="pill-row">${crs.map(c=>`<span class="filter-pill">${c.name} ${c.verified?'✔️':''}</span>`).join("")}</div>`:'<div class="small">None</div>'}
+    <h3>Creators</h3>${crs.length?`<div class="pill-row">${crs.map(c=>`<span class="filter-pill">${esc(c.name)} ${c.verified?'✔️':''}</span>`).join("")}</div>`:'<div class="small">None</div>'}
     <h3>Videos</h3>${vids.length?`<div class="grid">${vids.map(v=>videoCard(v)).join("")}</div>`:'<div class="empty">No videos found.</div>'}`;
   lazyLoadThumbs();
 }

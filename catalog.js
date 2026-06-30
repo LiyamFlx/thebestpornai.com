@@ -10,6 +10,17 @@
 
 const MEDIA_BASE = "https://streamhub-media.b-cdn.net";
 
+/* HTML-escape a value for safe interpolation into innerHTML template strings.
+   Use for ALL dynamic/user/catalog text rendered via innerHTML (titles, comments,
+   names, search input, etc.) to prevent stored/reflected XSS. Returns "" for
+   null/undefined so missing fields render blank instead of "undefined". */
+function esc(s){
+  if(s === null || s === undefined) return "";
+  return String(s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
 /* Rewrite a "../media/x.mp4" path to the CDN when MEDIA_BASE is set */
 function mediaUrl(src){
   if(!src) return src;

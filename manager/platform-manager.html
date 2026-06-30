@@ -4,6 +4,10 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>StreamHub — Platform Manager</title>
+<meta name="description" content="StreamHub Platform Manager — users, moderation, recommendations, infrastructure, and governance."/>
+<meta name="theme-color" content="#E50914"/>
+<meta name="robots" content="noindex"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23E50914'/%3E%3C/svg%3E"/>
 <style>:root{
   --bg:#0A0A0A;
   --surface:#141414;
@@ -385,30 +389,6 @@ function creatorName(id){ const c = DATA.creators.find(x=>x.id===id); return c?c
 function fmt(n){ return n>=1000000 ? (n/1000000).toFixed(1)+"M" : n>=1000 ? (n/1000).toFixed(1)+"K" : ""+n; }
 function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m?m[1]:null; }
 
-function playerEmbed(v){
-  const yt = ytId(v.src);
-  if(yt) return `<iframe class="player" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-  if(v.src) return `<video class="player" src="${mediaUrl(v.src)}" controls></video>`;
-  return `<div class="player">VIDEO STREAM — ${v.title}</div>`;
-}
-
-function videoCard(v, opts={}){
-  const thumb = v.thumb
-    ? `<img class="thumb-video" src="${v.thumb}" alt=""/>`
-    : (v.src && !ytId(v.src)
-        ? `<video class="thumb-video" src="${mediaUrl(v.src)}#t=0.1" muted preload="metadata" playsinline></video>` : ``);
-  return `
-    <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
-      <div class="video-thumb ${v.type==='original'?'original':''}">
-        ${thumb}
-        ${v.duration?`<span class="dur-badge">${v.duration}</span>`:``}
-        ${v.src?`<span class="play-badge">▶</span>`:``}
-      </div>
-      <div class="title">${v.title}</div>
-      <div class="meta">${creatorName(v.creator)} • ${fmt(v.views)} views</div>
-      ${opts.extra ? opts.extra(v) : ``}
-    </div>`;
-}
 
 /* toast (expects a #toast element) */
 let _toastTimer;
@@ -471,21 +451,21 @@ function renderUsers(){
     <div class="panel" style="padding:0"><table class="data">
       <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Plan</th><th>Joined</th><th>Actions</th></tr></thead><tbody>
       ${DATA.users.map(u=>`<tr>
-        <td><b>${u.name}</b></td><td class="small">${u.email}</td><td>${u.role}</td>
-        <td><span class="tag-pill ${u.status==='active'?'green':u.status==='suspended'?'warn':'red'}">${u.status}</span></td>
-        <td>${u.subs}</td><td class="small">${u.joined}</td>
-        <td><button class="chip" onclick="toast('Warned ${u.name}')">Warn</button>
-            <button class="chip" onclick="toast('Suspended ${u.name}')">Suspend</button>
-            <button class="chip" style="color:var(--accent2);border-color:var(--accent2)" onclick="toast('Banned ${u.name}')">Ban</button></td></tr>`).join("")}
+        <td><b>${esc(u.name)}</b></td><td class="small">${esc(u.email)}</td><td>${esc(u.role)}</td>
+        <td><span class="tag-pill ${u.status==='active'?'green':u.status==='suspended'?'warn':'red'}">${esc(u.status)}</span></td>
+        <td>${esc(u.subs)}</td><td class="small">${esc(u.joined)}</td>
+        <td><button class="chip" onclick="toast('Warned ${esc(u.name)}')">Warn</button>
+            <button class="chip" onclick="toast('Suspended ${esc(u.name)}')">Suspend</button>
+            <button class="chip" style="color:var(--accent2);border-color:var(--accent2)" onclick="toast('Banned ${esc(u.name)}')">Ban</button></td></tr>`).join("")}
     </tbody></table></div>`;
 }
 
 function renderCreators(){
   return `<h1>Creators</h1><p class="sub">${DATA.creators.length} channels</p>
     <div class="grid">${DATA.creators.map(c=>`<div class="card">
-      <div style="display:flex;align-items:center;gap:10px"><div class="avatar">${c.name[0]}</div>
-      <div><div class="title">${c.name} ${c.verified?'✔️':''}</div><div class="meta">${fmt(c.subs)} subscribers</div></div></div>
-      <div class="card-actions"><span class="chip" onclick="toast('Viewing ${c.name}')">View</span><span class="chip" onclick="toast('Featured ${c.name}')">Feature</span></div>
+      <div style="display:flex;align-items:center;gap:10px"><div class="avatar">${esc((c.name||"?")[0])}</div>
+      <div><div class="title">${esc(c.name)} ${c.verified?'✔️':''}</div><div class="meta">${fmt(c.subs)} subscribers</div></div></div>
+      <div class="card-actions"><span class="chip" onclick="toast('Viewing ${esc(c.name)}')">View</span><span class="chip" onclick="toast('Featured ${esc(c.name)}')">Feature</span></div>
     </div>`).join("")}</div>`;
 }
 
@@ -494,8 +474,8 @@ function renderVideos(){
     <div class="panel" style="padding:0"><table class="data">
       <thead><tr><th>Title</th><th>Creator</th><th>Category</th><th>Views</th><th>Status</th><th>Flag</th></tr></thead><tbody>
       ${DATA.videos.map(v=>`<tr>
-        <td><b>${v.title}</b></td><td>${creatorName(v.creator)}</td><td>${v.category}</td><td>${fmt(v.views)}</td>
-        <td><span class="tag-pill ${v.status==='published'?'green':'warn'}">${v.status}</span></td>
+        <td><b>${esc(v.title)}</b></td><td>${esc(creatorName(v.creator))}</td><td>${esc(v.category)}</td><td>${fmt(v.views)}</td>
+        <td><span class="tag-pill ${v.status==='published'?'green':'warn'}">${esc(v.status)}</span></td>
         <td>${v.flagged?'<span class="tag-pill red">⚑ flagged</span>':'<span class="small">—</span>'}</td></tr>`).join("")}
     </tbody></table></div>`;
 }
@@ -506,8 +486,8 @@ function renderModeration(){
     <div class="tabs"><button class="active">Flagged Videos</button><button onclick="toast('Comments queue')">Comments</button>
       <button onclick="toast('Copyright queue')">Copyright</button><button onclick="toast('Appeals')">Appeals</button></div>
     ${flagged.map(v=>`<div class="panel" style="margin-bottom:10px;display:flex;gap:14px;align-items:center">
-      <div class="video-thumb" style="width:120px;height:68px;margin:0;flex:none"><video class="thumb-video" src="${mediaUrl(v.src)}#t=0.1" muted preload="metadata"></video></div>
-      <div style="flex:1"><b>${v.title}</b><div class="small">${creatorName(v.creator)} • AI flag: ${['NSFW','Spam','Copyright'][v.id%3]}</div></div>
+      <div class="video-thumb" style="width:120px;height:68px;margin:0;flex:none">${v.src?`<video class="thumb-video lazy" data-src="${mediaUrl(v.src)}#t=0.1" muted preload="none"></video>`:``}</div>
+      <div style="flex:1"><b>${esc(v.title)}</b><div class="small">${esc(creatorName(v.creator))} • AI flag: ${['NSFW','Spam','Copyright'][v.id%3]}</div></div>
       <div><button class="chip" style="color:var(--good);border-color:var(--good)" onclick="toast('Approved')">Approve</button>
            <button class="chip" style="color:var(--accent2);border-color:var(--accent2)" onclick="toast('Removed')">Remove</button>
            <button class="chip" onclick="toast('Escalated')">Escalate</button></div>
@@ -559,9 +539,9 @@ function renderFlags(){
   return `<h1>Feature Flags</h1><p class="sub">Roll out features safely</p>
     <div class="panel" style="padding:0"><table class="data">
       <thead><tr><th>Flag</th><th>Description</th><th>Rollout</th><th>State</th><th></th></tr></thead><tbody>
-      ${DATA.flags.map(f=>`<tr><td><code>${f.key}</code></td><td class="small">${f.desc}</td><td>${f.rollout}%</td>
+      ${DATA.flags.map(f=>`<tr><td><code>${esc(f.key)}</code></td><td class="small">${esc(f.desc)}</td><td>${f.rollout}%</td>
         <td><span class="tag-pill ${f.on?'green':'muted'}">${f.on?'ON':'OFF'}</span></td>
-        <td><button class="chip" onclick="toast('Toggled ${f.key}')">Toggle</button></td></tr>`).join("")}
+        <td><button class="chip" onclick="toast('Toggled ${esc(f.key)}')">Toggle</button></td></tr>`).join("")}
     </tbody></table></div>`;
 }
 
@@ -581,7 +561,17 @@ function renderHealth(){
 }
 
 function simplePage(title,sub,items){
-  return `<h1>${title}</h1><p class="sub">${sub}</p><div class="grid">${items.map(i=>`<div class="card" onclick="toast('${i} (simulated)')"><div class="title">${i}</div></div>`).join("")}</div>`;
+  return `<h1>${esc(title)}</h1><p class="sub">${esc(sub)}</p><div class="grid">${items.map(i=>`<div class="card" onclick="toast('${esc(i)} (simulated)')"><div class="title">${esc(i)}</div></div>`).join("")}</div>`;
+}
+
+/* Lazy-load moderation thumbnails (avoid N eager CDN metadata fetches). */
+const _mLazyObs = ("IntersectionObserver" in window)
+  ? new IntersectionObserver((es,o)=>es.forEach(e=>{ if(!e.isIntersecting)return; const el=e.target; if(el.dataset.src){el.src=el.dataset.src;el.preload="metadata";el.removeAttribute("data-src");} el.classList.remove("lazy"); o.unobserve(el); }), { rootMargin:"200px" })
+  : null;
+function lazyThumbs(){
+  const els=document.querySelectorAll("video.lazy[data-src]");
+  if(_mLazyObs) els.forEach(el=>_mLazyObs.observe(el));
+  else els.forEach(el=>{ el.src=el.dataset.src; el.preload="metadata"; el.removeAttribute("data-src"); el.classList.remove("lazy"); });
 }
 
 function render(){
@@ -606,6 +596,7 @@ function render(){
   else if(p==="settings")      v.innerHTML=simplePage("Settings","Platform configuration",["General","Branding","Regions","Limits","Danger Zone"]);
   else v.innerHTML=renderOverview();
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
+  lazyThumbs();
 }
 render();
 </script>
