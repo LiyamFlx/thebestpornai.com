@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StreamHub — Watch</title>
+<meta name="description" content="StreamHub — stream originals and community videos. Browse, search, favorite, and build playlists."/>
+<meta name="theme-color" content="#E50914"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23E50914'/%3E%3C/svg%3E"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="StreamHub"/>
+<meta property="og:title" content="StreamHub"/>
+<meta property="og:description" content="Stream originals and community videos."/>
+<meta name="twitter:card" content="summary"/>
+<link rel="stylesheet" href="/src/shared/theme.css" />
+<link rel="stylesheet" href="/src/viewer/style.css" />
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="brand"><span class="dot"></span> STREAMHUB</div>
+    <div class="nav" id="nav">
+      <button data-page="home"        onclick="go('home')"><span class="ico">🏠</span> Home</button>
+      <button data-page="explore"     onclick="go('explore')"><span class="ico">🧭</span> Explore</button>
+      <button data-page="categories"  onclick="go('categories')"><span class="ico">▦</span> Categories</button>
+      <button data-page="trending"    onclick="go('trending')"><span class="ico">🔥</span> Trending</button>
+      <button data-page="subscriptions" onclick="go('subscriptions')"><span class="ico">📺</span> Subscriptions</button>
+      <button data-page="later"       onclick="go('later')"><span class="ico">🕒</span> Watch Later</button>
+      <button data-page="favorites"   onclick="go('favorites')"><span class="ico">★</span> Favorites</button>
+      <button data-page="history"     onclick="go('history')"><span class="ico">↺</span> History</button>
+      <button data-page="downloads"   onclick="go('downloads')"><span class="ico">⤓</span> Downloads</button>
+      <button data-page="playlists"   onclick="go('playlists')"><span class="ico">≣</span> Playlists</button>
+      <button data-page="live"        onclick="go('live')"><span class="ico">🔴</span> Live</button>
+      <button data-page="originals"   onclick="go('originals')"><span class="ico">🎬</span> Originals</button>
+      <button data-page="settings"    onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
+    </div>
+  </div>
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="left">StreamHub</div>
+      <div class="topbar-actions">
+        <input class="search-input" id="searchInput" placeholder="Search videos, creators, playlists…" oninput="doSearch()"/>
+        <button class="icon-btn" onclick="go('later')">Watch Later</button>
+        <div class="avatar" onclick="go('profile')" title="Profile">A</div>
+      </div>
+    </div>
+    <div class="content" id="view"></div>
+  </div>
+  <!-- Mobile bottom tab bar (hidden on desktop via CSS) -->
+  <nav class="bottom-nav" id="bottomNav" aria-label="Primary">
+    <button data-page="home"    onclick="go('home')"><span class="ico">🏠</span><span>Home</span></button>
+    <button data-page="explore" onclick="go('explore')"><span class="ico">🧭</span><span>Explore</span></button>
+    <button data-page="_search" onclick="focusSearch()"><span class="ico">🔍</span><span>Search</span></button>
+    <button data-page="later"   onclick="go('later')"><span class="ico">🕒</span><span>Later</span></button>
+    <button data-page="profile" onclick="go('profile')"><span class="ico">👤</span><span>You</span></button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module" src="/src/viewer/main.js"></script>
+</body>
+</html>
