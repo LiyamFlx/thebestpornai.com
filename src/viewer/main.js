@@ -130,22 +130,37 @@ function toggleLater(id){
   if(onWatch() && btn) btn.classList.toggle("on", !on); else render();
 }
 function download(id){ if(!vstate.downloads.includes(id))vstate.downloads.push(id); toast("Download started (simulated)"); }
+let _voting = new Set();
+
 function likeVideo(id){
-  const v=DATA.videos.find(x=>x.id===id); if(!v)return; v.likes++; toast("Liked");
-  _persist(()=> ShAPI.addLike(id,"like"));
+  if (_voting.has(id)) return;
+  _voting.add(id);
+  const v=DATA.videos.find(x=>x.id===id); if(!v){ _voting.delete(id); return; }
+  v.likes++; toast("Liked");
+  Promise.resolve(_persist(()=> ShAPI.addLike(id,"like"))).finally(()=> _voting.delete(id));
   const num=document.getElementById("likeNum");
   if(onWatch() && num) num.textContent=fmt(v.likes); else render();
 }
 function dislikeVideo(id){
-  const v=DATA.videos.find(x=>x.id===id); if(!v)return; v.dislikes++; toast("Disliked");
-  _persist(()=> ShAPI.addLike(id,"dislike"));
+  if (_voting.has(id)) return;
+  _voting.add(id);
+  const v=DATA.videos.find(x=>x.id===id); if(!v){ _voting.delete(id); return; }
+  v.dislikes++; toast("Disliked");
+  Promise.resolve(_persist(()=> ShAPI.addLike(id,"dislike"))).finally(()=> _voting.delete(id));
   const num=document.getElementById("disNum");
   if(onWatch() && num) num.textContent=fmt(v.dislikes); else render();
 }
 function subscribe(cid){ vstate.subs.includes(cid)?vstate.subs=vstate.subs.filter(x=>x!==cid):vstate.subs.push(cid); render(); }
+const COMMENT_MAX_LEN = 2000;
+
 function addComment(id){
   const box=document.getElementById("cbox"); const t=(box.value||"").trim(); if(!t)return;
+  if (t.length > COMMENT_MAX_LEN) {
+    toast(`Comment too long (max ${COMMENT_MAX_LEN} characters)`);
+    return;
+  }
   DATA.comments.push({id:"m"+Date.now(),video:id,user:DATA.user.name,text:t,time:"now"});
+  box.value = "";
   _persist(()=> ShAPI.addComment(id, DATA.user.name, t));
   render();
 }

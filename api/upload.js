@@ -17,6 +17,7 @@ export const config = { api: { bodyParser: { sizeLimit: "60mb" } } };
 const STORAGE_BASE = "https://storage.bunnycdn.com/streamhub-media";
 const CDN_BASE     = "https://streamhub-media.b-cdn.net";
 const KEY          = process.env.BUNNY_STORAGE_KEY;
+const ALLOWED_EXT  = new Set(["mp4", "mov", "webm", "m4v"]);
 
 export default async function handler(req, res){
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -31,6 +32,10 @@ export default async function handler(req, res){
   const ext = (rawName.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g,"") || "mp4";
   const unique = "up_" + Date.now() + "_" + Math.random().toString(36).slice(2,8) + "." + ext;
   const storagePath = `media/uploads/${unique}`;
+
+  if (!ALLOWED_EXT.has(ext)) {
+    return res.status(400).json({ error: `unsupported file type: .${ext}` });
+  }
 
   try {
     // Collect the raw request body (the file bytes).

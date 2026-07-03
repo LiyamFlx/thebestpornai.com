@@ -97,7 +97,7 @@ const ShAPI = {
     return { like, dislike };
   },
   async addLike(videoId, kind="like"){
-    await _req(`/likes`, { method:"POST", body: JSON.stringify({ video_id: videoId, kind }) });
+    await _req(`/likes`, { method:"POST", body: JSON.stringify({ video_id: videoId, kind, client_id: shClientId() }) });
   },
 
   /* ---- COMMENTS ---- */
