@@ -1,7 +1,7 @@
 /* ============================================================
    SHARED CATALOG — single source of truth for the video catalog.
-   Loaded at runtime by every page (viewer / creator / manager / index)
-   via <script src="../catalog.js"></script> BEFORE the page's own script.
+   Imported as an ES module by each app's main.js (viewer / creator / manager)
+   via `import {...} from "../shared/catalog.js"`, bundled together by Vite.
 
    Defines globals used across all pages: MEDIA_BASE, mediaUrl(), DATA.
    Edit the catalog HERE ONLY — no more 4-file sync. After editing, upload

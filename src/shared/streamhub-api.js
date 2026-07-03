@@ -1,8 +1,9 @@
 /* ============================================================
    StreamHub API — persistent likes / comments / favorites.
    Talks to Supabase REST (PostgREST) directly from the browser with the
-   PUBLISHABLE key (safe to ship). Loaded at runtime via
-   <script src="../streamhub-api.js?v=N"></script> AFTER catalog.js.
+   PUBLISHABLE key (safe to ship). Imported as an ES module by each app's
+   main.js via `import {...} from "../shared/streamhub-api.js"`, bundled
+   alongside catalog.js by Vite.
 
    Design: every call is best-effort. If Supabase is unreachable or returns an
    error, the helpers reject/return a sentinel and the page falls back to its

@@ -76,7 +76,10 @@ function renderVideos(){
     </div>`;
 }
 function videosPrevPage(){ if(_videoTablePage>0){ _videoTablePage--; render(); } }
-function videosNextPage(){ _videoTablePage++; render(); }
+function videosNextPage(){
+  const pages = Math.max(1, Math.ceil(DATA.videos.length / VIDEOS_PER_PAGE));
+  if(_videoTablePage < pages-1){ _videoTablePage++; render(); }
+}
 
 /* Moderation queue = flagged catalog videos + creator uploads awaiting review.
    _modDecisions holds the latest persisted decision per video so actioned items
