@@ -56,8 +56,8 @@ curl -s -H "AccessKey: $BUNNY_STORAGE_KEY" -H "Accept: application/json" \
 Upload/overwrite a file:
 ```bash
 curl -X PUT -H "AccessKey: $BUNNY_STORAGE_KEY" \
-  --data-binary "@viewer/viewer-app.html" \
-  "https://storage.bunnycdn.com/streamhub-media/viewer/viewer-app.html"
+  --data-binary "@dist/viewer/index.html" \
+  "https://storage.bunnycdn.com/streamhub-media/viewer/index.html"
 ```
 Purging the Pull Zone cache via API needs the **account API key** (not the storage
 password). Easiest is the dashboard purge button.
