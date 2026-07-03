@@ -1,0 +1,25 @@
+:root{
+  --bg:#0A0A0A;
+  --surface:#141414;
+  --surface2:#1E1E1E;
+  --surface3:#262626;
+  --text:#FFFFFF;
+  --muted:#A0A0A0;
+  --accent:#E50914;
+  --accent2:#FF3B3B;
+  --good:#FF5252;
+  --warn:#FFB020;
+  --danger:#FF1A1A;
+  --border:rgba(255,255,255,0.10);
+  --shadow:0 20px 60px rgba(0,0,0,0.6);
+  --radius:14px;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
