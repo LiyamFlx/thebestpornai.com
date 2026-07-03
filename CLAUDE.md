@@ -19,15 +19,26 @@ thebestpornai.com  ──►  Bunny Pull Zone (id 6077029)  ──►  Bunny Sto
 
 ## Deploy checklist (to update the live site)
 
-1. Edit the catalog in `catalog.js` (see "Adding videos" below).
-2. Upload to Bunny storage (overwrites live) whatever you changed:
-   - `catalog.js`  ← the catalog (one file; covers all pages)
-   - `viewer/viewer-app.html` / `manager/platform-manager.html` /
-     `creator/creator-studio.html` / `index.html`  ← only if you changed their
-     markup/logic (NOT needed for a catalog-only change)
-3. **Purge the Pull Zone cache** (30-day TTL — site won't update otherwise):
+1. Edit the catalog in `src/shared/catalog.js` (see "Adding videos" below).
+2. Run `npm run build` — Vite outputs the built site to `dist/` with
+   content-hashed filenames (no more manual `?v=N` cache-busting).
+3. Upload the **entire contents of `dist/`** to Bunny storage, preserving the
+   folder structure (`dist/index.html` → storage root, `dist/creator/index.html`
+   → `creator/index.html`, `dist/assets/*` → `assets/`, etc.):
+   ```bash
+   curl -X PUT -H "AccessKey: $BUNNY_STORAGE_KEY" --data-binary "@dist/index.html" \
+     "https://storage.bunnycdn.com/streamhub-media/index.html"
+   # repeat for each file under dist/, or use a small upload script that walks dist/
+   ```
+4. **Purge the Pull Zone cache** (30-day TTL — site won't update otherwise):
    Bunny dashboard → CDN → Pull Zone `streamhub-media` → Purge Cache → empty tag → Purge.
-4. (Optional) `git commit && git push` to keep GitHub/Vercel in sync.
+5. (Optional) `git commit && git push` to keep GitHub/Vercel in sync.
+
+**Catalog-only fast path unchanged**: if you only edited `src/shared/catalog.js`
+and nothing else, you can still run the build and upload just the resulting
+hashed catalog chunk plus the three app HTML files that reference it (their
+`<script>` tag hash changes whenever catalog content changes) — or simply
+upload the full `dist/` output each time, which is simpler and safe.
 
 ## Bunny credentials & API
 
@@ -65,8 +76,8 @@ before committing — do not assume sequential numbering (e.g. comshot files ski
 Steps to add videos:
 1. Upload the `.mp4` files to the Bunny storage zone (dashboard or PUT API).
 2. Get the EXACT filenames from the storage listing (API call above).
-3. Add an entry per video to the `videos: [...]` array **in `catalog.js`** (the
-   single source of truth — see below). Entry shape:
+3. Add an entry per video to the `videos: [...]` array **in `src/shared/catalog.js`**
+   (the single source of truth — see below). Entry shape:
    ```js
    { id:<n>, title:"...", creator:"c1", type:"ugc", category:"Cumshot",
      categories:["Cumshot"], views:0, likes:0, dislikes:0, comments:0, favorites:0,
@@ -75,23 +86,23 @@ Steps to add videos:
    ```
 4. Verify each CDN URL returns 200:
    `curl -sI "https://streamhub-media.b-cdn.net/<urlencoded filename>"`
-5. Deploy: upload `catalog.js` to Bunny storage and purge the cache (see checklist).
+5. Deploy: run `npm run build` and upload the resulting `dist/` output to Bunny
+   storage, then purge the cache (see checklist).
 
-### ✅ The catalog lives in ONE place: `catalog.js`
+### ✅ The catalog lives in ONE place: `src/shared/catalog.js`
 
-`catalog.js` (at the repo root) defines the globals `MEDIA_BASE`, `mediaUrl()`, and
-`DATA` (videos/creators/categories/comments/moderation/user). Every app page loads it
-at runtime via `<script src="../catalog.js"></script>` **before** its own inline
-script, so all three pages share one catalog. **Edit `catalog.js` only** — no more
+`src/shared/catalog.js` defines the globals `MEDIA_BASE`, `mediaUrl()`, and
+`DATA` (videos/creators/categories/comments/moderation/user). Every app (viewer,
+creator, manager) imports it as an ES module via its Vite-bundled `main.js`, so all
+three apps share one catalog. **Edit `src/shared/catalog.js` only** — no more
 4-file sync.
 
-- Pages: `viewer/viewer-app.html`, `creator/creator-studio.html`,
-  `manager/platform-manager.html` (each loads `../catalog.js` → resolves to
-  `/catalog.js` at the CDN root). `index.html` is a static picker, no catalog.
-- **Deploy:** when you change the catalog, upload **`catalog.js`** to Bunny storage
-  (`https://storage.bunnycdn.com/streamhub-media/catalog.js`) and purge the Pull Zone
-  cache — same as the HTML files. The pages themselves only need re-uploading if you
-  changed their markup/logic, not the catalog.
+- Pages: `viewer/index.html`, `creator/index.html`, `manager/index.html` each load
+  their bundled JS (built by Vite from `src/`), which imports the shared catalog
+  module. `index.html` is a static picker, no catalog.
+- **Deploy:** when you change the catalog, run `npm run build` and upload the
+  resulting `dist/` contents to Bunny storage, then purge the Pull Zone cache — see
+  the Deploy checklist above.
 - Per-page **helper functions** (`videoCard`, `fmt`, `playerEmbed`, …) are still
   inlined per page and have drifted (e.g. the viewer's `videoCard` is lazy-loaded).
   They are NOT shared — only the catalog is. Unifying helpers is a separate task.
