@@ -13,6 +13,7 @@ Thumbs.db
 # Build / dev artifacts
 .playwright-mcp/
 *.zip
+dist/
 node_modules/
 
 # Local bulk-upload staging — videos live on Bunny CDN, not in repo
