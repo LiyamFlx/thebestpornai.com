@@ -1,397 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>StreamHub Studio — Creator</title>
-<meta name="description" content="StreamHub Creator Studio — upload, manage content, analytics, revenue, subscribers, and developer tools."/>
-<meta name="theme-color" content="#E50914"/>
-<meta name="robots" content="noindex"/>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23E50914'/%3E%3C/svg%3E"/>
-<style>:root{
-  --bg:#0A0A0A;
-  --surface:#141414;
-  --surface2:#1E1E1E;
-  --surface3:#262626;
-  --text:#FFFFFF;
-  --muted:#A0A0A0;
-  --accent:#E50914;
-  --accent2:#FF3B3B;
-  --good:#FF5252;
-  --warn:#FFB020;
-  --danger:#FF1A1A;
-  --border:rgba(255,255,255,0.10);
-  --shadow:0 20px 60px rgba(0,0,0,0.6);
-  --radius:14px;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  overflow-x:hidden;
-}
-a{color:inherit;text-decoration:none}
+import { MEDIA_BASE, DATA, esc, creatorName, fmt, toast, mediaUrl } from "../shared/catalog.js";
+import { ShAuth, ShAPI } from "../shared/streamhub-api.js";
+import { metric, barChart, distRows } from "../shared/ui.js";
 
-/* Layout */
-.app{display:flex;height:100vh}
-.sidebar{
-  width:240px;
-  background:var(--surface);
-  border-right:1px solid var(--border);
-  padding:16px 12px;
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  overflow:auto;
-}
-.brand{
-  font-weight:800;
-  letter-spacing:0.5px;
-  font-size:15px;
-  color:var(--accent);
-  padding:6px 10px 14px;
-  display:flex;align-items:center;gap:8px;
-}
-.brand .dot{width:10px;height:10px;border-radius:3px;background:var(--accent)}
-.nav-label{
-  font-size:10px;text-transform:uppercase;letter-spacing:1px;
-  color:var(--muted);margin:12px 10px 4px;
-}
-.nav button{
-  width:100%;
-  background:transparent;border:none;
-  color:var(--muted);
-  padding:9px 10px;border-radius:8px;
-  text-align:left;cursor:pointer;
-  font-size:13px;transition:.15s;
-  display:flex;align-items:center;gap:9px;
-}
-.nav button:hover{background:var(--surface2);color:var(--text)}
-.nav button.active{background:rgba(229,9,20,0.15);color:#fff;font-weight:600}
-.nav button .ico{width:16px;text-align:center;opacity:.9}
-
-.main{flex:1;display:flex;flex-direction:column;min-width:0}
-.topbar{
-  min-height:58px;display:flex;align-items:center;justify-content:space-between;
-  padding:10px 22px;border-bottom:1px solid var(--border);
-  background:rgba(20,20,20,0.7);backdrop-filter:blur(10px);
-  gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:20;
-}
-.topbar .left{display:flex;align-items:center;gap:14px;font-weight:600}
-.topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.search-input{
-  background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  padding:8px 14px;border-radius:999px;font-size:13px;width:240px;outline:none;
-}
-.search-input:focus{border-color:var(--accent)}
-.icon-btn{
-  background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  padding:7px 12px;border-radius:999px;cursor:pointer;font-size:12px;transition:.2s;
-}
-.icon-btn:hover{border-color:var(--accent)}
-.icon-btn.on{border-color:var(--accent2);background:rgba(255,59,59,0.15)}
-.avatar{
-  width:34px;height:34px;border-radius:50%;
-  background:linear-gradient(135deg,var(--accent),#7A0008);
-  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;
-}
-
-.content{padding:24px;overflow:auto;animation:fade .25s ease}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
-h1{font-size:24px;margin:0 0 4px}
-h2{font-size:20px;margin:0 0 4px}
-h3{font-size:15px;margin:18px 0 10px}
-.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
-.small{font-size:11px;color:var(--muted)}
-
-/* Cards / grid */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
-.row-scroll{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px}
-.row-scroll .card{min-width:220px}
-
-.card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  padding:12px;cursor:pointer;transition:all .22s ease;
-}
-.card:hover{transform:translateY(-4px);border-color:var(--accent)}
-.card:active{transform:scale(.985)}
-
-.video-thumb{
-  position:relative;height:124px;border-radius:10px;overflow:hidden;margin-bottom:10px;
-  background:linear-gradient(135deg,var(--accent),#7A0008);
-}
-.video-thumb.original{background:linear-gradient(135deg,#7A0008,#E50914)}
-.thumb-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.play-badge{
-  position:absolute;bottom:8px;right:8px;width:28px;height:28px;
-  display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.55);border-radius:50%;font-size:11px;color:#fff;backdrop-filter:blur(4px);
-}
-.dur-badge{
-  position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.7);
-  padding:1px 6px;border-radius:6px;font-size:10px;
-}
-.title{font-size:13px;font-weight:600}
-.meta{font-size:11px;color:var(--muted);margin-top:2px}
-
-.card-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
-.chip{
-  background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  font-size:11px;padding:4px 9px;border-radius:999px;cursor:pointer;transition:.2s;
-}
-.chip:hover{border-color:var(--accent)}
-.chip.on{border-color:var(--accent2);color:var(--accent2)}
-.chip.score{cursor:default;color:var(--accent2);border-color:transparent;background:rgba(229,9,20,0.10)}
-
-/* Panels */
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
-.panel h3{margin-top:0}
-.panel pre{
-  background:var(--bg);border:1px solid var(--border);border-radius:10px;
-  padding:12px;overflow:auto;font-size:12px;color:var(--muted);line-height:1.7;
-}
-
-/* Metric cards */
-.metrics{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:8px}
-.metric{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;
-}
-.metric .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.metric .value{font-size:26px;font-weight:800;margin-top:6px}
-.metric .delta{font-size:11px;margin-top:4px}
-.metric .delta.up{color:var(--good)}
-.metric .delta.down{color:var(--muted)}
-
-/* Hero */
-.hero{
-  position:relative;height:300px;border-radius:18px;overflow:hidden;margin-bottom:24px;
-  display:flex;align-items:flex-end;
-  background:linear-gradient(135deg,#2A0307,#0A0A0A);
-  border:1px solid var(--border);
-}
-.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
-.hero .hero-body{position:relative;padding:28px;max-width:560px;
-  background:linear-gradient(90deg,rgba(10,10,10,.9),transparent)}
-.hero h1{font-size:30px}
-.hero .tag{display:inline-block;background:var(--accent);color:#fff;font-size:10px;
-  padding:3px 8px;border-radius:6px;letter-spacing:1px;margin-bottom:10px}
-
-/* Buttons */
-.btn{
-  background:var(--accent);border:none;color:#fff;padding:10px 18px;border-radius:10px;
-  cursor:pointer;font-size:13px;font-weight:600;transition:.2s;margin-right:6px;
-}
-.btn:hover{filter:brightness(1.1)}
-.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text);font-weight:500}
-.btn.sm{padding:7px 12px;font-size:12px}
-
-/* Inputs */
-input.fld, textarea.fld, select.fld{
-  width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);
-  color:var(--text);border-radius:10px;outline:none;font-family:inherit;font-size:13px;
-}
-input.fld:focus,textarea.fld:focus,select.fld:focus{border-color:var(--accent)}
-textarea.fld{min-height:90px;resize:vertical}
-label.lbl{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px}
-
-/* Tables */
-table.data{width:100%;border-collapse:collapse;font-size:13px}
-table.data th{
-  text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;
-  letter-spacing:.5px;padding:10px 12px;border-bottom:1px solid var(--border);
-}
-table.data td{padding:11px 12px;border-bottom:1px solid var(--border)}
-table.data tr:hover td{background:var(--surface2)}
-.tag-pill{font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid var(--border)}
-.tag-pill.green{color:var(--good);border-color:rgba(255,82,82,.4)}
-.tag-pill.warn{color:var(--warn);border-color:rgba(255,176,32,.4)}
-.tag-pill.red{color:var(--accent2);border-color:rgba(255,59,59,.4)}
-.tag-pill.muted{color:var(--muted)}
-
-/* Bar chart (pure CSS) */
-.bars{display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:10px}
-.bars .bar{flex:1;background:linear-gradient(180deg,var(--accent),#7A0008);
-  border-radius:6px 6px 0 0;min-height:4px;position:relative;transition:.3s}
-.bars .bar:hover{filter:brightness(1.2)}
-.bars .bar span{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:10px;color:var(--muted)}
-.bars-x{display:flex;gap:8px;margin-top:6px}
-.bars-x div{flex:1;text-align:center;font-size:10px;color:var(--muted)}
-
-/* Tabs */
-.tabs{display:flex;gap:6px;border-bottom:1px solid var(--border);margin-bottom:16px}
-.tabs button{
-  background:transparent;border:none;color:var(--muted);padding:10px 14px;cursor:pointer;
-  font-size:13px;border-bottom:2px solid transparent;
-}
-.tabs button.active{color:#fff;border-bottom-color:var(--accent)}
-
-/* Stepper */
-.steps{display:flex;gap:6px;margin:14px 0 18px;flex-wrap:wrap}
-.steps .dot{height:5px;flex:1;min-width:24px;border-radius:999px;background:var(--surface3)}
-.steps .dot.active{background:linear-gradient(90deg,var(--accent),var(--accent2))}
-
-/* Upload wizard footer — Back left, primary action bottom-right */
-.wizard-footer{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border);
-}
-.wizard-footer .btn{margin-right:0}
-
-/* Creator onboarding */
-.onboard{max-width:920px;margin:0 auto;padding-top:10px}
-.onboard h1{font-size:28px}
-.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
-@media(max-width:820px){.plan-grid{grid-template-columns:1fr}}
-.plan{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;position:relative;display:flex;flex-direction:column}
-.plan.best{border-color:var(--accent);box-shadow:0 14px 40px rgba(229,9,20,.18)}
-.plan-badge{position:absolute;top:-10px;left:22px;background:var(--accent);color:#fff;font-size:10px;
-  font-weight:700;letter-spacing:.5px;padding:3px 10px;border-radius:999px}
-.plan h3{margin:0 0 6px;font-size:18px}
-.plan-price{font-size:26px;font-weight:800;margin-bottom:4px}
-.plan-feats{list-style:none;padding:0;margin:14px 0 18px;font-size:13px;color:var(--muted);flex:1}
-.plan-feats li{padding:4px 0}
-.onboard-form{max-width:620px}
-
-/* Tag picker */
-.tag-picker{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-.tag-chip{
-  background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  font-size:12px;padding:6px 12px;border-radius:999px;cursor:pointer;transition:.15s;
-}
-.tag-chip:hover{border-color:var(--accent)}
-.tag-chip.on{background:var(--accent);border-color:transparent;color:#fff;font-weight:600}
-
-/* Searchable multi-select (Category / Created using / Tags) */
-.ms-box{
-  display:flex;flex-wrap:wrap;gap:6px;align-items:center;
-  background:var(--surface2);border:1px solid var(--border);border-radius:10px;
-  padding:7px 10px;min-height:42px;cursor:text;margin-top:4px;
-}
-.ms-box:focus-within{border-color:var(--accent)}
-.ms-token{
-  display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;
-  font-size:12px;font-weight:600;padding:3px 6px 3px 10px;border-radius:999px;
-}
-.ms-token button{background:transparent;border:none;color:#fff;cursor:pointer;font-size:14px;line-height:1;padding:0}
-.ms-input{flex:1;min-width:120px;background:transparent;border:none;outline:none;color:var(--text);font-size:13px;font-family:inherit}
-.ms-list{
-  display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px;max-height:150px;overflow:auto;
-}
-.ms-opt{
-  background:var(--surface2);border:1px solid var(--border);color:var(--muted);
-  font-size:12px;padding:5px 11px;border-radius:999px;cursor:pointer;transition:.15s;
-}
-.ms-opt:hover{border-color:var(--accent);color:var(--text)}
-.ms-empty{font-size:12px;color:var(--muted);padding:6px}
-
-/* Watch layout */
-.watch{display:grid;grid-template-columns:2fr 1fr;gap:20px}
-@media(max-width:900px){.watch{grid-template-columns:1fr}}
-.player{
-  width:100%;height:380px;border-radius:14px;background:#000;border:none;
-  display:flex;align-items:center;justify-content:center;font-size:12px;color:#555;
-}
-video.player{object-fit:contain}
-iframe.player{display:block}
-
-/* Loader */
-.loader{width:100%;height:6px;background:var(--surface3);border-radius:999px;overflow:hidden;margin-top:10px}
-.loader::after{content:"";display:block;width:40%;height:100%;
-  background:linear-gradient(90deg,var(--accent),var(--accent2));animation:load 1.2s infinite}
-@keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
-
-/* Toast */
-.toast{
-  position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--accent);
-  padding:12px 16px;border-radius:12px;box-shadow:var(--shadow);font-size:13px;
-  opacity:0;transform:translateY(10px);transition:.3s;z-index:80;pointer-events:none;
-}
-.toast.show{opacity:1;transform:translateY(0)}
-
-/* Badge */
-.badge{background:var(--accent);color:#fff;border-radius:999px;padding:1px 6px;font-size:10px;margin-left:4px}
-
-/* Modal */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;
-  justify-content:center;z-index:90}
-.modal-bg.show{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;
-  padding:22px;width:440px;max-width:92vw;box-shadow:var(--shadow)}
-
-/* Empty / skeleton */
-.empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:14px}
-.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.filter-pill{background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  font-size:12px;padding:6px 12px;border-radius:999px;cursor:pointer}
-.filter-pill.active{background:var(--accent);border-color:transparent}
-</style>
-</head>
-<body>
-<div class="app">
-  <div class="sidebar">
-    <div class="brand"><span class="dot"></span> STUDIO</div>
-    <div class="nav" id="nav">
-      <button data-page="dashboard"  onclick="go('dashboard')"><span class="ico">▤</span> Dashboard</button>
-      <button data-page="content"    onclick="go('content')"><span class="ico">🎞</span> Content</button>
-      <button data-page="upload"     onclick="go('upload')"><span class="ico">⤒</span> Upload</button>
-      <button data-page="analytics"  onclick="go('analytics')"><span class="ico">📈</span> Analytics</button>
-      <button data-page="revenue"    onclick="go('revenue')"><span class="ico">💰</span> Revenue</button>
-      <button data-page="subscribers" onclick="go('subscribers')"><span class="ico">👥</span> Subscribers</button>
-      <button data-page="comments"   onclick="go('comments')"><span class="ico">💬</span> Comments</button>
-      <button data-page="playlists"  onclick="go('playlists')"><span class="ico">≣</span> Playlists</button>
-      <button data-page="livestream" onclick="go('livestream')"><span class="ico">🔴</span> Livestream</button>
-      <button data-page="series"     onclick="go('series')"><span class="ico">🎬</span> Original Series</button>
-      <button data-page="copyright"  onclick="go('copyright')"><span class="ico">©</span> Copyright</button>
-      <button data-page="ai"         onclick="go('ai')"><span class="ico">✨</span> AI Assistant</button>
-      <button data-page="integrations" onclick="go('integrations')"><span class="ico">🔌</span> Integrations</button>
-      <button data-page="api"        onclick="go('api')"><span class="ico">⚙</span> API</button>
-      <button data-page="settings"   onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
-    </div>
-  </div>
-  <div class="main">
-    <div class="topbar">
-      <div class="left">Creator Studio · Alex</div>
-      <div class="topbar-actions">
-        <button class="btn sm" onclick="go('upload')">＋ Upload</button>
-        <div class="avatar">A</div>
-      </div>
-    </div>
-    <div class="content" id="view"></div>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
-
-<!-- Catalog: single source of truth, loaded at runtime (see /catalog.js) -->
-<script src="../catalog.js?v=3"></script>
-<!-- Persistence + auth API (Supabase). Auth gates uploads. -->
-<script src="../streamhub-api.js?v=3"></script>
-<script>
 /* creatorName(), fmt(), toast() are shared — defined in catalog.js */
 
-/* simple CSS bar chart */
-function barChart(values, labels){
-  const max = Math.max(...values,1);
-  return `
-    <div class="bars">${values.map(v=>`<div class="bar" style="height:${Math.round(v/max*100)}%"></div>`).join("")}</div>
-    <div class="bars-x">${(labels||values.map((_,i)=>i+1)).map(l=>`<div>${l}</div>`).join("")}</div>`;
-}
-/* horizontal distribution rows */
-function distRows(arr){
-  return arr.map(d=>`
-    <div style="margin:10px 0">
-      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
-        <span>${d.c}</span><span class="small">${d.p}%</span>
-      </div>
-      <div style="height:6px;background:var(--surface3);border-radius:999px;overflow:hidden">
-        <div style="height:100%;width:${d.p}%;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div>
-      </div>
-    </div>`).join("");
-}
-</script>
-<script>
 /* ===================== CREATOR STUDIO ===================== */
 const MY = "c4"; // Alex's creator id
 const myVideos = ()=> DATA.videos.filter(v=>v.creator===MY).concat(DATA.videos.filter(v=>v.creator==="c1")); // show some originals as managed
@@ -576,58 +188,62 @@ function captureFrames(video, stamps, done){
 
 function uChooseThumb(idx){ cstate.upload.thumb = cstate.upload.thumbOptions[idx]; render(); }
 
+let _publishing = false;
+
 async function uPublish(){
+  if (_publishing) { toast("Upload already in progress…"); return; }
   const u = cstate.upload;
   if(!u.file){ toast("No file selected"); cstate.upload.step=0; render(); return; }
+  _publishing = true;
+  try {
+    // Realistic seed counts for the new video (10k-15k views, 100-300 likes).
+    const seedViews = 10000 + Math.floor(Math.random()*5001);
+    const seedLikes = 100 + Math.floor(Math.random()*201);
 
-  // Realistic seed counts for the new video (10k-15k views, 100-300 likes).
-  const seedViews = 10000 + Math.floor(Math.random()*5001);
-  const seedLikes = 100 + Math.floor(Math.random()*201);
+    // Add to the local list immediately with a temporary local URL (optimistic),
+    // so the creator sees it right away while it uploads in the background.
+    const localId = Date.now();
+    DATA.videos.unshift({
+      id:localId, title:u.title||"Untitled Upload", creator:MY, type:"ugc",
+      category:u.categories[0]||"POV", categories:u.categories.slice(),
+      views:seedViews, likes:seedLikes, dislikes:5, comments:0, favorites:0,
+      duration:u.duration||"0:00", uploaded:new Date().toISOString().slice(0,10),
+      src:u.url, thumb:u.thumb||"",
+      createdWith:u.createdWith.slice(), tags:u.tags.slice(),
+      status:"review",   // enters moderation queue (3d)
+      flagged:false
+    });
 
-  // Add to the local list immediately with a temporary local URL (optimistic),
-  // so the creator sees it right away while it uploads in the background.
-  const localId = Date.now();
-  DATA.videos.unshift({
-    id:localId, title:u.title||"Untitled Upload", creator:MY, type:"ugc",
-    category:u.categories[0]||"POV", categories:u.categories.slice(),
-    views:seedViews, likes:seedLikes, dislikes:5, comments:0, favorites:0,
-    duration:u.duration||"0:00", uploaded:new Date().toISOString().slice(0,10),
-    src:u.url, thumb:u.thumb||"",
-    createdWith:u.createdWith.slice(), tags:u.tags.slice(),
-    status:"review",   // enters moderation queue (3d)
-    flagged:false
-  });
-
-  // Real upload to Bunny Storage + persist metadata, if the API is available.
-  if(typeof ShAPI!=="undefined" && ShAPI.enabled){
-    toast("Uploading video…");
-    try {
-      const up = await ShAPI.uploadVideo(u.file, u.title||"Untitled", pct=>{
-        const el=document.getElementById("authMsg")||null; // reuse if present
-      });
-      // point the local entry at the real CDN src and persist metadata for everyone
-      const vid = DATA.videos.find(v=>v.id===localId); if(vid) vid.src = up.src;
-      const me = (typeof ShAuth!=="undefined" && ShAuth.session()) ? ShAuth.session() : null;
-      let uploaderEmail = "";
-      if(typeof ShAuth!=="undefined"){ try{ const usr=await ShAuth.user(); uploaderEmail = usr && usr.email || ""; }catch(_){ } }
-      await ShAPI.saveUploadedVideo({
-        title:u.title||"Untitled", creator:MY, src:up.src,
-        category:u.categories[0]||"POV", categories:u.categories.slice(), tags:u.tags.slice(),
-        duration:u.duration||"0:00", views_seed:seedViews, likes_seed:seedLikes,
-        status:"review", uploader:uploaderEmail
-      });
-      toast(`Published "${u.title||'Untitled'}" — uploaded and sent for review`);
-    } catch(e){
-      toast("Upload failed: "+(e.message||"saved locally only"));
+    // Real upload to Bunny Storage + persist metadata, if the API is available.
+    if(typeof ShAPI!=="undefined" && ShAPI.enabled){
+      toast("Uploading video…");
+      try {
+        const up = await ShAPI.uploadVideo(u.file, u.title||"Untitled");
+        // point the local entry at the real CDN src and persist metadata for everyone
+        const vid = DATA.videos.find(v=>v.id===localId); if(vid) vid.src = up.src;
+        let uploaderEmail = "";
+        if(typeof ShAuth!=="undefined"){ try{ const usr=await ShAuth.user(); uploaderEmail = usr && usr.email || ""; }catch(_){ } }
+        await ShAPI.saveUploadedVideo({
+          title:u.title||"Untitled", creator:MY, src:up.src,
+          category:u.categories[0]||"POV", categories:u.categories.slice(), tags:u.tags.slice(),
+          duration:u.duration||"0:00", views_seed:seedViews, likes_seed:seedLikes,
+          status:"review", uploader:uploaderEmail
+        });
+        toast(`Published "${u.title||'Untitled'}" — uploaded and sent for review`);
+      } catch(e){
+        const vid = DATA.videos.find(v=>v.id===localId);
+        if(vid) vid.status = "upload-failed";
+        toast("Upload failed: "+(e.message||"try again"));
+      }
+    } else {
+      toast(`Published "${u.title||'Untitled'}" (local preview only)`);
     }
-  } else {
-    toast(`Published "${u.title||'Untitled'}" (local preview only)`);
+
+    cstate.upload = freshUpload(); cstate.page="content"; render();
+  } finally {
+    _publishing = false;
   }
-
-  cstate.upload = freshUpload(); cstate.page="content"; render();
 }
-
-function metric(label,value,delta,up){ return `<div class="metric"><div class="label">${label}</div><div class="value">${value}</div>${delta?`<div class="delta ${up?'up':'down'}">${up?'▲':'▼'} ${delta}</div>`:''}</div>`; }
 
 function renderDashboard(){
   const r=DATA.revenue;
@@ -654,7 +270,7 @@ function renderContent(){
     <table class="data"><thead><tr><th>Video</th><th>Status</th><th>Views</th><th>Likes</th><th>Comments</th><th>Date</th></tr></thead><tbody>
     ${myVideos().map(v=>`<tr style="cursor:pointer" onclick="toast('Opening editor for: ${esc(v.title)}')">
       <td><b>${esc(v.title)}</b><div class="small">${esc(v.category)}</div></td>
-      <td><span class="tag-pill ${v.status==='published'?'green':v.status==='review'?'warn':'muted'}">${esc(v.status)}</span></td>
+      <td><span class="tag-pill ${v.status==='published'?'green':v.status==='review'?'warn':v.status==='upload-failed'?'red':'muted'}">${v.status==='upload-failed'?'Failed — retry':esc(v.status)}</span></td>
       <td>${fmt(v.views)}</td><td>${fmt(v.likes)}</td><td>${v.comments}</td><td class="small">${esc(v.uploaded)}</td></tr>`).join("")}
     </tbody></table></div>`;
 }
@@ -932,6 +548,20 @@ if(typeof ShAuth!=="undefined"){
   if(sess){ cstate.page="upload"; toast("Signed in — you can upload now"); }
 }
 render();
-</script>
-</body>
-</html>
+
+/* ---- Attach functions invoked from inline HTML event handler attributes ---- */
+window.go = go;
+window.finishSubscribe = finishSubscribe;
+window.pickKey = pickKey;
+window.pickSearch = pickSearch;
+window.pickToggle = pickToggle;
+window.sendMagicLink = sendMagicLink;
+window.signOutCreator = signOutCreator;
+window.startSubscribe = startSubscribe;
+window.toast = toast;
+window.uChooseThumb = uChooseThumb;
+window.uPickFile = uPickFile;
+window.uPrev = uPrev;
+window.uNext = uNext;
+window.uSaveMeta = uSaveMeta;
+window.uPublish = uPublish;

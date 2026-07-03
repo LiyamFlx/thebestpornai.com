@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StreamHub Studio — Creator</title>
+<meta name="description" content="StreamHub Creator Studio — upload, manage content, analytics, revenue, subscribers, and developer tools."/>
+<meta name="theme-color" content="#E50914"/>
+<meta name="robots" content="noindex"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23E50914'/%3E%3C/svg%3E"/>
+<link rel="stylesheet" href="/src/shared/theme.css" />
+<link rel="stylesheet" href="/src/creator/style.css" />
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="brand"><span class="dot"></span> STUDIO</div>
+    <div class="nav" id="nav">
+      <button data-page="dashboard"  onclick="go('dashboard')"><span class="ico">▤</span> Dashboard</button>
+      <button data-page="content"    onclick="go('content')"><span class="ico">🎞</span> Content</button>
+      <button data-page="upload"     onclick="go('upload')"><span class="ico">⤒</span> Upload</button>
+      <button data-page="analytics"  onclick="go('analytics')"><span class="ico">📈</span> Analytics</button>
+      <button data-page="revenue"    onclick="go('revenue')"><span class="ico">💰</span> Revenue</button>
+      <button data-page="subscribers" onclick="go('subscribers')"><span class="ico">👥</span> Subscribers</button>
+      <button data-page="comments"   onclick="go('comments')"><span class="ico">💬</span> Comments</button>
+      <button data-page="playlists"  onclick="go('playlists')"><span class="ico">≣</span> Playlists</button>
+      <button data-page="livestream" onclick="go('livestream')"><span class="ico">🔴</span> Livestream</button>
+      <button data-page="series"     onclick="go('series')"><span class="ico">🎬</span> Original Series</button>
+      <button data-page="copyright"  onclick="go('copyright')"><span class="ico">©</span> Copyright</button>
+      <button data-page="ai"         onclick="go('ai')"><span class="ico">✨</span> AI Assistant</button>
+      <button data-page="integrations" onclick="go('integrations')"><span class="ico">🔌</span> Integrations</button>
+      <button data-page="api"        onclick="go('api')"><span class="ico">⚙</span> API</button>
+      <button data-page="settings"   onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="left">Creator Studio · Alex</div>
+      <div class="topbar-actions">
+        <button class="btn sm" onclick="go('upload')">＋ Upload</button>
+        <div class="avatar">A</div>
+      </div>
+    </div>
+    <div class="content" id="view"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module" src="/src/creator/main.js"></script>
+</body>
+</html>
