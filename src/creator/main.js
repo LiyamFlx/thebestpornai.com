@@ -440,6 +440,7 @@ function simplePage(title,sub,items){
 }
 
 /* ---- Onboarding: subscribe + minimal profile (shown until creator exists) ---- */
+function onboardBack(){ onboard.step = 1; render(); }
 function renderOnboarding(){
   if(onboard.step===1){
     return `
@@ -477,7 +478,7 @@ function renderOnboarding(){
         <label class="lbl">Short bio</label>
         <textarea class="fld" id="cpBio" placeholder="Tell viewers about your channel (optional)"></textarea>
         <div class="wizard-footer">
-          <div><button class="btn ghost sm" onclick="onboard.step=1;render()">← Back</button></div>
+          <div><button class="btn ghost sm" onclick="onboardBack()">← Back</button></div>
           <div><button class="btn" onclick="finishSubscribe()">Create account →</button></div>
         </div>
       </div>
@@ -551,6 +552,7 @@ render();
 
 /* ---- Attach functions invoked from inline HTML event handler attributes ---- */
 window.go = go;
+window.onboardBack = onboardBack;
 window.finishSubscribe = finishSubscribe;
 window.pickKey = pickKey;
 window.pickSearch = pickSearch;
