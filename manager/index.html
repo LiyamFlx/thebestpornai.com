@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StreamHub — Platform Manager</title>
+<meta name="description" content="StreamHub Platform Manager — users, moderation, recommendations, infrastructure, and governance."/>
+<meta name="theme-color" content="#E50914"/>
+<meta name="robots" content="noindex"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23E50914'/%3E%3C/svg%3E"/>
+<link rel="stylesheet" href="/src/shared/theme.css" />
+<link rel="stylesheet" href="/src/manager/style.css" />
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="brand"><span class="dot"></span> MANAGER</div>
+    <div class="nav" id="nav">
+      <div class="nav-label">Operate</div>
+      <button data-page="overview" onclick="go('overview')"><span class="ico">▦</span> Overview</button>
+      <button data-page="users" onclick="go('users')"><span class="ico">👤</span> Users</button>
+      <button data-page="creators" onclick="go('creators')"><span class="ico">🎥</span> Creators</button>
+      <button data-page="videos" onclick="go('videos')"><span class="ico">🎞</span> Videos</button>
+      <button data-page="originals" onclick="go('originals')"><span class="ico">🎬</span> Originals</button>
+      <button data-page="moderation" onclick="go('moderation')"><span class="ico">🛡</span> Moderation</button>
+      <div class="nav-label">Curate</div>
+      <button data-page="categories" onclick="go('categories')"><span class="ico">▤</span> Categories</button>
+      <button data-page="recommendations" onclick="go('recommendations')"><span class="ico">✨</span> Recommendations</button>
+      <button data-page="homepage" onclick="go('homepage')"><span class="ico">▥</span> Homepage Builder</button>
+      <button data-page="live" onclick="go('live')"><span class="ico">🔴</span> Live Operations</button>
+      <div class="nav-label">Monetize</div>
+      <button data-page="revenue" onclick="go('revenue')"><span class="ico">💰</span> Revenue</button>
+      <button data-page="subscriptions" onclick="go('subscriptions')"><span class="ico">💳</span> Subscriptions</button>
+      <button data-page="ads" onclick="go('ads')"><span class="ico">📣</span> Ads</button>
+      <div class="nav-label">Intelligence</div>
+      <button data-page="reports" onclick="go('reports')"><span class="ico">📄</span> Reports</button>
+      <button data-page="analytics" onclick="go('analytics')"><span class="ico">📈</span> Analytics</button>
+      <button data-page="aimod" onclick="go('aimod')"><span class="ico">🤖</span> AI Moderation</button>
+      <div class="nav-label">Infrastructure</div>
+      <button data-page="storage" onclick="go('storage')"><span class="ico">🗄</span> Storage</button>
+      <button data-page="processing" onclick="go('processing')"><span class="ico">⚙</span> Processing</button>
+      <button data-page="notifications" onclick="go('notifications')"><span class="ico">🔔</span> Notifications</button>
+      <button data-page="flags" onclick="go('flags')"><span class="ico">🚩</span> Feature Flags</button>
+      <button data-page="integrations" onclick="go('integrations')"><span class="ico">🔌</span> Integrations</button>
+      <div class="nav-label">Governance</div>
+      <button data-page="security" onclick="go('security')"><span class="ico">🔒</span> Security</button>
+      <button data-page="roles" onclick="go('roles')"><span class="ico">🗝</span> Roles</button>
+      <button data-page="audit" onclick="go('audit')"><span class="ico">📜</span> Audit Log</button>
+      <button data-page="health" onclick="go('health')"><span class="ico">❤</span> System Health</button>
+      <button data-page="settings" onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="left">Platform Manager</div>
+      <div class="topbar-actions">
+        <span class="tag-pill green">● All systems operational</span>
+        <div class="avatar">OP</div>
+      </div>
+    </div>
+    <div class="content" id="view"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module" src="/src/manager/main.js"></script>
+</body>
+</html>
