@@ -38,7 +38,9 @@ let vstate = {
   page:"home", current:null,
   favorites:[], later:[], history:[], downloads:[],
   subs:["c1","c2"],
+  homeFilter:"all",   // "all" | "movies" | "scenes" | "clips"
 };
+function setHomeFilter(f){ vstate.homeFilter = f; render(); }
 
 function go(p){ vstate.page=p; setHash(p==="home"?"":p); render(); }
 function focusSearch(){
@@ -99,6 +101,8 @@ function applyHash(){
     const vid=DATA.videos.find(v=>v.id===+m[1]);
     if(vid){ vstate.current=vid; if(!vstate.history.includes(vid.id)) vstate.history.unshift(vid.id); vstate.page="watch"; _pendingHydrate=vid.id; return; }
   }
+  const mm=h.match(/^movie\/(.+)$/);
+  if(mm){ vstate.currentMovieTitle=decodeURIComponent(mm[1]); vstate.page="movie"; return; }
   vstate.page = h || "home";
 }
 window.addEventListener("hashchange",()=>{ if(_suppressHash) return; applyHash(); render(); });
@@ -172,9 +176,42 @@ function addComment(id){
 const trending = ()=> [...DATA.videos].sort((a,b)=> (b.likes*1.2+b.views*0.01) - (a.likes*1.2+a.views*0.01));
 const byCat = (c)=> DATA.videos.filter(v=>v.category===c);
 
-function rowSection(title, list){
+/* ---- Movie / Scene / Clip / Act structure ----
+   Optional fields on video objects (movieTitle, level, sceneNumber,
+   clipNumber, actName) group related uploads without touching the flat
+   clips that make up the rest of the catalog. See CLAUDE.md for the
+   filename convention these fields are derived from. */
+const movies = () => {
+  const titles = [...new Set(DATA.videos.filter(v=>v.movieTitle).map(v=>v.movieTitle))];
+  return titles.map(t => {
+    const scenes = DATA.videos.filter(v=>v.movieTitle===t && v.level==="scene")
+              .sort((a,b)=>a.sceneNumber-b.sceneNumber);
+    return {
+      title: t,
+      // Prefer the full movie file; otherwise fall back to the lowest-numbered
+      // scene (scenes is already sorted ascending, so [0] is Scene-01), NOT
+      // whichever scene .find() happens to hit first in array order.
+      poster: DATA.videos.find(v=>v.movieTitle===t && v.level==="movie") || scenes[0],
+      scenes,
+    };
+  });
+};
+const scenesFor = (movieTitle) => DATA.videos.filter(v=>v.movieTitle===movieTitle && v.level==="scene").sort((a,b)=>a.sceneNumber-b.sceneNumber);
+const clipsFor = (movieTitle, sceneNumber) => DATA.videos.filter(v=>v.movieTitle===movieTitle && v.level==="clip" && v.sceneNumber===sceneNumber).sort((a,b)=>a.clipNumber-b.clipNumber);
+const actNames = () => [...new Set(DATA.videos.filter(v=>v.level==="act" && v.actName).map(v=>v.actName))];
+const clipsByAct = (actName) => DATA.videos.filter(v=>v.level==="clip" && (v.tags||[]).includes(actName));
+const highlights = () => DATA.videos.filter(v=>v.level==="highlight");
+
+function rowSection(title, list, opts={}){
   if(!list.length) return "";
-  return `<h3>${title}</h3><div class="row-scroll">${list.map(v=>videoCard(v)).join("")}</div>`;
+  return `<h3>${title}</h3><div class="row-scroll">${list.map(v=>videoCard(v, opts)).join("")}</div>`;
+}
+
+function homeFilterBar(){
+  const filters = [["all","All"],["movies","Movies"],["scenes","Scenes"],["clips","Clips"]];
+  return `<div class="pill-row home-filter-bar">
+    ${filters.map(([key,label])=>`<button class="filter-pill ${vstate.homeFilter===key?'active':''}" onclick="setHomeFilter('${key}')">${label}</button>`).join("")}
+  </div>`;
 }
 
 const HERO_VIDEO_ID = 470; // pinned homepage hero — update this id to change it
@@ -182,7 +219,30 @@ function renderHome(){
   const hero = DATA.videos.find(v=>v.id===HERO_VIDEO_ID) || DATA.videos.find(v=>v.type==="original") || DATA.videos[0];
   if(!hero) return `<div class="empty">No videos available yet.</div>`;
   const top = trending();   // compute once; reused by the two rows below
+  const filter = vstate.homeFilter;
+
+  // Movies/Scenes/Clips filters replace the usual row set with a focused view;
+  // "all" (the default) keeps today's full homepage layout unchanged.
+  if(filter==="movies"){
+    const allMovies = movies();
+    return `
+      ${homeFilterBar()}
+      ${allMovies.length
+        ? `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${esc(m.title).replace(/'/g,"\\'")}')`})).join("")}</div>`
+        : `<div class="empty">No movies yet.</div>`}
+    `;
+  }
+  if(filter==="scenes"){
+    const allScenes = DATA.videos.filter(v=>v.level==="scene");
+    return `${homeFilterBar()}${allScenes.length ? rowSection("Scenes", allScenes) : `<div class="empty">No scenes yet.</div>`}`;
+  }
+  if(filter==="clips"){
+    const allClips = DATA.videos.filter(v=>v.level==="clip");
+    return `${homeFilterBar()}${allClips.length ? rowSection("Clips", allClips) : `<div class="empty">No clips yet.</div>`}`;
+  }
+
   return `
+    ${homeFilterBar()}
     <div class="hero">
       <video src="${mediaUrl(hero.src)}" muted autoplay loop playsinline></video>
       <div class="hero-body">
@@ -197,9 +257,39 @@ function renderHome(){
     ${rowSection("Recommended For You", top.slice(0,6))}
     ${rowSection("Trending Now", top.slice(0,6))}
     ${rowSection("House Originals", DATA.videos.filter(v=>v.type==="original"))}
+    ${(() => {
+      const allMovies = movies();
+      if(!allMovies.length) return "";
+      return `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${esc(m.title).replace(/'/g,"\\'")}')`})).join("")}</div>`;
+    })()}
+    ${rowSection("Highlights", highlights())}
+    ${actNames().map(a=>rowSection("Act: "+esc(a), clipsByAct(a))).join("")}
     ${DATA.categories.map(c=>rowSection(c, byCat(c))).join("")}
     ${rowSection("Recently Uploaded", [...DATA.videos].sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0,6))}
   `;
+}
+
+function renderMovieDetail(){
+  const title = vstate.currentMovieTitle;
+  const scenes = scenesFor(title);
+  if(!title || !scenes.length) return `<div class="empty">Movie not found.</div>`;
+  return `
+    <button class="btn ghost" style="margin-bottom:14px" onclick="go('home')">← Back</button>
+    <h1>${esc(title)}</h1>
+    ${scenes.map(scene => {
+      const clips = clipsFor(title, scene.sceneNumber);
+      return `
+        <h2 style="margin-top:24px">Scene ${scene.sceneNumber}${scene.title && scene.title!==title ? ": "+esc(scene.title) : ""}</h2>
+        ${clips.length ? rowSection("Clips", clips) : `<div class="row-scroll">${videoCard(scene)}</div>`}
+      `;
+    }).join("")}
+  `;
+}
+function openMovie(title){
+  vstate.currentMovieTitle = title;
+  vstate.page = "movie";
+  setHash("movie/"+encodeURIComponent(title));
+  render();
 }
 
 function renderWatch(){
@@ -369,6 +459,7 @@ function render(){
   const map={
     home:renderHome, watch:renderWatch, categories:renderCategories, subscriptions:renderSubs,
     profile:renderProfile, settings:renderSettings, live:renderLive, playlists:renderPlaylists,
+    movie:renderMovieDetail,
   };
   if(map[p]) v.innerHTML = map[p]();
   else if(p==="explore")   v.innerHTML = listPage("Explore", trending(), "");
@@ -441,3 +532,5 @@ window.shareVideo = shareVideo;
 window.doSearch = doSearch;
 window.render = render;
 window.toast = toast;
+window.setHomeFilter = setHomeFilter;
+window.openMovie = openMovie;

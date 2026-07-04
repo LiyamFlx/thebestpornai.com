@@ -133,6 +133,50 @@ so videos inside a Bunny subfolder work: `src:"../media/<folder>/<file>.mp4"` �
 the folder, 404ing every subfolder video — red thumbnails.) When importing from a
 subfolder, the catalog `src` MUST include the folder.
 
+## Movies / Scenes / Clips / Acts (structured long-form content)
+
+For content that's more than a flat clip — a movie broken into scenes
+(episodes), each scene cut into clips, plus cross-cutting Act/Highlight
+reels — use this filename convention when uploading, so catalog entries
+can be generated from filenames alone (no manual tagging UI exists):
+
+```
+<Movie-Title>__Scene-<NN>__Clip-<NN>.<ext>                    → a clip within a scene
+<Movie-Title>__Scene-<NN>.<ext>                                → a full scene (no clip suffix)
+<Movie-Title>__Full-Movie.<ext>                                → the whole movie file
+<Movie-Title>__Scene-<NN>__Clip-<NN>__Highlight-<Name>.<ext>   → a highlight moment
+<Movie-Title>__Act-<ActName>__<NN>.<ext>                       → a cross-cutting act compilation piece
+```
+
+Spaces in the movie title become hyphens; `__` (double underscore)
+separates structural segments; scene/clip numbers are zero-padded
+2-digit (`Scene-01`, not `Scene-1`) so numeric and lexical sort agree.
+
+This maps onto **optional** fields on the video object in
+`src/shared/catalog.js` — existing flat clips simply don't have them:
+
+```js
+{
+  ...existing fields (id, title, creator, category, tags, src, duration, ...),
+  movieTitle: "King David and His Wives",   // shared across every asset from this movie
+  level: "movie" | "scene" | "clip" | "highlight" | "act",
+  sceneNumber: 1,        // present on scene/clip/highlight levels
+  clipNumber: 2,         // present on clip/highlight levels only
+  actName: "Doggy",      // present on level:"act" entries; also add the
+                         // same name to that clip's own `tags` array so
+                         // it's picked up by the Act row on entries it
+                         // should belong to
+}
+```
+
+`src/viewer/main.js` has query helpers (`movies()`, `scenesFor()`,
+`clipsFor()`, `clipsByAct()`, `highlights()`) that group by these fields
+at render time — no separate "series" collection, just filters over the
+flat `DATA.videos` array, same pattern as the existing `byCat()`. The
+homepage filter bar (All/Movies/Scenes/Clips) and the Movie detail page
+(`renderMovieDetail`, reachable via `openMovie(title)` or `#movie/<title>`)
+are driven entirely by these fields.
+
 ## Auth & security (run once, in Supabase SQL Editor)
 
 The following migrations MUST be applied to the live Supabase project — they
