@@ -22,3 +22,4 @@ media/**/*.mp4
 media/**/*.mov
 media/**/*.webm
 media/**/*.mkv
+.vercel

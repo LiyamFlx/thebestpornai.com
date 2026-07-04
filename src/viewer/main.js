@@ -410,6 +410,8 @@ function lazyLoadThumbs(){
 }
 if(location.hash) applyHash();
 render();
+const _videoCountBadge = document.getElementById("videoCountBadge");
+if(_videoCountBadge) _videoCountBadge.textContent = fmt(DATA.videos.length) + " videos";
 
 /* Restore this browser's persisted favorites (per-visitor via client_id), then
    re-render so the favorites page / heart states reflect them. Best-effort. */
