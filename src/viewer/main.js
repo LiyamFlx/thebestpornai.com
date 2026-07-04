@@ -18,9 +18,11 @@ function videoCard(v, opts={}){
     ? `<img class="thumb-video" src="${v.thumb}" alt=""/>`
     : (v.src && !ytId(v.src)
         ? `<video class="thumb-video lazy" data-src="${mediaUrl(v.src)}#t=1" muted preload="none" playsinline></video>` : ``);
+  const badge = opts.badge ? opts.badge(v) : null;
   return `
     <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
       <div class="video-thumb ${v.type==='original'?'original':''}">
+        ${badge?`<span class="corner-badge">${esc(badge)}</span>`:``}
         ${thumb}
         ${v.duration?`<span class="dur-badge">${esc(v.duration)}</span>`:``}
         ${v.src?`<span class="play-badge">▶</span>`:``}
@@ -290,16 +292,50 @@ function renderMovieDetail(){
   const title = vstate.currentMovieTitle;
   const scenes = scenesFor(title);
   if(!title || !scenes.length) return `<div class="empty">Movie not found.</div>`;
+
+  const movieEntry = DATA.videos.find(v=>v.movieTitle===title && v.level==="movie") || scenes[0];
+  const allClips = scenes.flatMap(scene => clipsFor(title, scene.sceneNumber));
+  const clipList = allClips.length ? allClips : scenes;
+  // Acts present in this movie only (not the whole-site actNames()), so the
+  // badge reflects what's actually in this movie's clips.
+  const movieActs = new Set();
+  for(const c of allClips) for(const t of (c.tags||[])) movieActs.add(t);
+  const badgeFor = (v) => {
+    const t = (v.tags||[]).find(t=>movieActs.has(t));
+    return t || null;
+  };
+
+  const related = trending().filter(v=>v.movieTitle!==title).slice(0,8);
+  const primaryCategory = movieEntry.category;
+  const similar = primaryCategory ? byCat(primaryCategory).filter(v=>v.movieTitle!==title).slice(0,8) : [];
+  const more = [...DATA.videos].filter(v=>v.movieTitle!==title).sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0,10);
+
   return `
-    <button class="btn ghost" style="margin-bottom:14px" onclick="go('home')">← Back</button>
-    <h1>${esc(title)}</h1>
-    ${scenes.map(scene => {
-      const clips = clipsFor(title, scene.sceneNumber);
-      return `
-        <h2 style="margin-top:24px">Scene ${scene.sceneNumber}${scene.title && scene.title!==title ? ": "+esc(scene.title) : ""}</h2>
-        ${clips.length ? rowSection("Clips", clips) : `<div class="row-scroll">${videoCard(scene)}</div>`}
-      `;
-    }).join("")}
+    <div class="movie-detail">
+      <div class="movie-hero">
+        <video src="${mediaUrl(movieEntry.src)}" muted autoplay loop playsinline></video>
+        <div class="movie-hero-topnav">
+          <button class="icon-btn movie-back" onclick="go('home')" aria-label="Back">←</button>
+          <button class="icon-btn movie-menu" onclick="go('categories')" aria-label="Menu">☰</button>
+        </div>
+        <div class="movie-hero-body">
+          <h1 class="movie-title">${esc(title)}</h1>
+          <div class="movie-cta-row">
+            <button class="btn" onclick="openVideo(${movieEntry.id})">▶ Play</button>
+            <button class="btn ghost" onclick="toggleLater(${movieEntry.id})">+ Watch Later</button>
+          </div>
+        </div>
+      </div>
+      <div class="movie-factstrip">
+        <span class="pill-tag">18+</span>
+        <span>${clipList.length} Clip${clipList.length===1?"":"s"}</span>
+        ${[...movieActs].map(a=>`<span class="fact-tag">${esc(a)}</span>`).join("")}
+      </div>
+      ${rowSection("Clips", clipList, {badge: badgeFor})}
+      ${rowSection("Related", related)}
+      ${similar.length ? rowSection("Similar — "+esc(primaryCategory), similar) : ""}
+      ${rowSection("More Like This", more)}
+    </div>
   `;
 }
 function openMovie(title){

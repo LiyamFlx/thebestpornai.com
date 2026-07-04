@@ -23,3 +23,6 @@ media/**/*.mov
 media/**/*.webm
 media/**/*.mkv
 .vercel
+
+# Brainstorming visual-companion sessions (ephemeral mockups, not source)
+.superpowers/

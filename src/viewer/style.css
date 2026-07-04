@@ -104,6 +104,11 @@ h3{font-size:15px;margin:18px 0 10px}
   position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.7);
   padding:1px 6px;border-radius:6px;font-size:10px;
 }
+.corner-badge{
+  position:absolute;top:8px;left:8px;z-index:2;background:var(--accent);
+  color:#fff;font-weight:700;font-size:9px;letter-spacing:.4px;text-transform:uppercase;
+  padding:2px 6px;border-radius:4px;
+}
 .title{font-size:13px;font-weight:600}
 .meta{font-size:11px;color:var(--muted);margin-top:2px}
 
@@ -148,6 +153,39 @@ h3{font-size:15px;margin:18px 0 10px}
 .hero h1{font-size:30px}
 .hero .tag{display:inline-block;background:var(--accent);color:#fff;font-size:10px;
   padding:3px 8px;border-radius:6px;letter-spacing:1px;margin-bottom:10px}
+
+/* Movie detail page */
+.movie-detail{margin:-14px;margin-bottom:0}
+.movie-hero{position:relative;height:420px;overflow:hidden;
+  background:linear-gradient(135deg,#2A0307,#0A0A0A)}
+.movie-hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.6}
+.movie-hero::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(10,10,10,0) 40%,var(--bg) 100%)}
+.movie-hero-topnav{position:absolute;top:0;left:0;right:0;z-index:3;
+  display:flex;justify-content:space-between;padding:16px 20px}
+.movie-hero-topnav .icon-btn{background:rgba(20,20,20,.6);backdrop-filter:blur(6px)}
+.movie-hero-body{position:relative;z-index:2;padding:0 32px;
+  position:absolute;left:0;right:0;bottom:64px}
+.movie-title{font-size:36px;font-weight:800;margin:0 0 14px;max-width:640px;line-height:1.15}
+.movie-cta-row{display:flex;gap:10px;flex-wrap:wrap}
+.movie-factstrip{
+  position:relative;z-index:2;margin:-40px 32px 0;padding:14px 20px;
+  background:rgba(20,20,20,.85);border:1px solid var(--border);border-radius:10px;
+  backdrop-filter:blur(6px);display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  font-size:13px;color:var(--muted);
+}
+.movie-factstrip .pill-tag{border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px}
+.movie-factstrip .fact-tag{color:var(--accent2)}
+.movie-detail > h3{margin:24px 32px 14px}
+.movie-detail .row-scroll{margin:0 32px 8px}
+@media(max-width:760px){
+  .movie-hero{height:280px}
+  .movie-title{font-size:24px}
+  .movie-hero-body{bottom:44px;padding:0 16px}
+  .movie-factstrip{margin:-30px 16px 0;padding:10px 14px}
+  .movie-detail > h3{margin:20px 16px 12px}
+  .movie-detail .row-scroll{margin:0 16px 8px}
+}
 
 /* Buttons */
 .btn{
