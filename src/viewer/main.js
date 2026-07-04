@@ -177,8 +177,9 @@ function rowSection(title, list){
   return `<h3>${title}</h3><div class="row-scroll">${list.map(v=>videoCard(v)).join("")}</div>`;
 }
 
+const HERO_VIDEO_ID = 470; // pinned homepage hero — update this id to change it
 function renderHome(){
-  const hero = DATA.videos.find(v=>v.type==="original") || DATA.videos[0];
+  const hero = DATA.videos.find(v=>v.id===HERO_VIDEO_ID) || DATA.videos.find(v=>v.type==="original") || DATA.videos[0];
   if(!hero) return `<div class="empty">No videos available yet.</div>`;
   const top = trending();   // compute once; reused by the two rows below
   return `

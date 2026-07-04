@@ -531,6 +531,7 @@ const DATA = {
     { id:467, title:"Public Show #81", creator:"c2", type:"ugc", category:"Amateur", categories:["Amateur"], views:12279, likes:369, dislikes:4, comments:0, favorites:0, duration:"0:10", uploaded:"2026-07-04", src:"../media/uploads2/public show00081.mp4", tags:["Public"], status:"published", flagged:false },
     { id:468, title:"Public Show #82", creator:"c3", type:"ugc", category:"Amateur", categories:["Amateur"], views:12316, likes:376, dislikes:5, comments:0, favorites:0, duration:"0:10", uploaded:"2026-07-04", src:"../media/uploads2/public show00082.mp4", tags:["Public"], status:"published", flagged:false },
     { id:469, title:"Public Show #83", creator:"c4", type:"ugc", category:"Amateur", categories:["Amateur"], views:12353, likes:383, dislikes:6, comments:0, favorites:0, duration:"0:10", uploaded:"2026-07-04", src:"../media/uploads2/public show00083.mp4", tags:["Public"], status:"published", flagged:false },
+    { id:470, title:"Welcome to thebestpornai", creator:"c1", type:"original", category:"POV", categories:["POV"], views:0, likes:0, dislikes:0, comments:0, favorites:0, duration:"0:26", uploaded:"2026-07-04", src:"../media/new hero.mp4", tags:["Featured"], status:"published", flagged:false },
   ],
 
   comments: [
