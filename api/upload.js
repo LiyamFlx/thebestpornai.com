@@ -5,8 +5,10 @@
  * browser POSTs the file here and this function streams it to Bunny Storage under
  * media/uploads/<unique>.<ext>. The public playback URL is the usual CDN path.
  *
- * Required Vercel env var:
+ * Required Vercel env vars:
  *   BUNNY_STORAGE_KEY   the streamhub-media storage password (SECRET)
+ *   SUPABASE_URL        e.g. https://xxxx.supabase.co
+ *   SUPABASE_KEY        the publishable/anon key (used only to call /auth/v1/user)
  *
  * Note: requires a higher body size limit (videos are several MB). See
  * vercel.json -> functions config, and the bodyParser sizeLimit below.
@@ -14,18 +16,38 @@
 
 export const config = { api: { bodyParser: { sizeLimit: "60mb" } } };
 
-const STORAGE_BASE = "https://storage.bunnycdn.com/streamhub-media";
-const CDN_BASE     = "https://streamhub-media.b-cdn.net";
-const KEY          = process.env.BUNNY_STORAGE_KEY;
-const ALLOWED_EXT  = new Set(["mp4", "mov", "webm", "m4v"]);
+const STORAGE_BASE  = "https://storage.bunnycdn.com/streamhub-media";
+const CDN_BASE      = "https://streamhub-media.b-cdn.net";
+const KEY           = process.env.BUNNY_STORAGE_KEY;
+const SUPABASE_URL  = process.env.SUPABASE_URL  || "https://dabfxysxcngijcxxekzc.supabase.co";
+const SUPABASE_KEY  = process.env.SUPABASE_KEY  || "sb_publishable_moBiV9AidT0XkL-L6wilYw_Jfn25YDr";
+const ALLOWED_EXT   = new Set(["mp4", "mov", "webm", "m4v"]);
+
+/* Verify the caller's Supabase access token by asking GoTrue who it belongs to.
+   Returns the user object on success, or null if missing/invalid/expired. */
+async function verifyUser(req){
+  const auth = req.headers["authorization"] || "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+  if(!token) return null;
+  try {
+    const r = await fetch(SUPABASE_URL.replace(/\/$/,"") + "/auth/v1/user", {
+      headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + token },
+    });
+    if(!r.ok) return null;
+    return await r.json();
+  } catch(_){ return null; }
+}
 
 export default async function handler(req, res){
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Filename");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Filename, Authorization");
   if(req.method === "OPTIONS") return res.status(204).end();
   if(req.method !== "POST")    return res.status(405).json({ error:"method not allowed" });
   if(!KEY)                     return res.status(500).json({ error:"server not configured: set BUNNY_STORAGE_KEY" });
+
+  const user = await verifyUser(req);
+  if(!user) return res.status(401).json({ error:"sign in required" });
 
   // Filename + extension come from a header (the body is the raw file bytes).
   const rawName = (req.headers["x-filename"] || "video.mp4").toString();

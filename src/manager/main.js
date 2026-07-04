@@ -8,6 +8,32 @@ import { metric, barChart, distRows } from "../shared/ui.js";
 let mstate = { page:"overview" };
 function go(p){ mstate.page=p; render(); if(p==="moderation") loadModeration(); }
 
+/* ---- Auth gate: moderation writes require sign-in (RLS restricts the
+   moderation table's insert policy to the `authenticated` role). ---- */
+function authReady(){ return typeof ShAuth!=="undefined"; }
+function renderModSignIn(){
+  return `<h1>Sign in to moderate</h1>
+    <p class="sub">Approving or removing content requires a quick sign-in. We'll email you a secure link — no password needed.</p>
+    <div class="panel" style="max-width:440px">
+      <label class="lbl">Your email</label>
+      <input class="fld" id="modAuthEmail" type="email" placeholder="you@example.com" autocomplete="email"/>
+      <div id="modAuthMsg" class="small" style="margin:10px 0;min-height:16px"></div>
+      <button class="btn" onclick="sendModMagicLink()">Email me a sign-in link</button>
+    </div>`;
+}
+async function sendModMagicLink(){
+  const el=document.getElementById("modAuthEmail"); const email=(el&&el.value||"").trim();
+  const msg=document.getElementById("modAuthMsg");
+  if(!email || email.indexOf("@")<1){ if(msg) msg.textContent="Please enter a valid email."; return; }
+  if(msg){ msg.style.color="var(--muted)"; msg.textContent="Sending…"; }
+  try {
+    await ShAuth.sendMagicLink(email);
+    if(msg){ msg.style.color="var(--good)"; msg.textContent="Check your inbox — click the link to finish signing in, then you'll return here ready to moderate."; }
+  } catch(e){
+    if(msg){ msg.style.color="var(--accent2)"; msg.textContent="Couldn't send link: "+(e.message||"try again"); }
+  }
+}
+
 function renderOverview(){
   const s=DATA.system;
   return `<h1>Overview</h1><p class="sub">Platform operating system — real-time state</p>
@@ -38,9 +64,9 @@ function renderUsers(){
         <td><b>${esc(u.name)}</b></td><td class="small">${esc(u.email)}</td><td>${esc(u.role)}</td>
         <td><span class="tag-pill ${u.status==='active'?'green':u.status==='suspended'?'warn':'red'}">${esc(u.status)}</span></td>
         <td>${esc(u.subs)}</td><td class="small">${esc(u.joined)}</td>
-        <td><button class="chip" onclick="toast('Warned ${esc(u.name)}')">Warn</button>
-            <button class="chip" onclick="toast('Suspended ${esc(u.name)}')">Suspend</button>
-            <button class="chip" style="color:var(--accent2);border-color:var(--accent2)" onclick="toast('Banned ${esc(u.name)}')">Ban</button></td></tr>`).join("")}
+        <td><button class="chip" onclick="toast('Warned ${esc(u.name)} (simulated)')">Warn</button>
+            <button class="chip" onclick="toast('Suspended ${esc(u.name)} (simulated)')">Suspend</button>
+            <button class="chip" style="color:var(--accent2);border-color:var(--accent2)" onclick="toast('Banned ${esc(u.name)} (simulated)')">Ban</button></td></tr>`).join("")}
     </tbody></table></div>`;
 }
 
@@ -49,7 +75,7 @@ function renderCreators(){
     <div class="grid">${DATA.creators.map(c=>`<div class="card">
       <div style="display:flex;align-items:center;gap:10px"><div class="avatar">${esc((c.name||"?")[0])}</div>
       <div><div class="title">${esc(c.name)} ${c.verified?'✔️':''}</div><div class="meta">${fmt(c.subs)} subscribers</div></div></div>
-      <div class="card-actions"><span class="chip" onclick="toast('Viewing ${esc(c.name)}')">View</span><span class="chip" onclick="toast('Featured ${esc(c.name)}')">Feature</span></div>
+      <div class="card-actions"><span class="chip" onclick="toast('Viewing ${esc(c.name)}')">View</span><span class="chip" onclick="toast('Featured ${esc(c.name)} (simulated)')">Feature</span></div>
     </div>`).join("")}</div>`;
 }
 
@@ -118,12 +144,13 @@ async function modAction(videoId, action){
 }
 
 function renderModeration(){
+  if(authReady() && !ShAuth.isSignedIn()) return renderModSignIn();
   const decided = id => { const d=_modDecisions[String(id)]; return d==="approve"||d==="remove"; };
   const flagged = DATA.videos.filter(v=>v.flagged && !decided(v.id));
-  const reviews = (_modUploads||[]).filter(u=>(u.status==="review") && !decided(u.id) && !decided(u.src));
+  const reviews = (_modUploads||[]).filter(u=>(u.status==="review") && !decided(u.id));
   const queue = [
     ...reviews.map(u=>({ id:u.id, title:u.title, who:u.creator||"upload", src:u.src, why:"New upload — pending review", isUpload:true })),
-    ...flagged.map(v=>({ id:v.id, title:v.title, who:creatorName(v.creator), src:v.src, why:"AI flag: "+['NSFW','Spam','Copyright'][v.id%3], isUpload:false })),
+    ...flagged.map(v=>({ id:v.id, title:v.title, who:creatorName(v.creator), src:v.src, why:"Flagged for review (demo data — not a real classifier signal)", isUpload:false })),
   ];
   return `<h1>Content Moderation</h1><p class="sub">${queue.length} items in queue</p>
     <div class="tabs"><button class="active">Review Queue</button><button onclick="loadModeration()">↻ Refresh</button></div>
@@ -140,8 +167,8 @@ function renderHomepage(){
   const blocks=["Hero","Continue Watching","Trending","Categories","Recommendations","Sponsored","Originals"];
   return `<h1>Homepage Builder</h1><p class="sub">Arrange the viewer home layout (drag to reorder — simulated)</p>
     <div style="max-width:560px">${blocks.map((b,i)=>`<div class="panel" style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;cursor:grab">
-      <span>⠿ <b>${b}</b></span><div><button class="chip" onclick="toast('Moved ${b} up')">↑</button><button class="chip" onclick="toast('Moved ${b} down')">↓</button><button class="chip" onclick="toast('Hidden ${b}')">Hide</button></div>
-    </div>`).join("")}</div><br/><button class="btn" onclick="toast('Homepage layout published')">Publish Layout</button>`;
+      <span>⠿ <b>${b}</b></span><div><button class="chip" onclick="toast('Moved ${b} up (simulated)')">↑</button><button class="chip" onclick="toast('Moved ${b} down (simulated)')">↓</button><button class="chip" onclick="toast('Hidden ${b} (simulated)')">Hide</button></div>
+    </div>`).join("")}</div><br/><button class="btn" onclick="toast('Homepage layout published (simulated)')">Publish Layout</button>`;
 }
 
 function renderRecommendations(){
@@ -150,7 +177,7 @@ function renderRecommendations(){
       <div class="panel"><h3 style="margin-top:0">Ranking Signal Weights</h3>
         ${[["Watch time",70],["Likes",55],["Freshness",40],["Click-through",60],["Subscriptions",45]].map(([k,v])=>`
           <label class="lbl">${k} — ${v}%</label><input type="range" min="0" max="100" value="${v}" style="width:100%" oninput="this.previousElementSibling.textContent='${k} — '+this.value+'%'"/>`).join("")}
-        <br/><button class="btn sm" onclick="toast('Weights saved')">Save</button></div>
+        <br/><button class="btn sm" onclick="toast('Weights saved (simulated)')">Save</button></div>
       <div class="panel"><h3 style="margin-top:0">A/B Tests</h3>
         <table class="data"><thead><tr><th>Test</th><th>Split</th><th>Status</th></tr></thead><tbody>
         <tr><td>New ranking v2</td><td>50/50</td><td><span class="tag-pill green">Running</span></td></tr>
@@ -183,7 +210,7 @@ function renderFlags(){
       <thead><tr><th>Flag</th><th>Description</th><th>Rollout</th><th>State</th><th></th></tr></thead><tbody>
       ${DATA.flags.map(f=>`<tr><td><code>${esc(f.key)}</code></td><td class="small">${esc(f.desc)}</td><td>${f.rollout}%</td>
         <td><span class="tag-pill ${f.on?'green':'muted'}">${f.on?'ON':'OFF'}</span></td>
-        <td><button class="chip" onclick="toast('Toggled ${esc(f.key)}')">Toggle</button></td></tr>`).join("")}
+        <td><button class="chip" onclick="toast('Toggled ${esc(f.key)} (simulated)')">Toggle</button></td></tr>`).join("")}
     </tbody></table></div>`;
 }
 
@@ -240,6 +267,11 @@ function render(){
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
   lazyThumbs();
 }
+/* If we just returned from a magic link, capture the session and land on Moderation. */
+if(typeof ShAuth!=="undefined"){
+  const sess = ShAuth.captureSessionFromUrl();
+  if(sess){ mstate.page="moderation"; toast("Signed in — you can moderate now"); }
+}
 render();
 
 window.go = go;
@@ -248,3 +280,4 @@ window.loadModeration = loadModeration;
 window.modAction = modAction;
 window.videosPrevPage = videosPrevPage;
 window.videosNextPage = videosNextPage;
+window.sendModMagicLink = sendModMagicLink;

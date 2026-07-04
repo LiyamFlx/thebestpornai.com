@@ -40,6 +40,15 @@ async function _req(path, opts={}){
   } finally { clearTimeout(t); }
 }
 
+/* Same as _req, but sends the signed-in user's own access token instead of the
+   anon key, so RLS policies scoped `to authenticated` (moderation, uploads
+   inserts) accept the request. Throws if no session is present. */
+async function _authedReq(path, opts={}){
+  const sess = (typeof ShAuth!=="undefined") && ShAuth.session();
+  if(!sess) throw new Error("sign in required");
+  return _req(path, { ...opts, headers:{ ...(opts.headers||{}), "Authorization": "Bearer " + sess.access_token } });
+}
+
 /* Is the API configured/available? (cheap guard the pages can check.) */
 const SH_API_ENABLED = !!(SUPABASE_URL && SUPABASE_KEY);
 
@@ -116,7 +125,7 @@ const ShAPI = {
 
   /* ---- VIEWS ---- */
   async addView(videoId){
-    await _req(`/views`, { method:"POST", body: JSON.stringify({ video_id: videoId }) });
+    await _req(`/views`, { method:"POST", body: JSON.stringify({ video_id: videoId, client_id: shClientId() }) });
   },
   async viewCount(videoId){
     // HEAD with count header is cheapest, but keep it simple: count ids.
@@ -124,9 +133,10 @@ const ShAPI = {
     return (rows||[]).length;
   },
 
-  /* ---- MODERATION (real moderator decisions) ---- */
+  /* ---- MODERATION (real moderator decisions; requires sign-in — RLS
+     restricts moderation inserts to the `authenticated` role) ---- */
   async moderate(videoId, action, reason, moderator){
-    await _req(`/moderation`, { method:"POST", body: JSON.stringify({
+    await _authedReq(`/moderation`, { method:"POST", body: JSON.stringify({
       video_id:String(videoId), action, reason:reason||null, moderator:moderator||null
     }) });
   },
@@ -154,12 +164,14 @@ const ShAPI = {
   uploadApiBase: (typeof SH_UPLOAD_API_BASE!=="undefined" ? SH_UPLOAD_API_BASE : ""),
   async uploadVideo(file, title, onProgress){
     if(typeof ShAuth==="undefined" || !ShAuth.isSignedIn()) throw new Error("sign in required");
+    const sess = ShAuth.session();
     // POST the raw file bytes to our relay, which streams them to Bunny Storage.
     const info = await new Promise((resolve, reject)=>{
       const xhr = new XMLHttpRequest();
       xhr.open("POST", (this.uploadApiBase||"") + "/api/upload", true);
       xhr.setRequestHeader("Content-Type", "application/octet-stream");
       xhr.setRequestHeader("X-Filename", (file.name||"video.mp4"));
+      xhr.setRequestHeader("Authorization", "Bearer " + sess.access_token);
       if(onProgress) xhr.upload.onprogress = e=>{ if(e.lengthComputable) onProgress(Math.round(e.loaded/e.total*100)); };
       xhr.onload = ()=>{
         if(xhr.status>=200 && xhr.status<300){ try{ resolve(JSON.parse(xhr.responseText)); }catch(_){ reject(new Error("bad response")); } }
@@ -172,9 +184,10 @@ const ShAPI = {
   },
 
   /* Persist an uploaded video's metadata so it appears in the catalog for
-     everyone (until uploads are folded into the catalog build). */
+     everyone (until uploads are folded into the catalog build). Requires
+     sign-in — RLS restricts uploads inserts to the `authenticated` role. */
   async saveUploadedVideo(meta){
-    const rows = await _req(`/uploads`, {
+    const rows = await _authedReq(`/uploads`, {
       method:"POST", headers:{ "Prefer":"return=representation" },
       body: JSON.stringify(meta),
     });
