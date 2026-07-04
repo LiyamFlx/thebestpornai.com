@@ -23,7 +23,7 @@
   font-size:10px;text-transform:uppercase;letter-spacing:1px;
   color:var(--muted);margin:12px 10px 4px;
 }
-.nav button{
+.nav button,.nav-link-out{
   width:100%;
   background:transparent;border:none;
   color:var(--muted);
@@ -31,10 +31,12 @@
   text-align:left;cursor:pointer;
   font-size:13px;transition:.15s;
   display:flex;align-items:center;gap:9px;
+  text-decoration:none;box-sizing:border-box;
 }
-.nav button:hover{background:var(--surface2);color:var(--text)}
+.nav button:hover,.nav-link-out:hover{background:var(--surface2);color:var(--text)}
 .nav button.active{background:rgba(229,9,20,0.15);color:#fff;font-weight:600}
-.nav button .ico{width:16px;text-align:center;opacity:.9}
+.nav button .ico,.nav-link-out .ico{width:16px;text-align:center;opacity:.9}
+.nav-link-out{margin-top:8px;border-top:1px solid var(--border,rgba(255,255,255,.08));padding-top:12px}
 
 .main{flex:1;display:flex;flex-direction:column;min-width:0}
 .topbar{
