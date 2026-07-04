@@ -1,4 +1,4 @@
-import { MEDIA_BASE, DATA, esc, creatorName, fmt, toast, mediaUrl } from "../shared/catalog.js";
+import { DATA, esc, creatorName, fmt, toast, mediaUrl } from "../shared/catalog.js";
 import { ShAuth, ShAPI } from "../shared/streamhub-api.js";
 import { metric, barChart, distRows } from "../shared/ui.js";
 
@@ -6,7 +6,7 @@ import { metric, barChart, distRows } from "../shared/ui.js";
 
 /* ===================== CREATOR STUDIO ===================== */
 const MY = "c4"; // Alex's creator id
-const myVideos = ()=> DATA.videos.filter(v=>v.creator===MY).concat(DATA.videos.filter(v=>v.creator==="c1")); // show some originals as managed
+const myVideos = ()=> DATA.videos.filter(v=>v.creator===MY);
 function freshUpload(){ return {step:0, title:"", desc:"", visibility:"public", monet:true,
   file:null, url:"", duration:"0:00", thumb:"", thumbOptions:[],
   categories:[], createdWith:[], tags:[],
@@ -394,7 +394,7 @@ function renderAnalytics(){
 
 function renderRevenue(){
   const r=DATA.revenue;
-  const rows=[["Ad Revenue",r.ads],["Premium Revenue",r.premium],["Subscriptions",r.subscriptions],["Tips",r.tips],["Affiliate",r.affiliate],["Sponsors",1200]];
+  const rows=[["Ad Revenue",r.ads],["Premium Revenue",r.premium],["Subscriptions",r.subscriptions],["Tips",r.tips],["Affiliate",r.affiliate],["Sponsors",r.sponsors]];
   return `<h1>Revenue</h1><p class="sub">Total this period: <b style="color:#fff">$${r.total.toLocaleString()}</b></p>
     <div class="metrics">${rows.map(([k,v])=>metric(k,"$"+v.toLocaleString())).join("")}</div>
     <h3>Payout History</h3>

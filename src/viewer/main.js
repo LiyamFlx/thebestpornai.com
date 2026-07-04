@@ -79,7 +79,7 @@ async function hydrateWatch(id){
         for(const c of comments){
           const key = "db"+c.id;
           if(!DATA.comments.some(m=>m.id===key))
-            DATA.comments.push({ id:key, video:id, user:c.author, text:c.body, time:"" });
+            DATA.comments.push({ id:key, video:id, user:c.author, text:c.body, time:"", ts: Date.parse(c.created_at)||0 });
         }
         if(vstate.current && vstate.current.id===id && onWatch()) render();
       }
@@ -133,20 +133,22 @@ function download(id){ if(!vstate.downloads.includes(id))vstate.downloads.push(i
 let _voting = new Set();
 
 function likeVideo(id){
-  if (_voting.has(id)) return;
-  _voting.add(id);
-  const v=DATA.videos.find(x=>x.id===id); if(!v){ _voting.delete(id); return; }
+  const key=id+":like";
+  if (_voting.has(key)) return;
+  _voting.add(key);
+  const v=DATA.videos.find(x=>x.id===id); if(!v){ _voting.delete(key); return; }
   v.likes++; toast("Liked");
-  Promise.resolve(_persist(()=> ShAPI.addLike(id,"like"))).finally(()=> _voting.delete(id));
+  Promise.resolve(_persist(()=> ShAPI.addLike(id,"like"))).finally(()=> _voting.delete(key));
   const num=document.getElementById("likeNum");
   if(onWatch() && num) num.textContent=fmt(v.likes); else render();
 }
 function dislikeVideo(id){
-  if (_voting.has(id)) return;
-  _voting.add(id);
-  const v=DATA.videos.find(x=>x.id===id); if(!v){ _voting.delete(id); return; }
+  const key=id+":dislike";
+  if (_voting.has(key)) return;
+  _voting.add(key);
+  const v=DATA.videos.find(x=>x.id===id); if(!v){ _voting.delete(key); return; }
   v.dislikes++; toast("Disliked");
-  Promise.resolve(_persist(()=> ShAPI.addLike(id,"dislike"))).finally(()=> _voting.delete(id));
+  Promise.resolve(_persist(()=> ShAPI.addLike(id,"dislike"))).finally(()=> _voting.delete(key));
   const num=document.getElementById("disNum");
   if(onWatch() && num) num.textContent=fmt(v.dislikes); else render();
 }
@@ -159,7 +161,7 @@ function addComment(id){
     toast(`Comment too long (max ${COMMENT_MAX_LEN} characters)`);
     return;
   }
-  DATA.comments.push({id:"m"+Date.now(),video:id,user:DATA.user.name,text:t,time:"now"});
+  DATA.comments.push({id:"m"+Date.now(),video:id,user:DATA.user.name,text:t,time:"now",ts:Date.now()});
   box.value = "";
   _persist(()=> ShAPI.addComment(id, DATA.user.name, t));
   render();
@@ -271,12 +273,12 @@ function renderWatch(){
     </div>`;
 }
 
-/* Sort comments by the stored time. DB comments use ISO-ish via created_at; the
-   merged objects keep a 'time' label, so we sort by id (monotonic) as a proxy:
-   db ids increase with time; local 'now' comments use Date.now()-based ids. */
+/* Sort comments by real timestamp. DB comments carry `ts` parsed from
+   created_at; locally-added comments stamp `ts` with Date.now() at creation.
+   Legacy seeded comments have no ts at all — they sort as oldest (0). */
 function sortComments(cms){
   const order = (document.getElementById("cSort")||{}).value || "new";
-  const key = m => { const s=String(m.id); const n=parseInt(s.replace(/\D/g,""),10); return isNaN(n)?0:n; };
+  const key = m => m.ts || 0;
   const sorted = [...cms].sort((a,b)=> key(b)-key(a));   // newest first
   return order==="old" ? sorted.reverse() : sorted;
 }
