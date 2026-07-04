@@ -157,25 +157,33 @@ This maps onto **optional** fields on the video object in
 
 ```js
 {
-  ...existing fields (id, title, creator, category, tags, src, duration, ...),
+  ...existing fields (id, title, creator, category, src, duration, ...),
   movieTitle: "King David and His Wives",   // shared across every asset from this movie
   level: "movie" | "scene" | "clip" | "highlight" | "act",
   sceneNumber: 1,        // present on scene/clip/highlight levels
   clipNumber: 2,         // present on clip/highlight levels only
-  actName: "Doggy",      // present on level:"act" entries; also add the
-                         // same name to that clip's own `tags` array so
-                         // it's picked up by the Act row on entries it
-                         // should belong to
+  actName: "Doggy",      // only on a dedicated level:"act" compilation entry, if one exists
+  tags: ["Doggy"],       // see tag convention below
 }
 ```
 
+**Tag convention — important:** an "Act" row (e.g. "Act: Doggy") appears
+automatically for any tag shared by 2+ clips of the *same movie* — no
+dedicated compilation file is required (`actNames()` in
+`src/viewer/main.js` detects this). Because of that, **`tags` on a
+scene/clip entry must be reserved for act-type labels only** ("Doggy",
+"Oral", etc.) — do NOT put general descriptive tags ("Blonde", "Big
+Tits") on every clip, or they'll each spuriously become their own Act
+row. General descriptors belong on the `level:"movie"` entry instead,
+which represents the work as a whole.
+
 `src/viewer/main.js` has query helpers (`movies()`, `scenesFor()`,
-`clipsFor()`, `clipsByAct()`, `highlights()`) that group by these fields
-at render time — no separate "series" collection, just filters over the
-flat `DATA.videos` array, same pattern as the existing `byCat()`. The
-homepage filter bar (All/Movies/Scenes/Clips) and the Movie detail page
-(`renderMovieDetail`, reachable via `openMovie(title)` or `#movie/<title>`)
-are driven entirely by these fields.
+`clipsFor()`, `actNames()`, `clipsByAct()`, `highlights()`) that group by
+these fields at render time — no separate "series" collection, just
+filters over the flat `DATA.videos` array, same pattern as the existing
+`byCat()`. The homepage filter bar (All/Movies/Scenes/Clips) and the
+Movie detail page (`renderMovieDetail`, reachable via `openMovie(title)`
+or `#movie/<title>`) are driven entirely by these fields.
 
 ## Auth & security (run once, in Supabase SQL Editor)
 

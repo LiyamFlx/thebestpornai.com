@@ -198,7 +198,24 @@ const movies = () => {
 };
 const scenesFor = (movieTitle) => DATA.videos.filter(v=>v.movieTitle===movieTitle && v.level==="scene").sort((a,b)=>a.sceneNumber-b.sceneNumber);
 const clipsFor = (movieTitle, sceneNumber) => DATA.videos.filter(v=>v.movieTitle===movieTitle && v.level==="clip" && v.sceneNumber===sceneNumber).sort((a,b)=>a.clipNumber-b.clipNumber);
-const actNames = () => [...new Set(DATA.videos.filter(v=>v.level==="act" && v.actName).map(v=>v.actName))];
+/* An "Act" is either an explicit level:"act" compilation entry, or any tag
+   shared by 2+ clips of the same movie (a lone tag on one clip is just
+   descriptive metadata, not a cross-cutting grouping worth its own row). */
+const actNames = () => {
+  const names = new Set(DATA.videos.filter(v=>v.level==="act" && v.actName).map(v=>v.actName));
+  const byMovie = {};
+  for(const v of DATA.videos){
+    if(v.level!=="clip" || !v.movieTitle) continue;
+    byMovie[v.movieTitle] = byMovie[v.movieTitle] || {};
+    for(const t of (v.tags||[])) byMovie[v.movieTitle][t] = (byMovie[v.movieTitle][t]||0) + 1;
+  }
+  for(const movieTitle in byMovie){
+    for(const tag in byMovie[movieTitle]){
+      if(byMovie[movieTitle][tag] >= 2) names.add(tag);
+    }
+  }
+  return [...names];
+};
 const clipsByAct = (actName) => DATA.videos.filter(v=>v.level==="clip" && (v.tags||[]).includes(actName));
 const highlights = () => DATA.videos.filter(v=>v.level==="highlight");
 
