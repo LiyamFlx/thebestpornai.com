@@ -1,6 +1,8 @@
 import { MEDIA_BASE, DATA, esc, creatorName, fmt, toast, mediaUrl } from "../shared/catalog.js";
 import { ShAuth, ShAPI } from "../shared/streamhub-api.js";
 import { metric, barChart, distRows } from "../shared/ui.js";
+import { ageGate } from "../shared/age-gate.js";
+ageGate();
 
 /* creatorName(), fmt(), toast() are shared — defined in catalog.js */
 

@@ -18,7 +18,7 @@
   padding:6px 10px 14px;
   display:flex;align-items:center;gap:8px;
 }
-.brand .dot{width:10px;height:10px;border-radius:3px;background:var(--accent)}
+.brand img{height:20px}
 .nav-label{
   font-size:10px;text-transform:uppercase;letter-spacing:1px;
   color:var(--muted);margin:12px 10px 4px;

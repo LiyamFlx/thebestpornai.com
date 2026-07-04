@@ -1,5 +1,7 @@
 import { MEDIA_BASE, DATA, esc, creatorName, fmt, toast, mediaUrl } from "../shared/catalog.js";
 import { ShAuth, ShAPI } from "../shared/streamhub-api.js";
+import { ageGate } from "../shared/age-gate.js";
+ageGate();
 
 /* creatorName(), fmt(), toast() are shared — defined in catalog.js */
 function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m?m[1]:null; }
