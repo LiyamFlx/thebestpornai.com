@@ -97,21 +97,24 @@ creator, manager) imports it as an ES module via its Vite-bundled `main.js`, so 
 three apps share one catalog. **Edit `src/shared/catalog.js` only** — no more
 4-file sync.
 
-- Pages: `viewer/index.html`, `creator/index.html`, `manager/index.html` each load
-  their bundled JS (built by Vite from `src/`), which imports the shared catalog
-  module. `index.html` is a static picker, no catalog.
+- Pages: `viewer/index.html` (also mirrored at root `index.html`, so
+  thebestpornai.com loads straight into the video homepage), `creator/index.html`,
+  `manager/index.html` each load their bundled JS (built by Vite from `src/`),
+  which imports the shared catalog module. The old persona picker now lives at
+  `choose.html` (linked from the viewer sidebar as "Creator / Manager").
 - **Deploy:** when you change the catalog, run `npm run build` and upload the
   resulting `dist/` contents to Bunny storage, then purge the Pull Zone cache — see
   the Deploy checklist above.
 - Per-page **helper functions** (`videoCard`, `fmt`, `playerEmbed`, …) are still
   inlined per page and have drifted (e.g. the viewer's `videoCard` is lazy-loaded).
   They are NOT shared — only the catalog is. Unifying helpers is a separate task.
-- Abandoned build pipeline (`build.js`, `*.src.html`) and the old `_data.js` live in
-  `_archive/` (see `_archive/README.md`) — do not revive them.
+- The old `_archive/` (abandoned build pipeline, `*.src.html`, `_data.js`) has been
+  deleted — it was unused and confirmed dead. Don't recreate that pattern.
 
 ## Local dev
 
-- Open `index.html` (persona picker) or run `Start.command` / `Start.bat` (Python
+- Open `index.html` (video homepage, same as `viewer/index.html`) or run
+  `Start.command` / `Start.bat` (Python
   http.server) so video plays over http, not file://.
 - Locally, `MEDIA_BASE` still points at the CDN, so playback works without local files.
 
@@ -129,6 +132,34 @@ so videos inside a Bunny subfolder work: `src:"../media/<folder>/<file>.mp4"` �
 `b-cdn.net/<folder>/<file>.mp4`. (Earlier it did `split('/').pop()` and dropped
 the folder, 404ing every subfolder video — red thumbnails.) When importing from a
 subfolder, the catalog `src` MUST include the folder.
+
+## Auth & security (run once, in Supabase SQL Editor)
+
+The following migrations MUST be applied to the live Supabase project — they
+close real security holes (anonymous forgery of moderation decisions / fake
+upload metadata / unbounded view-count inflation). If they haven't been run
+yet against the production project, the RLS policies in `schema-moderation.sql`
+and `schema-uploads.sql` are still wide open to anonymous writes:
+
+1. `supabase/schema-auth-tighten.sql` — restricts `moderation` and `uploads`
+   table INSERTs to signed-in (`authenticated`) users only. Without this,
+   any visitor can POST directly to PostgREST and forge an "approve"/"remove"
+   moderation decision, or inject fake upload rows into the catalog, with no
+   auth at all.
+2. `supabase/schema-views-dedupe.sql` — adds `client_id` to `views` and caps
+   inserts to one per (video, client) per day, closing unbounded view-count
+   spam (mirrors the existing `schema-likes-fix.sql` pattern).
+
+Both the manager (moderation) and creator (upload) apps now require signing
+in via magic link before their write actions will succeed — `/api/upload.js`
+also verifies the caller's Supabase access token server-side before accepting
+a file, so the "sign in required" UI gate can no longer be bypassed by
+POSTing to the endpoint directly.
+
+`/api/upload.js` requires these Vercel env vars: `BUNNY_STORAGE_KEY` (already
+required), plus `SUPABASE_URL` and `SUPABASE_KEY` (falls back to the hardcoded
+publishable values in the repo if unset — fine for now since the publishable
+key is not a secret, but set them explicitly if the project URL/key ever changes).
 
 ## Gotchas that have bitten us
 
