@@ -17,7 +17,7 @@ function videoCard(v, opts={}){
   const thumb = v.thumb
     ? `<img class="thumb-video" src="${v.thumb}" alt=""/>`
     : (v.src && !ytId(v.src)
-        ? `<video class="thumb-video lazy" data-src="${mediaUrl(v.src)}#t=0.1" muted preload="none" playsinline></video>` : ``);
+        ? `<video class="thumb-video lazy" data-src="${mediaUrl(v.src)}#t=1" muted preload="none" playsinline></video>` : ``);
   return `
     <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
       <div class="video-thumb ${v.type==='original'?'original':''}">
@@ -211,7 +211,7 @@ function renderWatch(){
   const suggestedCard = u=>`
     <div class="card" style="display:flex;gap:10px;margin-bottom:10px;padding:8px" onclick="openVideo(${u.id})">
       <div class="video-thumb ${u.type==='original'?'original':''}" style="width:120px;height:68px;margin:0;flex:none">
-        <video class="thumb-video lazy" data-src="${mediaUrl(u.src)}#t=0.1" muted preload="none"></video>
+        <video class="thumb-video lazy" data-src="${mediaUrl(u.src)}#t=1" muted preload="none"></video>
       </div>
       <div><div class="title">${esc(u.title)}</div><div class="meta">${esc(creatorName(u.creator))}</div><div class="small">${fmt(u.views)} views</div></div>
     </div>`;
@@ -343,7 +343,7 @@ function renderPlaylists(){
     <div class="grid">
       ${["My Mix","Chill","Tech Deep-Dives"].map((p,i)=>{
         const pv = DATA.videos[i];
-        const thumb = pv ? `<video class="thumb-video lazy" data-src="${mediaUrl(pv.src)}#t=0.1" muted preload="none"></video>` : ``;
+        const thumb = pv ? `<video class="thumb-video lazy" data-src="${mediaUrl(pv.src)}#t=1" muted preload="none"></video>` : ``;
         return `<div class="card"><div class="video-thumb">${thumb}</div>
         <div class="title">${esc(p)}</div><div class="meta">${(i+2)} videos</div></div>`;
       }).join("")}

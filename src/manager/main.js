@@ -157,7 +157,7 @@ function renderModeration(){
   return `<h1>Content Moderation</h1><p class="sub">${queue.length} items in queue</p>
     <div class="tabs"><button class="active">Review Queue</button><button onclick="loadModeration()">↻ Refresh</button></div>
     ${queue.length? queue.map(it=>`<div class="panel" style="margin-bottom:10px;display:flex;gap:14px;align-items:center">
-      <div class="video-thumb" style="width:120px;height:68px;margin:0;flex:none">${it.src?`<video class="thumb-video lazy" data-src="${mediaUrl(it.src)}#t=0.1" muted preload="none"></video>`:``}</div>
+      <div class="video-thumb" style="width:120px;height:68px;margin:0;flex:none">${it.src?`<video class="thumb-video lazy" data-src="${mediaUrl(it.src)}#t=1" muted preload="none"></video>`:``}</div>
       <div style="flex:1"><b>${esc(it.title)}</b>${it.isUpload?' <span class="tag-pill warn">upload</span>':''}<div class="small">${esc(it.who)} • ${esc(it.why)}</div></div>
       <div><button class="chip" style="color:var(--good);border-color:var(--good)" onclick="modAction('${esc(String(it.id))}','approve')">Approve</button>
            <button class="chip" style="color:var(--accent2);border-color:var(--accent2)" onclick="modAction('${esc(String(it.id))}','remove')">Remove</button>
