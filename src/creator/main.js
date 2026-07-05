@@ -199,7 +199,8 @@ let _publishing = false;
    The relay talks to Bunny Storage server-side, avoiding browser CORS restrictions.
    The user enters their Vercel project URL once; it's saved to localStorage. */
 const RELAY_KEY = "sh_upload_relay_url";
-function getRelayUrl(){ return localStorage.getItem(RELAY_KEY)||""; }
+const RELAY_DEFAULT = "https://x-one-smoky.vercel.app";
+function getRelayUrl(){ return localStorage.getItem(RELAY_KEY)||RELAY_DEFAULT; }
 function saveRelayUrl(u){ if(u) localStorage.setItem(RELAY_KEY, u.replace(/\/+$/,"")); }
 
 async function bunnyUpload(file, title, onProgress){
