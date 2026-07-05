@@ -350,6 +350,49 @@ table.data tr:hover td{background:var(--surface2)}
 .ce-icon{font-size:30px;margin-bottom:8px;opacity:.85}
 .ce-title{font-weight:700;margin-bottom:3px}
 
+/* Video tags row (watch page) */
+.video-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.vtag{font-size:11px;padding:4px 10px;border-radius:999px;cursor:pointer;transition:.15s;border:1px solid var(--border)}
+.vtag-cat{background:rgba(229,9,20,.12);color:var(--accent2);border-color:rgba(229,9,20,.25)}
+.vtag-cat:hover{background:rgba(229,9,20,.22)}
+.vtag-tag{background:var(--surface2);color:var(--muted)}
+.vtag-tag:hover{color:var(--text);border-color:var(--muted)}
+
+/* Clickable creator name */
+.creator-link{cursor:pointer;transition:.15s}
+.creator-link:hover{color:var(--accent2);text-decoration:underline}
+
+/* Creator profile page */
+.creator-page{padding-bottom:32px}
+.creator-page-banner{height:160px;background:linear-gradient(135deg,#2A0307,#1a0a0a,#0A0A0A);border-radius:16px;margin-bottom:0;position:relative}
+.creator-page-header{display:flex;align-items:flex-end;gap:20px;padding:0 4px;margin-top:-40px;margin-bottom:24px;flex-wrap:wrap}
+.creator-page-avatar{
+  width:80px;height:80px;border-radius:50%;flex:none;
+  background:linear-gradient(135deg,var(--accent),#7A0008);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:28px;border:3px solid var(--bg);
+}
+.creator-page-info{flex:1;min-width:0;padding-top:44px}
+.creator-page-name{margin:0 0 4px;font-size:22px;font-weight:800}
+.creator-bio{font-size:13px;color:var(--muted);margin:8px 0 0;line-height:1.6;max-width:500px}
+
+/* Profile page */
+.profile-hero{display:flex;align-items:center;gap:18px}
+.profile-avatar{
+  width:72px;height:72px;border-radius:50%;flex:none;
+  background:linear-gradient(135deg,var(--accent),#7A0008);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:26px;
+}
+.profile-info{flex:1;min-width:0}
+.profile-stats{display:flex;gap:18px;margin-top:8px;font-size:12px;color:var(--muted)}
+.profile-stats b{color:var(--text);font-weight:700}
+.metric-link{font-size:11px;color:var(--accent2);cursor:pointer;margin-top:6px}
+.metric-link:hover{text-decoration:underline}
+.sub-creator-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.sub-creator-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:.15s}
+.sub-creator-row:hover{border-color:var(--accent);background:var(--surface2)}
+
 /* related-below: only shown when the sidebar is hidden (mobile) */
 .related-below{display:none}
 .related-below h3{margin:8px 0 12px}

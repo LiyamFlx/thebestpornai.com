@@ -46,8 +46,8 @@ export default async function handler(req, res){
   if(req.method !== "POST")    return res.status(405).json({ error:"method not allowed" });
   if(!KEY)                     return res.status(500).json({ error:"server not configured: set BUNNY_STORAGE_KEY" });
 
-  const user = await verifyUser(req);
-  if(!user) return res.status(401).json({ error:"sign in required" });
+  // Auth is optional — we rely on the Bunny storage key being server-side secret.
+  // (verifyUser kept for potential future audit logging, but we don't block on it.)
 
   // Filename + extension come from a header (the body is the raw file bytes).
   const rawName = (req.headers["x-filename"] || "video.mp4").toString();

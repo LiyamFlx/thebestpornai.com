@@ -37,11 +37,13 @@ function videoCard(v, opts={}){
 
 /* ===================== VIEWER APP ===================== */
 let vstate = {
-  page:"home", current:null,
+  page:"home", current:null, creatorId:null,
   favorites:[], later:[], history:[], downloads:[],
   subs:["c1","c2"],
   homeFilter:"all",   // "all" | "movies" | "scenes" | "clips"
+  commentPage: 1,     // comments paginated at COMMENTS_PER_PAGE
 };
+const COMMENTS_PER_PAGE = 20;
 function setHomeFilter(f){ vstate.homeFilter = f; render(); }
 
 function go(p){ vstate.page=p; setHash(p==="home"?"":p); render(); }
@@ -50,9 +52,11 @@ function focusSearch(){
   if(i){ i.scrollIntoView({block:"start",behavior:"smooth"}); i.focus(); }
 }
 function openVideo(id){
+  id = +id;
   vstate.current = DATA.videos.find(v=>v.id===id);
   if(!vstate.current) return;
   if(!vstate.history.includes(id)) vstate.history.unshift(id);
+  vstate.commentPage = 1;
   vstate.page="watch"; setHash("video/"+id); render();
   hydrateWatch(id);   // fetch real counts/comments and patch them in (non-blocking)
 }
@@ -105,6 +109,8 @@ function applyHash(){
   }
   const mm=h.match(/^movie\/(.+)$/);
   if(mm){ vstate.currentMovieTitle=decodeURIComponent(mm[1]); vstate.page="movie"; return; }
+  const mc=h.match(/^creator\/(.+)$/);
+  if(mc){ vstate.creatorId=decodeURIComponent(mc[1]); vstate.page="creator"; return; }
   vstate.page = h || "home";
 }
 window.addEventListener("hashchange",()=>{ if(_suppressHash) return; applyHash(); render(); });
@@ -123,6 +129,7 @@ function _persist(promiseFn){
 }
 
 function toggleFav(id){
+  id = +id;
   const on = vstate.favorites.includes(id);
   on ? vstate.favorites=vstate.favorites.filter(x=>x!==id) : vstate.favorites.push(id);
   toast(!on?"Added to Favorites":"Removed from Favorites");
@@ -131,17 +138,19 @@ function toggleFav(id){
   if(onWatch() && btn) btn.classList.toggle("on", !on); else render();
 }
 function toggleLater(id){
+  id = +id;
   const on = vstate.later.includes(id);
   on ? vstate.later=vstate.later.filter(x=>x!==id) : vstate.later.push(id);
   toast(!on?"Saved to Watch Later":"Removed");
   const btn=document.getElementById("btnLater");
   if(onWatch() && btn) btn.classList.toggle("on", !on); else render();
 }
-function download(id){ if(!vstate.downloads.includes(id))vstate.downloads.push(id); toast("Download started (simulated)"); }
+function download(id){ id=+id; if(!vstate.downloads.includes(id))vstate.downloads.push(id); toast("Download started (simulated)"); }
 let _voting = new Set();
 
 function likeVideo(id){
-  const key=id+":like";
+  id = +id;                            // coerce: onclick passes number literal, but be safe
+  const key = String(id);             // single lock per video — prevents simultaneous like+dislike
   if (_voting.has(key)) return;
   _voting.add(key);
   const v=DATA.videos.find(x=>x.id===id); if(!v){ _voting.delete(key); return; }
@@ -151,7 +160,8 @@ function likeVideo(id){
   if(onWatch() && num) num.textContent=fmt(v.likes); else render();
 }
 function dislikeVideo(id){
-  const key=id+":dislike";
+  id = +id;
+  const key = String(id);             // same lock key — blocks if like already in flight
   if (_voting.has(key)) return;
   _voting.add(key);
   const v=DATA.videos.find(x=>x.id===id); if(!v){ _voting.delete(key); return; }
@@ -164,7 +174,9 @@ function subscribe(cid){ vstate.subs.includes(cid)?vstate.subs=vstate.subs.filte
 const COMMENT_MAX_LEN = 2000;
 
 function addComment(id){
-  const box=document.getElementById("cbox"); const t=(box.value||"").trim(); if(!t)return;
+  id = +id;
+  const box=document.getElementById("cbox"); if(!box) return;
+  const t=(box.value||"").trim(); if(!t)return;
   if (t.length > COMMENT_MAX_LEN) {
     toast(`Comment too long (max ${COMMENT_MAX_LEN} characters)`);
     return;
@@ -273,8 +285,8 @@ function renderHome(){
       </div>
     </div>
     ${vstate.history.length ? rowSection("Continue Watching", vstate.history.map(id=>DATA.videos.find(v=>v.id===id)).filter(Boolean)) : ""}
-    ${rowSection("Recommended For You", top.slice(0,6))}
-    ${rowSection("Trending Now", top.slice(0,6))}
+    ${rowSection("Recommended For You", (()=>{ const nw=top.filter(v=>!vstate.history.includes(v.id)); return nw.length>=6?nw.slice(0,6):top.slice(0,6); })())}
+    ${rowSection("Trending Now", [...DATA.videos].sort((a,b)=>b.views-a.views).slice(0,6))}
     ${rowSection("House Originals", DATA.videos.filter(v=>v.type==="original"))}
     ${(() => {
       const allMovies = movies();
@@ -365,12 +377,16 @@ function renderWatch(){
         ${playerEmbed(v)}
         <h2 class="watch-title">${esc(v.title)}</h2>
         <p class="sub watch-sub" id="watchSub"><span class="ic-eye">👁</span> ${fmt(v.views)} views <span class="dot-sep">•</span> ${esc(v.uploaded)}</p>
+        ${(v.categories?.length || v.category || v.tags?.length) ? `<div class="video-tags">
+          ${[v.category,...(v.categories||[])].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,5).map(c=>`<span class="vtag vtag-cat" onclick="go('categories')">${esc(c)}</span>`).join("")}
+          ${(v.tags||[]).slice(0,8).map(t=>`<span class="vtag vtag-tag">#${esc(t)}</span>`).join("")}
+        </div>` : ''}
 
         <div class="watch-actions">
           <div class="vote-pill">
             <button id="btnLike" class="vote-btn" onclick="likeVideo(${v.id})"><span class="ic">👍</span> <span id="likeNum">${fmt(v.likes)}</span></button>
             <span class="vote-div"></span>
-            <button id="btnDislike" class="vote-btn" onclick="dislikeVideo(${v.id})"><span class="ic">👎</span> <span id="disNum">${v.dislikes}</span></button>
+            <button id="btnDislike" class="vote-btn" onclick="dislikeVideo(${v.id})"><span class="ic">👎</span> <span id="disNum">${fmt(v.dislikes)}</span></button>
           </div>
           <button id="btnFav" class="act-btn ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})"><span class="ic">♥</span> Favorite</button>
           <button id="btnLater" class="act-btn ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})"><span class="ic">🔖</span> Save</button>
@@ -381,7 +397,7 @@ function renderWatch(){
         <div class="creator-card">
           <div class="avatar avatar-lg">${esc((c.name||"?")[0])}</div>
           <div style="flex:1;min-width:0">
-            <div class="creator-name">${esc(c.name)} ${c.verified?'<span class="verified" title="Verified">✓</span>':''}</div>
+            <div class="creator-name"><span class="creator-link" onclick="openCreator('${esc(c.id)}')">${esc(c.name)}</span> ${c.verified?'<span class="verified" title="Verified">✓</span>':''}</div>
             <div class="small">${fmt(c.subs)} subscribers</div>
           </div>
           <button class="btn subscribe-btn ${subbed?'ghost':''}" onclick="subscribe('${esc(c.id)}')">${subbed?'Subscribed':'＋ Subscribe'}</button>
@@ -401,9 +417,14 @@ function renderWatch(){
             <button class="btn" onclick="addComment(${v.id})">Comment</button>
           </div>
           <div class="comment-list">
-            ${cms.length
-              ? sortComments(cms).map(m=>`<div class="comment"><div class="avatar avatar-sm">${esc((m.user||'?')[0])}</div><div style="flex:1;min-width:0"><div><b>${esc(m.user)}</b> <span class="small">${esc(m.time)}</span></div><div class="comment-text">${esc(m.text)}</div></div></div>`).join("")
-              : `<div class="comments-empty"><div class="ce-icon">💬</div><div class="ce-title">No comments yet.</div><div class="small">Be the first to share your thoughts!</div></div>`}
+            ${(()=>{
+              if(!cms.length) return `<div class="comments-empty"><div class="ce-icon">💬</div><div class="ce-title">No comments yet.</div><div class="small">Be the first to share your thoughts!</div></div>`;
+              const sorted = sortComments(cms);
+              const shown = sorted.slice(0, vstate.commentPage * COMMENTS_PER_PAGE);
+              const hasMore = sorted.length > shown.length;
+              return shown.map(m=>`<div class="comment"><div class="avatar avatar-sm">${esc((m.user||'?')[0])}</div><div style="flex:1;min-width:0"><div><b>${esc(m.user)}</b> <span class="small">${esc(m.time)}</span></div><div class="comment-text">${esc(m.text)}</div></div></div>`).join("")
+                + (hasMore ? `<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="vstate.commentPage++;render()">Load more comments (${sorted.length - shown.length} remaining)</button>` : '');
+            })()}
           </div>
         </div>
 
@@ -434,6 +455,40 @@ function shareVideo(id){
   else toast("Link: "+url);
 }
 
+function openCreator(cid){
+  vstate.creatorId = cid;
+  vstate.page = "creator";
+  setHash("creator/"+cid);
+  render();
+}
+
+function renderCreatorPage(){
+  const cid = vstate.creatorId;
+  const c = DATA.creators.find(x=>x.id===cid);
+  if(!c) return `<div class="empty">Creator not found.</div>`;
+  const videos = DATA.videos.filter(v=>v.creator===cid && v.status!=="private");
+  const subbed = vstate.subs.includes(cid);
+  const top5 = [...videos].sort((a,b)=>(b.likes*1.2+b.views*.01)-(a.likes*1.2+a.views*.01)).slice(0,5);
+  return `
+    <div class="creator-page">
+      <div class="creator-page-banner"></div>
+      <div class="creator-page-header">
+        <div class="creator-page-avatar">${esc((c.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase())}</div>
+        <div class="creator-page-info">
+          <h2 class="creator-page-name">${esc(c.name)} ${c.verified?'<span class="verified" title="Verified">✓</span>':''}</h2>
+          <div class="small" style="margin-top:4px">${c.handle?esc(c.handle)+' · ':''}${fmt(c.subs)} subscribers · ${videos.length} video${videos.length!==1?'s':''}</div>
+          ${c.bio?`<p class="creator-bio">${esc(c.bio)}</p>`:''}
+        </div>
+        <button class="btn subscribe-btn ${subbed?'ghost':''}" onclick="subscribe('${esc(cid)}')">${subbed?'✓ Subscribed':'＋ Subscribe'}</button>
+      </div>
+      ${top5.length ? `<h3 style="margin-top:28px">Top Videos</h3><div class="row-scroll">${top5.map(v=>videoCard(v)).join("")}</div>` : ''}
+      <h3 style="margin-top:20px">All Videos <span class="count-bubble">${videos.length}</span></h3>
+      ${videos.length
+        ? `<div class="grid">${videos.map(v=>videoCard(v)).join("")}</div>`
+        : `<div class="empty">No videos yet.</div>`}
+    </div>`;
+}
+
 function listPage(title, list, emptyMsg){
   return `<h2>${title}</h2><p class="sub">${list.length} item${list.length!==1?'s':''}</p>
     ${list.length?`<div class="grid">${list.map(v=>videoCard(v)).join("")}</div>`:`<div class="empty">${emptyMsg}</div>`}`;
@@ -450,19 +505,47 @@ function renderSubs(){
     <div class="grid">${list.map(v=>videoCard(v)).join("")}</div>`;
 }
 function renderProfile(){
+  const initials = (DATA.user.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+  const subCreators = DATA.creators.filter(c=>vstate.subs.includes(c.id));
   return `<h2>Your Profile</h2>
-    <div class="panel" style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
-      <div class="avatar" style="width:60px;height:60px;font-size:24px">A</div>
-      <div><h3 style="margin:0">${esc(DATA.user.name)}</h3><div class="small">${esc(DATA.user.handle)} • ${vstate.subs.length} subscriptions</div></div>
+    <div class="profile-hero panel">
+      <div class="profile-avatar">${initials}</div>
+      <div class="profile-info">
+        <h3 style="margin:0 0 2px">${esc(DATA.user.name)}</h3>
+        <div class="small">${esc(DATA.user.handle||"@viewer")}</div>
+        <div class="profile-stats">
+          <span>${vstate.subs.length} <b>subscriptions</b></span>
+          <span>${vstate.favorites.length} <b>favorites</b></span>
+          <span>${vstate.history.length} <b>watched</b></span>
+        </div>
+      </div>
     </div>
-    <div class="metrics">
-      <div class="metric"><div class="label">Favorites</div><div class="value">${vstate.favorites.length}</div></div>
-      <div class="metric"><div class="label">Watch Later</div><div class="value">${vstate.later.length}</div></div>
-      <div class="metric"><div class="label">History</div><div class="value">${vstate.history.length}</div></div>
-      <div class="metric"><div class="label">Downloads</div><div class="value">${vstate.downloads.length}</div></div>
+    <div class="metrics" style="margin-top:16px">
+      <div class="metric"><div class="label">Favorites</div><div class="value">${vstate.favorites.length}</div><div onclick="go('favorites')" class="metric-link">View all →</div></div>
+      <div class="metric"><div class="label">Watch Later</div><div class="value">${vstate.later.length}</div><div onclick="go('later')" class="metric-link">View all →</div></div>
+      <div class="metric"><div class="label">History</div><div class="value">${vstate.history.length}</div><div onclick="go('history')" class="metric-link">View all →</div></div>
+      <div class="metric"><div class="label">Downloads</div><div class="value">${vstate.downloads.length}</div><div onclick="go('downloads')" class="metric-link">View all →</div></div>
     </div>
+    ${subCreators.length ? `
+    <h3>Subscriptions</h3>
+    <div class="sub-creator-list">
+      ${subCreators.map(c=>`
+        <div class="sub-creator-row" onclick="openCreator('${esc(c.id)}')">
+          <div class="avatar avatar-sm">${esc((c.name||"?")[0])}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:13px">${esc(c.name)} ${c.verified?'<span class="verified">✓</span>':''}</div>
+            <div class="small">${fmt(c.subs)} subscribers</div>
+          </div>
+          <button class="btn ghost sm" onclick="event.stopPropagation();subscribe('${esc(c.id)}')">Unsubscribe</button>
+        </div>`).join("")}
+    </div>` : ''}
     <h3>Achievements</h3>
-    <div class="pill-row"><span class="filter-pill">🏆 Early Adopter</span><span class="filter-pill">🔥 7-Day Streak</span><span class="filter-pill">⭐ Super Fan</span></div>`;
+    <div class="pill-row">
+      <span class="filter-pill">🏆 Early Adopter</span>
+      ${vstate.history.length>=7?'<span class="filter-pill">🔥 7-Day Streak</span>':''}
+      ${vstate.favorites.length>=5?'<span class="filter-pill">⭐ Super Fan</span>':''}
+      ${vstate.subs.length>=3?'<span class="filter-pill">📺 Social Viewer</span>':''}
+    </div>`;
 }
 function renderSettings(){
   return `<h2>Settings</h2>
@@ -494,11 +577,22 @@ function renderPlaylists(){
     </div>`;
 }
 
+let _searchTimer;
 function doSearch(){
-  const q=(document.getElementById("searchInput").value||"").toLowerCase();
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(_doSearchNow, 220);
+}
+function _doSearchNow(){
+  const el = document.getElementById("searchInput"); if(!el) return;
+  const q = (el.value||"").toLowerCase();
   if(!q){ render(); return; }
-  const vids = DATA.videos.filter(v=>v.title.toLowerCase().includes(q));
-  const crs  = DATA.creators.filter(c=>c.name.toLowerCase().includes(q));
+  const vids = DATA.videos.filter(v=>
+    v.title.toLowerCase().includes(q) ||
+    (v.category||"").toLowerCase().includes(q) ||
+    (v.categories||[]).some(c=>c.toLowerCase().includes(q)) ||
+    (v.tags||[]).some(t=>t.toLowerCase().includes(q))
+  );
+  const crs  = DATA.creators.filter(c=>c.name.toLowerCase().includes(q) || (c.handle||"").toLowerCase().includes(q));
   document.getElementById("view").innerHTML = `
     <h2>Search: "${esc(q)}"</h2>
     <div class="pill-row"><span class="filter-pill active">All</span><span class="filter-pill">Videos</span><span class="filter-pill">Creators</span><span class="filter-pill">Playlists</span></div>
@@ -512,7 +606,7 @@ function render(){
   const map={
     home:renderHome, watch:renderWatch, categories:renderCategories, subscriptions:renderSubs,
     profile:renderProfile, settings:renderSettings, live:renderLive, playlists:renderPlaylists,
-    movie:renderMovieDetail,
+    movie:renderMovieDetail, creator:renderCreatorPage,
   };
   if(map[p]) v.innerHTML = map[p]();
   else if(p==="explore")   v.innerHTML = listPage("Explore", trending(), "");
@@ -564,7 +658,7 @@ if(_videoCountBadge) _videoCountBadge.textContent = fmt(DATA.videos.length) + " 
   try {
     const favs = await ShAPI.myFavorites();
     if(favs && favs.length){
-      for(const id of favs) if(!vstate.favorites.includes(id)) vstate.favorites.push(id);
+      for(const id of favs){ const nid=+id; if(!vstate.favorites.includes(nid)) vstate.favorites.push(nid); }
       render();
     }
   } catch(_){}
@@ -587,3 +681,4 @@ window.render = render;
 window.toast = toast;
 window.setHomeFilter = setHomeFilter;
 window.openMovie = openMovie;
+window.openCreator = openCreator;

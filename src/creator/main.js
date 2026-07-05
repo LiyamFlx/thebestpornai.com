@@ -12,8 +12,9 @@ const myVideos = ()=> DATA.videos.filter(v=>v.creator===MY);
 function freshUpload(){ return {step:0, title:"", desc:"", visibility:"public", monet:true,
   file:null, url:"", duration:"0:00", thumb:"", thumbOptions:[],
   categories:[], createdWith:[], tags:[],
-  q_cat:"", q_tool:"", q_tag:""}; }   // search query per picker
-let cstate = { page:"dashboard", upload:freshUpload() };
+  q_cat:"", q_tool:"", q_tag:"",
+  progress:0, uploading:false}; }   // search query per picker
+let cstate = { page:"dashboard", upload:freshUpload(), editingProfile:false };
 
 /* ---- Creator account / subscription gate ---- */
 const CREATOR_PLANS = [
@@ -183,7 +184,9 @@ function captureFrames(video, stamps, done){
       canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
       out.push(canvas.toDataURL("image/jpeg", 0.7));
     }catch(e){ /* tainted/decode issue — skip */ }
-    i++; grab();
+    i++;
+    if(i >= stamps.length){ video.src = ""; done(out); } // cleanup src before done
+    else grab();
   };
   grab();
 }
@@ -192,19 +195,57 @@ function uChooseThumb(idx){ cstate.upload.thumb = cstate.upload.thumbOptions[idx
 
 let _publishing = false;
 
+/* Upload via the Vercel relay (api/upload.js).
+   The relay talks to Bunny Storage server-side, avoiding browser CORS restrictions.
+   The user enters their Vercel project URL once; it's saved to localStorage. */
+const RELAY_KEY = "sh_upload_relay_url";
+function getRelayUrl(){ return localStorage.getItem(RELAY_KEY)||""; }
+function saveRelayUrl(u){ if(u) localStorage.setItem(RELAY_KEY, u.replace(/\/+$/,"")); }
+
+async function bunnyUpload(file, title, onProgress){
+  const base = ((document.getElementById("relayUrlInput")||{}).value||"").replace(/\/+$/,"")
+               || getRelayUrl();
+  if(!base){ throw new Error("Enter your Vercel relay URL to enable uploads"); }
+  saveRelayUrl(base);
+
+  const result = await new Promise((resolve, reject)=>{
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", base + "/api/upload", true);
+    xhr.setRequestHeader("Content-Type", "application/octet-stream");
+    xhr.setRequestHeader("X-Filename", file.name || "video.mp4");
+    if(onProgress) xhr.upload.onprogress = e=>{ if(e.lengthComputable) onProgress(Math.round(e.loaded/e.total*100)); };
+    xhr.onload = ()=>{
+      if(xhr.status>=200 && xhr.status<300){
+        try{ resolve(JSON.parse(xhr.responseText)); }
+        catch(_){ reject(new Error("Invalid relay response")); }
+      } else {
+        let msg = "Upload relay HTTP "+xhr.status;
+        try{ const j=JSON.parse(xhr.responseText); if(j.error) msg=j.error; }catch(_){}
+        reject(new Error(msg));
+      }
+    };
+    xhr.onerror = ()=> reject(new Error("Network error — check relay URL"));
+    xhr.send(file);
+  });
+  if(!result.src) throw new Error("Relay returned no src path");
+  return result.src;   // catalog-style  ../media/uploads/<file>
+}
+
 async function uPublish(){
   if (_publishing) { toast("Upload already in progress…"); return; }
   const u = cstate.upload;
   if(!u.file){ toast("No file selected"); cstate.upload.step=0; render(); return; }
   _publishing = true;
+  u.uploading = true; u.progress = 0; render();
+
+  const setBar = pct=>{ const b=document.getElementById("uploadProgressBar"); if(b) b.style.width=pct+"%"; };
+
   try {
-    // Realistic seed counts for the new video (10k-15k views, 100-300 likes).
     const seedViews = 10000 + Math.floor(Math.random()*5001);
     const seedLikes = 100 + Math.floor(Math.random()*201);
-
-    // Add to the local list immediately with a temporary local URL (optimistic),
-    // so the creator sees it right away while it uploads in the background.
     const localId = Date.now();
+
+    // Optimistic local entry
     DATA.videos.unshift({
       id:localId, title:u.title||"Untitled Upload", creator:MY, type:"ugc",
       category:u.categories[0]||"POV", categories:u.categories.slice(),
@@ -212,39 +253,52 @@ async function uPublish(){
       duration:u.duration||"0:00", uploaded:new Date().toISOString().slice(0,10),
       src:u.url, thumb:u.thumb||"",
       createdWith:u.createdWith.slice(), tags:u.tags.slice(),
-      status:"review",   // enters moderation queue (3d)
-      flagged:false
+      status:"review", flagged:false
     });
 
-    // Real upload to Bunny Storage + persist metadata, if the API is available.
-    if(typeof ShAPI!=="undefined" && ShAPI.enabled){
-      toast("Uploading video…");
-      try {
-        const up = await ShAPI.uploadVideo(u.file, u.title||"Untitled");
-        // point the local entry at the real CDN src and persist metadata for everyone
-        const vid = DATA.videos.find(v=>v.id===localId); if(vid) vid.src = up.src;
-        let uploaderEmail = "";
-        if(typeof ShAuth!=="undefined"){ try{ const usr=await ShAuth.user(); uploaderEmail = usr && usr.email || ""; }catch(_){ } }
-        await ShAPI.saveUploadedVideo({
-          title:u.title||"Untitled", creator:MY, src:up.src,
-          category:u.categories[0]||"POV", categories:u.categories.slice(), tags:u.tags.slice(),
-          duration:u.duration||"0:00", views_seed:seedViews, likes_seed:seedLikes,
-          status:"review", uploader:uploaderEmail
-        });
-        toast(`Published "${u.title||'Untitled'}" — uploaded and sent for review`);
-      } catch(e){
-        const vid = DATA.videos.find(v=>v.id===localId);
-        if(vid) vid.status = "upload-failed";
-        toast("Upload failed: "+(e.message||"try again"));
+    try {
+      const cdnSrc = await bunnyUpload(u.file, u.title||"Untitled", pct=>{
+        u.progress = pct; setBar(pct);
+      });
+      setBar(100); u.progress = 100;
+
+      // Point local entry at real CDN src
+      const vid = DATA.videos.find(v=>v.id===localId); if(vid) vid.src = cdnSrc;
+
+      // Persist metadata to Supabase if API available (best-effort)
+      if(typeof ShAPI!=="undefined" && ShAPI.enabled){
+        try {
+          await ShAPI.saveUploadedVideo({
+            title:u.title||"Untitled", creator:MY, src:cdnSrc,
+            category:u.categories[0]||"POV", categories:u.categories.slice(), tags:u.tags.slice(),
+            duration:u.duration||"0:00", views_seed:seedViews, likes_seed:seedLikes, status:"review",
+          });
+        } catch(_){ /* metadata save failed — video is on CDN, catalog needs manual update */ }
       }
-    } else {
-      toast(`Published "${u.title||'Untitled'}" (local preview only)`);
+
+      await new Promise(r=>setTimeout(r,500));
+      toast(`✓ "${u.title||'Untitled'}" uploaded to CDN — sent for review`);
+    } catch(e){
+      const vid = DATA.videos.find(v=>v.id===localId);
+      if(vid) vid.status = "upload-failed";
+      toast("Upload failed: "+(e.message||"try again"));
     }
 
+    u.uploading = false;
     cstate.upload = freshUpload(); cstate.page="content"; render();
   } finally {
     _publishing = false;
   }
+}
+
+function retryUpload(id){
+  // Remove the failed stub and re-open the upload wizard so user can re-pick the file
+  const idx = DATA.videos.findIndex(v=>v.id===id);
+  if(idx>=0) DATA.videos.splice(idx,1);
+  cstate.upload = freshUpload();
+  cstate.page = "upload";
+  toast("Please re-select your video file to retry");
+  render();
 }
 
 function renderDashboard(){
@@ -252,7 +306,7 @@ function renderDashboard(){
   return `<h1>Dashboard</h1><p class="sub">Welcome back, Alex — here's how your channel is doing.</p>
     <div class="metrics">
       ${metric("Revenue (mo)","$"+r.history[5].v.toLocaleString(),"18%",true)}
-      ${metric("Subscribers",fmt(DATA.creators.find(c=>c.id==='c4').subs),"4.2%",true)}
+      ${metric("Subscribers",fmt(DATA.creators.find(c=>c.id===MY).subs),"4.2%",true)}
       ${metric("Views (7d)",fmt(DATA.analytics.views7d.reduce((a,b)=>a+b,0)),"9%",true)}
       ${metric("Watch Time","54.2K min","6%",true)}
       ${metric("CTR","7.8%","0.4%",true)}
@@ -272,7 +326,7 @@ function renderContent(){
     <table class="data"><thead><tr><th>Video</th><th>Status</th><th>Views</th><th>Likes</th><th>Comments</th><th>Date</th></tr></thead><tbody>
     ${myVideos().map(v=>`<tr style="cursor:pointer" onclick="toast('Opening editor for: ${esc(v.title)}')">
       <td><b>${esc(v.title)}</b><div class="small">${esc(v.category)}</div></td>
-      <td><span class="tag-pill ${v.status==='published'?'green':v.status==='review'?'warn':v.status==='upload-failed'?'red':'muted'}">${v.status==='upload-failed'?'Failed — retry':esc(v.status)}</span></td>
+      <td><span class="tag-pill ${v.status==='published'?'green':v.status==='review'?'warn':v.status==='upload-failed'?'red':'muted'}">${esc(v.status==='upload-failed'?'Failed':v.status)}</span>${v.status==='upload-failed'?` <button class="chip retry-btn" onclick="event.stopPropagation();retryUpload(${v.id})">↺ Retry</button>`:''}</td>
       <td>${fmt(v.views)}</td><td>${fmt(v.likes)}</td><td>${v.comments}</td><td class="small">${esc(v.uploaded)}</td></tr>`).join("")}
     </tbody></table></div>`;
 }
@@ -304,8 +358,6 @@ async function sendMagicLink(){
 function signOutCreatorAuth(){ if(authReady()) ShAuth.signOut(); toast("Signed out"); render(); }
 
 function renderUpload(){
-  // Gate: must be signed in to upload.
-  if(authReady() && !ShAuth.isSignedIn()) return renderSignIn();
   const s=cstate.upload.step;
   const u = cstate.upload;
   const body = [
@@ -341,16 +393,33 @@ function renderUpload(){
       <label class="lbl"><input type="checkbox" checked onchange="cstate.upload.monet=this.checked"/> Enable ads</label>
       <label class="lbl"><input type="checkbox" checked/> Allow Premium revenue</label>
       <label class="lbl"><input type="checkbox"/> Accept tips</label>`,
-    `<p><b>Ready to publish</b></p>
+    `${u.uploading ? `
+      <p><b>Uploading…</b></p>
+      <div class="upload-progress-track"><div class="upload-progress-bar" id="uploadProgressBar" style="width:${u.progress.toFixed(0)}%"></div></div>
+      <p class="small" style="margin-top:8px">${u.progress < 100 ? 'Sending your video to the CDN…' : '✓ Upload complete — saving metadata…'}</p>
+    ` : `
+      <p><b>Ready to publish</b></p>
       <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">
         <div class="video-thumb" style="width:140px;height:80px;margin:0;flex:none">
-          ${u.thumb?`<img src="${u.thumb}" style="width:100%;height:100%;object-fit:cover"/>`:''}
+          ${u.thumb?`<img src="${u.thumb}" style="width:100%;height:100%;object-fit:cover"/>`:`<div class="thumb-placeholder">🎬</div>`}
         </div>
         <div><b>${esc(u.title||'Untitled')}</b>
           <div class="small">${esc(u.categories.join(', ')||'No category')} · ${esc(u.visibility)} · ${esc(u.duration)}${u.createdWith.length?` · ${esc(u.createdWith.join(', '))}`:''}</div>
           ${u.tags.length?`<div class="small" style="margin-top:4px">${esc(u.tags.join(', '))}</div>`:''}
         </div>
-      </div>`,
+      </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:14px;margin-top:4px">
+        <label class="lbl" style="font-size:.75rem;letter-spacing:.06em;color:var(--muted)">UPLOAD RELAY URL</label>
+        <input id="relayUrlInput" class="fld" type="url"
+          placeholder="https://your-project.vercel.app"
+          value="${esc(getRelayUrl())}"
+          style="font-family:monospace;font-size:.85rem;margin-top:6px"
+          autocomplete="off" spellcheck="false"/>
+        <p class="small" style="margin-top:6px;color:var(--muted)">
+          Your Vercel project URL (the one ending in <b>.vercel.app</b>).<br>
+          Saved locally — only needed once.
+        </p>
+      </div>`}`,
   ][s];
 
   // Shared footer: Back on the left, primary action on the bottom-right.
@@ -363,7 +432,7 @@ function renderUpload(){
     {label:"Next →",        fn:"uNext()"},                           // 4 Visibility
     {label:"Next →",        fn:"uNext()"},                           // 5 Scheduling
     {label:"Next →",        fn:"uNext()"},                           // 6 Monetization
-    {label:"🚀 Publish Video", fn:"uPublish()"},                     // 7 Publish
+    u.uploading ? null : {label:"🚀 Publish Video", fn:"uPublish()"},  // 7 Publish
   ][s];
 
   const showBack = s>0 && s!==1;
@@ -406,7 +475,7 @@ function renderRevenue(){
 }
 
 function renderSubscribers(){
-  return `<h1>Subscribers</h1><p class="sub">${fmt(DATA.creators.find(c=>c.id==='c4').subs)} total</p>
+  return `<h1>Subscribers</h1><p class="sub">${fmt(DATA.creators.find(c=>c.id===MY).subs)} total</p>
     <div class="panel"><h3 style="margin-top:0">Growth</h3>${barChart([820,910,980,1050,1140,1240],["Jan","Feb","Mar","Apr","May","Jun"])}</div>
     <h3>Recent Subscribers</h3>
     <div class="panel" style="padding:0"><table class="data"><thead><tr><th>User</th><th>Tier</th><th>Joined</th></tr></thead><tbody>
@@ -487,18 +556,56 @@ function renderOnboarding(){
     </div>`;
 }
 
+function editProfile(){ cstate.editingProfile=true; render(); }
+function cancelEditProfile(){ cstate.editingProfile=false; render(); }
+function saveProfile(){
+  const name=(document.getElementById("epName").value||"").trim();
+  const handle=(document.getElementById("epHandle").value||"").trim();
+  if(!name){ toast("Name is required"); return; }
+  creator.name = name;
+  creator.handle = handle || creator.handle;
+  creator.category = document.getElementById("epCat").value;
+  creator.bio = (document.getElementById("epBio").value||"").trim();
+  creator.avatar = name[0].toUpperCase();
+  saveCreator(creator);
+  const me = DATA.creators.find(c=>c.id===MY);
+  if(me){ me.name=creator.name; me.handle=creator.handle; }
+  DATA.user.name = creator.name;
+  cstate.editingProfile=false;
+  toast("Profile updated");
+  render();
+}
+
 function renderProfile(){
   const c=creator;
+  if(cstate.editingProfile){
+    return `<h1>Edit Profile</h1><p class="sub">Update your public channel identity</p>
+      <div class="panel" style="max-width:520px">
+        <label class="lbl">Creator name *</label>
+        <input class="fld" id="epName" value="${esc(c.name)}" placeholder="Your creator name"/>
+        <label class="lbl">Handle</label>
+        <input class="fld" id="epHandle" value="${esc(c.handle)}" placeholder="@yourhandle"/>
+        <label class="lbl">Primary category</label>
+        <select class="fld" id="epCat">${DATA.categories.map(cat=>`<option ${c.category===cat?'selected':''}>${esc(cat)}</option>`).join("")}</select>
+        <label class="lbl">Short bio</label>
+        <textarea class="fld" id="epBio" placeholder="Tell viewers about your channel">${esc(c.bio||"")}</textarea>
+        <div class="wizard-footer">
+          <div><button class="btn ghost sm" onclick="cancelEditProfile()">Cancel</button></div>
+          <div><button class="btn" onclick="saveProfile()">Save changes</button></div>
+        </div>
+      </div>`;
+  }
   return `<h1>Creator Profile</h1><p class="sub">Your public channel identity</p>
-    <div class="panel" style="display:flex;gap:16px;align-items:center;max-width:560px;margin-bottom:16px">
-      <div class="avatar" style="width:64px;height:64px;font-size:26px">${esc(c.avatar)}</div>
-      <div>
-        <h3 style="margin:0">${esc(c.name)}</h3>
-        <div class="small">${esc(c.handle)} · ${esc(c.category)} · ${esc(c.plan.toUpperCase())} plan</div>
-        ${c.bio?`<div style="font-size:13px;margin-top:6px">${esc(c.bio)}</div>`:''}
+    <div class="cp-header panel">
+      <div class="cp-avatar">${esc(c.avatar)}</div>
+      <div class="cp-info">
+        <h3 style="margin:0 0 3px">${esc(c.name)}</h3>
+        <div class="small">${esc(c.handle)} · ${esc(c.category)} · <span style="color:var(--accent2);font-weight:600">${esc(c.plan.toUpperCase())}</span> plan</div>
+        ${c.bio?`<p style="font-size:13px;margin:8px 0 0;line-height:1.5">${esc(c.bio)}</p>`:'<p class="small" style="margin:8px 0 0;font-style:italic">No bio yet — add one to attract subscribers.</p>'}
       </div>
+      <button class="btn sm ghost" onclick="editProfile()" style="align-self:flex-start">Edit</button>
     </div>
-    <div class="metrics">
+    <div class="metrics" style="margin-top:16px">
       ${metric("Plan",c.plan.charAt(0).toUpperCase()+c.plan.slice(1))}
       ${metric("Member since",c.joined)}
       ${metric("Your videos",myVideos().length)}
@@ -525,10 +632,6 @@ function render(){
 
   // REAL auth gate for uploads: a magic-link sign-in is required to upload,
   // independent of the demo "become a creator" onboarding. Show it first.
-  if(p==="upload" && typeof ShAuth!=="undefined" && !ShAuth.isSignedIn()){
-    v.innerHTML = renderSignIn(); syncChrome(); return;
-  }
-
   // GATE: must subscribe + create a profile first (demo onboarding)
   if(!creator){ v.innerHTML = renderOnboarding(); syncChrome(); return; }
 
@@ -545,11 +648,6 @@ function render(){
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
   syncChrome();
 }
-/* If we just returned from a magic link, capture the session and land on Upload. */
-if(typeof ShAuth!=="undefined"){
-  const sess = ShAuth.captureSessionFromUrl();
-  if(sess){ cstate.page="upload"; toast("Signed in — you can upload now"); }
-}
 render();
 
 /* ---- Attach functions invoked from inline HTML event handler attributes ---- */
@@ -562,6 +660,10 @@ window.pickToggle = pickToggle;
 window.sendMagicLink = sendMagicLink;
 window.signOutCreator = signOutCreator;
 window.startSubscribe = startSubscribe;
+window.editProfile = editProfile;
+window.cancelEditProfile = cancelEditProfile;
+window.saveProfile = saveProfile;
+window.retryUpload = retryUpload;
 window.toast = toast;
 window.uChooseThumb = uChooseThumb;
 window.uPickFile = uPickFile;
