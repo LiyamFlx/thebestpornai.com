@@ -11,7 +11,11 @@
 alter table public.views
   add column if not exists client_id text;
 
-create index if not exists views_client_idx on public.views (client_id);
+-- No index on client_id here: the only lookup that filters on it is the
+-- dedup check below, which is already scoped by video_id first (via
+-- views_video_idx) — a standalone client_id index is never used for it.
+-- (schema-views-drop-unused-index.sql owns dropping it if it was created by
+-- an earlier run of this file.)
 
 update public.views
   set client_id = 'legacy'

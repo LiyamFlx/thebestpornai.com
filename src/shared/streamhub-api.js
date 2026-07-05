@@ -118,7 +118,7 @@ const ShAPI = {
     const rows = await _req(`/comments`, {
       method:"POST",
       headers:{ "Prefer":"return=representation" },
-      body: JSON.stringify({ video_id: videoId, author: author||"Guest", body }),
+      body: JSON.stringify({ video_id: videoId, author: author||"Guest", body, client_id: shClientId() }),
     });
     return rows && rows[0];
   },

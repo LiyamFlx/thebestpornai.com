@@ -201,6 +201,21 @@ and `schema-uploads.sql` are still wide open to anonymous writes:
 2. `supabase/schema-views-dedupe.sql` — adds `client_id` to `views` and caps
    inserts to one per (video, client) per day, closing unbounded view-count
    spam (mirrors the existing `schema-likes-fix.sql` pattern).
+3. `supabase/schema-comments-favorites-fix.sql` — adds `client_id` to
+   `comments` and caps inserts to one per (video, client) per minute, blunting
+   comment-flood spam. Also documents (does not fix) that `favorites` DELETE
+   is `using (true)` and stays that way: this app has no real auth session
+   for anonymous actions, so RLS has no trustworthy signal to check
+   `client_id` against — a client that could forge the delete filter could
+   equally forge any RLS check on it. Real per-user delete scoping would
+   require migrating favorites to real Supabase auth sessions, same as
+   moderation/uploads above.
+
+**Anonymous actions (likes/views/comments/favorites) are rate-limited by
+client-supplied `client_id`, not secured by it** — this blunts casual
+flooding from the same browser but not a script that rotates fake ids. Only
+`moderation` and `uploads` have real RLS security, because those require an
+`authenticated` Supabase session.
 
 Both the manager (moderation) and creator (upload) apps now require signing
 in via magic link before their write actions will succeed — `/api/upload.js`

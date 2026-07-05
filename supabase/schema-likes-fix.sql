@@ -31,14 +31,27 @@ update public.likes
   set client_id = 'legacy'
   where client_id is null;
 
--- 3. Require client_id on all rows from now on. New inserts without a
+-- 3. Backfilling every historical row to the same 'legacy' sentinel can
+--    create duplicate (video_id, client_id, kind) combos if a video had more
+--    than one legacy like/dislike row — those would violate step 4's unique
+--    constraint. Remove the duplicates first, keeping the earliest row.
+--    (Discovered live: a project with real historical data failed on step 4
+--    with a duplicate key error until this ran first.)
+delete from public.likes a
+using public.likes b
+where a.video_id = b.video_id
+  and a.client_id = b.client_id
+  and a.kind = b.kind
+  and a.id > b.id;
+
+-- 4. Require client_id on all rows from now on. New inserts without a
 --    client_id will be rejected at the database level (not just bypassed
---    silently), which is what actually stops the NULL-bypass in step 4's
+--    silently), which is what actually stops the NULL-bypass in step 5's
 --    unique constraint.
 alter table public.likes
   alter column client_id set not null;
 
--- 4. One (video_id, client_id, kind) combo per browser — matches the
+-- 5. One (video_id, client_id, kind) combo per browser — matches the
 --    favorites.unique(video_id, client_id) style, extended with `kind`
 --    because a browser should be able to register at most one reaction per
 --    kind per video (i.e. one like row and one dislike row, not several of
@@ -47,7 +60,7 @@ alter table public.likes
   add constraint likes_video_client_kind_unique
   unique (video_id, client_id, kind);
 
--- 5. Belt-and-suspenders at the RLS layer: even though the column is now
+-- 6. Belt-and-suspenders at the RLS layer: even though the column is now
 --    NOT NULL, make the insert policy itself reject a null/missing
 --    client_id explicitly, so the intent is enforced at every layer a client
 --    could hit (matches the existing "public insert likes" / "public insert
