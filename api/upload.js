@@ -1,8 +1,13 @@
 /* Vercel serverless — Bunny Storage upload relay.
- * Streams the request body directly to Bunny (no buffering) so large video
- * files aren't killed by Vercel's body-parser memory limit.
- * bodyParser: false → raw Node.js IncomingMessage stream passed to fetch body.
+ *
+ * bodyParser: false → Vercel hands us the raw IncomingMessage stream.
+ * We convert it to a Web ReadableStream and pipe it straight to Bunny —
+ * no full-file buffering, no Vercel body-size wall.
+ *
+ * Required env var on Vercel: BUNNY_STORAGE_KEY
  */
+
+import { Readable } from "stream";
 
 export const config = { api: { bodyParser: false } };
 
@@ -11,46 +16,50 @@ const CDN_BASE     = "https://streamhub-media.b-cdn.net";
 const KEY          = process.env.BUNNY_STORAGE_KEY;
 const ALLOWED_EXT  = new Set(["mp4", "mov", "webm", "m4v"]);
 
-export default async function handler(req, res){
+export default async function handler(req, res) {
+  // CORS headers first — always, so browser never sees a naked error
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Filename, Authorization");
-  if(req.method === "OPTIONS") return res.status(204).end();
-  if(req.method !== "POST")    return res.status(405).json({ error:"method not allowed" });
-  if(!KEY)                     return res.status(500).json({ error:"BUNNY_STORAGE_KEY not set on Vercel" });
+
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "POST")   return res.status(405).json({ error: "method not allowed" });
+  if (!KEY)                    return res.status(500).json({ error: "BUNNY_STORAGE_KEY not set on Vercel" });
 
   const rawName = (req.headers["x-filename"] || "video.mp4").toString();
-  const ext = (rawName.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g,"") || "mp4";
-  if(!ALLOWED_EXT.has(ext))
-    return res.status(400).json({ error:`unsupported file type: .${ext}` });
+  const ext = (rawName.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "") || "mp4";
+  if (!ALLOWED_EXT.has(ext))
+    return res.status(400).json({ error: `unsupported file type: .${ext}` });
 
-  const unique      = "up_" + Date.now() + "_" + Math.random().toString(36).slice(2,8) + "." + ext;
+  const unique      = "up_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
   const storagePath = `media/uploads/${unique}`;
 
-  // Build Bunny PUT headers — forward Content-Length so Bunny accepts the stream
-  const putHeaders = { "AccessKey": KEY, "Content-Type": "application/octet-stream" };
+  const putHeaders  = { "AccessKey": KEY, "Content-Type": "application/octet-stream" };
   const cl = req.headers["content-length"];
-  if(cl) putHeaders["Content-Length"] = cl;
+  if (cl) putHeaders["Content-Length"] = cl;
 
   try {
-    // Stream req directly to Bunny — no buffering, no 4.5 MB wall
+    // Convert Node IncomingMessage (Readable) → Web ReadableStream for fetch
+    const bodyStream = Readable.toWeb(req);
+
     const put = await fetch(`${STORAGE_BASE}/${storagePath}`, {
       method:  "PUT",
       headers: putHeaders,
-      body:    req,      // Node IncomingMessage is a ReadableStream
-      duplex:  "half",   // required for request-body streaming in Node 18+
+      body:    bodyStream,
+      duplex:  "half",
     });
 
-    if(!put.ok){
-      const txt = await put.text().catch(()=>"");
-      return res.status(502).json({ error:"bunny PUT failed", status:put.status, detail:txt });
+    if (!put.ok) {
+      const detail = await put.text().catch(() => "");
+      return res.status(502).json({ error: "bunny PUT failed", status: put.status, detail });
     }
 
     const src = `../media/uploads/${unique}`;
     const url = `${CDN_BASE}/uploads/${encodeURIComponent(unique)}`;
-    return res.status(200).json({ ok:true, src, url, path:storagePath });
+    return res.status(200).json({ ok: true, src, url, path: storagePath });
 
-  } catch(e){
-    return res.status(500).json({ error:"upload relay error", detail:String(e?.message||e) });
+  } catch (e) {
+    // Always return CORS-safe JSON even on unexpected errors
+    return res.status(500).json({ error: "relay error", detail: String(e?.message || e) });
   }
 }

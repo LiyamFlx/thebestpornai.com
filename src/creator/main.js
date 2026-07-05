@@ -254,38 +254,51 @@ async function uCaptureClip(secs){
 
 let _publishing = false;
 
-/* Upload via the Vercel relay (api/upload.js).
-   The relay talks to Bunny Storage server-side, avoiding browser CORS restrictions.
-   The user enters their Vercel project URL once; it's saved to localStorage. */
-const RELAY_KEY = "sh_upload_relay_url";
-const RELAY_DEFAULT = "https://x-flxx.vercel.app";
-function getRelayUrl(){ return localStorage.getItem(RELAY_KEY)||RELAY_DEFAULT; }
-function saveRelayUrl(u){ if(u) localStorage.setItem(RELAY_KEY, u.replace(/\/+$/,"")); }
+/* Direct browser → Bunny Storage upload.
+   Bunny's storage API returns Access-Control-Allow-Origin: * so no relay needed. */
+const BUNNY_STORAGE_URL = "https://storage.bunnycdn.com/streamhub-media";
+const BUNNY_CDN_URL     = "https://streamhub-media.b-cdn.net";
+const BUNNY_KEY         = "96633b31-c4cf-49aa-8981d7ace8e2-f9ad-41a6";
 
 async function bunnyUpload(file, title, onProgress){
-  const base = getRelayUrl();
+  const ext = (file.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"")||"mp4";
+  const unique = "up_"+Date.now()+"_"+Math.random().toString(36).slice(2,8)+"."+ext;
+  const storagePath = `media/uploads/${unique}`;
 
-  const result = await new Promise((resolve, reject)=>{
+  await new Promise((resolve, reject)=>{
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", base + "/api/upload", true);
+    xhr.open("PUT", `${BUNNY_STORAGE_URL}/${storagePath}`, true);
+    xhr.setRequestHeader("AccessKey", BUNNY_KEY);
     xhr.setRequestHeader("Content-Type", "application/octet-stream");
-    xhr.setRequestHeader("X-Filename", file.name || "video.mp4");
     if(onProgress) xhr.upload.onprogress = e=>{ if(e.lengthComputable) onProgress(Math.round(e.loaded/e.total*100)); };
-    xhr.onload = ()=>{
-      if(xhr.status>=200 && xhr.status<300){
-        try{ resolve(JSON.parse(xhr.responseText)); }
-        catch(_){ reject(new Error("Invalid relay response")); }
-      } else {
-        let msg = "Upload relay HTTP "+xhr.status;
-        try{ const j=JSON.parse(xhr.responseText); if(j.error) msg=j.error; }catch(_){}
-        reject(new Error(msg));
-      }
-    };
-    xhr.onerror = ()=> reject(new Error("Network error — check relay URL"));
+    xhr.onload = ()=>{ xhr.status>=200&&xhr.status<300 ? resolve() : reject(new Error("Bunny upload HTTP "+xhr.status)); };
+    xhr.onerror = ()=> reject(new Error("Network error uploading to Bunny"));
     xhr.send(file);
   });
-  if(!result.src) throw new Error("Relay returned no src path");
-  return result.src;   // catalog-style  ../media/uploads/<file>
+
+  return `../media/uploads/${unique}`;  // catalog-style src
+}
+
+/* Fetch current manifest, append new entry, save back to Bunny */
+async function saveToManifest(entry){
+  const MANIFEST = `${BUNNY_STORAGE_URL}/manifest.json`;
+  const MANIFEST_CDN = `${BUNNY_CDN_URL}/manifest.json`;
+
+  // Load existing manifest (ignore errors — start fresh if missing)
+  let existing = [];
+  try {
+    const r = await fetch(MANIFEST_CDN + "?t=" + Date.now());
+    if(r.ok) existing = await r.json();
+  } catch(_){}
+
+  existing.unshift(entry); // newest first
+
+  const blob = new Blob([JSON.stringify(existing, null, 2)], {type:"application/json"});
+  await fetch(MANIFEST, {
+    method:"PUT",
+    headers:{ "AccessKey": BUNNY_KEY, "Content-Type":"application/json" },
+    body: blob
+  });
 }
 
 async function uPublish(){
@@ -310,7 +323,7 @@ async function uPublish(){
       duration:u.duration||"0:00", uploaded:new Date().toISOString().slice(0,10),
       src:u.url, thumb:u.thumb||"",
       createdWith:u.createdWith.slice(), tags:u.tags.slice(),
-      status:"review", flagged:false
+      status:"public", flagged:false
     });
 
     try {
@@ -336,19 +349,32 @@ async function uPublish(){
       // Point local entry at real CDN src
       const vid = DATA.videos.find(v=>v.id===localId); if(vid) vid.src = cdnSrc;
 
-      // Persist metadata to Supabase if API available (best-effort)
-      if(typeof ShAPI!=="undefined" && ShAPI.enabled){
-        try {
-          await ShAPI.saveUploadedVideo({
-            title:u.title||"Untitled", creator:MY, src:cdnSrc,
-            category:u.categories[0]||"POV", categories:u.categories.slice(), tags:u.tags.slice(),
-            duration:u.duration||"0:00", views_seed:seedViews, likes_seed:seedLikes, status:"review",
-          });
-        } catch(_){ /* metadata save failed — video is on CDN, catalog needs manual update */ }
-      }
+      // Save to Bunny manifest so the video appears for ALL visitors immediately
+      const manifestEntry = {
+        id: localId,
+        title: u.title||"Untitled",
+        creator: MY,
+        type: "ugc",
+        src: cdnSrc,
+        thumb: u.thumb||"",
+        category: u.categories[0]||"Amateur",
+        categories: u.categories.slice(),
+        tags: u.tags.slice(),
+        duration: u.duration||"",
+        uploaded: new Date().toISOString().slice(0,10),
+        views: seedViews,
+        likes: seedLikes,
+        dislikes: 0,
+        comments: 0,
+        favorites: 0,
+        status: "public",
+        flagged: false
+      };
+      try{ await saveToManifest(manifestEntry); }
+      catch(_){ /* manifest save failed — video still on CDN */ }
 
-      await new Promise(r=>setTimeout(r,500));
-      toast(`✓ "${u.title||'Untitled'}" uploaded to CDN — sent for review`);
+      await new Promise(r=>setTimeout(r,300));
+      toast(`✓ "${u.title||'Untitled'}" is live!`);
     } catch(e){
       const vid = DATA.videos.find(v=>v.id===localId);
       if(vid) vid.status = "upload-failed";

@@ -658,6 +658,23 @@ render();
 const _videoCountBadge = document.getElementById("videoCountBadge");
 if(_videoCountBadge) _videoCountBadge.textContent = fmt(DATA.videos.length) + " videos";
 
+/* Load user-uploaded videos from the Bunny manifest and prepend to feed */
+(async()=>{
+  try{
+    const r = await fetch("https://streamhub-media.b-cdn.net/manifest.json?t="+Date.now());
+    if(!r.ok) return;
+    const uploads = await r.json();
+    if(!Array.isArray(uploads) || !uploads.length) return;
+    // Deduplicate against catalog (by src path)
+    const existing = new Set(DATA.videos.map(v=>v.src));
+    const fresh = uploads.filter(v=>v && v.src && !existing.has(v.src));
+    if(!fresh.length) return;
+    DATA.videos.unshift(...fresh);
+    render();
+    if(_videoCountBadge) _videoCountBadge.textContent = fmt(DATA.videos.length) + " videos";
+  }catch(_){}
+})();
+
 /* Restore this browser's persisted favorites (per-visitor via client_id), then
    re-render so the favorites page / heart states reflect them. Best-effort. */
 (async ()=>{

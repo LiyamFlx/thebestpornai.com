@@ -62,6 +62,7 @@ const DATA = {
   categories: ["POV","Big Ass","Cumshot","Squirt","Big","Beauty","AI","Boy Girl","Girl Girl","Boy Boy","Blowjob","Compilation","Facial","Threesome","Blond","18-25","Amateur","Asian","Babe","Anal"],
 
   videos: [
+    { id:488, title:"Slutty Blonde Pornstar", creator:"c4", type:"ugc", category:"Amateur", categories:["Amateur"], views:11900, likes:237, dislikes:3, comments:0, favorites:0, duration:"", uploaded:"2026-07-05", src:"../media/uploads/up_1783274529137_u23kts.mp4", tags:["Blonde","Amateur"], status:"published", flagged:false },
     { id:1, title:"Blonde Office Twerk", creator:"c3", type:"ugc", category:"Blond", views:14312, likes:222, dislikes:5, comments:0, favorites:0, duration:"0:26", uploaded:"2026-05-04", src:"../media/Blonde Office Twerk video by ttt-ai on DeviantArt.mp4", status:"published", flagged:false },
     { id:2, title:"HUge TITS PINK00005", creator:"c1", type:"original", category:"Big", views:12033, likes:136, dislikes:16, comments:3, favorites:0, duration:"0:10", uploaded:"2026-04-03", src:"../media/HUge TITS PINK00005.mp4", status:"published", flagged:false },
     { id:3, title:"Naked surfer G2159", creator:"c4", type:"ugc", category:"Boy Boy", views:10222, likes:136, dislikes:10, comments:1, favorites:0, duration:"0:20", uploaded:"2026-06-21", src:"../media/Naked surfer -G2159 video by The-Satin-Pause on DeviantArt.mp4", status:"published", flagged:false },
