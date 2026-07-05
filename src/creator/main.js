@@ -305,7 +305,7 @@ function renderDashboard(){
   const r=DATA.revenue;
   return `<h1>Dashboard</h1><p class="sub">Welcome back, Alex — here's how your channel is doing.</p>
     <div class="metrics">
-      ${metric("Revenue (mo)","$"+r.history[5].v.toLocaleString(),"18%",true)}
+      ${metric("Revenue (mo)","$"+((r.history&&r.history.length?r.history[r.history.length-1].v:0)).toLocaleString(),"18%",true)}
       ${metric("Subscribers",fmt(DATA.creators.find(c=>c.id===MY).subs),"4.2%",true)}
       ${metric("Views (7d)",fmt(DATA.analytics.views7d.reduce((a,b)=>a+b,0)),"9%",true)}
       ${metric("Watch Time","54.2K min","6%",true)}
@@ -479,7 +479,7 @@ function renderSubscribers(){
     <div class="panel"><h3 style="margin-top:0">Growth</h3>${barChart([820,910,980,1050,1140,1240],["Jan","Feb","Mar","Apr","May","Jun"])}</div>
     <h3>Recent Subscribers</h3>
     <div class="panel" style="padding:0"><table class="data"><thead><tr><th>User</th><th>Tier</th><th>Joined</th></tr></thead><tbody>
-      ${DATA.users.filter(u=>u.role==='viewer').map(u=>`<tr><td>${esc(u.name)}</td><td><span class="tag-pill ${u.subs==='Premium'?'green':'muted'}">${esc(u.subs)}</span></td><td class="small">${esc(u.joined)}</td></tr>`).join("")}
+      ${(DATA.users||[]).filter(u=>u.role==='viewer').map(u=>`<tr><td>${esc(u.name)}</td><td><span class="tag-pill ${u.subs==='Premium'?'green':'muted'}">${esc(u.subs)}</span></td><td class="small">${esc(u.joined)}</td></tr>`).join("") || '<tr><td colspan="3" style="text-align:center;color:var(--muted)">No subscriber data yet.</td></tr>'}
     </tbody></table></div>`;
 }
 

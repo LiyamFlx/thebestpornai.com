@@ -91,7 +91,11 @@ async function hydrateWatch(id){
           if(!DATA.comments.some(m=>m.id===key))
             DATA.comments.push({ id:key, video:id, user:c.author, text:c.body, time:"", ts: Date.parse(c.created_at)||0 });
         }
-        if(vstate.current && vstate.current.id===id && onWatch()) render();
+        if(vstate.current && vstate.current.id===id && onWatch()){
+          const cl = document.getElementById("commentList");
+          if(cl) cl.innerHTML = renderCommentList(vstate.current);
+          else render();
+        }
       }
     }
   } catch(_){ /* offline / API down -> keep seeded values */ }
@@ -259,7 +263,7 @@ function renderHome(){
     return `
       ${homeFilterBar()}
       ${allMovies.length
-        ? `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${esc(m.title).replace(/'/g,"\\'")}')`})).join("")}</div>`
+        ? `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie(${JSON.stringify(m.title)})`})).join("")}</div>`
         : `<div class="empty">No movies yet.</div>`}
     `;
   }
@@ -291,7 +295,7 @@ function renderHome(){
     ${(() => {
       const allMovies = movies();
       if(!allMovies.length) return "";
-      return `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${esc(m.title).replace(/'/g,"\\'")}')`})).join("")}</div>`;
+      return `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie(${JSON.stringify(m.title)})`})).join("")}</div>`;
     })()}
     ${rowSection("Highlights", highlights())}
     ${actNames().map(a=>rowSection("Act: "+esc(a), clipsByAct(a))).join("")}
@@ -357,6 +361,16 @@ function openMovie(title){
   render();
 }
 
+function renderCommentList(v){
+  const cms = DATA.comments.filter(m=>m.video===v.id);
+  if(!cms.length) return `<div class="comments-empty"><div class="ce-icon">💬</div><div class="ce-title">No comments yet.</div><div class="small">Be the first to share your thoughts!</div></div>`;
+  const sorted = sortComments(cms);
+  const shown = sorted.slice(0, vstate.commentPage * COMMENTS_PER_PAGE);
+  const hasMore = sorted.length > shown.length;
+  return shown.map(m=>`<div class="comment"><div class="avatar avatar-sm">${esc((m.user||'?')[0])}</div><div style="flex:1;min-width:0"><div><b>${esc(m.user)}</b> <span class="small">${esc(m.time)}</span></div><div class="comment-text">${esc(m.text)}</div></div></div>`).join("")
+    + (hasMore ? `<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="loadMoreComments()">Load more comments (${sorted.length - shown.length} remaining)</button>` : '');
+}
+
 function renderWatch(){
   const v = vstate.current || DATA.videos[0];
   if(!v) return `<div class="empty">No video selected.</div>`;
@@ -416,15 +430,8 @@ function renderWatch(){
             <input class="fld" id="cbox" placeholder="Add a comment…" onkeydown="if(event.key==='Enter')addComment(${v.id})"/>
             <button class="btn" onclick="addComment(${v.id})">Comment</button>
           </div>
-          <div class="comment-list">
-            ${(()=>{
-              if(!cms.length) return `<div class="comments-empty"><div class="ce-icon">💬</div><div class="ce-title">No comments yet.</div><div class="small">Be the first to share your thoughts!</div></div>`;
-              const sorted = sortComments(cms);
-              const shown = sorted.slice(0, vstate.commentPage * COMMENTS_PER_PAGE);
-              const hasMore = sorted.length > shown.length;
-              return shown.map(m=>`<div class="comment"><div class="avatar avatar-sm">${esc((m.user||'?')[0])}</div><div style="flex:1;min-width:0"><div><b>${esc(m.user)}</b> <span class="small">${esc(m.time)}</span></div><div class="comment-text">${esc(m.text)}</div></div></div>`).join("")
-                + (hasMore ? `<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="vstate.commentPage++;render()">Load more comments (${sorted.length - shown.length} remaining)</button>` : '');
-            })()}
+          <div class="comment-list" id="commentList">
+            ${renderCommentList(v)}
           </div>
         </div>
 
@@ -682,3 +689,4 @@ window.toast = toast;
 window.setHomeFilter = setHomeFilter;
 window.openMovie = openMovie;
 window.openCreator = openCreator;
+window.loadMoreComments = function(){ vstate.commentPage++; render(); };

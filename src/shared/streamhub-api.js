@@ -62,7 +62,7 @@ const ShAuth = {
       headers:{ "apikey": SUPABASE_KEY, "Content-Type":"application/json" },
       body: JSON.stringify({ email, create_user:true, options:{ email_redirect_to: location.href.split("#")[0] } }),
     });
-    if(!r.ok){ let m=""; try{ m=(await r.json()).msg||(await r.json()).error_description||""; }catch(_){} throw new Error(m||("auth "+r.status)); }
+    if(!r.ok){ let m=""; try{ const j=await r.json(); m=j.msg||j.error_description||""; }catch(_){} throw new Error(m||("auth "+r.status)); }
     return true;
   },
   /* If we returned from a magic link, the tokens are in the URL hash. Capture +
