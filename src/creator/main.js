@@ -10,9 +10,10 @@ ageGate();
 const MY = "c4"; // Alex's creator id
 const myVideos = ()=> DATA.videos.filter(v=>v.creator===MY);
 function freshUpload(){ return {step:0, title:"", desc:"", visibility:"public", monet:true,
-  file:null, url:"", duration:"0:00", thumb:"", thumbOptions:[],
+  file:null, url:"", duration:"0:00", durationSec:0, thumb:"", thumbOptions:[],
   categories:[], createdWith:[], tags:[],
   q_cat:"", q_tool:"", q_tag:"",
+  sample5:null, sample30:null, capturingClip:"",
   progress:0, uploading:false}; }   // search query per picker
 let cstate = { page:"dashboard", upload:freshUpload(), editingProfile:false };
 
@@ -157,8 +158,10 @@ function uProbe(){
   v.preload = "metadata"; v.muted = true; v.src = u.url;
   v.onloadedmetadata = ()=>{
     u.duration = fmtDur(v.duration);
-    // capture frames at a few timestamps for real "AI thumbnail" options
-    const stamps = [0.1, Math.min(1, v.duration*0.33), Math.min(2, v.duration*0.66)].filter((x,i,a)=>a.indexOf(x)===i);
+    u.durationSec = v.duration;
+    // capture 6 frames spread across the video for thumbnail options
+    const dur = v.duration;
+    const stamps = [0.05,0.15,0.30,0.50,0.70,0.85].map(p=>Math.max(0.05, Math.min(dur*p, dur-0.1)));
     captureFrames(v, stamps, (thumbs)=>{
       u.thumbOptions = thumbs;
       u.thumb = thumbs[0] || "";
@@ -193,6 +196,62 @@ function captureFrames(video, stamps, done){
 
 function uChooseThumb(idx){ cstate.upload.thumb = cstate.upload.thumbOptions[idx]; render(); }
 
+/* Capture current video frame (from scrubber) as the thumbnail */
+function uCaptureCurrentFrame(){
+  const v = document.getElementById("thumbScrubVideo");
+  if(!v) return;
+  const canvas = document.createElement("canvas");
+  const w = v.videoWidth||320, h = v.videoHeight||180;
+  canvas.width = 320; canvas.height = Math.round(320*h/w);
+  try{ canvas.getContext("2d").drawImage(v,0,0,canvas.width,canvas.height); }
+  catch(_){ toast("Couldn't capture frame"); return; }
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+  const u = cstate.upload;
+  u.thumbOptions = [dataUrl, ...u.thumbOptions.filter(t=>t!==dataUrl)].slice(0,7);
+  u.thumb = dataUrl;
+  render();
+}
+
+/* Record a clip of `secs` seconds starting 10% into the video using MediaRecorder */
+async function captureClip(videoUrl, startTime, secs){
+  return new Promise((resolve, reject)=>{
+    const v = document.createElement("video");
+    v.src = videoUrl; v.muted = true; v.preload = "auto";
+    v.onloadeddata = ()=>{
+      v.currentTime = startTime;
+      v.onseeked = ()=>{
+        let stream;
+        try{ stream = v.captureStream(); }
+        catch(e){ reject(new Error("captureStream not supported in this browser")); return; }
+        const mime = ["video/webm;codecs=vp8","video/webm"].find(t=>MediaRecorder.isTypeSupported(t)) || "video/webm";
+        const rec = new MediaRecorder(stream, {mimeType:mime});
+        const chunks = [];
+        rec.ondataavailable = e=>{ if(e.data.size>0) chunks.push(e.data); };
+        rec.onstop = ()=>resolve(new Blob(chunks, {type: mime.split(";")[0]}));
+        rec.start(200);
+        v.play().catch(()=>{});
+        setTimeout(()=>{ rec.stop(); v.pause(); v.src=""; }, secs*1000+200);
+      };
+    };
+    v.onerror = ()=>reject(new Error("Video load failed"));
+  });
+}
+
+async function uCaptureClip(secs){
+  const u = cstate.upload;
+  if(!u.url){ toast("No video loaded"); return; }
+  u.capturingClip = secs+"s"; render();
+  try{
+    const startTime = Math.max(0.5, u.durationSec * 0.10);
+    const blob = await captureClip(u.url, startTime, secs);
+    if(secs===5) u.sample5 = blob; else u.sample30 = blob;
+    toast(`✓ ${secs}s sample captured`);
+  } catch(e){
+    toast("Clip capture failed: "+e.message);
+  }
+  u.capturingClip = ""; render();
+}
+
 let _publishing = false;
 
 /* Upload via the Vercel relay (api/upload.js).
@@ -204,10 +263,7 @@ function getRelayUrl(){ return localStorage.getItem(RELAY_KEY)||RELAY_DEFAULT; }
 function saveRelayUrl(u){ if(u) localStorage.setItem(RELAY_KEY, u.replace(/\/+$/,"")); }
 
 async function bunnyUpload(file, title, onProgress){
-  const base = ((document.getElementById("relayUrlInput")||{}).value||"").replace(/\/+$/,"")
-               || getRelayUrl();
-  if(!base){ throw new Error("Enter your Vercel relay URL to enable uploads"); }
-  saveRelayUrl(base);
+  const base = getRelayUrl();
 
   const result = await new Promise((resolve, reject)=>{
     const xhr = new XMLHttpRequest();
@@ -262,6 +318,20 @@ async function uPublish(){
         u.progress = pct; setBar(pct);
       });
       setBar(100); u.progress = 100;
+
+      // Upload sample clips if captured (non-blocking)
+      if(u.sample5){
+        try{
+          const f5 = new File([u.sample5], (u.title||"video").replace(/\s+/g,"-")+"-5s.webm", {type:"video/webm"});
+          await bunnyUpload(f5, u.title+"-5s", ()=>{});
+        }catch(_){}
+      }
+      if(u.sample30){
+        try{
+          const f30 = new File([u.sample30], (u.title||"video").replace(/\s+/g,"-")+"-30s.webm", {type:"video/webm"});
+          await bunnyUpload(f30, u.title+"-30s", ()=>{});
+        }catch(_){}
+      }
 
       // Point local entry at real CDN src
       const vid = DATA.videos.find(v=>v.id===localId); if(vid) vid.src = cdnSrc;
@@ -369,12 +439,45 @@ function renderUpload(){
       </label>`,
     `<p><b>Reading your video…</b></p><p class="small">Extracting duration and generating thumbnails from real frames</p><div class="loader"></div>
       ${u.url?`<br/><video class="player" style="height:180px" src="${u.url}" muted></video>`:''}`,
-    `<p><b>Thumbnail</b></p><p class="small">Captured from your actual video — pick one:</p>
-      <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+    `<p><b>Thumbnail &amp; Previews</b></p>
+      <p class="small" style="margin-bottom:12px">Pick a frame or scrub to any moment in your video.</p>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px">
         ${(u.thumbOptions.length?u.thumbOptions:['']).map((t,i)=>`
-          <div class="video-thumb" style="height:90px;border:2px solid ${u.thumb===t&&t?'var(--accent)':'transparent'}" onclick="uChooseThumb(${i})">
-            ${t?`<img src="${t}" style="width:100%;height:100%;object-fit:cover"/>`:'<div class="small" style="padding:30px">no preview</div>'}
+          <div style="height:80px;border:2px solid ${u.thumb===t&&t?'var(--accent)':'rgba(255,255,255,.1)'};border-radius:6px;overflow:hidden;cursor:pointer;background:#111" onclick="uChooseThumb(${i})">
+            ${t?`<img src="${t}" style="width:100%;height:100%;object-fit:cover"/>`:'<div class="small" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted)">⋯</div>'}
           </div>`).join("")}
+      </div>
+
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;margin-bottom:12px">
+        <p class="small" style="margin:0 0 8px;color:var(--muted);letter-spacing:.06em;font-size:.7rem">CUSTOM FRAME</p>
+        <video id="thumbScrubVideo" src="${u.url||''}" muted playsinline
+          style="width:100%;height:130px;object-fit:contain;background:#000;border-radius:6px;display:block;margin-bottom:8px"></video>
+        <input type="range" style="width:100%;margin-bottom:8px;accent-color:var(--accent)"
+          min="0" max="${(u.durationSec||100).toFixed(1)}" step="0.1" value="0"
+          oninput="document.getElementById('thumbScrubVideo').currentTime=this.value"/>
+        <button class="btn ghost sm" style="width:100%" onclick="uCaptureCurrentFrame()">📸 Use this frame as thumbnail</button>
+      </div>
+
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px">
+        <p class="small" style="margin:0 0 10px;color:var(--muted);letter-spacing:.06em;font-size:.7rem">PREVIEW SAMPLES</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <p class="small" style="margin:0 0 6px;font-weight:600">5-second teaser</p>
+            ${u.sample5?`<p class="small" style="color:var(--accent);margin:0 0 6px">✓ Captured</p>`:''}
+            <button class="btn ghost sm" style="width:100%" onclick="uCaptureClip(5)" ${u.capturingClip==="5s"?'disabled':''}>
+              ${u.capturingClip==="5s"?'⏺ Recording…':u.sample5?'↻ Re-capture':'⏺ Capture 5s'}
+            </button>
+          </div>
+          <div>
+            <p class="small" style="margin:0 0 6px;font-weight:600">30-second preview</p>
+            ${u.sample30?`<p class="small" style="color:var(--accent);margin:0 0 6px">✓ Captured</p>`:''}
+            <button class="btn ghost sm" style="width:100%" onclick="uCaptureClip(30)" ${u.capturingClip==="30s"?'disabled':''}>
+              ${u.capturingClip==="30s"?'⏺ Recording 30s…':u.sample30?'↻ Re-capture':'⏺ Capture 30s'}
+            </button>
+          </div>
+        </div>
+        <p class="small" style="margin-top:8px;color:var(--muted)">Clips start 10% in. Optional but boost conversions.</p>
       </div>`,
     `<label class="lbl">Title</label><input class="fld" id="uTitle" value="${esc(u.title)}" placeholder="Add a title"/>
       <label class="lbl">Description</label><textarea class="fld" id="uDesc" placeholder="Tell viewers about your video">${esc(u.desc)}</textarea>
@@ -409,18 +512,7 @@ function renderUpload(){
           ${u.tags.length?`<div class="small" style="margin-top:4px">${esc(u.tags.join(', '))}</div>`:''}
         </div>
       </div>
-      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:14px;margin-top:4px">
-        <label class="lbl" style="font-size:.75rem;letter-spacing:.06em;color:var(--muted)">UPLOAD RELAY URL</label>
-        <input id="relayUrlInput" class="fld" type="url"
-          placeholder="https://your-project.vercel.app"
-          value="${esc(getRelayUrl())}"
-          style="font-family:monospace;font-size:.85rem;margin-top:6px"
-          autocomplete="off" spellcheck="false"/>
-        <p class="small" style="margin-top:6px;color:var(--muted)">
-          Your Vercel project URL (the one ending in <b>.vercel.app</b>).<br>
-          Saved locally — only needed once.
-        </p>
-      </div>`}`,
+      `}`,
   ][s];
 
   // Shared footer: Back on the left, primary action on the bottom-right.
@@ -667,6 +759,8 @@ window.saveProfile = saveProfile;
 window.retryUpload = retryUpload;
 window.toast = toast;
 window.uChooseThumb = uChooseThumb;
+window.uCaptureCurrentFrame = uCaptureCurrentFrame;
+window.uCaptureClip = uCaptureClip;
 window.uPickFile = uPickFile;
 window.uPrev = uPrev;
 window.uNext = uNext;
