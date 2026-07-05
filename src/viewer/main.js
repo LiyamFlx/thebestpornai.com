@@ -263,7 +263,7 @@ function renderHome(){
     return `
       ${homeFilterBar()}
       ${allMovies.length
-        ? `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie(${JSON.stringify(m.title)})`})).join("")}</div>`
+        ? `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${esc(m.title)}')`})).join("")}</div>`
         : `<div class="empty">No movies yet.</div>`}
     `;
   }
@@ -295,7 +295,7 @@ function renderHome(){
     ${(() => {
       const allMovies = movies();
       if(!allMovies.length) return "";
-      return `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie(${JSON.stringify(m.title)})`})).join("")}</div>`;
+      return `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${esc(m.title)}')`})).join("")}</div>`;
     })()}
     ${rowSection("Highlights", highlights())}
     ${actNames().map(a=>rowSection("Act: "+esc(a), clipsByAct(a))).join("")}
