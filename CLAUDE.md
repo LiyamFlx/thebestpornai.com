@@ -20,25 +20,36 @@ thebestpornai.com  ──►  Bunny Pull Zone (id 6077029)  ──►  Bunny Sto
 ## Deploy checklist (to update the live site)
 
 1. Edit the catalog in `src/shared/catalog.js` (see "Adding videos" below).
-2. Run `npm run build` — Vite outputs the built site to `dist/` with
-   content-hashed filenames (no more manual `?v=N` cache-busting).
-3. Upload the **entire contents of `dist/`** to Bunny storage, preserving the
-   folder structure (`dist/index.html` → storage root, `dist/creator/index.html`
-   → `creator/index.html`, `dist/assets/*` → `assets/`, etc.):
+2. Run the deploy helper (recommended):
    ```bash
-   curl -X PUT -H "AccessKey: $BUNNY_STORAGE_KEY" --data-binary "@dist/index.html" \
-     "https://storage.bunnycdn.com/streamhub-media/index.html"
-   # repeat for each file under dist/, or use a small upload script that walks dist/
-   ```
-4. **Purge the Pull Zone cache** (30-day TTL — site won't update otherwise):
-   Bunny dashboard → CDN → Pull Zone `streamhub-media` → Purge Cache → empty tag → Purge.
-5. (Optional) `git commit && git push` to keep GitHub/Vercel in sync.
+   # Dry run first (safe, shows exactly what will be uploaded)
+   npm run deploy
 
-**Catalog-only fast path unchanged**: if you only edited `src/shared/catalog.js`
-and nothing else, you can still run the build and upload just the resulting
-hashed catalog chunk plus the three app HTML files that reference it (their
-`<script>` tag hash changes whenever catalog content changes) — or simply
-upload the full `dist/` output each time, which is simpler and safe.
+   # Actually upload (requires BUNNY_STORAGE_KEY in env)
+   npm run deploy:apply
+   ```
+   The script (`deploy.js`) builds if needed, walks `dist/`, and uploads every file
+   while preserving the folder structure expected by the live site.
+
+   Manual fallback (if you prefer curl):
+   ```bash
+   npm run build
+   # then upload each file under dist/ to https://storage.bunnycdn.com/streamhub-media/...
+   ```
+
+3. **Purge the Pull Zone cache** (30-day TTL — site won't update otherwise):
+   Bunny dashboard → CDN → Pull Zone `streamhub-media` → Purge Cache → empty tag → Purge.
+   (The deploy script always reminds you of this step.)
+
+4. (Optional) `git commit && git push` to keep GitHub/Vercel in sync.
+
+**Catalog-only fast path**: Edit only `src/shared/catalog.js`, run `npm run build`, then upload the full `dist/` (or just the changed hashed JS chunk + the HTML files that reference it). The deploy script handles this automatically.
+
+**Always verify after deploy**:
+```bash
+curl -I https://streamhub-media.b-cdn.net/index.html
+# and spot-check a couple of video pages + a new asset
+```
 
 ## Bunny credentials & API
 
@@ -47,6 +58,8 @@ upload the full `dist/` output each time, which is simpler and safe.
 - **CDN (read) base:** `https://streamhub-media.b-cdn.net`  ← this is `MEDIA_BASE`
 - **Storage password** (read/write) lives in the Bunny dashboard → Storage → FTP & API
   Access. Do NOT hardcode it in the repo.
+
+**Recommended way to upload:** Use `npm run deploy` / `npm run deploy:apply` (see above). It handles the recursive upload for you.
 
 List files:
 ```bash

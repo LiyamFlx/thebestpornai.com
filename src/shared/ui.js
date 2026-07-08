@@ -24,3 +24,46 @@ export function distRows(arr) {
       </div>
     </div>`).join("");
 }
+
+/* ============================================================
+   Shared video rendering helpers (extracted from viewer to reduce
+   duplication across creator/manager/viewer in future).
+   These depend on catalog helpers (esc, mediaUrl, ytId, creatorName, fmt).
+   ============================================================ */
+
+import { esc, mediaUrl, ytId, creatorName, fmt } from './catalog.js';
+
+export function playerEmbed(v){
+  const yt = ytId(v.src);
+  if(yt) return `<iframe class="player" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  if(v.src) {
+    const poster = v.thumb ? ` poster="${mediaUrl(v.thumb)}"` : '';
+    return `<video class="player" src="${mediaUrl(v.src)}" controls autoplay${poster}></video>`;
+  }
+  return `<div class="player">VIDEO STREAM — ${esc(v.title)}</div>`;
+}
+
+export function videoCard(v, opts={}){
+  const thumb = v.thumb
+    ? `<img class="thumb-video" src="${mediaUrl(v.thumb)}" alt=""/>`
+    : (v.src && !ytId(v.src)
+        ? `<video class="thumb-video lazy" data-src="${mediaUrl(v.src)}#t=1" muted preload="none" playsinline></video>` : ``);
+  const badge = opts.badge ? opts.badge(v) : null;
+  return `
+    <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
+      <div class="video-thumb ${v.type==='original'?'original':''}">
+        ${badge?`<span class="corner-badge">${esc(badge)}</span>`:``}
+        ${thumb}
+        ${v.duration?`<span class="dur-badge">${esc(v.duration)}</span>`:``}
+        ${v.src?`<span class="play-badge">▶</span>`:``}
+      </div>
+      <div class="title">${esc(v.title)}</div>
+      <div class="meta">${esc(creatorName(v.creator))} • ${fmt(v.views)} views</div>
+      ${opts.extra ? opts.extra(v) : ``}
+    </div>`;
+}
+
+export function rowSection(title, list, opts={}){
+  if(!list.length) return "";
+  return `<h3>${title}</h3><div class="row-scroll">${list.map(v=>videoCard(v, opts)).join("")}</div>`;
+}

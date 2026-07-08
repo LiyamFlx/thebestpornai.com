@@ -1,10 +1,10 @@
-import { MEDIA_BASE, DATA, esc, creatorName, fmt, toast, mediaUrl } from "../shared/catalog.js";
+import { MEDIA_BASE, DATA, esc, creatorName, fmt, toast, mediaUrl, ytId } from "../shared/catalog.js";
 import { ShAuth, ShAPI } from "../shared/streamhub-api.js";
 import { ageGate } from "../shared/age-gate.js";
+import { playerEmbed, videoCard, rowSection } from "../shared/ui.js";
 ageGate();
 
 /* creatorName(), fmt(), toast() are shared — defined in catalog.js */
-function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m?m[1]:null; }
 
 /* ---- Safe string transport for inline onclick attributes ----
    esc() protects HTML context only; the browser entity-decodes attribute
@@ -22,33 +22,6 @@ const jsdec = s => { try { return decodeURIComponent(s); } catch(_) { return Str
 const visible = v => v && v.status !== "private";
 const pubVideos = () => DATA.videos.filter(visible);
 
-function playerEmbed(v){
-  const yt = ytId(v.src);
-  if(yt) return `<iframe class="player" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-  if(v.src) return `<video class="player" src="${mediaUrl(v.src)}" controls autoplay></video>`;
-  return `<div class="player">VIDEO STREAM — ${esc(v.title)}</div>`;
-}
-
-function videoCard(v, opts={}){
-  const thumb = v.thumb
-    ? `<img class="thumb-video" src="${mediaUrl(v.thumb)}" alt=""/>`
-    : (v.src && !ytId(v.src)
-        ? `<video class="thumb-video lazy" data-src="${mediaUrl(v.src)}#t=1" muted preload="none" playsinline></video>` : ``);
-  const badge = opts.badge ? opts.badge(v) : null;
-  return `
-    <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
-      <div class="video-thumb ${v.type==='original'?'original':''}">
-        ${badge?`<span class="corner-badge">${esc(badge)}</span>`:``}
-        ${thumb}
-        ${v.duration?`<span class="dur-badge">${esc(v.duration)}</span>`:``}
-        ${v.src?`<span class="play-badge">▶</span>`:``}
-      </div>
-      <div class="title">${esc(v.title)}</div>
-      <div class="meta">${esc(creatorName(v.creator))} • ${fmt(v.views)} views</div>
-      ${opts.extra ? opts.extra(v) : ``}
-    </div>`;
-}
-
 /* toast() is shared — defined in catalog.js */
 
 /* ===================== VIEWER APP ===================== */
@@ -61,6 +34,7 @@ let vstate = {
   commentSort: "new", // owned by state, not read back from the DOM mid-render
   searchQuery: "",    // search is a real page in the render pipeline now
   live: {},           // id -> {like, dislike} counts layered over seed values
+  limit: 36,          // simple grid pagination / load more
 };
 const COMMENTS_PER_PAGE = 20;
 const HISTORY_MAX = 50;
@@ -284,11 +258,6 @@ const actNames = () => {
 const clipsByAct = (actName) => pubVideos().filter(v=>v.level==="clip" && (v.tags||[]).includes(actName));
 const highlights = () => pubVideos().filter(v=>v.level==="highlight");
 
-function rowSection(title, list, opts={}){
-  if(!list.length) return "";
-  return `<h3>${title}</h3><div class="row-scroll">${list.map(v=>videoCard(v, opts)).join("")}</div>`;
-}
-
 function homeFilterBar(){
   const filters = [["all","All"],["movies","Movies"],["scenes","Scenes"],["clips","Clips"]];
   return `<div class="pill-row home-filter-bar">
@@ -336,9 +305,9 @@ function renderHome(){
       </div>
     </div>
     ${vstate.history.length ? rowSection("Continue Watching", vstate.history.map(id=>DATA.videos.find(v=>v.id===id)).filter(Boolean)) : ""}
-    ${rowSection("Recommended For You", (()=>{ const nw=top.filter(v=>!vstate.history.includes(v.id)); return nw.length>=6?nw.slice(0,6):top.slice(0,6); })())}
-    ${rowSection("Trending Now", pubVideos().sort((a,b)=>b.views-a.views).slice(0,6))}
-    ${rowSection("House Originals", pubVideos().filter(v=>v.type==="original"))}
+    ${rowSection("Recommended For You", (()=>{ const nw=top.filter(v=>!vstate.history.includes(v.id)); return nw.length>=6?nw.slice(0, vstate.limit):top.slice(0, vstate.limit); })())}
+    ${rowSection("Trending Now", pubVideos().sort((a,b)=>b.views-a.views).slice(0, vstate.limit))}
+    ${rowSection("House Originals", pubVideos().filter(v=>v.type==="original").slice(0, vstate.limit))}
     ${(() => {
       const allMovies = movies();
       if(!allMovies.length) return "";
@@ -347,8 +316,53 @@ function renderHome(){
     ${rowSection("Highlights", highlights())}
     ${actNames().map(a=>rowSection("Act: "+esc(a), clipsByAct(a))).join("")}
     ${DATA.categories.map(c=>rowSection(c, byCat(c))).join("")}
-    ${rowSection("Recently Uploaded", pubVideos().sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0,6))}
+    ${rowSection("Recently Uploaded", pubVideos().sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0, vstate.limit))}
+    ${pubVideos().length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
   `;
+}
+
+function loadMore(){
+  vstate.limit = (vstate.limit || 36) + 24;
+  render();
+}
+
+/* Basic structured data for SEO / AI Overviews (VideoObject on watch, Collection on home).
+   Injected dynamically so it reflects current video or page state. */
+function addStructuredData(){
+  // Remove previous injected schema
+  document.querySelectorAll('script[data-structured]').forEach(s => s.remove());
+
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.setAttribute('data-structured', 'true');
+
+  let json = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "thebestpornai",
+    "url": "https://www.thebestpornai.com/"
+  };
+
+  if (vstate.page === "watch" && vstate.current) {
+    const v = vstate.current;
+    json = {
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      "name": v.title,
+      "description": `${v.title} by ${creatorName(v.creator)}`,
+      "thumbnailUrl": v.thumb ? mediaUrl(v.thumb) : undefined,
+      "uploadDate": v.uploaded,
+      "duration": v.duration ? `PT${v.duration.replace(':', 'M')}S` : undefined,
+      "contentUrl": v.src ? mediaUrl(v.src) : undefined,
+      "interactionStatistic": [
+        { "@type": "InteractionCounter", "interactionType": "https://schema.org/LikeAction", "userInteractionCount": v.likes },
+        { "@type": "InteractionCounter", "interactionType": "https://schema.org/ViewAction", "userInteractionCount": v.views }
+      ]
+    };
+  }
+
+  script.textContent = JSON.stringify(json);
+  document.head.appendChild(script);
 }
 
 function renderMovieDetail(){
@@ -728,6 +742,9 @@ function render(){
     });
   }
   if(_pendingHydrate!=null){ const hid=_pendingHydrate; _pendingHydrate=null; hydrateWatch(hid); }
+
+  // Structured data for search engines and AI (called after DOM update)
+  addStructuredData();
 }
 
 /* Lazy-load video thumbnails: only fetch a thumbnail's metadata once its card
@@ -757,32 +774,108 @@ function lazyLoadThumbs(){
 if(location.hash) applyHash();
 render();
 const _videoCountBadge = document.getElementById("videoCountBadge");
-if(_videoCountBadge) _videoCountBadge.textContent = fmt(DATA.videos.length) + " videos";
+let _lastManifestSync = null;
+
+function updateVideoCount(extra = '') {
+  if (!_videoCountBadge) return;
+  const base = fmt(DATA.videos.length) + ' videos';
+  const sync = _lastManifestSync
+    ? ' • synced ' + (Date.now() - _lastManifestSync < 60000 ? 'just now' : 'recently')
+    : '';
+  _videoCountBadge.textContent = base + sync + extra;
+}
+
+updateVideoCount();
 
 /* Load user-uploaded videos from the Bunny manifest and prepend to feed.
    The manifest is remote input: validate shape and dedupe on BOTH src and id —
-   an id collision would hijack the hero pin and every openVideo() lookup. */
-(async()=>{
-  try{
-    const r = await fetch("https://streamhub-media.b-cdn.net/manifest.json?t="+Date.now());
-    if(!r.ok) return;
+   an id collision would hijack the hero pin and every openVideo() lookup.
+   Improvements: better error visibility (console only), freshness timestamp,
+   minimal re-render when possible. */
+(async () => {
+  try {
+    const url = 'https://streamhub-media.b-cdn.net/manifest.json?t=' + Date.now();
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) {
+      console.warn('[manifest] fetch failed', r.status);
+      updateVideoCount(' • sync failed');
+      return;
+    }
     const uploads = await r.json();
-    if(!Array.isArray(uploads) || !uploads.length) return;
-    const existingSrc = new Set(DATA.videos.map(v=>v.src));
-    const existingIds = new Set(DATA.videos.map(v=>v.id));
-    const fresh = uploads.filter(v=>
-      v && typeof v==="object" &&
-      typeof v.src==="string" && v.src && !existingSrc.has(v.src) &&
-      Number.isFinite(+v.id) && !existingIds.has(+v.id) &&
-      typeof v.title==="string"
-    ).map(v=>({ ...v, id:+v.id }));
-    if(!fresh.length) return;
+    if (!Array.isArray(uploads) || !uploads.length) return;
+
+    const existingSrc = new Set(DATA.videos.map(v => v.src));
+    const existingIds = new Set(DATA.videos.map(v => v.id));
+    const fresh = [];
+
+    for (const v of uploads) {
+      if (!v || typeof v !== 'object') continue;
+      if (typeof v.src !== 'string' || !v.src) continue;
+      if (existingSrc.has(v.src)) continue;
+      const id = Number(v.id);
+      if (!Number.isFinite(id) || existingIds.has(id)) continue;
+      if (typeof v.title !== 'string') continue;
+
+      fresh.push({ ...v, id });
+      existingSrc.add(v.src);
+      existingIds.add(id);
+    }
+
+    if (!fresh.length) {
+      _lastManifestSync = Date.now();
+      updateVideoCount();
+      return;
+    }
+
     DATA.videos.unshift(...fresh);
-    if(location.hash) applyHash();
-    render();
-    if(_videoCountBadge) _videoCountBadge.textContent = fmt(DATA.videos.length) + " videos";
-  }catch(_){}
+    _lastManifestSync = Date.now();
+
+    // Avoid full re-render on initial load if possible
+    if (location.hash) applyHash();
+    const currentPageNeedsFull = ['home', 'explore', 'trending', 'categories'].includes(vstate.page);
+    if (currentPageNeedsFull) {
+      render();
+    } else {
+      // At minimum refresh counts and any visible grids that use pubVideos
+      updateVideoCount();
+    }
+    updateVideoCount();
+  } catch (e) {
+    console.warn('[manifest] load error (non-fatal):', e?.message || e);
+    updateVideoCount(' • sync error');
+  }
 })();
+
+// Expose for manual refresh / debugging (e.g. in console: refreshManifest())
+window.refreshManifest = async () => {
+  _lastManifestSync = null;
+  // Re-execute the loader logic by forcing a reload of the IIFE effect is complex,
+  // so we do a lightweight re-fetch here for power users.
+  try {
+    const r = await fetch('https://streamhub-media.b-cdn.net/manifest.json?t=' + Date.now());
+    if (!r.ok) throw new Error('bad status ' + r.status);
+    const uploads = await r.json();
+    // Minimal merge (same rules)
+    const existingSrc = new Set(DATA.videos.map(v => v.src));
+    const existingIds = new Set(DATA.videos.map(v => v.id));
+    const fresh = (uploads || []).filter(v =>
+      v && typeof v === 'object' &&
+      typeof v.src === 'string' && v.src && !existingSrc.has(v.src) &&
+      Number.isFinite(+v.id) && !existingIds.has(+v.id) &&
+      typeof v.title === 'string'
+    ).map(v => ({ ...v, id: +v.id }));
+
+    if (fresh.length) {
+      DATA.videos.unshift(...fresh);
+      render();
+    }
+    _lastManifestSync = Date.now();
+    updateVideoCount();
+    console.log('[manifest] refreshed, added', fresh.length);
+  } catch (e) {
+    console.error('[manifest] manual refresh failed', e);
+  }
+};
 
 /* Restore this browser's persisted favorites (per-visitor via client_id), then
    re-render so the favorites page / heart states reflect them. Best-effort. */
@@ -816,6 +909,7 @@ window.setHomeFilter = setHomeFilter;
 window.openMovie = openMovie;
 window.openCreator = openCreator;
 window.setCommentSort = setCommentSort;
+window.loadMore = loadMore;
 window.loadMoreComments = function(){
   vstate.commentPage++;
   if(onWatch() && vstate.current) patchComments(vstate.current); else render();

@@ -10,10 +10,25 @@ import logoUrl from "./assets/logo.png";
 
 const AGE_GATE_KEY = "sh_age_verified";
 
-function ageGate(){
+function isAgeVerified() {
   try {
-    if (localStorage.getItem(AGE_GATE_KEY) === "1") return;
-  } catch(_) { /* localStorage unavailable — fall through and show the gate anyway */ }
+    const v = localStorage.getItem(AGE_GATE_KEY) || sessionStorage.getItem(AGE_GATE_KEY);
+    return v === "1" || v === "true";
+  } catch (_) {
+    return false;
+  }
+}
+
+function markAgeVerified() {
+  const val = JSON.stringify({ verified: true, at: Date.now() });
+  try {
+    localStorage.setItem(AGE_GATE_KEY, "1");
+    sessionStorage.setItem(AGE_GATE_KEY, "1");
+  } catch (_) {}
+}
+
+function ageGate(){
+  if (isAgeVerified()) return;
 
   const overlay = document.createElement("div");
   overlay.id = "age-gate-overlay";
@@ -52,14 +67,35 @@ function ageGate(){
   document.documentElement.style.overflow = "hidden";
   document.body.appendChild(overlay);
 
-  overlay.querySelector("#ag-enter").addEventListener("click", () => {
-    try { localStorage.setItem(AGE_GATE_KEY, "1"); } catch(_){}
+  const enterBtn = overlay.querySelector("#ag-enter");
+  const exitBtn = overlay.querySelector("#ag-exit");
+
+  function confirmAge() {
+    markAgeVerified();
     document.documentElement.style.overflow = "";
     overlay.remove();
-  });
-  overlay.querySelector("#ag-exit").addEventListener("click", () => {
+  }
+
+  enterBtn.addEventListener("click", confirmAge);
+
+  exitBtn.addEventListener("click", () => {
     window.location.href = "https://www.google.com";
   });
+
+  // Keyboard support (Enter = confirm, Escape = exit)
+  const onKey = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      confirmAge();
+      document.removeEventListener("keydown", onKey);
+    } else if (e.key === "Escape") {
+      window.location.href = "https://www.google.com";
+    }
+  };
+  document.addEventListener("keydown", onKey, { once: true });
+
+  // Focus the primary action for accessibility
+  setTimeout(() => enterBtn.focus(), 50);
 }
 
 export { ageGate };

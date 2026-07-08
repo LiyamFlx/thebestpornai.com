@@ -16,6 +16,21 @@ export default defineConfig({
         legalDmca: resolve(__dirname, "legal/dmca.html"),
         legal2257: resolve(__dirname, "legal/2257.html"),
       },
+      output: {
+        // Split the huge catalog data (500+ videos) into its own chunk.
+        // This allows better caching, parallel loading, and keeps main app chunks smaller.
+        manualChunks(id) {
+          if (id.includes('/shared/catalog.js')) {
+            return 'catalog-data';
+          }
+          if (id.includes('/shared/streamhub-api.js')) {
+            return 'streamhub-api';
+          }
+          if (id.includes('/shared/')) {
+            return 'shared';
+          }
+        },
+      },
     },
   },
 });

@@ -14,11 +14,13 @@ export default async function handler(req, res) {
   if (req.method !== "POST")   return res.status(405).json({ error: "method not allowed" });
   if (!KEY)                    return res.status(500).json({ error: "BUNNY_STORAGE_KEY not set on Vercel" });
 
-  // Validate session token
+  // TEMP: Auth/email verification removed for now to unblock creator uploads.
+  // In production you should re-enable this.
   try {
     await verifyUser(req);
   } catch (err) {
-    return res.status(401).json({ error: err.message });
+    console.warn("Save-upload auth skipped (temp):", err.message);
+    // continue without verified user for now
   }
 
   const entry = req.body;

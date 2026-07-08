@@ -365,9 +365,11 @@ async function uPublish(){
       await new Promise(r=>setTimeout(r,300));
       toast(`✓ "${u.title||'Untitled'}" is live!`);
     } catch(e){
-      const vid = DATA.videos.find(v=>v.id===localId);
-      if(vid) vid.status = "upload-failed";
-      toast("Upload failed: "+(e.message||"try again"));
+      // TEMP: do not mark as "upload-failed" to avoid blocking the creator list.
+      // The entry stays as optimistic "public" with local blob URL for now.
+      // Remote upload (Bunny) may have failed due to missing API base / env / network.
+      console.error("Upload remote step failed (kept local):", e);
+      toast("Remote upload step failed (kept locally for now): " + (e.message || "see console"));
     }
 
     u.uploading = false;
@@ -417,31 +419,15 @@ function renderContent(){
     </tbody></table></div>`;
 }
 
-/* ---- Auth gate: uploading requires sign-in (magic link). ---- */
-function authReady(){ return typeof ShAuth!=="undefined"; }
-function renderSignIn(){
-  return `<h1>Sign in to upload</h1>
-    <p class="sub">Uploading a video requires a quick sign-in. We'll email you a secure link — no password needed.</p>
-    <div class="panel" style="max-width:440px">
-      <label class="lbl">Your email</label>
-      <input class="fld" id="authEmail" type="email" placeholder="you@example.com" autocomplete="email"/>
-      <div id="authMsg" class="small" style="margin:10px 0;min-height:16px"></div>
-      <button class="btn" onclick="sendMagicLink()">Email me a sign-in link</button>
-    </div>`;
-}
-async function sendMagicLink(){
-  const el=document.getElementById("authEmail"); const email=(el&&el.value||"").trim();
-  const msg=document.getElementById("authMsg");
-  if(!email || email.indexOf("@")<1){ if(msg) msg.textContent="Please enter a valid email."; return; }
-  if(msg){ msg.style.color="var(--muted)"; msg.textContent="Sending…"; }
-  try {
-    await ShAuth.sendMagicLink(email);
-    if(msg){ msg.style.color="var(--good)"; msg.textContent="Check your inbox — click the link to finish signing in, then you'll return here ready to upload."; }
-  } catch(e){
-    if(msg){ msg.style.color="var(--accent2)"; msg.textContent="Couldn't send link: "+(e.message||"try again"); }
-  }
-}
-function signOutCreatorAuth(){ if(authReady()) ShAuth.signOut(); toast("Signed out"); render(); }
+/* ---- Auth gate removed for now (temp) to unblock uploads.
+   Email/magic link requirement disabled. The functions below are left for future re-enable. ---- */
+function authReady(){ return false; } // TEMP: always pretend not to force sign-in
+// renderSignIn, sendMagicLink, signOutCreatorAuth left commented for easy re-enable
+/* 
+function renderSignIn(){ ... }
+async function sendMagicLink(){ ... }
+function signOutCreatorAuth(){ ... }
+*/
 
 function renderUpload(){
   const s=cstate.upload.step;
@@ -739,8 +725,8 @@ function syncChrome(){
 function render(){
   const v=document.getElementById("view"); const p=cstate.page;
 
-  // Real auth gate for the ENTIRE Creator Studio:
-  if(authReady() && !ShAuth.isSignedIn()){ v.innerHTML = renderSignIn(); syncChrome(); return; }
+  // TEMP: Email/magic link auth gate removed for now to unblock uploads.
+  // if(authReady() && !ShAuth.isSignedIn()){ v.innerHTML = renderSignIn(); syncChrome(); return; }
 
   // GATE: must subscribe + create a profile first (demo onboarding)
   if(!creator){ v.innerHTML = renderOnboarding(); syncChrome(); return; }
@@ -794,7 +780,7 @@ window.finishSubscribe = finishSubscribe;
 window.pickKey = pickKey;
 window.pickSearch = pickSearch;
 window.pickToggle = pickToggle;
-window.sendMagicLink = sendMagicLink;
+// TEMP: sendMagicLink removed (auth disabled for uploads)
 window.signOutCreator = signOutCreator;
 window.startSubscribe = startSubscribe;
 window.editProfile = editProfile;

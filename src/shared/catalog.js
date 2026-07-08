@@ -49,6 +49,13 @@ function mediaUrl(src){
   return MEDIA_BASE.replace(/\/$/,"") + "/" + path;
 }
 
+/* Extract YouTube ID from common URL formats. Shared so videoCard etc can use it everywhere. */
+function ytId(url){
+  if(!url) return null;
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
 const DATA = {
   user: { id:"u1", name:"Alex", handle:"@alex", avatar:"A", subscriptions:42, role:"viewer" },
 
@@ -654,4 +661,4 @@ const DATA = {
   },
 };
 
-export { MEDIA_BASE, DATA, esc, creatorName, fmt, toast, mediaUrl };
+export { MEDIA_BASE, DATA, esc, creatorName, fmt, toast, mediaUrl, ytId };
