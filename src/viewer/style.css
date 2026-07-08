@@ -498,3 +498,14 @@ iframe.player{display:block}
 .filter-pill{background:var(--surface2);border:1px solid var(--border);color:var(--text);
   font-size:12px;padding:6px 12px;border-radius:999px;cursor:pointer}
 .filter-pill.active{background:var(--accent);border-color:transparent}
+
+/* Thin custom scrollbars for interactive containers */
+.sidebar, .content, .row-scroll, .ms-list, .panel pre {
+  scrollbar-color: var(--surface3) transparent;
+  scrollbar-width: thin;
+}
+
+/* Button click feedback scale transition */
+.btn:active, .chip:active, .icon-btn:active, .act-btn:active, .vote-btn:active {
+  transform: scale(0.97);
+}
