@@ -9,7 +9,7 @@ function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?
 function playerEmbed(v){
   const yt = ytId(v.src);
   if(yt) return `<iframe class="player" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-  if(v.src) return `<video class="player" src="${mediaUrl(v.src)}" controls></video>`;
+  if(v.src) return `<video class="player" src="${mediaUrl(v.src)}" controls autoplay></video>`;
   return `<div class="player">VIDEO STREAM — ${esc(v.title)}</div>`;
 }
 
@@ -626,6 +626,29 @@ function render(){
   else v.innerHTML = renderHome();
   document.querySelectorAll("#nav button, #bottomNav button").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
   lazyLoadThumbs();
+  const activePlayer = document.querySelector("video.player");
+  if(activePlayer){
+    activePlayer.addEventListener("dblclick", (e) => {
+      e.preventDefault();
+      const rect = activePlayer.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const width = rect.width;
+      const ratio = x / width;
+      if(ratio < 0.3){
+        activePlayer.currentTime = Math.max(0, activePlayer.currentTime - 10);
+        toast("⏮ -10s");
+      } else if(ratio > 0.7){
+        activePlayer.currentTime = Math.min(activePlayer.duration, activePlayer.currentTime + 10);
+        toast("⏭ +10s");
+      } else {
+        if(!document.fullscreenElement){
+          activePlayer.requestFullscreen().catch(()=>{});
+        } else {
+          document.exitFullscreen().catch(()=>{});
+        }
+      }
+    });
+  }
   if(_pendingHydrate!=null){ const hid=_pendingHydrate; _pendingHydrate=null; hydrateWatch(hid); }
 }
 
@@ -708,3 +731,27 @@ window.setHomeFilter = setHomeFilter;
 window.openMovie = openMovie;
 window.openCreator = openCreator;
 window.loadMoreComments = function(){ vstate.commentPage++; render(); };
+
+/* Keyboard navigation for watch page (Arrows) */
+document.addEventListener("keydown", (e) => {
+  if(document.activeElement && (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA")){
+    return;
+  }
+  if(vstate.page !== "watch") return;
+
+  if(e.key === "ArrowRight"){
+    e.preventDefault();
+    const currentIdx = DATA.videos.findIndex(v => v.id === vstate.current?.id);
+    if(currentIdx !== -1){
+      const nextIdx = (currentIdx + 1) % DATA.videos.length;
+      openVideo(DATA.videos[nextIdx].id);
+    }
+  } else if(e.key === "ArrowLeft"){
+    e.preventDefault();
+    const currentIdx = DATA.videos.findIndex(v => v.id === vstate.current?.id);
+    if(currentIdx !== -1){
+      const prevIdx = (currentIdx - 1 + DATA.videos.length) % DATA.videos.length;
+      openVideo(DATA.videos[prevIdx].id);
+    }
+  }
+});
