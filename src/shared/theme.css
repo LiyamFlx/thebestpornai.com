@@ -28,3 +28,6 @@ body{
   overflow-x:hidden;
 }
 a{color:inherit;text-decoration:none}
+
+.skip-link{position:absolute;left:-9999px;z-index:100}
+.skip-link:focus{left:12px;top:12px;background:var(--accent);color:#fff;padding:8px 14px;border-radius:6px}

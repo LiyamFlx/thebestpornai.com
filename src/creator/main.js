@@ -729,22 +729,21 @@ function syncChrome(){
   document.querySelector(".sidebar").style.display = gated ? "none" : "";
   document.querySelector(".topbar-actions").style.visibility = gated ? "hidden" : "";
   if(creator){
-    document.querySelector(".topbar .left").textContent = "Creator Studio · " + creator.name;
-    const av = document.querySelector(".topbar-actions .avatar");
-    if(av){ av.textContent = creator.avatar; av.style.cursor="pointer"; av.onclick=()=>go("profile"); av.title="Profile"; }
+    const nameEl = document.getElementById("creatorName");
+    if(nameEl) nameEl.textContent = creator.name;
+    const av = document.getElementById("avatarBtn");
+    if(av){ av.textContent = creator.avatar; av.title="Profile"; }
   }
 }
 
 function render(){
   const v=document.getElementById("view"); const p=cstate.page;
 
-  // REAL auth gate for uploads: a magic-link sign-in is required to upload,
-  // independent of the demo "become a creator" onboarding. Show it first.
+  // Real auth gate for the ENTIRE Creator Studio:
+  if(authReady() && !ShAuth.isSignedIn()){ v.innerHTML = renderSignIn(); syncChrome(); return; }
+
   // GATE: must subscribe + create a profile first (demo onboarding)
   if(!creator){ v.innerHTML = renderOnboarding(); syncChrome(); return; }
-
-  // Enforce magic-link auth gate specifically for uploads
-  if(p==="upload" && authReady() && !ShAuth.isSignedIn()){ v.innerHTML = renderSignIn(); syncChrome(); return; }
 
   const map={dashboard:renderDashboard,content:renderContent,upload:renderUpload,analytics:renderAnalytics,
     revenue:renderRevenue,subscribers:renderSubscribers,comments:renderComments,ai:renderAI,api:renderAPI,profile:renderProfile};
@@ -764,7 +763,27 @@ function render(){
 if(typeof ShAuth!=="undefined"){
   const sess = ShAuth.captureSessionFromUrl();
   if(sess){ cstate.page="upload"; toast("Signed in — you can upload now"); }
+  
+  // Hydrate header information if already signed in
+  (async () => {
+    if(ShAuth.isSignedIn()){
+      const user = await ShAuth.user();
+      if(user && user.email){
+        const name = creator?.name || user.email.split("@")[0];
+        const nameSpan = document.getElementById("creatorName");
+        if(nameSpan) nameSpan.textContent = name;
+        const av = document.getElementById("avatarBtn");
+        if(av) av.textContent = name[0].toUpperCase();
+      }
+    }
+  })();
 }
+
+/* Delegated nav click listener (replaces inline onclick) */
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-page]");
+  if (b) go(b.dataset.page);
+});
 
 render();
 

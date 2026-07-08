@@ -6,45 +6,75 @@
 <title>thebestpornai Studio — Creator</title>
 <meta name="description" content="thebestpornai Creator Studio — upload, manage content, analytics, revenue, subscribers, and developer tools."/>
 <meta name="theme-color" content="#E50914"/>
-<meta name="robots" content="noindex"/>
+<meta name="robots" content="noindex, nofollow"/>
+
+<!-- CSP: uncomment and set your Supabase project host before shipping.
+     Studio pages expose API keys + revenue — inline handlers are gone below,
+     so a strict policy is now possible. Prefer sending this as an HTTP header.
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self';
+  style-src 'self';
+  img-src 'self' https://streamhub-media.b-cdn.net data:;
+  media-src 'self' https://streamhub-media.b-cdn.net blob:;
+  connect-src 'self' https://streamhub-media.b-cdn.net https://YOUR-PROJECT.supabase.co;
+  frame-src https://www.youtube.com;
+  base-uri 'self'; form-action 'self'; frame-ancestors 'none';
+"/>
+-->
+
+<link rel="preconnect" href="https://streamhub-media.b-cdn.net" crossorigin/>
+<!-- <link rel="preconnect" href="https://YOUR-PROJECT.supabase.co" crossorigin/> -->
+
 <link rel="icon" type="image/png" href="/src/shared/assets/favicon-32.png"/>
 <link rel="stylesheet" href="/src/shared/theme.css" />
 <link rel="stylesheet" href="/src/creator/style.css" />
 </head>
 <body>
+<a class="skip-link" href="#view">Skip to content</a>
+
 <div class="app">
   <div class="sidebar">
-    <a class="brand" href="/"><img src="/src/shared/assets/logo.png" alt="thebestpornai"/> STUDIO</a>
-    <div class="nav" id="nav">
-      <button data-page="dashboard"  onclick="go('dashboard')"><span class="ico">▤</span> Dashboard</button>
-      <button data-page="content"    onclick="go('content')"><span class="ico">🎞</span> Content</button>
-      <button data-page="upload"     onclick="go('upload')"><span class="ico">⤒</span> Upload</button>
-      <button data-page="analytics"  onclick="go('analytics')"><span class="ico">📈</span> Analytics</button>
-      <button data-page="revenue"    onclick="go('revenue')"><span class="ico">💰</span> Revenue</button>
-      <button data-page="subscribers" onclick="go('subscribers')"><span class="ico">👥</span> Subscribers</button>
-      <button data-page="comments"   onclick="go('comments')"><span class="ico">💬</span> Comments</button>
-      <button data-page="playlists"  onclick="go('playlists')"><span class="ico">≣</span> Playlists</button>
-      <button data-page="livestream" onclick="go('livestream')"><span class="ico">🔴</span> Livestream</button>
-      <button data-page="series"     onclick="go('series')"><span class="ico">🎬</span> Original Series</button>
-      <button data-page="copyright"  onclick="go('copyright')"><span class="ico">©</span> Copyright</button>
-      <button data-page="ai"         onclick="go('ai')"><span class="ico">✨</span> AI Assistant</button>
-      <button data-page="integrations" onclick="go('integrations')"><span class="ico">🔌</span> Integrations</button>
-      <button data-page="api"        onclick="go('api')"><span class="ico">⚙</span> API</button>
-      <button data-page="settings"   onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
-    </div>
+    <a class="brand" href="/"><img src="/src/shared/assets/logo.png" alt="thebestpornai home"/> STUDIO</a>
+    <!-- Navigation is fully delegated: one listener in main.js handles every
+         [data-page] element. No inline onclick = no race with the deferred
+         module script, and a strict CSP (script-src 'self') can be enforced. -->
+    <nav class="nav" id="nav" aria-label="Studio navigation">
+      <button type="button" data-page="dashboard"><span class="ico" aria-hidden="true">▤</span> Dashboard</button>
+      <button type="button" data-page="content"><span class="ico" aria-hidden="true">🎞</span> Content</button>
+      <button type="button" data-page="upload"><span class="ico" aria-hidden="true">⤒</span> Upload</button>
+      <button type="button" data-page="analytics"><span class="ico" aria-hidden="true">📈</span> Analytics</button>
+      <button type="button" data-page="revenue"><span class="ico" aria-hidden="true">💰</span> Revenue</button>
+      <button type="button" data-page="subscribers"><span class="ico" aria-hidden="true">👥</span> Subscribers</button>
+      <button type="button" data-page="comments"><span class="ico" aria-hidden="true">💬</span> Comments</button>
+      <button type="button" data-page="playlists"><span class="ico" aria-hidden="true">≣</span> Playlists</button>
+      <button type="button" data-page="livestream"><span class="ico" aria-hidden="true">🔴</span> Livestream</button>
+      <button type="button" data-page="series"><span class="ico" aria-hidden="true">🎬</span> Original Series</button>
+      <button type="button" data-page="copyright"><span class="ico" aria-hidden="true">©</span> Copyright</button>
+      <button type="button" data-page="ai"><span class="ico" aria-hidden="true">✨</span> AI Assistant</button>
+      <button type="button" data-page="integrations"><span class="ico" aria-hidden="true">🔌</span> Integrations</button>
+      <button type="button" data-page="api"><span class="ico" aria-hidden="true">⌗</span> API</button>
+      <button type="button" data-page="settings"><span class="ico" aria-hidden="true">⚙</span> Settings</button>
+    </nav>
   </div>
   <div class="main">
-    <div class="topbar">
-      <div class="left">Creator Studio · Alex</div>
+    <header class="topbar">
+      <div class="left">Creator Studio · <span id="creatorName">…</span></div>
       <div class="topbar-actions">
-        <button class="btn sm" onclick="go('upload')">＋ Upload</button>
-        <div class="avatar">A</div>
+        <button type="button" class="btn sm" data-page="upload">＋ Upload</button>
+        <button type="button" class="avatar" data-page="settings" aria-label="Account settings" id="avatarBtn">A</button>
       </div>
-    </div>
-    <div class="content" id="view"></div>
+    </header>
+    <main class="content" id="view" tabindex="-1"></main>
   </div>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<noscript>
+  <div style="padding:24px;font-family:system-ui;color:#eee;background:#111">
+    Creator Studio requires JavaScript.
+  </div>
+</noscript>
 
 <script type="module" src="/src/creator/main.js"></script>
 </body>
