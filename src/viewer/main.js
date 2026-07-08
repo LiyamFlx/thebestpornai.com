@@ -6,6 +6,22 @@ ageGate();
 /* creatorName(), fmt(), toast() are shared — defined in catalog.js */
 function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m?m[1]:null; }
 
+/* ---- Safe string transport for inline onclick attributes ----
+   esc() protects HTML context only; the browser entity-decodes attribute
+   values BEFORE the JS engine parses them, so esc'd quotes still break out of
+   the JS string literal (XSS via manifest-supplied titles/ids). jsq() URI-
+   encodes the value (incl. apostrophes, which encodeURIComponent leaves raw);
+   the receiving function decodes with jsdec(). Output is [A-Za-z0-9%.\-_~]
+   only — inert in both HTML-attribute and JS-string contexts. */
+const jsq = s => encodeURIComponent(String(s)).replace(/'/g, "%27");
+const jsdec = s => { try { return decodeURIComponent(s); } catch(_) { return String(s); } };
+
+/* Public-catalog filter: private videos must never surface in feeds, search,
+   trending, suggestions, or keyboard nav (previously only the creator page
+   filtered them). */
+const visible = v => v && v.status !== "private";
+const pubVideos = () => DATA.videos.filter(visible);
+
 function playerEmbed(v){
   const yt = ytId(v.src);
   if(yt) return `<iframe class="player" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
@@ -42,9 +58,19 @@ let vstate = {
   subs:["c1","c2"],
   homeFilter:"all",   // "all" | "movies" | "scenes" | "clips"
   commentPage: 1,     // comments paginated at COMMENTS_PER_PAGE
+  commentSort: "new", // owned by state, not read back from the DOM mid-render
+  searchQuery: "",    // search is a real page in the render pipeline now
+  live: {},           // id -> {like, dislike} counts layered over seed values
 };
 const COMMENTS_PER_PAGE = 20;
+const HISTORY_MAX = 50;
 function setHomeFilter(f){ vstate.homeFilter = f; render(); }
+
+function pushHistory(id){
+  if(vstate.history.includes(id)) return;
+  vstate.history.unshift(id);
+  if(vstate.history.length > HISTORY_MAX) vstate.history.length = HISTORY_MAX;
+}
 
 function go(p){ vstate.page=p; setHash(p==="home"?"":p); render(); }
 function focusSearch(){
@@ -55,11 +81,15 @@ function openVideo(id){
   id = +id;
   vstate.current = DATA.videos.find(v=>v.id===id);
   if(!vstate.current) return;
-  if(!vstate.history.includes(id)) vstate.history.unshift(id);
+  pushHistory(id);
   vstate.commentPage = 1;
   vstate.page="watch"; setHash("video/"+id); render();
   hydrateWatch(id);   // fetch real counts/comments and patch them in (non-blocking)
 }
+
+/* Views already recorded this session — openVideo can fire repeatedly for the
+   same video (back/forward, related-row loops) and must not inflate counts. */
+const _viewed = new Set();
 
 /* Pull persisted likes/comments from Supabase and patch the already-rendered
    watch page. Best-effort: any failure leaves the seeded values in place.
@@ -67,17 +97,20 @@ function openVideo(id){
    the direct-link/refresh path (applyHash -> render -> pending hydrate). */
 async function hydrateWatch(id){
   if(typeof ShAPI==="undefined" || !ShAPI.enabled) return;
-  _persist(()=> ShAPI.addView(id));   // record a real view (fire-and-forget)
+  if(!_viewed.has(id)){ _viewed.add(id); _persist(()=> ShAPI.addView(id)); }
   try {
     const [counts, comments, views, favCount] = await Promise.all([
       ShAPI.likeCounts(id), ShAPI.listComments(id), ShAPI.viewCount(id), ShAPI.favoriteCount(id)
     ]);
     if(vstate.current && vstate.current.id===id && onWatch()){
       const v = vstate.current;
-      // Show seeded baseline + real persisted events, so counts are realistic AND grow.
+      // Server counts become the authoritative overlay; they already include
+      // any votes we persisted earlier, so we never mutate the seed values
+      // (previously v.likes++ plus counts.like double-counted own likes).
+      vstate.live[id] = { like: counts.like||0, dislike: counts.dislike||0 };
       const likeNum=document.getElementById("likeNum"), disNum=document.getElementById("disNum");
-      if(likeNum) likeNum.textContent = fmt(v.likes + (counts.like||0));
-      if(disNum)  disNum.textContent  = fmt(v.dislikes + (counts.dislike||0));
+      if(likeNum) likeNum.textContent = fmt(v.likes + vstate.live[id].like);
+      if(disNum)  disNum.textContent  = fmt(v.dislikes + vstate.live[id].dislike);
       // Views (seed + real) in the sub line.
       const subEl=document.getElementById("watchSub");
       if(subEl) subEl.innerHTML = "👁 " + fmt(v.views + (views||0)) + " views <span class='dot-sep'>•</span> " + esc(v.uploaded);
@@ -91,11 +124,7 @@ async function hydrateWatch(id){
           if(!DATA.comments.some(m=>m.id===key))
             DATA.comments.push({ id:key, video:id, user:c.author, text:c.body, time:"", ts: Date.parse(c.created_at)||0 });
         }
-        if(vstate.current && vstate.current.id===id && onWatch()){
-          const cl = document.getElementById("commentList");
-          if(cl) cl.innerHTML = renderCommentList(vstate.current);
-          else render();
-        }
+        if(vstate.current && vstate.current.id===id && onWatch()) patchComments(v);
       }
     }
   } catch(_){ /* offline / API down -> keep seeded values */ }
@@ -109,27 +138,35 @@ function applyHash(){
   const m=h.match(/^video\/(\d+)$/);
   if(m){
     const vid=DATA.videos.find(v=>v.id===+m[1]);
-    if(vid){ vstate.current=vid; if(!vstate.history.includes(vid.id)) vstate.history.unshift(vid.id); vstate.page="watch"; _pendingHydrate=vid.id; return; }
+    if(vid){ vstate.current=vid; pushHistory(vid.id); vstate.page="watch"; _pendingHydrate=vid.id; return; }
   }
   const mm=h.match(/^movie\/(.+)$/);
-  if(mm){ vstate.currentMovieTitle=decodeURIComponent(mm[1]); vstate.page="movie"; return; }
+  if(mm){ vstate.currentMovieTitle=jsdec(mm[1]); vstate.page="movie"; return; }
   const mc=h.match(/^creator\/(.+)$/);
-  if(mc){ vstate.creatorId=decodeURIComponent(mc[1]); vstate.page="creator"; return; }
+  if(mc){ vstate.creatorId=jsdec(mc[1]); vstate.page="creator"; return; }
   vstate.page = h || "home";
 }
 window.addEventListener("hashchange",()=>{ if(_suppressHash) return; applyHash(); render(); });
 /* These actions update one on-screen control. When we're on the watch page we
    patch just that button — a full render() would rebuild #view (player + layout)
-   and reset the scroll position, causing a visible "jump". We only fall back to
-   render() when the relevant button isn't on screen (e.g. favoriting from a grid
-   card), so list pages that depend on the state still refresh. */
+   and reset the scroll position AND restart playback, causing a visible "jump".
+   We only fall back to render() when the relevant control isn't on screen
+   (e.g. favoriting from a grid card), so list pages that depend on the state
+   still refresh. */
 function onWatch(){ return vstate.page==="watch"; }
 
 /* Fire-and-forget persistence: never let an API failure break the UI. The
    optimistic in-memory update has already been applied by the caller, so if
-   Supabase is down we simply keep that (today's fallback behavior). */
+   Supabase is down we simply keep that (today's fallback behavior).
+   RETURNS the in-flight promise (always resolves) so callers like the vote
+   lock can actually await completion — previously it returned undefined and
+   the lock released synchronously, making it a no-op. */
 function _persist(promiseFn){
-  try { if(typeof ShAPI!=="undefined" && ShAPI.enabled) Promise.resolve(promiseFn()).catch(()=>{}); } catch(_){}
+  try {
+    if(typeof ShAPI!=="undefined" && ShAPI.enabled)
+      return Promise.resolve(promiseFn()).catch(()=>{});
+  } catch(_){}
+  return Promise.resolve();
 }
 
 function toggleFav(id){
@@ -152,29 +189,37 @@ function toggleLater(id){
 function download(id){ id=+id; if(!vstate.downloads.includes(id))vstate.downloads.push(id); toast("Download started (simulated)"); }
 let _voting = new Set();
 
-function likeVideo(id){
+/* Single vote path for like/dislike. Optimistic delta lives in vstate.live
+   (never mutates seed v.likes — see hydrateWatch). The _voting lock now holds
+   until the persist promise settles, because _persist returns it. */
+function vote(id, kind){
   id = +id;                            // coerce: onclick passes number literal, but be safe
   const key = String(id);             // single lock per video — prevents simultaneous like+dislike
   if (_voting.has(key)) return;
   _voting.add(key);
   const v=DATA.videos.find(x=>x.id===id); if(!v){ _voting.delete(key); return; }
-  v.likes++; toast("Liked");
-  Promise.resolve(_persist(()=> ShAPI.addLike(id,"like"))).finally(()=> _voting.delete(key));
-  const num=document.getElementById("likeNum");
-  if(onWatch() && num) num.textContent=fmt(v.likes); else render();
+  const L = vstate.live[id] = vstate.live[id] || {like:0, dislike:0};
+  L[kind]++; toast(kind==="like"?"Liked":"Disliked");
+  _persist(()=> ShAPI.addLike(id, kind)).finally(()=> _voting.delete(key));
+  const num=document.getElementById(kind==="like"?"likeNum":"disNum");
+  const base = kind==="like" ? v.likes : v.dislikes;
+  if(onWatch() && num) num.textContent=fmt(base + L[kind]); else render();
 }
-function dislikeVideo(id){
-  id = +id;
-  const key = String(id);             // same lock key — blocks if like already in flight
-  if (_voting.has(key)) return;
-  _voting.add(key);
-  const v=DATA.videos.find(x=>x.id===id); if(!v){ _voting.delete(key); return; }
-  v.dislikes++; toast("Disliked");
-  Promise.resolve(_persist(()=> ShAPI.addLike(id,"dislike"))).finally(()=> _voting.delete(key));
-  const num=document.getElementById("disNum");
-  if(onWatch() && num) num.textContent=fmt(v.dislikes); else render();
+const likeVideo    = id => vote(id, "like");
+const dislikeVideo = id => vote(id, "dislike");
+
+function subscribe(cid){
+  cid = jsdec(cid);
+  const on = vstate.subs.includes(cid);
+  on ? vstate.subs=vstate.subs.filter(x=>x!==cid) : vstate.subs.push(cid);
+  const subbed = !on;
+  // On the watch page patch the button in place — full render restarts the player.
+  const btn = onWatch() ? document.querySelector(".subscribe-btn") : null;
+  if(btn){
+    btn.classList.toggle("ghost", subbed);
+    btn.textContent = subbed ? "Subscribed" : "＋ Subscribe";
+  } else render();
 }
-function subscribe(cid){ vstate.subs.includes(cid)?vstate.subs=vstate.subs.filter(x=>x!==cid):vstate.subs.push(cid); render(); }
 const COMMENT_MAX_LEN = 2000;
 
 function addComment(id){
@@ -188,11 +233,13 @@ function addComment(id){
   DATA.comments.push({id:"m"+Date.now(),video:id,user:DATA.user.name,text:t,time:"now",ts:Date.now()});
   box.value = "";
   _persist(()=> ShAPI.addComment(id, DATA.user.name, t));
-  render();
+  // Patch the comment region only — render() would tear down the player mid-playback.
+  if(onWatch() && vstate.current && vstate.current.id===id) patchComments(vstate.current);
+  else render();
 }
 
-const trending = ()=> [...DATA.videos].sort((a,b)=> (b.likes*1.2+b.views*0.01) - (a.likes*1.2+a.views*0.01));
-const byCat = (c)=> DATA.videos.filter(v=>v.category===c);
+const trending = ()=> pubVideos().sort((a,b)=> (b.likes*1.2+b.views*0.01) - (a.likes*1.2+a.views*0.01));
+const byCat = (c)=> pubVideos().filter(v=>v.category===c);
 
 /* ---- Movie / Scene / Clip / Act structure ----
    Optional fields on video objects (movieTitle, level, sceneNumber,
@@ -200,29 +247,29 @@ const byCat = (c)=> DATA.videos.filter(v=>v.category===c);
    clips that make up the rest of the catalog. See CLAUDE.md for the
    filename convention these fields are derived from. */
 const movies = () => {
-  const titles = [...new Set(DATA.videos.filter(v=>v.movieTitle).map(v=>v.movieTitle))];
+  const titles = [...new Set(pubVideos().filter(v=>v.movieTitle).map(v=>v.movieTitle))];
   return titles.map(t => {
-    const scenes = DATA.videos.filter(v=>v.movieTitle===t && v.level==="scene")
+    const scenes = pubVideos().filter(v=>v.movieTitle===t && v.level==="scene")
               .sort((a,b)=>a.sceneNumber-b.sceneNumber);
     return {
       title: t,
       // Prefer the full movie file; otherwise fall back to the lowest-numbered
       // scene (scenes is already sorted ascending, so [0] is Scene-01), NOT
       // whichever scene .find() happens to hit first in array order.
-      poster: DATA.videos.find(v=>v.movieTitle===t && v.level==="movie") || scenes[0],
+      poster: pubVideos().find(v=>v.movieTitle===t && v.level==="movie") || scenes[0],
       scenes,
     };
-  });
+  }).filter(m=>m.poster);
 };
-const scenesFor = (movieTitle) => DATA.videos.filter(v=>v.movieTitle===movieTitle && v.level==="scene").sort((a,b)=>a.sceneNumber-b.sceneNumber);
-const clipsFor = (movieTitle, sceneNumber) => DATA.videos.filter(v=>v.movieTitle===movieTitle && v.level==="clip" && v.sceneNumber===sceneNumber).sort((a,b)=>a.clipNumber-b.clipNumber);
+const scenesFor = (movieTitle) => pubVideos().filter(v=>v.movieTitle===movieTitle && v.level==="scene").sort((a,b)=>a.sceneNumber-b.sceneNumber);
+const clipsFor = (movieTitle, sceneNumber) => pubVideos().filter(v=>v.movieTitle===movieTitle && v.level==="clip" && v.sceneNumber===sceneNumber).sort((a,b)=>a.clipNumber-b.clipNumber);
 /* An "Act" is either an explicit level:"act" compilation entry, or any tag
    shared by 2+ clips of the same movie (a lone tag on one clip is just
    descriptive metadata, not a cross-cutting grouping worth its own row). */
 const actNames = () => {
-  const names = new Set(DATA.videos.filter(v=>v.level==="act" && v.actName).map(v=>v.actName));
+  const names = new Set(pubVideos().filter(v=>v.level==="act" && v.actName).map(v=>v.actName));
   const byMovie = {};
-  for(const v of DATA.videos){
+  for(const v of pubVideos()){
     if(v.level!=="clip" || !v.movieTitle) continue;
     byMovie[v.movieTitle] = byMovie[v.movieTitle] || {};
     for(const t of (v.tags||[])) byMovie[v.movieTitle][t] = (byMovie[v.movieTitle][t]||0) + 1;
@@ -234,8 +281,8 @@ const actNames = () => {
   }
   return [...names];
 };
-const clipsByAct = (actName) => DATA.videos.filter(v=>v.level==="clip" && (v.tags||[]).includes(actName));
-const highlights = () => DATA.videos.filter(v=>v.level==="highlight");
+const clipsByAct = (actName) => pubVideos().filter(v=>v.level==="clip" && (v.tags||[]).includes(actName));
+const highlights = () => pubVideos().filter(v=>v.level==="highlight");
 
 function rowSection(title, list, opts={}){
   if(!list.length) return "";
@@ -251,7 +298,7 @@ function homeFilterBar(){
 
 const HERO_VIDEO_ID = 470; // pinned homepage hero — update this id to change it
 function renderHome(){
-  const hero = DATA.videos.find(v=>v.id===HERO_VIDEO_ID) || DATA.videos.find(v=>v.type==="original") || DATA.videos[0];
+  const hero = pubVideos().find(v=>v.id===HERO_VIDEO_ID) || pubVideos().find(v=>v.type==="original") || pubVideos()[0];
   if(!hero) return `<div class="empty">No videos available yet.</div>`;
   const top = trending();   // compute once; reused by the two rows below
   const filter = vstate.homeFilter;
@@ -263,23 +310,23 @@ function renderHome(){
     return `
       ${homeFilterBar()}
       ${allMovies.length
-        ? `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${esc(m.title)}')`})).join("")}</div>`
+        ? `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`})).join("")}</div>`
         : `<div class="empty">No movies yet.</div>`}
     `;
   }
   if(filter==="scenes"){
-    const allScenes = DATA.videos.filter(v=>v.level==="scene");
+    const allScenes = pubVideos().filter(v=>v.level==="scene");
     return `${homeFilterBar()}${allScenes.length ? rowSection("Scenes", allScenes) : `<div class="empty">No scenes yet.</div>`}`;
   }
   if(filter==="clips"){
-    const allClips = DATA.videos.filter(v=>v.level==="clip");
+    const allClips = pubVideos().filter(v=>v.level==="clip");
     return `${homeFilterBar()}${allClips.length ? rowSection("Clips", allClips) : `<div class="empty">No clips yet.</div>`}`;
   }
 
   return `
     ${homeFilterBar()}
     <div class="hero">
-      <video src="${mediaUrl(hero.src)}" muted autoplay loop playsinline></video>
+      ${hero.src && !ytId(hero.src) ? `<video src="${mediaUrl(hero.src)}" muted autoplay loop playsinline></video>` : ``}
       <div class="hero-body">
         <span class="tag">HOUSE ORIGINAL</span>
         <h1>${esc(hero.title)}</h1>
@@ -290,17 +337,17 @@ function renderHome(){
     </div>
     ${vstate.history.length ? rowSection("Continue Watching", vstate.history.map(id=>DATA.videos.find(v=>v.id===id)).filter(Boolean)) : ""}
     ${rowSection("Recommended For You", (()=>{ const nw=top.filter(v=>!vstate.history.includes(v.id)); return nw.length>=6?nw.slice(0,6):top.slice(0,6); })())}
-    ${rowSection("Trending Now", [...DATA.videos].sort((a,b)=>b.views-a.views).slice(0,6))}
-    ${rowSection("House Originals", DATA.videos.filter(v=>v.type==="original"))}
+    ${rowSection("Trending Now", pubVideos().sort((a,b)=>b.views-a.views).slice(0,6))}
+    ${rowSection("House Originals", pubVideos().filter(v=>v.type==="original"))}
     ${(() => {
       const allMovies = movies();
       if(!allMovies.length) return "";
-      return `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${esc(m.title)}')`})).join("")}</div>`;
+      return `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`})).join("")}</div>`;
     })()}
     ${rowSection("Highlights", highlights())}
     ${actNames().map(a=>rowSection("Act: "+esc(a), clipsByAct(a))).join("")}
     ${DATA.categories.map(c=>rowSection(c, byCat(c))).join("")}
-    ${rowSection("Recently Uploaded", [...DATA.videos].sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0,6))}
+    ${rowSection("Recently Uploaded", pubVideos().sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0,6))}
   `;
 }
 
@@ -309,7 +356,7 @@ function renderMovieDetail(){
   const scenes = scenesFor(title);
   if(!title || !scenes.length) return `<div class="empty">Movie not found.</div>`;
 
-  const movieEntry = DATA.videos.find(v=>v.movieTitle===title && v.level==="movie") || scenes[0];
+  const movieEntry = pubVideos().find(v=>v.movieTitle===title && v.level==="movie") || scenes[0];
   const allClips = scenes.flatMap(scene => clipsFor(title, scene.sceneNumber));
   const clipList = allClips.length ? allClips : scenes;
   // Acts present in this movie only (not the whole-site actNames()), so the
@@ -324,12 +371,12 @@ function renderMovieDetail(){
   const related = trending().filter(v=>v.movieTitle!==title).slice(0,8);
   const primaryCategory = movieEntry.category;
   const similar = primaryCategory ? byCat(primaryCategory).filter(v=>v.movieTitle!==title).slice(0,8) : [];
-  const more = [...DATA.videos].filter(v=>v.movieTitle!==title).sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0,10);
+  const more = pubVideos().filter(v=>v.movieTitle!==title).sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0,10);
 
   return `
     <div class="movie-detail">
       <div class="movie-hero">
-        <video src="${mediaUrl(movieEntry.src)}" muted autoplay loop playsinline></video>
+        ${movieEntry.src && !ytId(movieEntry.src) ? `<video src="${mediaUrl(movieEntry.src)}" muted autoplay loop playsinline></video>` : ``}
         <div class="movie-hero-topnav">
           <button class="icon-btn movie-back" onclick="go('home')" aria-label="Back">←</button>
           <button class="icon-btn movie-menu" onclick="go('categories')" aria-label="Menu">☰</button>
@@ -355,6 +402,7 @@ function renderMovieDetail(){
   `;
 }
 function openMovie(title){
+  title = jsdec(title);   // arrives URI-encoded from inline onclick (see jsq)
   vstate.currentMovieTitle = title;
   vstate.page = "movie";
   setHash("movie/"+encodeURIComponent(title));
@@ -371,17 +419,28 @@ function renderCommentList(v){
     + (hasMore ? `<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="loadMoreComments()">Load more comments (${sorted.length - shown.length} remaining)</button>` : '');
 }
 
+/* Re-render just the comment region of the watch page (list + count bubble).
+   Used by addComment / sort / pagination / hydrate so the <video> element and
+   scroll position survive. */
+function patchComments(v){
+  const cl = document.getElementById("commentList");
+  if(cl) cl.innerHTML = renderCommentList(v);
+  const cc = document.getElementById("cCount");
+  if(cc) cc.textContent = DATA.comments.filter(m=>m.video===v.id).length;
+}
+
 function renderWatch(){
-  const v = vstate.current || DATA.videos[0];
+  const v = vstate.current || pubVideos()[0];
   if(!v) return `<div class="empty">No video selected.</div>`;
   const c = DATA.creators.find(x=>x.id===v.creator) || { name:"Unknown", id:"", verified:false, subs:0 };
   const subbed = vstate.subs.includes(v.creator);
   const cms = DATA.comments.filter(m=>m.video===v.id);
+  const live = vstate.live[v.id] || {like:0, dislike:0};
   const related = trending().filter(u=>u.id!==v.id).slice(0,6);
   const suggestedCard = u=>`
     <div class="card" style="display:flex;gap:10px;margin-bottom:10px;padding:8px" onclick="openVideo(${u.id})">
       <div class="video-thumb ${u.type==='original'?'original':''}" style="width:120px;height:68px;margin:0;flex:none">
-        <video class="thumb-video lazy" data-src="${mediaUrl(u.src)}#t=1" muted preload="none"></video>
+        ${u.src && !ytId(u.src) ? `<video class="thumb-video lazy" data-src="${mediaUrl(u.src)}#t=1" muted preload="none"></video>` : ``}
       </div>
       <div><div class="title">${esc(u.title)}</div><div class="meta">${esc(creatorName(u.creator))}</div><div class="small">${fmt(u.views)} views</div></div>
     </div>`;
@@ -398,11 +457,11 @@ function renderWatch(){
 
         <div class="watch-actions">
           <div class="vote-pill">
-            <button id="btnLike" class="vote-btn" onclick="likeVideo(${v.id})"><span class="ic">👍</span> <span id="likeNum">${fmt(v.likes)}</span></button>
+            <button id="btnLike" class="vote-btn" onclick="likeVideo(${v.id})"><span class="ic">👍</span> <span id="likeNum">${fmt(v.likes + live.like)}</span></button>
             <span class="vote-div"></span>
-            <button id="btnDislike" class="vote-btn" onclick="dislikeVideo(${v.id})"><span class="ic">👎</span> <span id="disNum">${fmt(v.dislikes)}</span></button>
+            <button id="btnDislike" class="vote-btn" onclick="dislikeVideo(${v.id})"><span class="ic">👎</span> <span id="disNum">${fmt(v.dislikes + live.dislike)}</span></button>
           </div>
-          <button id="btnFav" class="act-btn ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})"><span class="ic">♥</span> Favorite</button>
+          <button id="btnFav" class="act-btn ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})"><span class="ic">♥</span> Favorite<span id="favCount"></span></button>
           <button id="btnLater" class="act-btn ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})"><span class="ic">🔖</span> Save</button>
           <button class="act-btn" onclick="shareVideo(${v.id})"><span class="ic">↗</span> Share</button>
           <button class="act-btn act-more" onclick="toast('Report submitted (simulated)')" title="More" aria-label="More">···</button>
@@ -411,18 +470,18 @@ function renderWatch(){
         <div class="creator-card">
           <div class="avatar avatar-lg">${esc((c.name||"?")[0])}</div>
           <div style="flex:1;min-width:0">
-            <div class="creator-name"><span class="creator-link" onclick="openCreator('${esc(c.id)}')">${esc(c.name)}</span> ${c.verified?'<span class="verified" title="Verified">✓</span>':''}</div>
+            <div class="creator-name"><span class="creator-link" onclick="openCreator('${jsq(c.id)}')">${esc(c.name)}</span> ${c.verified?'<span class="verified" title="Verified">✓</span>':''}</div>
             <div class="small">${fmt(c.subs)} subscribers</div>
           </div>
-          <button class="btn subscribe-btn ${subbed?'ghost':''}" onclick="subscribe('${esc(c.id)}')">${subbed?'Subscribed':'＋ Subscribe'}</button>
+          <button class="btn subscribe-btn ${subbed?'ghost':''}" onclick="subscribe('${jsq(c.id)}')">${subbed?'Subscribed':'＋ Subscribe'}</button>
         </div>
 
         <div class="comments-card">
           <div class="comments-top">
-            <div class="comments-title">Comments <span class="count-bubble">${cms.length}</span></div>
-            <select class="sort-select" id="cSort" onchange="render()">
-              <option value="new">Newest first</option>
-              <option value="old">Oldest first</option>
+            <div class="comments-title">Comments <span class="count-bubble" id="cCount">${cms.length}</span></div>
+            <select class="sort-select" id="cSort" onchange="setCommentSort(this.value)">
+              <option value="new" ${vstate.commentSort==='new'?'selected':''}>Newest first</option>
+              <option value="old" ${vstate.commentSort==='old'?'selected':''}>Oldest first</option>
             </select>
           </div>
           <div class="comment-form">
@@ -449,12 +508,18 @@ function renderWatch(){
 
 /* Sort comments by real timestamp. DB comments carry `ts` parsed from
    created_at; locally-added comments stamp `ts` with Date.now() at creation.
-   Legacy seeded comments have no ts at all — they sort as oldest (0). */
+   Legacy seeded comments have no ts at all — they sort as oldest (0).
+   Sort order lives in vstate.commentSort — reading the <select> back from
+   the DOM mid-render raced against the rebuild and reset the selection. */
 function sortComments(cms){
-  const order = (document.getElementById("cSort")||{}).value || "new";
   const key = m => m.ts || 0;
   const sorted = [...cms].sort((a,b)=> key(b)-key(a));   // newest first
-  return order==="old" ? sorted.reverse() : sorted;
+  return vstate.commentSort==="old" ? sorted.reverse() : sorted;
+}
+function setCommentSort(val){
+  vstate.commentSort = val==="old" ? "old" : "new";
+  vstate.commentPage = 1;
+  if(onWatch() && vstate.current) patchComments(vstate.current); else render();
 }
 function shareVideo(id){
   const url = location.href.split("#")[0] + "#video/" + id;
@@ -463,9 +528,10 @@ function shareVideo(id){
 }
 
 function openCreator(cid){
+  cid = jsdec(cid);   // arrives URI-encoded from inline onclick (see jsq)
   vstate.creatorId = cid;
   vstate.page = "creator";
-  setHash("creator/"+cid);
+  setHash("creator/"+encodeURIComponent(cid));
   render();
 }
 
@@ -473,7 +539,7 @@ function renderCreatorPage(){
   const cid = vstate.creatorId;
   const c = DATA.creators.find(x=>x.id===cid);
   if(!c) return `<div class="empty">Creator not found.</div>`;
-  const videos = DATA.videos.filter(v=>v.creator===cid && v.status!=="private");
+  const videos = DATA.videos.filter(v=>v.creator===cid && visible(v));
   const subbed = vstate.subs.includes(cid);
   const top5 = [...videos].sort((a,b)=>(b.likes*1.2+b.views*.01)-(a.likes*1.2+a.views*.01)).slice(0,5);
   return `
@@ -486,7 +552,7 @@ function renderCreatorPage(){
           <div class="small" style="margin-top:4px">${c.handle?esc(c.handle)+' · ':''}${fmt(c.subs)} subscribers · ${videos.length} video${videos.length!==1?'s':''}</div>
           ${c.bio?`<p class="creator-bio">${esc(c.bio)}</p>`:''}
         </div>
-        <button class="btn subscribe-btn ${subbed?'ghost':''}" onclick="subscribe('${esc(cid)}')">${subbed?'✓ Subscribed':'＋ Subscribe'}</button>
+        <button class="btn subscribe-btn ${subbed?'ghost':''}" onclick="subscribe('${jsq(cid)}')">${subbed?'✓ Subscribed':'＋ Subscribe'}</button>
       </div>
       ${top5.length ? `<h3 style="margin-top:28px">Top Videos</h3><div class="row-scroll">${top5.map(v=>videoCard(v)).join("")}</div>` : ''}
       <h3 style="margin-top:20px">All Videos <span class="count-bubble">${videos.length}</span></h3>
@@ -506,7 +572,7 @@ function renderCategories(){
     ${DATA.categories.map(c=>`<h3>${esc(c)}</h3><div class="row-scroll">${byCat(c).map(v=>videoCard(v)).join("")||'<div class="small">No videos yet.</div>'}</div>`).join("")}`;
 }
 function renderSubs(){
-  const list = DATA.videos.filter(v=>vstate.subs.includes(v.creator));
+  const list = pubVideos().filter(v=>vstate.subs.includes(v.creator));
   return `<h2>Subscriptions</h2><p class="sub">Latest from creators you follow</p>
     <div class="pill-row">${DATA.creators.filter(c=>vstate.subs.includes(c.id)).map(c=>`<span class="filter-pill active">${esc(c.name)}</span>`).join("")}</div>
     <div class="grid">${list.map(v=>videoCard(v)).join("")}</div>`;
@@ -537,13 +603,13 @@ function renderProfile(){
     <h3>Subscriptions</h3>
     <div class="sub-creator-list">
       ${subCreators.map(c=>`
-        <div class="sub-creator-row" onclick="openCreator('${esc(c.id)}')">
+        <div class="sub-creator-row" onclick="openCreator('${jsq(c.id)}')">
           <div class="avatar avatar-sm">${esc((c.name||"?")[0])}</div>
           <div style="flex:1;min-width:0">
             <div style="font-weight:600;font-size:13px">${esc(c.name)} ${c.verified?'<span class="verified">✓</span>':''}</div>
             <div class="small">${fmt(c.subs)} subscribers</div>
           </div>
-          <button class="btn ghost sm" onclick="event.stopPropagation();subscribe('${esc(c.id)}')">Unsubscribe</button>
+          <button class="btn ghost sm" onclick="event.stopPropagation();subscribe('${jsq(c.id)}')">Unsubscribe</button>
         </div>`).join("")}
     </div>` : ''}
     <h3>Achievements</h3>
@@ -570,20 +636,23 @@ function renderSettings(){
 }
 function renderLive(){
   return `<h2>Live</h2><p class="sub">Streams happening now</p>
-    <div class="grid">${DATA.videos.slice(0,3).map(v=>videoCard(v,{extra:()=>`<div class="card-actions"><span class="chip" style="color:var(--accent2);border-color:var(--accent2)">● LIVE</span><span class="chip">${fmt(v.views)} watching</span></div>`})).join("")}</div>`;
+    <div class="grid">${pubVideos().slice(0,3).map(v=>videoCard(v,{extra:()=>`<div class="card-actions"><span class="chip" style="color:var(--accent2);border-color:var(--accent2)">● LIVE</span><span class="chip">${fmt(v.views)} watching</span></div>`})).join("")}</div>`;
 }
 function renderPlaylists(){
   return `<h2>Playlists</h2><p class="sub">Your collections</p>
     <div class="grid">
       ${["My Mix","Chill","Tech Deep-Dives"].map((p,i)=>{
-        const pv = DATA.videos[i];
-        const thumb = pv ? `<video class="thumb-video lazy" data-src="${mediaUrl(pv.src)}#t=1" muted preload="none"></video>` : ``;
+        const pv = pubVideos()[i];
+        const thumb = pv && pv.src && !ytId(pv.src) ? `<video class="thumb-video lazy" data-src="${mediaUrl(pv.src)}#t=1" muted preload="none"></video>` : ``;
         return `<div class="card"><div class="video-thumb">${thumb}</div>
         <div class="title">${esc(p)}</div><div class="meta">${(i+2)} videos</div></div>`;
       }).join("")}
     </div>`;
 }
 
+/* Search is a real page in the render pipeline (vstate.searchQuery), not a raw
+   innerHTML write — previously any render() (fav toggle, hydrate fallback)
+   silently wiped the results. */
 let _searchTimer;
 function doSearch(){
   clearTimeout(_searchTimer);
@@ -591,21 +660,26 @@ function doSearch(){
 }
 function _doSearchNow(){
   const el = document.getElementById("searchInput"); if(!el) return;
-  const q = (el.value||"").toLowerCase();
-  if(!q){ render(); return; }
-  const vids = DATA.videos.filter(v=>
+  const q = (el.value||"").trim();
+  vstate.searchQuery = q;
+  if(!q){ if(vstate.page==="search") vstate.page="home"; render(); return; }
+  vstate.page = "search";
+  render();
+}
+function renderSearch(){
+  const q = vstate.searchQuery.toLowerCase();
+  const vids = pubVideos().filter(v=>
     v.title.toLowerCase().includes(q) ||
     (v.category||"").toLowerCase().includes(q) ||
     (v.categories||[]).some(c=>c.toLowerCase().includes(q)) ||
     (v.tags||[]).some(t=>t.toLowerCase().includes(q))
   );
   const crs  = DATA.creators.filter(c=>c.name.toLowerCase().includes(q) || (c.handle||"").toLowerCase().includes(q));
-  document.getElementById("view").innerHTML = `
-    <h2>Search: "${esc(q)}"</h2>
+  return `
+    <h2>Search: "${esc(vstate.searchQuery)}"</h2>
     <div class="pill-row"><span class="filter-pill active">All</span><span class="filter-pill">Videos</span><span class="filter-pill">Creators</span><span class="filter-pill">Playlists</span></div>
-    <h3>Creators</h3>${crs.length?`<div class="pill-row">${crs.map(c=>`<span class="filter-pill">${esc(c.name)} ${c.verified?'✔️':''}</span>`).join("")}</div>`:'<div class="small">None</div>'}
+    <h3>Creators</h3>${crs.length?`<div class="pill-row">${crs.map(c=>`<span class="filter-pill" onclick="openCreator('${jsq(c.id)}')">${esc(c.name)} ${c.verified?'✔️':''}</span>`).join("")}</div>`:'<div class="small">None</div>'}
     <h3>Videos</h3>${vids.length?`<div class="grid">${vids.map(v=>videoCard(v)).join("")}</div>`:'<div class="empty">No videos found.</div>'}`;
-  lazyLoadThumbs();
 }
 
 function render(){
@@ -613,12 +687,12 @@ function render(){
   const map={
     home:renderHome, watch:renderWatch, categories:renderCategories, subscriptions:renderSubs,
     profile:renderProfile, settings:renderSettings, live:renderLive, playlists:renderPlaylists,
-    movie:renderMovieDetail, creator:renderCreatorPage,
+    movie:renderMovieDetail, creator:renderCreatorPage, search:renderSearch,
   };
   if(map[p]) v.innerHTML = map[p]();
   else if(p==="explore")   v.innerHTML = listPage("Explore", trending(), "");
   else if(p==="trending")  v.innerHTML = listPage("Trending", trending(), "");
-  else if(p==="originals") v.innerHTML = listPage("House Originals", DATA.videos.filter(x=>x.type==="original"), "");
+  else if(p==="originals") v.innerHTML = listPage("House Originals", pubVideos().filter(x=>x.type==="original"), "");
   else if(p==="favorites") v.innerHTML = listPage("Favorites", DATA.videos.filter(x=>vstate.favorites.includes(x.id)), "Tap ★ on any video to save it here.");
   else if(p==="later")     v.innerHTML = listPage("Watch Later", DATA.videos.filter(x=>vstate.later.includes(x.id)), "Nothing saved yet.");
   else if(p==="history")   v.innerHTML = listPage("History", vstate.history.map(id=>DATA.videos.find(x=>x.id===id)).filter(Boolean), "No watch history yet.");
@@ -638,7 +712,11 @@ function render(){
         activePlayer.currentTime = Math.max(0, activePlayer.currentTime - 10);
         toast("⏮ -10s");
       } else if(ratio > 0.7){
-        activePlayer.currentTime = Math.min(activePlayer.duration, activePlayer.currentTime + 10);
+        // duration is NaN before metadata loads — guard or currentTime throws
+        const d = activePlayer.duration;
+        activePlayer.currentTime = isFinite(d)
+          ? Math.min(d, activePlayer.currentTime + 10)
+          : activePlayer.currentTime + 10;
         toast("⏭ +10s");
       } else {
         if(!document.fullscreenElement){
@@ -681,16 +759,23 @@ render();
 const _videoCountBadge = document.getElementById("videoCountBadge");
 if(_videoCountBadge) _videoCountBadge.textContent = fmt(DATA.videos.length) + " videos";
 
-/* Load user-uploaded videos from the Bunny manifest and prepend to feed */
+/* Load user-uploaded videos from the Bunny manifest and prepend to feed.
+   The manifest is remote input: validate shape and dedupe on BOTH src and id —
+   an id collision would hijack the hero pin and every openVideo() lookup. */
 (async()=>{
   try{
     const r = await fetch("https://streamhub-media.b-cdn.net/manifest.json?t="+Date.now());
     if(!r.ok) return;
     const uploads = await r.json();
     if(!Array.isArray(uploads) || !uploads.length) return;
-    // Deduplicate against catalog (by src path)
-    const existing = new Set(DATA.videos.map(v=>v.src));
-    const fresh = uploads.filter(v=>v && v.src && !existing.has(v.src));
+    const existingSrc = new Set(DATA.videos.map(v=>v.src));
+    const existingIds = new Set(DATA.videos.map(v=>v.id));
+    const fresh = uploads.filter(v=>
+      v && typeof v==="object" &&
+      typeof v.src==="string" && v.src && !existingSrc.has(v.src) &&
+      Number.isFinite(+v.id) && !existingIds.has(+v.id) &&
+      typeof v.title==="string"
+    ).map(v=>({ ...v, id:+v.id }));
     if(!fresh.length) return;
     DATA.videos.unshift(...fresh);
     if(location.hash) applyHash();
@@ -730,28 +815,27 @@ window.toast = toast;
 window.setHomeFilter = setHomeFilter;
 window.openMovie = openMovie;
 window.openCreator = openCreator;
-window.loadMoreComments = function(){ vstate.commentPage++; render(); };
+window.setCommentSort = setCommentSort;
+window.loadMoreComments = function(){
+  vstate.commentPage++;
+  if(onWatch() && vstate.current) patchComments(vstate.current); else render();
+};
 
-/* Keyboard navigation for watch page (Arrows) */
+/* Keyboard navigation for watch page (Arrows) — cycles public videos only */
 document.addEventListener("keydown", (e) => {
   if(document.activeElement && (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA")){
     return;
   }
   if(vstate.page !== "watch") return;
 
-  if(e.key === "ArrowRight"){
+  if(e.key === "ArrowRight" || e.key === "ArrowLeft"){
     e.preventDefault();
-    const currentIdx = DATA.videos.findIndex(v => v.id === vstate.current?.id);
-    if(currentIdx !== -1){
-      const nextIdx = (currentIdx + 1) % DATA.videos.length;
-      openVideo(DATA.videos[nextIdx].id);
-    }
-  } else if(e.key === "ArrowLeft"){
-    e.preventDefault();
-    const currentIdx = DATA.videos.findIndex(v => v.id === vstate.current?.id);
-    if(currentIdx !== -1){
-      const prevIdx = (currentIdx - 1 + DATA.videos.length) % DATA.videos.length;
-      openVideo(DATA.videos[prevIdx].id);
-    }
+    const list = pubVideos();
+    if(!list.length) return;
+    const currentIdx = list.findIndex(v => v.id === vstate.current?.id);
+    if(currentIdx === -1) return;
+    const step = e.key === "ArrowRight" ? 1 : -1;
+    const nextIdx = (currentIdx + step + list.length) % list.length;
+    openVideo(list[nextIdx].id);
   }
 });
