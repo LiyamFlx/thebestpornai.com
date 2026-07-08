@@ -15,7 +15,7 @@ function playerEmbed(v){
 
 function videoCard(v, opts={}){
   const thumb = v.thumb
-    ? `<img class="thumb-video" src="${v.thumb}" alt=""/>`
+    ? `<img class="thumb-video" src="${mediaUrl(v.thumb)}" alt=""/>`
     : (v.src && !ytId(v.src)
         ? `<video class="thumb-video lazy" data-src="${mediaUrl(v.src)}#t=1" muted preload="none" playsinline></video>` : ``);
   const badge = opts.badge ? opts.badge(v) : null;
@@ -670,6 +670,7 @@ if(_videoCountBadge) _videoCountBadge.textContent = fmt(DATA.videos.length) + " 
     const fresh = uploads.filter(v=>v && v.src && !existing.has(v.src));
     if(!fresh.length) return;
     DATA.videos.unshift(...fresh);
+    if(location.hash) applyHash();
     render();
     if(_videoCountBadge) _videoCountBadge.textContent = fmt(DATA.videos.length) + " videos";
   }catch(_){}
