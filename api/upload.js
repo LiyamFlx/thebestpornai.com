@@ -14,7 +14,28 @@ export const config = { api: { bodyParser: false } };
 const STORAGE_BASE = "https://storage.bunnycdn.com/streamhub-media";
 const CDN_BASE     = "https://streamhub-media.b-cdn.net";
 const KEY          = process.env.BUNNY_STORAGE_KEY;
-const ALLOWED_EXT  = new Set(["mp4", "mov", "webm", "m4v"]);
+const ALLOWED_EXT  = new Set(["mp4", "mov", "webm", "m4v", "jpg", "jpeg", "png", "webp"]);
+
+export async function verifyUser(req) {
+  const authHeader = req.headers["authorization"];
+  if (!authHeader) throw new Error("authorization token required");
+
+  const supabaseUrl = process.env.SUPABASE_URL || "https://dabfxysxcngijcxxekzc.supabase.co";
+  const supabaseKey = process.env.SUPABASE_KEY || "sb_publishable_moBiV9AidT0XkL-L6wilYw_Jfn25YDr";
+
+  const verifyRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: {
+      "apikey": supabaseKey,
+      "Authorization": authHeader
+    }
+  });
+
+  if (!verifyRes.ok) {
+    throw new Error("invalid or expired token");
+  }
+
+  return await verifyRes.json();
+}
 
 export default async function handler(req, res) {
   // CORS headers first — always, so browser never sees a naked error
@@ -25,6 +46,12 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST")   return res.status(405).json({ error: "method not allowed" });
   if (!KEY)                    return res.status(500).json({ error: "BUNNY_STORAGE_KEY not set on Vercel" });
+
+  try {
+    await verifyUser(req);
+  } catch (err) {
+    return res.status(401).json({ error: err.message });
+  }
 
   const rawName = (req.headers["x-filename"] || "video.mp4").toString();
   const ext = (rawName.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "") || "mp4";

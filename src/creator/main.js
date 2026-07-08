@@ -254,51 +254,16 @@ async function uCaptureClip(secs){
 
 let _publishing = false;
 
-/* Direct browser → Bunny Storage upload.
-   Bunny's storage API returns Access-Control-Allow-Origin: * so no relay needed. */
-const BUNNY_STORAGE_URL = "https://storage.bunnycdn.com/streamhub-media";
-const BUNNY_CDN_URL     = "https://streamhub-media.b-cdn.net";
-const BUNNY_KEY         = "96633b31-c4cf-49aa-8981d7ace8e2-f9ad-41a6";
-
-async function bunnyUpload(file, title, onProgress){
-  const ext = (file.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"")||"mp4";
-  const unique = "up_"+Date.now()+"_"+Math.random().toString(36).slice(2,8)+"."+ext;
-  const storagePath = `media/uploads/${unique}`;
-
-  await new Promise((resolve, reject)=>{
-    const xhr = new XMLHttpRequest();
-    xhr.open("PUT", `${BUNNY_STORAGE_URL}/${storagePath}`, true);
-    xhr.setRequestHeader("AccessKey", BUNNY_KEY);
-    xhr.setRequestHeader("Content-Type", "application/octet-stream");
-    if(onProgress) xhr.upload.onprogress = e=>{ if(e.lengthComputable) onProgress(Math.round(e.loaded/e.total*100)); };
-    xhr.onload = ()=>{ xhr.status>=200&&xhr.status<300 ? resolve() : reject(new Error("Bunny upload HTTP "+xhr.status)); };
-    xhr.onerror = ()=> reject(new Error("Network error uploading to Bunny"));
-    xhr.send(file);
-  });
-
-  return `../media/uploads/${unique}`;  // catalog-style src
-}
-
-/* Fetch current manifest, append new entry, save back to Bunny */
-async function saveToManifest(entry){
-  const MANIFEST = `${BUNNY_STORAGE_URL}/manifest.json`;
-  const MANIFEST_CDN = `${BUNNY_CDN_URL}/manifest.json`;
-
-  // Load existing manifest (ignore errors — start fresh if missing)
-  let existing = [];
-  try {
-    const r = await fetch(MANIFEST_CDN + "?t=" + Date.now());
-    if(r.ok) existing = await r.json();
-  } catch(_){}
-
-  existing.unshift(entry); // newest first
-
-  const blob = new Blob([JSON.stringify(existing, null, 2)], {type:"application/json"});
-  await fetch(MANIFEST, {
-    method:"PUT",
-    headers:{ "AccessKey": BUNNY_KEY, "Content-Type":"application/json" },
-    body: blob
-  });
+function dataURLtoFile(dataurl, filename) {
+  const arr = dataurl.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[arr.length - 1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while(n--){
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], filename, {type:mime});
 }
 
 async function uPublish(){
@@ -327,36 +292,57 @@ async function uPublish(){
     });
 
     try {
-      const cdnSrc = await bunnyUpload(u.file, u.title||"Untitled", pct=>{
+      // 1. Upload main video file securely via Vercel serverless relay
+      const uploadInfo = await ShAPI.uploadVideo(u.file, u.title||"Untitled", pct=>{
         u.progress = pct; setBar(pct);
       });
+      const cdnSrc = uploadInfo.src;
       setBar(100); u.progress = 100;
 
-      // Upload sample clips if captured (non-blocking)
+      // 2. Convert and upload thumbnail if it is a base64 Data URL
+      let thumbUrl = "";
+      if (u.thumb && u.thumb.startsWith("data:")) {
+        try {
+          const thumbFile = dataURLtoFile(u.thumb, `thumb_${localId}.jpg`);
+          const thumbUploadInfo = await ShAPI.uploadVideo(thumbFile, u.title + " Thumbnail", () => {});
+          thumbUrl = thumbUploadInfo.url;
+        } catch (e) {
+          console.error("Thumbnail upload failed, falling back to data URL:", e);
+          thumbUrl = u.thumb;
+        }
+      } else {
+        thumbUrl = u.thumb;
+      }
+
+      // 3. Upload sample clips if captured (non-blocking) securely via Vercel relay
       if(u.sample5){
         try{
           const f5 = new File([u.sample5], (u.title||"video").replace(/\s+/g,"-")+"-5s.webm", {type:"video/webm"});
-          await bunnyUpload(f5, u.title+"-5s", ()=>{});
+          await ShAPI.uploadVideo(f5, u.title+"-5s", ()=>{});
         }catch(_){}
       }
       if(u.sample30){
         try{
           const f30 = new File([u.sample30], (u.title||"video").replace(/\s+/g,"-")+"-30s.webm", {type:"video/webm"});
-          await bunnyUpload(f30, u.title+"-30s", ()=>{});
+          await ShAPI.uploadVideo(f30, u.title+"-30s", ()=>{});
         }catch(_){}
       }
 
-      // Point local entry at real CDN src
-      const vid = DATA.videos.find(v=>v.id===localId); if(vid) vid.src = cdnSrc;
+      // Point local entry at real CDN src and thumbnail URL
+      const vid = DATA.videos.find(v=>v.id===localId);
+      if(vid) {
+        vid.src = cdnSrc;
+        vid.thumb = thumbUrl;
+      }
 
-      // Save to Bunny manifest so the video appears for ALL visitors immediately
+      // Save to Bunny manifest via secure serverless endpoint so the video appears for ALL visitors immediately
       const manifestEntry = {
         id: localId,
         title: u.title||"Untitled",
         creator: MY,
         type: "ugc",
         src: cdnSrc,
-        thumb: u.thumb||"",
+        thumb: thumbUrl,
         category: u.categories[0]||"Amateur",
         categories: u.categories.slice(),
         tags: u.tags.slice(),
@@ -370,8 +356,11 @@ async function uPublish(){
         status: "public",
         flagged: false
       };
-      try{ await saveToManifest(manifestEntry); }
-      catch(_){ /* manifest save failed — video still on CDN */ }
+      try{
+        await ShAPI.saveToManifest(manifestEntry);
+      } catch(err){
+        console.error("Manifest save failed:", err);
+      }
 
       await new Promise(r=>setTimeout(r,300));
       toast(`✓ "${u.title||'Untitled'}" is live!`);
@@ -754,6 +743,9 @@ function render(){
   // GATE: must subscribe + create a profile first (demo onboarding)
   if(!creator){ v.innerHTML = renderOnboarding(); syncChrome(); return; }
 
+  // Enforce magic-link auth gate specifically for uploads
+  if(p==="upload" && authReady() && !ShAuth.isSignedIn()){ v.innerHTML = renderSignIn(); syncChrome(); return; }
+
   const map={dashboard:renderDashboard,content:renderContent,upload:renderUpload,analytics:renderAnalytics,
     revenue:renderRevenue,subscribers:renderSubscribers,comments:renderComments,ai:renderAI,api:renderAPI,profile:renderProfile};
   if(map[p]) v.innerHTML=map[p]();
@@ -767,6 +759,13 @@ function render(){
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
   syncChrome();
 }
+
+/* If we returned from a magic link, capture the session and land on Upload page. */
+if(typeof ShAuth!=="undefined"){
+  const sess = ShAuth.captureSessionFromUrl();
+  if(sess){ cstate.page="upload"; toast("Signed in — you can upload now"); }
+}
+
 render();
 
 /* ---- Attach functions invoked from inline HTML event handler attributes ---- */

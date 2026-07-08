@@ -196,6 +196,20 @@ const ShAPI = {
   async listUploadedVideos(){
     return (await _req(`/uploads?select=*&order=created_at.desc`)) || [];
   },
+  async saveToManifest(entry){
+    if(typeof ShAuth==="undefined" || !ShAuth.isSignedIn()) throw new Error("sign in required");
+    const sess = ShAuth.session();
+    const r = await fetch((this.uploadApiBase||"") + "/api/save-upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + sess.access_token,
+      },
+      body: JSON.stringify(entry),
+    });
+    if(!r.ok) throw new Error("save manifest HTTP " + r.status);
+    return await r.json();
+  },
 
   /* ---- FAVORITES (per-browser via client_id) ---- */
   async myFavorites(){
