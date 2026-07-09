@@ -294,7 +294,7 @@ function renderHome(){
     const all = sortedVideos(sort).slice(0, vstate.limit);
     return `
       ${homeFilterBar()}
-      ${all.length ? rowSection(label, all) : `<div class="empty">No videos yet.</div>`}
+      ${all.length ? `<h3>${label}</h3><div class="grid">${all.map(v=>videoCard(v)).join("")}</div>` : `<div class="empty">No videos yet.</div>`}
       ${pubVideos().length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
     `;
   }
