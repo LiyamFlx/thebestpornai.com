@@ -142,22 +142,29 @@ async function main() {
     console.log('Patching catalog.js ...');
     let content = fs.readFileSync(CATALOG_PATH, 'utf8');
 
-    // Find the last occurrence of the videos closing
-    // Strategy: find the last "  ]," that closes the videos array (before the rest of DATA)
-    const lastVideosClose = content.lastIndexOf('  ],');
-    if (lastVideosClose === -1) {
-      console.error('Could not find safe place to patch. Please paste manually.');
+    // Find the "videos: [" array specifically, then its matching closing "  ],"
+    // (NOT content.lastIndexOf('  ],') on the whole file, which finds whatever
+    // array happens to close last textually — e.g. `users:` right before `flags:` —
+    // and silently corrupts the catalog by inserting entries into the wrong array).
+    const videosStart = content.indexOf('videos: [');
+    if (videosStart === -1) {
+      console.error('Could not find "videos: [" in catalog.js. Please paste manually.');
+      return;
+    }
+    const videosClose = content.indexOf('\n  ],', videosStart);
+    if (videosClose === -1) {
+      console.error('Could not find the closing "  ]," for the videos array. Please paste manually.');
       return;
     }
 
-    // Insert before the last   ],
-    const before = content.slice(0, lastVideosClose);
-    const after = content.slice(lastVideosClose);
+    // Insert right before that closing bracket.
+    const before = content.slice(0, videosClose);
+    const after = content.slice(videosClose);
 
-    const newContent = before + '\n' + snippet + '\n' + after;
+    const newContent = before + '\n' + snippet + after;
 
     fs.writeFileSync(CATALOG_PATH, newContent);
-    console.log('Patched! Now run: npm run build && node deploy.js --apply');
+    console.log('Patched into the videos: [] array. Now run: npm run build && node deploy.js --apply');
   } else {
     console.log('Tip: rerun with --patch to auto-insert (make a backup first).');
     console.log('After editing catalog:');
