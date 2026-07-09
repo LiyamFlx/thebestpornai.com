@@ -35,12 +35,12 @@ import { esc, mediaUrl, ytId, creatorName, fmt } from './catalog.js';
 
 export function playerEmbed(v){
   const yt = ytId(v.src);
-  if(yt) return `<iframe class="player" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  if(yt) return `<div class="player-wrap"><iframe class="player" src="https://www.youtube.com/embed/${yt}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
   if(v.src) {
     const poster = v.thumb ? ` poster="${mediaUrl(v.thumb)}"` : '';
-    return `<video class="player" src="${mediaUrl(v.src)}" controls autoplay${poster}></video>`;
+    return `<div class="player-wrap"><video class="player" src="${mediaUrl(v.src)}" controls autoplay${poster}></video></div>`;
   }
-  return `<div class="player">VIDEO STREAM — ${esc(v.title)}</div>`;
+  return `<div class="player-wrap"><div class="player">VIDEO STREAM — ${esc(v.title)}</div></div>`;
 }
 
 export function videoCard(v, opts={}){

@@ -162,8 +162,10 @@ async function main() {
     console.log('  npm run deploy:apply');
     console.log('or');
     console.log('  BUNNY_STORAGE_KEY=xxx node deploy.js --apply');
-  } else {
+  } else if (failed === 0) {
     console.log('\n✅ Files uploaded to Bunny Storage.');
+  } else {
+    console.log(`\n❌ ${failed} file(s) failed to upload. Fix the error above and re-run before purging cache.`);
   }
 
   // Always remind about purge — this is the #1 source of "changes not live"

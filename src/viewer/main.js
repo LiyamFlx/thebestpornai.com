@@ -30,6 +30,7 @@ let vstate = {
   favorites:[], later:[], history:[], downloads:[],
   subs:["c1","c2"],
   homeFilter:"all",   // "all" | "movies" | "scenes" | "clips"
+  homeSort:"none",    // "none" | "latest" | "likes" | "views"
   commentPage: 1,     // comments paginated at COMMENTS_PER_PAGE
   commentSort: "new", // owned by state, not read back from the DOM mid-render
   searchQuery: "",    // search is a real page in the render pipeline now
@@ -39,6 +40,7 @@ let vstate = {
 const COMMENTS_PER_PAGE = 20;
 const HISTORY_MAX = 50;
 function setHomeFilter(f){ vstate.homeFilter = f; render(); }
+function setHomeSort(s){ vstate.homeSort = s; render(); }
 
 function pushHistory(id){
   if(vstate.history.includes(id)) return;
@@ -260,9 +262,21 @@ const highlights = () => pubVideos().filter(v=>v.level==="highlight");
 
 function homeFilterBar(){
   const filters = [["all","All"],["movies","Movies"],["scenes","Scenes"],["clips","Clips"]];
+  const sorts = [["none","Default"],["latest","Latest"],["likes","Most Liked"],["views","Most Viewed"]];
   return `<div class="pill-row home-filter-bar">
     ${filters.map(([key,label])=>`<button class="filter-pill ${vstate.homeFilter===key?'active':''}" onclick="setHomeFilter('${key}')">${label}</button>`).join("")}
+  </div>
+  <div class="pill-row home-sort-bar">
+    ${sorts.map(([key,label])=>`<button class="filter-pill ${vstate.homeSort===key?'active':''}" onclick="setHomeSort('${key}')">${label}</button>`).join("")}
   </div>`;
+}
+
+function sortedVideos(sort){
+  const vids = pubVideos().slice();
+  if(sort==="latest") return vids.sort((a,b)=>b.uploaded.localeCompare(a.uploaded));
+  if(sort==="likes") return vids.sort((a,b)=>b.likes-a.likes);
+  if(sort==="views") return vids.sort((a,b)=>b.views-a.views);
+  return vids;
 }
 
 const HERO_VIDEO_ID = 470; // pinned homepage hero — update this id to change it
@@ -271,6 +285,19 @@ function renderHome(){
   if(!hero) return `<div class="empty">No videos available yet.</div>`;
   const top = trending();   // compute once; reused by the two rows below
   const filter = vstate.homeFilter;
+  const sort = vstate.homeSort;
+
+  // A non-default sort takes priority over the Movies/Scenes/Clips filter and
+  // replaces the usual row set with one flat grid, same pattern as those filters.
+  if(sort!=="none"){
+    const label = sort==="latest" ? "Latest" : sort==="likes" ? "Most Liked" : "Most Viewed";
+    const all = sortedVideos(sort).slice(0, vstate.limit);
+    return `
+      ${homeFilterBar()}
+      ${all.length ? rowSection(label, all) : `<div class="empty">No videos yet.</div>`}
+      ${pubVideos().length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
+    `;
+  }
 
   // Movies/Scenes/Clips filters replace the usual row set with a focused view;
   // "all" (the default) keeps today's full homepage layout unchanged.
@@ -460,8 +487,9 @@ function renderWatch(){
     </div>`;
   return `
     <div class="watch">
+      ${playerEmbed(v)}
+      <div class="watch-body">
       <div>
-        ${playerEmbed(v)}
         <h2 class="watch-title">${esc(v.title)}</h2>
         <p class="sub watch-sub" id="watchSub"><span class="ic-eye">👁</span> ${fmt(v.views)} views <span class="dot-sep">•</span> ${esc(v.uploaded)}</p>
         ${(v.categories?.length || v.category || v.tags?.length) ? `<div class="video-tags">
@@ -516,6 +544,7 @@ function renderWatch(){
       <div class="watch-side">
         <h3 style="margin-top:0">Suggested Videos</h3>
         ${related.map(suggestedCard).join("")}
+      </div>
       </div>
     </div>`;
 }
@@ -906,6 +935,7 @@ window.doSearch = doSearch;
 window.render = render;
 window.toast = toast;
 window.setHomeFilter = setHomeFilter;
+window.setHomeSort = setHomeSort;
 window.openMovie = openMovie;
 window.openCreator = openCreator;
 window.setCommentSort = setCommentSort;

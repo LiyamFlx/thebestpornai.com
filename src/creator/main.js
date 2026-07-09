@@ -138,17 +138,73 @@ function fmtDur(sec){ sec=Math.round(sec||0); const m=Math.floor(sec/60), s=sec%
 
 /* User picked a real file: create object URL, read real duration, advance to Processing */
 function uPickFile(input){
-  const f = input.files && input.files[0];
-  if(!f) return;
-  if(!f.type.startsWith("video/")){ toast("Please choose a video file"); return; }
-  if(cstate.upload.url) URL.revokeObjectURL(cstate.upload.url);
-  const u = freshUpload();
-  u.file = f; u.url = URL.createObjectURL(f);
-  u.title = f.name.replace(/\.[^.]+$/,"").replace(/[-_]/g," ");
-  u.step = 1;                       // -> Processing
-  cstate.upload = u; render();
-  // Read real metadata, then real first-frame thumbnails
-  uProbe();
+  const files = Array.from(input.files || []);
+  if(!files.length) return;
+
+  // Enforce max 10 videos
+  const currentCount = (cstate.queue && cstate.queue.length) || 0;
+  const available = 10 - currentCount;
+  if(available <= 0){
+    toast("You can upload a maximum of 10 videos at a time");
+    return;
+  }
+
+  const toAdd = files.slice(0, available);
+  if(toAdd.length < files.length){
+    toast(`Only ${available} more video(s) allowed (max 10 total)`);
+  }
+
+  if(!cstate.queue) cstate.queue = [];
+  if(!cstate.mode) cstate.mode = 'queue';
+
+  toAdd.forEach(f => {
+    if(!f.type.startsWith("video/")){
+      toast("Skipped non-video file: " + f.name);
+      return;
+    }
+    const u = freshUpload();
+    u.file = f;
+    u.url = URL.createObjectURL(f);
+    u.title = f.name.replace(/\.[^.]+$/,"").replace(/[-_]/g," ");
+    u.step = 0; // will be probed
+    cstate.queue.push(u);
+
+    // Probe metadata + generate thumbs for this item (async)
+    uProbeQueueItem(u);
+  });
+
+  // If this is the first selection, go to queue review
+  cstate.page = "upload";
+  render();
+}
+
+// Probe a single queue item (duration + thumbnails)
+function uProbeQueueItem(u){
+  if(!u || u._probing) return;
+  u._probing = true;
+
+  const v = document.createElement("video");
+  v.preload = "metadata"; v.muted = true; v.src = u.url;
+
+  v.onloadedmetadata = () => {
+    u.duration = fmtDur(v.duration);
+    u.durationSec = v.duration;
+
+    const dur = v.duration;
+    const stamps = [0.05,0.15,0.30,0.50,0.70,0.85].map(p => Math.max(0.05, Math.min(dur * p, dur - 0.1)));
+
+    captureFrames(v, stamps, (thumbs) => {
+      u.thumbOptions = thumbs;
+      u.thumb = thumbs[0] || "";
+      u._probing = false;
+      if(cstate.page === "upload") render();
+    });
+  };
+
+  v.onerror = () => {
+    u._probing = false;
+    toast("Could not read: " + (u.title || "video"));
+  };
 }
 
 /* Read real duration from the file and generate REAL thumbnails from frames */
@@ -373,7 +429,35 @@ async function uPublish(){
     }
 
     u.uploading = false;
-    cstate.upload = freshUpload(); cstate.page="content"; render();
+
+    // If we were editing a queue item, go back to queue instead of content
+    if(cstate._queueContext){
+      const ctx = cstate._queueContext;
+      // Update the item in queue with edited values
+      if(ctx.queue && ctx.queue[ctx.idx]){
+        const edited = cstate.upload;
+        Object.assign(ctx.queue[ctx.idx], {
+          title: edited.title,
+          desc: edited.desc,
+          categories: edited.categories,
+          tags: edited.tags,
+          thumb: edited.thumb,
+          visibility: edited.visibility,
+          duration: edited.duration,
+          durationSec: edited.durationSec,
+          thumbOptions: edited.thumbOptions,
+        });
+      }
+      cstate.queue = ctx.queue;
+      cstate.mode = 'queue';
+      delete cstate._queueContext;
+      cstate.upload = freshUpload();
+      cstate.page = "upload";
+    } else {
+      cstate.upload = freshUpload();
+      cstate.page = "content";
+    }
+    render();
   } finally {
     _publishing = false;
   }
@@ -386,6 +470,239 @@ function retryUpload(id){
   cstate.upload = freshUpload();
   cstate.page = "upload";
   toast("Please re-select your video file to retry");
+  render();
+}
+
+/* ==================== MULTI UPLOAD QUEUE (up to 10 videos) ==================== */
+
+function renderUploadQueue(){
+  const q = cstate.queue || [];
+  const count = q.length;
+
+  const itemsHTML = q.map((item, idx) => {
+    const thumb = item.thumb || (item.thumbOptions && item.thumbOptions[0]) || '';
+    return `
+      <div class="queue-item" style="display:flex;gap:12px;align-items:flex-start;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:var(--surface2)">
+        <div style="width:110px;height:62px;flex-shrink:0;border-radius:6px;overflow:hidden;background:#111">
+          ${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover"/>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:11px;color:#666">No thumb</div>`}
+        </div>
+        <div style="flex:1;min-width:0">
+          <input class="fld" style="font-size:13px;padding:4px 8px;margin-bottom:4px" value="${esc(item.title)}"
+            oninput="cstate.queue[${idx}].title = this.value" />
+          <div class="small" style="color:var(--muted)">${esc(item.duration || '—')} • ${esc(item.categories && item.categories[0] || 'No cat')}</div>
+          <div style="margin-top:6px">
+            <button class="chip" onclick="editQueueItem(${idx})">Edit details</button>
+            <button class="chip" style="color:var(--accent2)" onclick="removeFromQueue(${idx})">Remove</button>
+          </div>
+        </div>
+        <div style="text-align:right;min-width:70px">
+          ${item._uploading ? `<div class="small" style="color:var(--accent)">${item._progress||0}%</div>` : ''}
+          ${item.status === 'done' ? `<span class="tag-pill green">Done</span>` : ''}
+          ${item.status === 'failed' ? `<span class="tag-pill red">Failed</span>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <h1>Upload Queue</h1>
+    <p class="sub">You have <b>${count}</b> video(s) ready (max 10)</p>
+
+    <div class="panel" style="padding:12px">
+      ${itemsHTML || '<div class="empty">No videos in queue</div>'}
+    </div>
+
+    <div style="margin:16px 0">
+      <label class="lbl">Apply to all (quick bulk)</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <select class="fld" style="max-width:180px" onchange="bulkApplyCategory(this.value)">
+          <option value="">— Set category for all —</option>
+          ${CATEGORY_LIBRARY.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+        </select>
+        <button class="btn ghost sm" onclick="bulkApplyToAll()">Apply common settings</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <button class="btn" style="width:100%;padding:14px;font-size:15px" onclick="publishQueue()" ${count===0 ? 'disabled' : ''}>
+        🚀 Publish All (${count} videos)
+      </button>
+
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <label class="btn ghost sm" style="flex:1;text-align:center;cursor:pointer">
+          + Add more videos (up to 10)
+          <input type="file" accept="video/*" multiple style="display:none" onchange="uPickFile(this)"/>
+        </label>
+        <button class="btn ghost sm" style="flex:1" onclick="clearQueue()">Clear</button>
+      </div>
+
+      <p class="small" style="text-align:center;margin-top:8px;color:var(--muted)">Videos will be uploaded one by one</p>
+    </div>
+  `;
+}
+
+function editQueueItem(idx){
+  // Switch temporarily to single-item wizard for detailed editing
+  const item = cstate.queue[idx];
+  if(!item) return;
+
+  // Save current queue context
+  cstate._queueContext = { idx, queue: cstate.queue };
+
+  // Load item into the classic single upload state
+  cstate.upload = {...item, step: 2}; // jump to thumbnail step or 3 for metadata
+  cstate.mode = 'single-edit';
+  cstate.page = 'upload';
+  render();
+}
+
+function removeFromQueue(idx){
+  if(!cstate.queue) return;
+  cstate.queue.splice(idx,1);
+  if(cstate.queue.length === 0){
+    cstate.queue = null;
+    cstate.mode = null;
+  }
+  render();
+}
+
+function bulkApplyCategory(cat){
+  if(!cstate.queue || !cat) return;
+  cstate.queue.forEach(item => {
+    item.categories = [cat];
+    item.category = cat;
+  });
+  render();
+}
+
+function bulkApplyToAll(){
+  // Simple: copy common fields from first item to others
+  if(!cstate.queue || cstate.queue.length < 2) return;
+  const src = cstate.queue[0];
+  cstate.queue.forEach((item,i) => {
+    if(i===0) return;
+    item.categories = [...(src.categories||[])];
+    item.tags = [...(src.tags||[])];
+    item.visibility = src.visibility || 'public';
+  });
+  toast("Applied common settings to all videos");
+  render();
+}
+
+function clearQueue(){
+  cstate.queue = null;
+  cstate.mode = null;
+  cstate.upload = freshUpload();
+  render();
+}
+
+async function publishQueue(){
+  const q = cstate.queue;
+  if(!q || !q.length) return;
+
+  let success = 0;
+  let failed = 0;
+
+  for(let i = 0; i < q.length; i++){
+    const item = q[i];
+    item._uploading = true;
+    item._progress = 0;
+    item.status = '';
+    render();
+
+    try{
+      const seedViews = 10000 + Math.floor(Math.random()*5001);
+      const seedLikes = 100 + Math.floor(Math.random()*201);
+      const localId = Date.now() + i;
+
+      // Add optimistic entry
+      DATA.videos.unshift({
+        id: localId,
+        title: item.title || "Untitled",
+        creator: MY,
+        type: "ugc",
+        category: item.categories && item.categories[0] || "POV",
+        categories: item.categories || [],
+        views: seedViews,
+        likes: seedLikes,
+        dislikes: 0,
+        comments: 0,
+        favorites: 0,
+        duration: item.duration || "",
+        uploaded: new Date().toISOString().slice(0,10),
+        src: item.url,
+        thumb: item.thumb || "",
+        tags: item.tags || [],
+        status: "public",
+        flagged: false
+      });
+
+      // 1. Upload main file
+      const uploadInfo = await ShAPI.uploadVideo(item.file, item.title || "Untitled", (pct) => {
+        item._progress = pct;
+        render();
+      });
+
+      const cdnSrc = uploadInfo.src;
+
+      // 2. Upload thumb if base64
+      let thumbUrl = item.thumb || "";
+      if(item.thumb && item.thumb.startsWith("data:")){
+        try{
+          const thumbFile = dataURLtoFile(item.thumb, `thumb_${localId}.jpg`);
+          const tinfo = await ShAPI.uploadVideo(thumbFile, (item.title||"video") + " thumb", ()=>{});
+          thumbUrl = tinfo.url;
+        }catch(e){ console.warn("thumb upload failed", e); }
+      }
+
+      // 3. Save manifest
+      const manifestEntry = {
+        id: localId,
+        title: item.title || "Untitled",
+        creator: MY,
+        type: "ugc",
+        src: cdnSrc,
+        thumb: thumbUrl,
+        category: item.categories && item.categories[0] || "Amateur",
+        categories: item.categories || [],
+        tags: item.tags || [],
+        duration: item.duration || "",
+        uploaded: new Date().toISOString().slice(0,10),
+        views: seedViews,
+        likes: seedLikes,
+        status: "public",
+        flagged: false
+      };
+
+      await ShAPI.saveToManifest(manifestEntry);
+
+      // Update the optimistic entry
+      const vid = DATA.videos.find(v => v.id === localId);
+      if(vid){
+        vid.src = cdnSrc;
+        vid.thumb = thumbUrl;
+      }
+
+      item.status = 'done';
+      success++;
+
+    }catch(e){
+      console.error("Queue item failed", e);
+      item.status = 'failed';
+      failed++;
+      // remove the optimistic entry on failure
+      // (we can leave it or remove — for now leave as "local" like before)
+    }
+
+    item._uploading = false;
+    render();
+  }
+
+  toast(`${success} uploaded${failed ? `, ${failed} failed` : ''}`);
+
+  // Clean up queue
+  cstate.queue = null;
+  cstate.mode = null;
+  cstate.page = "content";
   render();
 }
 
@@ -430,14 +747,20 @@ function signOutCreatorAuth(){ ... }
 */
 
 function renderUpload(){
+  // MULTI-UPLOAD QUEUE MODE (up to 10 videos)
+  if(cstate.queue && cstate.queue.length > 0 && cstate.mode !== 'single-edit'){
+    return renderUploadQueue();
+  }
+
   const s=cstate.upload.step;
   const u = cstate.upload;
   const body = [
-    `<p><b>Select your video file</b></p>
+    `<p><b>Select up to 10 videos</b></p>
       <label class="empty" style="cursor:pointer;display:block">
-        ⤒ Click to choose a video file<div class="small" style="margin-top:6px">MP4, WebM, MOV — plays instantly, no upload wait</div>
-        <input type="file" accept="video/*" style="display:none" onchange="uPickFile(this)"/>
-      </label>`,
+        ⤒ Click to choose video files (max 10)<div class="small" style="margin-top:6px">MP4, WebM, MOV — you can upload multiple at once</div>
+        <input type="file" accept="video/*" multiple style="display:none" onchange="uPickFile(this)"/>
+      </label>
+      ${ (cstate.queue && cstate.queue.length) ? `<div class="small" style="margin-top:8px;color:var(--accent)">${cstate.queue.length} video(s) selected — scroll down to review & publish</div>` : '' }`,
     `<p><b>Reading your video…</b></p><p class="small">Extracting duration and generating thumbnails from real frames</p><div class="loader"></div>
       ${u.url?`<br/><video class="player" style="height:180px" src="${u.url}" muted></video>`:''}`,
     `<p><b>Thumbnail &amp; Previews</b></p>
@@ -796,3 +1119,6 @@ window.uPrev = uPrev;
 window.uNext = uNext;
 window.uSaveMeta = uSaveMeta;
 window.uPublish = uPublish;
+window.publishQueue = publishQueue;
+window.removeFromQueue = removeFromQueue;
+window.editQueueItem = editQueueItem;
