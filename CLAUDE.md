@@ -97,6 +97,28 @@ Steps to add videos:
      duration:"0:10", uploaded:"2026-06-29", src:"../media/<exact filename>.mp4",
      tags:["Cumshot","Blowjob"], status:"published", flagged:false }
    ```
+   **Or generate + insert these automatically** for every file already in a Bunny
+   folder, instead of hand-typing entries:
+   ```bash
+   BUNNY_STORAGE_KEY=xxx npm run add-videos -- "folder name" --category "..." --tags "a,b" --patch
+   ```
+   `--patch` writes directly into `src/shared/catalog.js`. **Always sanity-check
+   the result immediately after** — see "Known incident" below for why this step
+   is non-negotiable, not optional:
+   ```bash
+   node -e "
+   const fs = require('fs');
+   const src = fs.readFileSync('src/shared/catalog.js', 'utf8')
+     .replace('const DATA = {', 'global.DATA = {')
+     .replace(/export \{[^}]*\};?\s*\$/, '');
+   eval(src);
+   console.log('videos:', DATA.videos.length);
+   console.log('flags:', DATA.flags.length);   // should be unchanged (5) unless you meant to touch a flag
+   "
+   ```
+   If `videos:` didn't grow by exactly the number of files in the folder, or
+   `flags:` changed at all, **stop** — the insertion landed in the wrong array.
+   Inspect `git diff src/shared/catalog.js` before building/deploying.
 4. Verify each CDN URL returns 200:
    `curl -sI "https://streamhub-media.b-cdn.net/<urlencoded filename>"`
 5. Deploy: run `npm run build` and upload the resulting `dist/` output to Bunny
@@ -136,7 +158,12 @@ three apps share one catalog. **Edit `src/shared/catalog.js` only** — no more
 - **Do not commit raw `.mp4` files.** They belong on Bunny, not in git. `.gitignore`
   excludes `media/**/*.mp4` (and `.vercelignore` excludes `media/*.mp4`). The only
   tracked videos are the royalty-free `media/sample-*.mp4`.
-- Default branch is `master`. Pushing to it triggers Vercel (but not the live domain).
+- Default branch is `main` (GitHub default branch and local git both point here;
+  `master` was deleted 2026-07-09). Pushing to it triggers Vercel (but not the
+  live domain) — **if Vercel's dashboard still lists `master` as the Production
+  Branch, update it to `main`** (Project Settings → Git); the CLI/API field for
+  this is `link.productionBranch` on `/v9/projects/{id}` but there's no simple
+  CLI command to patch it — use the dashboard.
 
 ## Subfolders on Bunny
 
@@ -247,3 +274,18 @@ key is not a secret, but set them explicitly if the project URL/key ever changes
 - "Purged but still old" → the HTML in **Bunny storage** is old; re-upload the 4 files.
 - "Video 404s" → filename mismatch between catalog `src` and Bunny storage.
 - Don't trust sequential numbering — list the storage zone and match exactly.
+- **"Video count on the homepage hasn't moved in days" (2026-07-09 incident)** →
+  `scripts/add-bunny-folder.js`'s `--patch` mode used
+  `content.lastIndexOf('  ],')` over the whole `catalog.js` file to find where
+  to insert new entries. That finds whichever array *happens to close last in
+  the file text* — which was `users:`, right before `flags:` — not
+  `DATA.videos` specifically. Every run silently inserted new video objects
+  into `DATA.flags`, which nothing ever reads: no error, no crash, just
+  content that quietly never appeared. 215 already-uploaded videos across 3
+  Bunny folders sat invisible for up to 11 days before this was caught.
+  Fixed: the script now finds `videos: [` explicitly and inserts before
+  *that* array's own closing bracket. The lesson generalizes beyond this one
+  script: **any automated or manual edit to `catalog.js` needs an immediate
+  `videos.length` / `flags.length` sanity check** (see "Adding videos" above)
+  before you build and deploy — don't assume a patch landed where you meant it
+  to just because the command exited without error.
