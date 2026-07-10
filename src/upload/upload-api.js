@@ -4,7 +4,11 @@
 import { ShAuth } from "../shared/streamhub-api.js";
 
 const EDGE_BASE = "https://dabfxysxcngijcxxekzc.supabase.co/functions/v1";
-const UPLOAD_RELAY = "/api/upload"; // existing Vercel Bunny Storage relay
+// The static site is served from Bunny, which has NO /api/* — the upload relay
+// only exists on Vercel. Call it absolutely so the browser reaches the real
+// function (it sends Access-Control-Allow-Origin: * so cross-origin is fine).
+const API_BASE = "https://x-flxx.vercel.app";
+const UPLOAD_RELAY = `${API_BASE}/api/upload`;
 
 /* attribute-safe transport (repo's jsq/jsdec convention) */
 export const jsq = (s) => encodeURIComponent(String(s));
