@@ -946,9 +946,49 @@ window.toast = toast;
 // always saw the user as signed out even right after signing in).
 if (typeof ShAuth !== "undefined") ShAuth.captureSessionFromUrl();
 
+// Inline magic-link sign-in for uploads. The homepage has no sign-in UI and
+// #choose can't sign anyone in, so dropping a file while signed out used to
+// dead-end. Show a small email prompt right here; the magic link returns to
+// this page, where captureSessionFromUrl() (above) persists the session.
+function promptUploadSignIn() {
+  if (document.getElementById("upload-signin")) return;
+  const wrap = document.createElement("div");
+  wrap.id = "upload-signin";
+  wrap.innerHTML = `
+    <div class="usi-backdrop"></div>
+    <form class="usi-box">
+      <div class="usi-title">Sign in to upload</div>
+      <div class="usi-sub">We'll email you a one-tap sign-in link.</div>
+      <input class="usi-email" type="email" placeholder="you@email.com" required autocomplete="email" />
+      <button class="usi-send" type="submit">Send link</button>
+      <div class="usi-msg" aria-live="polite"></div>
+      <button class="usi-close" type="button" aria-label="Close">×</button>
+    </form>`;
+  document.body.appendChild(wrap);
+  const close = () => wrap.remove();
+  wrap.querySelector(".usi-backdrop").addEventListener("click", close);
+  wrap.querySelector(".usi-close").addEventListener("click", close);
+  const email = wrap.querySelector(".usi-email");
+  email.focus();
+  wrap.querySelector(".usi-box").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = wrap.querySelector(".usi-msg");
+    const btn = wrap.querySelector(".usi-send");
+    btn.disabled = true; msg.textContent = "Sending…";
+    try {
+      await ShAuth.sendMagicLink(email.value.trim());
+      msg.textContent = "Check your email for the sign-in link, then drop your file again.";
+      btn.disabled = false;
+    } catch (err) {
+      msg.textContent = "Couldn't send link: " + (err?.message || "try again");
+      btn.disabled = false;
+    }
+  });
+}
+
 // Global drag-and-drop upload (behind flag; flip to true after acceptance).
 if (vstate.flags.globalUpload) {
-  mountDropzone({ onNeedLogin: () => { location.hash = "#choose"; toast("Sign in to upload"); } });
+  mountDropzone({ onNeedLogin: promptUploadSignIn });
 }
 // Merge DB-published live uploads into the catalog on load (best-effort).
 mergeLiveUploads().then(() => { if (typeof render === "function") render(); });
