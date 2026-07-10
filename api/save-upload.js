@@ -69,7 +69,7 @@ export default async function handler(req, res) {
     const supabaseKey = process.env.SUPABASE_KEY || "sb_publishable_moBiV9AidT0XkL-L6wilYw_Jfn25YDr";
     
     try {
-      const dbRes = await fetch(`${supabaseUrl}/rest/v1/uploads`, {
+      const dbRes = await fetch(`${supabaseUrl}/rest/v1/uploads_legacy`, {
         method: "POST",
         headers: {
           "apikey": supabaseKey,

@@ -192,14 +192,14 @@ const ShAPI = {
      everyone (until uploads are folded into the catalog build). Requires
      sign-in — RLS restricts uploads inserts to the `authenticated` role. */
   async saveUploadedVideo(meta){
-    const rows = await _authedReq(`/uploads`, {
+    const rows = await _authedReq(`/uploads_legacy`, {
       method:"POST", headers:{ "Prefer":"return=representation" },
       body: JSON.stringify(meta),
     });
     return rows && rows[0];
   },
   async listUploadedVideos(){
-    return (await _req(`/uploads?select=*&order=created_at.desc`)) || [];
+    return (await _req(`/uploads_legacy?select=*&order=created_at.desc`)) || [];
   },
   async saveToManifest(entry){
     // TEMP: Auth removed for now to unblock uploads. No sign-in required.

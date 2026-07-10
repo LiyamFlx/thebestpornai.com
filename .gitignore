@@ -26,3 +26,8 @@ media/**/*.mkv
 
 # Brainstorming visual-companion sessions (ephemeral mockups, not source)
 .superpowers/
+
+# Environment secrets — never commit
+.env
+.env.*
+!.env.example
