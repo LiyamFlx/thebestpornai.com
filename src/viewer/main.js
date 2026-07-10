@@ -940,6 +940,12 @@ window.doSearch = doSearch;
 window.render = render;
 window.toast = toast;
 
+// Magic-link sign-in returns to the viewer homepage with tokens in the URL
+// hash. Capture + persist them here so isSignedIn() works on this page too
+// (previously only manager/creator did this, so uploads from the homepage
+// always saw the user as signed out even right after signing in).
+if (typeof ShAuth !== "undefined") ShAuth.captureSessionFromUrl();
+
 // Global drag-and-drop upload (behind flag; flip to true after acceptance).
 if (vstate.flags.globalUpload) {
   mountDropzone({ onNeedLogin: () => { location.hash = "#choose"; toast("Sign in to upload"); } });
