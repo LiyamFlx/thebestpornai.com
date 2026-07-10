@@ -31,3 +31,9 @@ media/**/*.mkv
 .env
 .env.*
 !.env.example
+
+# One-off local Bunny maintenance scripts (not part of the app)
+fix-bunny-structure.js
+migrate-bunny.sh
+organize-bunny.js
+organize_bunny.py
