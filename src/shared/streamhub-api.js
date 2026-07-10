@@ -58,6 +58,52 @@ const SH_API_ENABLED = !!(SUPABASE_URL && SUPABASE_KEY);
 /* ---------- AUTH (magic link / email OTP via Supabase GoTrue) ---------- */
 const _AUTH = SUPABASE_URL.replace(/\/$/, "") + "/auth/v1";
 const ShAuth = {
+  /* Persist a token response ({access_token, refresh_token, expires_in}) as the
+     local session. Shared by password sign-in and sign-up. */
+  _persistToken(t){
+    if(!t || !t.access_token) return null;
+    const sess = { access_token: t.access_token, refresh_token: t.refresh_token,
+                   expires_at: Date.now() + ((t.expires_in||3600)*1000) };
+    localStorage.setItem("sh_session", JSON.stringify(sess));
+    return sess;
+  },
+  /* Email + password sign-in. If the account doesn't exist yet, create it and
+     sign in immediately (no confirmation email — requires email confirmation
+     to be OFF in the Supabase Auth settings). One step, no rate-limited emails.
+     Returns the session; throws with a human message on real failure. */
+  async signInWithPassword(email, password){
+    email = String(email||"").trim();
+    if(!email || !password) throw new Error("Enter an email and password");
+    // 1. Try to log in with an existing account.
+    let r = await fetch(_AUTH + "/token?grant_type=password", {
+      method:"POST",
+      headers:{ "apikey": SUPABASE_KEY, "Content-Type":"application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    if(r.ok){ return this._persistToken(await r.json()); }
+    // 2. Login failed. If the account simply doesn't exist, create it.
+    let err={}; try{ err = await r.json(); }catch(_){}
+    const code = err.error_code || err.error || "";
+    const msg = (err.msg || err.error_description || "").toLowerCase();
+    const looksMissing = code==="invalid_credentials" || msg.includes("invalid login")
+      || msg.includes("invalid credentials");
+    if(looksMissing){
+      const s = await fetch(_AUTH + "/signup", {
+        method:"POST",
+        headers:{ "apikey": SUPABASE_KEY, "Content-Type":"application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const sj = await s.json().catch(()=>({}));
+      if(s.ok && sj.access_token){ return this._persistToken(sj); }
+      // signup returned a user but no session => email confirmation is still ON.
+      if(s.ok && !sj.access_token){
+        throw new Error("Account created but sign-in is disabled until email confirmation is turned off in Supabase.");
+      }
+      throw new Error(sj.msg || sj.error_description || "Could not create account");
+    }
+    // Wrong password on an existing account (or other error).
+    throw new Error(err.msg || err.error_description || "Incorrect email or password");
+  },
   /* Email the user a magic sign-in link. redirectTo brings them back here. */
   async sendMagicLink(email){
     const r = await fetch(_AUTH + "/otp", {

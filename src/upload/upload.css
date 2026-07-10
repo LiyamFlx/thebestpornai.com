@@ -39,7 +39,7 @@
 #upload-signin .usi-box{position:relative;background:#181818;border:1px solid #333;border-radius:14px;padding:24px;width:min(360px,90vw);color:#eee;box-shadow:0 20px 60px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:10px}
 #upload-signin .usi-title{font-size:18px;font-weight:700}
 #upload-signin .usi-sub{font-size:13px;color:#9a9a9a}
-#upload-signin .usi-email{padding:11px 12px;border-radius:9px;border:1px solid #444;background:#0f0f0f;color:#fff;font-size:14px}
+#upload-signin .usi-email,#upload-signin .usi-pass{padding:11px 12px;border-radius:9px;border:1px solid #444;background:#0f0f0f;color:#fff;font-size:14px}
 #upload-signin .usi-send{padding:11px 12px;border-radius:9px;border:none;background:#4ade80;color:#04210f;font-weight:700;cursor:pointer}
 #upload-signin .usi-send:disabled{opacity:.5;cursor:not-allowed}
 #upload-signin .usi-msg{font-size:12.5px;color:#bcbcbc;min-height:16px}

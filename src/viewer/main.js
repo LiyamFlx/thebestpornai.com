@@ -947,10 +947,9 @@ window.toast = toast;
 // (Magic-link session is captured at the very top of this module, before
 // ageGate, so isSignedIn() is already correct by the time we get here.)
 
-// Inline magic-link sign-in for uploads. The homepage has no sign-in UI and
-// #choose can't sign anyone in, so dropping a file while signed out used to
-// dead-end. Show a small email prompt right here; the magic link returns to
-// this page, where captureSessionFromUrl() (above) persists the session.
+// Inline email + password sign-in for uploads. No magic link, no confirmation
+// email, no rate limits — enter email + password once and you're in. First
+// time an email is used it auto-creates the account (signInWithPassword).
 function promptUploadSignIn() {
   if (document.getElementById("upload-signin")) return;
   const wrap = document.createElement("div");
@@ -959,9 +958,10 @@ function promptUploadSignIn() {
     <div class="usi-backdrop"></div>
     <form class="usi-box">
       <div class="usi-title">Sign in to upload</div>
-      <div class="usi-sub">We'll email you a one-tap sign-in link.</div>
+      <div class="usi-sub">Enter an email and password. New here? We'll create your account automatically.</div>
       <input class="usi-email" type="email" placeholder="you@email.com" required autocomplete="email" />
-      <button class="usi-send" type="submit">Send link</button>
+      <input class="usi-pass" type="password" placeholder="Password (min 6 characters)" required minlength="6" autocomplete="current-password" />
+      <button class="usi-send" type="submit">Sign in / Create account</button>
       <div class="usi-msg" aria-live="polite"></div>
       <button class="usi-close" type="button" aria-label="Close">×</button>
     </form>`;
@@ -975,13 +975,15 @@ function promptUploadSignIn() {
     e.preventDefault();
     const msg = wrap.querySelector(".usi-msg");
     const btn = wrap.querySelector(".usi-send");
-    btn.disabled = true; msg.textContent = "Sending…";
+    const pass = wrap.querySelector(".usi-pass");
+    btn.disabled = true; msg.textContent = "Signing in…";
     try {
-      await ShAuth.sendMagicLink(email.value.trim());
-      msg.textContent = "Check your email for the sign-in link, then drop your file again.";
-      btn.disabled = false;
+      await ShAuth.signInWithPassword(email.value.trim(), pass.value);
+      msg.textContent = "Signed in! Drop your file to upload.";
+      setTimeout(close, 900);
+      toast("Signed in — drag your file to upload");
     } catch (err) {
-      msg.textContent = "Couldn't send link: " + (err?.message || "try again");
+      msg.textContent = err?.message || "Sign-in failed, try again";
       btn.disabled = false;
     }
   });
