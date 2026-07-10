@@ -5,6 +5,10 @@ import { playerEmbed, videoCard, rowSection } from "../shared/ui.js";
 import { mountDropzone } from "../upload/global-dropzone.js";
 import { mergeLiveUploads } from "../upload/catalog-overlay.js";
 import "../upload/upload.css";
+// Capture a returning magic-link session BEFORE anything else (esp. ageGate,
+// which can redirect/re-render and drop the token from the URL). This must be
+// the first thing that runs on the viewer.
+if (typeof ShAuth !== "undefined") ShAuth.captureSessionFromUrl();
 ageGate();
 
 /* creatorName(), fmt(), toast() are shared — defined in catalog.js */
@@ -940,11 +944,8 @@ window.doSearch = doSearch;
 window.render = render;
 window.toast = toast;
 
-// Magic-link sign-in returns to the viewer homepage with tokens in the URL
-// hash. Capture + persist them here so isSignedIn() works on this page too
-// (previously only manager/creator did this, so uploads from the homepage
-// always saw the user as signed out even right after signing in).
-if (typeof ShAuth !== "undefined") ShAuth.captureSessionFromUrl();
+// (Magic-link session is captured at the very top of this module, before
+// ageGate, so isSignedIn() is already correct by the time we get here.)
 
 // Inline magic-link sign-in for uploads. The homepage has no sign-in UI and
 // #choose can't sign anyone in, so dropping a file while signed out used to

@@ -63,23 +63,32 @@ const ShAuth = {
     const r = await fetch(_AUTH + "/otp", {
       method:"POST",
       headers:{ "apikey": SUPABASE_KEY, "Content-Type":"application/json" },
-      body: JSON.stringify({ email, create_user:true, options:{ email_redirect_to: location.href.split("#")[0] } }),
+      // Always return to the site root (no hash/query), where the viewer
+      // reliably runs captureSessionFromUrl() on load. Returning to a hash
+      // route (e.g. #watch/..) raced the SPA render and dropped the token.
+      body: JSON.stringify({ email, create_user:true, options:{ email_redirect_to: location.origin + "/" } }),
     });
     if(!r.ok){ let m=""; try{ const j=await r.json(); m=j.msg||j.error_description||""; }catch(_){} throw new Error(m||("auth "+r.status)); }
     return true;
   },
-  /* If we returned from a magic link, the tokens are in the URL hash. Capture +
-     persist them, then clean the URL. Returns the session or null. */
+  /* If we returned from a magic link, Supabase puts the tokens in the URL —
+     usually the hash (#access_token=...), but depending on flow they can land
+     in the query (?access_token=...). Check BOTH, persist, then clean the URL.
+     Returns the session or null. */
   captureSessionFromUrl(){
-    const h = location.hash || "";
-    if(h.indexOf("access_token=")===-1) return null;
-    const p = new URLSearchParams(h.replace(/^#/,""));
-    const at = p.get("access_token");
-    if(!at) return null;
-    const sess = { access_token: at, refresh_token: p.get("refresh_token"), expires_at: Date.now() + (parseInt(p.get("expires_in")||"3600",10)*1000) };
+    const grab = (str) => {
+      if(!str || str.indexOf("access_token=")===-1) return null;
+      const p = new URLSearchParams(str.replace(/^[#?]/,""));
+      const at = p.get("access_token");
+      if(!at) return null;
+      return { access_token: at, refresh_token: p.get("refresh_token"),
+               expires_at: Date.now() + (parseInt(p.get("expires_in")||"3600",10)*1000) };
+    };
+    const sess = grab(location.hash) || grab(location.search);
+    if(!sess) return null;
     localStorage.setItem("sh_session", JSON.stringify(sess));
-    // strip the auth params from the hash so they don't linger / re-trigger
-    history.replaceState(null, "", location.pathname + location.search);
+    // strip the auth params (hash + query) so they don't linger / re-trigger
+    history.replaceState(null, "", location.pathname);
     return sess;
   },
   session(){
