@@ -52,13 +52,15 @@ export const ShUpload = {
   createUpload: (meta) => edge("create-upload", meta),
   finalize: (uploadId) => edge("finalize-upload", { uploadId }),
   // Bunny Storage has no TUS: "resume" = retry the PUT (handled by the manager),
-  // not byte-range resume. Sends the whole file via the Vercel relay.
-  putBytes(file, path, onProgress) {
+  // not byte-range resume. Sends the whole file via the Vercel /api/upload relay,
+  // which generates the final storage path and returns it as { src, path, url }.
+  // The returned `src` (e.g. "../media/uploads/up_...mp4") is what the catalog uses.
+  putBytes(file, onProgress) {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open("POST", UPLOAD_RELAY, true);
       xhr.setRequestHeader("Authorization", `Bearer ${tok()}`);
-      xhr.setRequestHeader("x-upload-path", path);
+      xhr.setRequestHeader("X-Filename", file.name);
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
       };

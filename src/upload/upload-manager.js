@@ -57,16 +57,26 @@ export const UploadManager = {
 
   async run(job) {
     try {
+      // 1. hash + duplicate check (before spending any upload bandwidth)
       job.status = "hashing"; emit("update", job);
       const sha = await sha256Head(job.file);
       const dup = await ShUpload.dupCheck(sha);
       if (dup.duplicate) { job.status = "error"; job.error = "duplicate"; emit("update", job); return; }
-      const path = `uploads/${Date.now()}_${job.file.name}`.replace(/\s+/g, "-");
-      const created = await ShUpload.createUpload({ bunny_path: path, title: job.title, tags: job.tags, sha256_head: sha, duration_s: 0 });
-      if (!created.ok) { job.status = "error"; job.error = created.error || "create failed"; emit("update", job); return; }
-      job.uploadId = created.uploadId; job.bunny_path = path;
+
+      // 2. upload bytes — the relay picks the final storage path and returns it.
       job.status = "uploading"; emit("update", job);
-      await this.uploadWithRetry(job, path);
+      const uploaded = await this.uploadWithRetry(job);
+      // relay returns src like "../media/uploads/up_...mp4"; store path after "media/"
+      const bunnyPath = String(uploaded.src || "").replace(/^\.\.\/media\//, "") || (uploaded.path || "").replace(/^media\//, "");
+      if (!bunnyPath) { job.status = "error"; job.error = "no path from relay"; emit("update", job); return; }
+      job.bunny_path = bunnyPath;
+
+      // 3. create the DB row now that we know the real path
+      const created = await ShUpload.createUpload({ bunny_path: bunnyPath, title: job.title, tags: job.tags, sha256_head: sha, duration_s: 0 });
+      if (!created.ok) { job.status = "error"; job.error = created.error || "create failed"; emit("update", job); return; }
+      job.uploadId = created.uploadId;
+
+      // 4. finalize -> live (no gate, owner decision)
       const fin = await ShUpload.finalize(job.uploadId);
       if (!fin.ok) { job.status = "error"; job.error = "finalize failed"; emit("update", job); return; }
       job.status = "live"; emit("update", job); emit("live", job);
@@ -77,14 +87,13 @@ export const UploadManager = {
     }
   },
 
-  async uploadWithRetry(job, path) {
+  async uploadWithRetry(job) {
     for (let attempt = 0; ; attempt++) {
       const wait = computeBackoff(attempt);
       if (wait === null) throw new Error("upload failed after retries");
       if (wait) await new Promise((r) => setTimeout(r, wait));
       try {
-        await ShUpload.putBytes(job.file, path, (p) => { job.progress = p; emit("update", job); });
-        return;
+        return await ShUpload.putBytes(job.file, (p) => { job.progress = p; emit("update", job); });
       } catch (_) {
         job.attempt = attempt + 1; emit("update", job);
       }
