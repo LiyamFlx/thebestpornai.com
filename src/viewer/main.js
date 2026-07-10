@@ -39,7 +39,7 @@ let vstate = {
   searchQuery: "",    // search is a real page in the render pipeline now
   live: {},           // id -> {like, dislike} counts layered over seed values
   limit: 36,          // simple grid pagination / load more
-  flags: { globalUpload: false },  // feature flag: site-wide drag-drop upload
+  flags: { globalUpload: true },  // feature flag: site-wide drag-drop upload
   pendingUploads: [], // uploader-only overlay of in-flight/own uploads
 };
 const COMMENTS_PER_PAGE = 20;
