@@ -2,6 +2,9 @@ import { MEDIA_BASE, DATA, esc, creatorName, fmt, toast, mediaUrl, ytId } from "
 import { ShAuth, ShAPI } from "../shared/streamhub-api.js";
 import { ageGate } from "../shared/age-gate.js";
 import { playerEmbed, videoCard, rowSection } from "../shared/ui.js";
+import { mountDropzone } from "../upload/global-dropzone.js";
+import { mergeLiveUploads } from "../upload/catalog-overlay.js";
+import "../upload/upload.css";
 ageGate();
 
 /* creatorName(), fmt(), toast() are shared — defined in catalog.js */
@@ -36,6 +39,8 @@ let vstate = {
   searchQuery: "",    // search is a real page in the render pipeline now
   live: {},           // id -> {like, dislike} counts layered over seed values
   limit: 36,          // simple grid pagination / load more
+  flags: { globalUpload: false },  // feature flag: site-wide drag-drop upload
+  pendingUploads: [], // uploader-only overlay of in-flight/own uploads
 };
 const COMMENTS_PER_PAGE = 20;
 const HISTORY_MAX = 50;
@@ -934,6 +939,13 @@ window.shareVideo = shareVideo;
 window.doSearch = doSearch;
 window.render = render;
 window.toast = toast;
+
+// Global drag-and-drop upload (behind flag; flip to true after acceptance).
+if (vstate.flags.globalUpload) {
+  mountDropzone({ onNeedLogin: () => { location.hash = "#choose"; toast("Sign in to upload"); } });
+}
+// Merge DB-published live uploads into the catalog on load (best-effort).
+mergeLiveUploads().then(() => { if (typeof render === "function") render(); });
 window.setHomeFilter = setHomeFilter;
 window.setHomeSort = setHomeSort;
 window.openMovie = openMovie;
