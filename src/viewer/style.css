@@ -34,6 +34,10 @@
 }
 .nav button:hover,.nav-link-out:hover{background:var(--surface2);color:var(--text)}
 .nav button.active{background:rgba(229,9,20,0.15);color:#fff;font-weight:600}
+.nav button.nav-upload{
+  background:var(--accent,#e50914);color:#fff;font-weight:700;margin-bottom:8px;
+}
+.nav button.nav-upload:hover{background:#ff2634;color:#fff}
 .nav button .ico,.nav-link-out .ico{width:16px;text-align:center;opacity:.9}
 .nav-link-out{margin-top:8px;border-top:1px solid var(--border,rgba(255,255,255,.08));padding-top:12px}
 
