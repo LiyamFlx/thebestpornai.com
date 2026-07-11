@@ -99,6 +99,14 @@ const ShAuth = {
       if(s.ok && !sj.access_token){
         throw new Error("Account created but sign-in is disabled until email confirmation is turned off in Supabase.");
       }
+      // signup failed because the account ALREADY exists => the login above
+      // failed only because the password was wrong. Say so clearly instead of
+      // the confusing "User already registered" dead-end.
+      const scode = sj.error_code || sj.code || "";
+      const smsg = (sj.msg || sj.error_description || "").toLowerCase();
+      if(scode==="user_already_exists" || smsg.includes("already registered") || smsg.includes("already exists")){
+        throw new Error("Wrong password for this account. Try again, or use a different email to create a new account.");
+      }
       throw new Error(sj.msg || sj.error_description || "Could not create account");
     }
     // Wrong password on an existing account (or other error).
