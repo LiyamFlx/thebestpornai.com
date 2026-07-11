@@ -245,9 +245,9 @@ const ShAPI = {
 
   /* ---- VIDEO UPLOAD (Bunny Storage via the serverless relay) ---- */
   /* Base for the upload function. The static site is on Bunny but the function
-     runs on Vercel, so set this to your Vercel URL (e.g. https://x.vercel.app).
-     Empty = same origin (works when both are served together). */
-  uploadApiBase: (typeof SH_UPLOAD_API_BASE!=="undefined" ? SH_UPLOAD_API_BASE : ""),
+     runs on Vercel, NOT on Bunny (which serves the site and has no /api), so
+     this MUST point at the Vercel relay — a relative /api/upload 405s on Bunny. */
+  uploadApiBase: (typeof SH_UPLOAD_API_BASE!=="undefined" ? SH_UPLOAD_API_BASE : "https://x-flxx.vercel.app"),
   async uploadVideo(file, title, onProgress){
     // TEMP: Auth removed for now to unblock uploads. No sign-in required.
     const sess = (typeof ShAuth!=="undefined") ? ShAuth.session() : null;

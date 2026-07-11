@@ -16,6 +16,10 @@ function freshUpload(){ return {step:0, title:"", desc:"", visibility:"public", 
   sample5:null, sample30:null, capturingClip:"",
   progress:0, uploading:false}; }   // search query per picker
 let cstate = { page:"dashboard", upload:freshUpload(), editingProfile:false };
+// Inline oninput/onclick/onchange handlers in the rendered HTML run in GLOBAL
+// scope (type="module" keeps module vars private), so cstate must be on window
+// or every inline handler throws "cstate is not defined".
+if (typeof window !== "undefined") window.cstate = cstate;
 
 /* ---- Creator account / subscription gate ---- */
 const CREATOR_PLANS = [
