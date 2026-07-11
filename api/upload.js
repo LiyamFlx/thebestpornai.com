@@ -85,7 +85,10 @@ export default async function handler(req, res) {
     }
 
     const src = `../media/uploads/${unique}`;
-    const url = `${CDN_BASE}/uploads/${encodeURIComponent(unique)}`;
+    // Files are stored under media/uploads/ (storagePath above), so the public
+    // CDN URL must include that same media/ prefix — otherwise the returned URL
+    // 404s while the file sits one level deeper. (Bug: url dropped `media/`.)
+    const url = `${CDN_BASE}/media/uploads/${encodeURIComponent(unique)}`;
     return res.status(200).json({ ok: true, src, url, path: storagePath });
 
   } catch (e) {

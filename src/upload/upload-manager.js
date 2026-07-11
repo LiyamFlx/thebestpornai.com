@@ -67,7 +67,10 @@ export const UploadManager = {
       job.status = "uploading"; emit("update", job);
       const uploaded = await this.uploadWithRetry(job);
       // relay returns src like "../media/uploads/up_...mp4"; store path after "media/"
-      const bunnyPath = String(uploaded.src || "").replace(/^\.\.\/media\//, "") || (uploaded.path || "").replace(/^media\//, "");
+      // Use the relay's full storage path (e.g. "media/uploads/up_...mp4") as the
+      // canonical bunny_path. The file physically lives there, so the catalog src
+      // must resolve to b-cdn.net/media/uploads/... — see catalog-overlay rowToVideo.
+      const bunnyPath = (uploaded.path || String(uploaded.src || "").replace(/^\.\.\//, "")).replace(/^\/+/, "");
       if (!bunnyPath) { job.status = "error"; job.error = "no path from relay"; emit("update", job); return; }
       job.bunny_path = bunnyPath;
 
