@@ -24,6 +24,22 @@ const STORAGE_BASE = 'https://storage.bunnycdn.com/streamhub-media';
 const CDN_BASE = 'https://streamhub-media.b-cdn.net';
 const KEY = process.env.BUNNY_STORAGE_KEY;
 
+// Pull Zone that fronts thebestpornai.com. Purging it after upload is what makes
+// changes go live (30-day cache otherwise). Automated when BUNNY_ACCOUNT_KEY is set.
+const PULL_ZONE_ID = '6077029';
+const ACCOUNT_KEY = process.env.BUNNY_ACCOUNT_KEY;
+
+/* Purge the entire Pull Zone cache via the Bunny API. Needs the ACCOUNT API key
+   (not the storage key). Returns true on success. */
+async function purgePullZone() {
+  const r = await fetch(`https://api.bunny.net/pullzone/${PULL_ZONE_ID}/purgeCache`, {
+    method: 'POST',
+    headers: { 'AccessKey': ACCOUNT_KEY, 'Content-Type': 'application/json' },
+  });
+  if (!r.ok) throw new Error(`purge failed: HTTP ${r.status} ${await r.text().catch(() => '')}`);
+  return true;
+}
+
 const CONTENT_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -168,14 +184,26 @@ async function main() {
     console.log(`\n❌ ${failed} file(s) failed to upload. Fix the error above and re-run before purging cache.`);
   }
 
-  // Always remind about purge — this is the #1 source of "changes not live"
-  console.log('\n⚠️  CRITICAL: You must still purge the Pull Zone cache (30-day TTL).');
-  console.log('   1. Go to Bunny dashboard → CDN → Pull Zone "streamhub-media"');
-  console.log('   2. Click "Purge Cache" → Purge Everything (or specific tag)');
-  console.log('   Dashboard purge is easiest. API purge requires the account key.');
-  console.log(`\n   Verification (after purge):`);
-  console.log(`     curl -I ${CDN_BASE}/index.html`);
-  console.log(`     curl -I ${CDN_BASE}/assets/main-*.js | head -1\n`);
+  // Auto-purge the Pull Zone if the account key is available; otherwise fall back
+  // to the manual dashboard instructions. This is the #1 source of "changes not live".
+  if (!dryRun && failed === 0 && ACCOUNT_KEY) {
+    process.stdout.write('\n🧹 Purging Pull Zone cache (auto)… ');
+    try {
+      await purgePullZone();
+      console.log('done ✅  Changes are now live.');
+      console.log(`\n   Verify: curl -I ${CDN_BASE}/index.html\n`);
+    } catch (e) {
+      console.log('FAILED ❌');
+      console.log('   ' + e.message);
+      console.log('   Falling back to manual purge: Bunny dashboard → Pull Zone "streamhub-media" → Purge Everything.\n');
+      process.exit(1);
+    }
+  } else if (!dryRun && failed === 0) {
+    console.log('\n⚠️  Pull Zone cache NOT purged (no BUNNY_ACCOUNT_KEY set).');
+    console.log('   To automate: set BUNNY_ACCOUNT_KEY (Bunny dashboard → Account → API Key).');
+    console.log('   For now, purge manually: dashboard → CDN → Pull Zone "streamhub-media" → Purge Everything.');
+    console.log(`\n   Verify after purge: curl -I ${CDN_BASE}/index.html\n`);
+  }
 
   if (failed > 0) {
     process.exit(1);
