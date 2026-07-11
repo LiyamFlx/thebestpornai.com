@@ -10,7 +10,8 @@
     "deploy": "node deploy.js",
     "deploy:apply": "node deploy.js --apply",
     "deploy:build": "npm run build && node deploy.js --apply",
-    "add-videos": "node scripts/add-bunny-folder.js"
+    "add-videos": "node scripts/add-bunny-folder.js",
+    "ship": "node ship.js"
   },
   "devDependencies": {
     "vite": "^5.4.10"
