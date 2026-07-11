@@ -15,24 +15,29 @@ function go(p){ mstate.page=p; render(); if(p==="moderation") loadModeration(); 
 function authReady(){ return typeof ShAuth!=="undefined"; }
 function renderModSignIn(){
   return `<h1>Sign in to moderate</h1>
-    <p class="sub">Approving or removing content requires a quick sign-in. We'll email you a secure link — no password needed.</p>
+    <p class="sub">One account for the whole site. Sign in once and you stay signed in — for moderating, uploading, everything.</p>
     <div class="panel" style="max-width:440px">
-      <label class="lbl">Your email</label>
-      <input class="fld" id="modAuthEmail" type="email" placeholder="you@example.com" autocomplete="email"/>
+      <label class="lbl">Email</label>
+      <input class="fld" id="modAuthEmail" type="email" placeholder="you@email.com" autocomplete="email"/>
+      <label class="lbl" style="margin-top:10px">Password</label>
+      <input class="fld" id="modAuthPass" type="password" placeholder="Password (min 6 characters)" autocomplete="current-password" minlength="6"/>
       <div id="modAuthMsg" class="small" style="margin:10px 0;min-height:16px"></div>
-      <button class="btn" onclick="sendModMagicLink()">Email me a sign-in link</button>
+      <button class="btn" onclick="doModSignIn()">Sign in / Create account</button>
     </div>`;
 }
-async function sendModMagicLink(){
-  const el=document.getElementById("modAuthEmail"); const email=(el&&el.value||"").trim();
+async function doModSignIn(){
+  const email=(document.getElementById("modAuthEmail")?.value||"").trim();
+  const pass=document.getElementById("modAuthPass")?.value||"";
   const msg=document.getElementById("modAuthMsg");
   if(!email || email.indexOf("@")<1){ if(msg) msg.textContent="Please enter a valid email."; return; }
-  if(msg){ msg.style.color="var(--muted)"; msg.textContent="Sending…"; }
+  if(!pass || pass.length<6){ if(msg) msg.textContent="Password must be at least 6 characters."; return; }
+  if(msg){ msg.style.color="var(--muted)"; msg.textContent="Signing in…"; }
   try {
-    await ShAuth.sendMagicLink(email);
-    if(msg){ msg.style.color="var(--good)"; msg.textContent="Check your inbox — click the link to finish signing in, then you'll return here ready to moderate."; }
+    await ShAuth.signInWithPassword(email, pass);
+    if(msg){ msg.style.color="var(--good)"; msg.textContent="Signed in!"; }
+    render();
   } catch(e){
-    if(msg){ msg.style.color="var(--accent2)"; msg.textContent="Couldn't send link: "+(e.message||"try again"); }
+    if(msg){ msg.style.color="var(--accent2)"; msg.textContent=e.message||"Sign-in failed, try again"; }
   }
 }
 
@@ -269,10 +274,10 @@ function render(){
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
   lazyThumbs();
 }
-/* If we just returned from a magic link, capture the session and land on Moderation. */
+/* Keep the shared session alive on load; if already signed in elsewhere, the
+   manager recognizes it with no re-prompt. */
 if(typeof ShAuth!=="undefined"){
-  const sess = ShAuth.captureSessionFromUrl();
-  if(sess){ mstate.page="moderation"; toast("Signed in — you can moderate now"); }
+  ShAuth.ensureFresh().then(()=>render());
 }
 render();
 
@@ -282,4 +287,4 @@ window.loadModeration = loadModeration;
 window.modAction = modAction;
 window.videosPrevPage = videosPrevPage;
 window.videosNextPage = videosNextPage;
-window.sendModMagicLink = sendModMagicLink;
+window.doModSignIn = doModSignIn;

@@ -1068,24 +1068,24 @@ function render(){
   syncChrome();
 }
 
-/* If we returned from a magic link, capture the session and land on Upload page. */
+/* Keep the shared session alive on load. If the user signed in anywhere on the
+   site (viewer/manager), the creator recognizes it with no re-prompt. */
 if(typeof ShAuth!=="undefined"){
-  const sess = ShAuth.captureSessionFromUrl();
-  if(sess){ cstate.page="upload"; toast("Signed in — you can upload now"); }
-  
-  // Hydrate header information if already signed in
-  (async () => {
+  ShAuth.ensureFresh().then(()=>{
+    // Hydrate header info if signed in
     if(ShAuth.isSignedIn()){
-      const user = await ShAuth.user();
-      if(user && user.email){
-        const name = creator?.name || user.email.split("@")[0];
-        const nameSpan = document.getElementById("creatorName");
-        if(nameSpan) nameSpan.textContent = name;
-        const av = document.getElementById("avatarBtn");
-        if(av) av.textContent = name[0].toUpperCase();
-      }
+      ShAuth.user().then(user=>{
+        if(user && user.email){
+          const name = creator?.name || user.email.split("@")[0];
+          const nameSpan = document.getElementById("creatorName");
+          if(nameSpan) nameSpan.textContent = name;
+          const av = document.getElementById("avatarBtn");
+          if(av) av.textContent = name[0].toUpperCase();
+        }
+      });
     }
-  })();
+    render();
+  });
 }
 
 /* Delegated nav click listener (replaces inline onclick) */

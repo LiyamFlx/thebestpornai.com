@@ -57,31 +57,45 @@ const SH_API_ENABLED = !!(SUPABASE_URL && SUPABASE_KEY);
 
 /* ---------- AUTH (magic link / email OTP via Supabase GoTrue) ---------- */
 const _AUTH = SUPABASE_URL.replace(/\/$/, "") + "/auth/v1";
+/* ============================================================
+   UNIFIED AUTH — one system for viewer / creator / manager.
+   Email + password only. One shared session in localStorage["sh_session"],
+   read identically by all three apps (same domain). Stays signed in until the
+   user explicitly signs out: the access token is auto-refreshed in the
+   background using the stored refresh_token, so the session never silently
+   expires. No magic-link, no URL-token capture, no render race.
+   ============================================================ */
 const ShAuth = {
-  /* Persist a token response ({access_token, refresh_token, expires_in}) as the
-     local session. Shared by password sign-in and sign-up. */
+  /* Persist a token response as the session. `expires_at` is advisory only —
+     session() no longer expires the session on it; instead we proactively
+     refresh before it lapses. */
   _persistToken(t){
     if(!t || !t.access_token) return null;
-    const sess = { access_token: t.access_token, refresh_token: t.refresh_token,
-                   expires_at: Date.now() + ((t.expires_in||3600)*1000) };
+    const prev = this._read() || {};
+    const sess = {
+      access_token: t.access_token,
+      refresh_token: t.refresh_token || prev.refresh_token,
+      expires_at: Date.now() + ((t.expires_in||3600)*1000),
+      user: t.user || prev.user || null,
+    };
     localStorage.setItem("sh_session", JSON.stringify(sess));
     return sess;
   },
-  /* Email + password sign-in. If the account doesn't exist yet, create it and
-     sign in immediately (no confirmation email — requires email confirmation
-     to be OFF in the Supabase Auth settings). One step, no rate-limited emails.
-     Returns the session; throws with a human message on real failure. */
+  _read(){
+    try { return JSON.parse(localStorage.getItem("sh_session")||"null"); } catch(_){ return null; }
+  },
+  /* Email + password sign-in. New email → auto-creates the account and signs in
+     (email confirmation is OFF). Existing email + wrong password → clear message
+     (no dead-end). Returns the session; throws a human message on real failure. */
   async signInWithPassword(email, password){
     email = String(email||"").trim();
     if(!email || !password) throw new Error("Enter an email and password");
-    // 1. Try to log in with an existing account.
     let r = await fetch(_AUTH + "/token?grant_type=password", {
       method:"POST",
       headers:{ "apikey": SUPABASE_KEY, "Content-Type":"application/json" },
       body: JSON.stringify({ email, password }),
     });
     if(r.ok){ return this._persistToken(await r.json()); }
-    // 2. Login failed. If the account simply doesn't exist, create it.
     let err={}; try{ err = await r.json(); }catch(_){}
     const code = err.error_code || err.error || "";
     const msg = (err.msg || err.error_description || "").toLowerCase();
@@ -95,13 +109,9 @@ const ShAuth = {
       });
       const sj = await s.json().catch(()=>({}));
       if(s.ok && sj.access_token){ return this._persistToken(sj); }
-      // signup returned a user but no session => email confirmation is still ON.
       if(s.ok && !sj.access_token){
         throw new Error("Account created but sign-in is disabled until email confirmation is turned off in Supabase.");
       }
-      // signup failed because the account ALREADY exists => the login above
-      // failed only because the password was wrong. Say so clearly instead of
-      // the confusing "User already registered" dead-end.
       const scode = sj.error_code || sj.code || "";
       const smsg = (sj.msg || sj.error_description || "").toLowerCase();
       if(scode==="user_already_exists" || smsg.includes("already registered") || smsg.includes("already exists")){
@@ -109,56 +119,66 @@ const ShAuth = {
       }
       throw new Error(sj.msg || sj.error_description || "Could not create account");
     }
-    // Wrong password on an existing account (or other error).
     throw new Error(err.msg || err.error_description || "Incorrect email or password");
   },
-  /* Email the user a magic sign-in link. redirectTo brings them back here. */
-  async sendMagicLink(email){
-    const r = await fetch(_AUTH + "/otp", {
+  /* Send a password-reset email (the ONLY email path; explicit user action). */
+  async sendPasswordReset(email){
+    email = String(email||"").trim();
+    if(!email) throw new Error("Enter your email");
+    const r = await fetch(_AUTH + "/recover", {
       method:"POST",
       headers:{ "apikey": SUPABASE_KEY, "Content-Type":"application/json" },
-      // Always return to the site root (no hash/query), where the viewer
-      // reliably runs captureSessionFromUrl() on load. Returning to a hash
-      // route (e.g. #watch/..) raced the SPA render and dropped the token.
-      body: JSON.stringify({ email, create_user:true, options:{ email_redirect_to: location.origin + "/" } }),
+      body: JSON.stringify({ email }),
     });
-    if(!r.ok){ let m=""; try{ const j=await r.json(); m=j.msg||j.error_description||""; }catch(_){} throw new Error(m||("auth "+r.status)); }
+    if(!r.ok){ let m=""; try{ const j=await r.json(); m=j.msg||j.error_description||""; }catch(_){} throw new Error(m||("reset "+r.status)); }
     return true;
   },
-  /* If we returned from a magic link, Supabase puts the tokens in the URL —
-     usually the hash (#access_token=...), but depending on flow they can land
-     in the query (?access_token=...). Check BOTH, persist, then clean the URL.
-     Returns the session or null. */
-  captureSessionFromUrl(){
-    const grab = (str) => {
-      if(!str || str.indexOf("access_token=")===-1) return null;
-      const p = new URLSearchParams(str.replace(/^[#?]/,""));
-      const at = p.get("access_token");
-      if(!at) return null;
-      return { access_token: at, refresh_token: p.get("refresh_token"),
-               expires_at: Date.now() + (parseInt(p.get("expires_in")||"3600",10)*1000) };
-    };
-    const sess = grab(location.hash) || grab(location.search);
-    if(!sess) return null;
-    localStorage.setItem("sh_session", JSON.stringify(sess));
-    // strip the auth params (hash + query) so they don't linger / re-trigger
-    history.replaceState(null, "", location.pathname);
-    return sess;
+  /* Exchange the refresh_token for a fresh access token. Keeps the session
+     alive indefinitely so the user is never logged out until they choose to. */
+  async _refresh(){
+    const s = this._read();
+    if(!s || !s.refresh_token) return null;
+    try {
+      const r = await fetch(_AUTH + "/token?grant_type=refresh_token", {
+        method:"POST",
+        headers:{ "apikey": SUPABASE_KEY, "Content-Type":"application/json" },
+        body: JSON.stringify({ refresh_token: s.refresh_token }),
+      });
+      if(!r.ok){ return null; }
+      return this._persistToken(await r.json());
+    } catch(_){ return null; }
   },
-  session(){
-    try { const s = JSON.parse(localStorage.getItem("sh_session")||"null"); if(s && s.expires_at>Date.now()) return s; } catch(_){}
-    return null;
+  /* Ensure a usable session: if the token is near/after expiry, refresh it.
+     Call on app load. Never clears the session on refresh failure alone —
+     only an explicit signOut() ends it. */
+  async ensureFresh(){
+    const s = this._read();
+    if(!s) return null;
+    // refresh if within 5 min of expiry (or already past)
+    if(!s.expires_at || s.expires_at - Date.now() < 5*60*1000){
+      const fresh = await this._refresh();
+      return fresh || s;   // keep the old session even if refresh hiccups
+    }
+    return s;
   },
+  /* Returns the stored session if present. Does NOT expire it on expires_at —
+     the token may be stale but ensureFresh() renews it. Signed-in status
+     persists until signOut(). */
+  session(){ return this._read(); },
   async user(){
     const s = this.session(); if(!s) return null;
+    if(s.user) return s.user;
     try {
       const r = await fetch(_AUTH + "/user", { headers:{ "apikey": SUPABASE_KEY, "Authorization":"Bearer "+s.access_token } });
       if(!r.ok) return null;
-      return await r.json();
+      const u = await r.json();
+      // cache the user on the session so we don't refetch every call
+      const cur = this._read(); if(cur){ cur.user = u; localStorage.setItem("sh_session", JSON.stringify(cur)); }
+      return u;
     } catch(_){ return null; }
   },
   signOut(){ localStorage.removeItem("sh_session"); },
-  isSignedIn(){ return !!this.session(); },
+  isSignedIn(){ return !!this._read(); },
 };
 
 const ShAPI = {

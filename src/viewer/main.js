@@ -5,10 +5,10 @@ import { playerEmbed, videoCard, rowSection } from "../shared/ui.js";
 import { mountDropzone } from "../upload/global-dropzone.js";
 import { mergeLiveUploads } from "../upload/catalog-overlay.js";
 import "../upload/upload.css";
-// Capture a returning magic-link session BEFORE anything else (esp. ageGate,
-// which can redirect/re-render and drop the token from the URL). This must be
-// the first thing that runs on the viewer.
-if (typeof ShAuth !== "undefined") ShAuth.captureSessionFromUrl();
+// Keep the session alive on load (refresh the token if near expiry). The
+// session persists until the user explicitly signs out — no magic-link, no
+// URL-token capture, so nothing to race with ageGate/render.
+if (typeof ShAuth !== "undefined") ShAuth.ensureFresh();
 ageGate();
 
 /* creatorName(), fmt(), toast() are shared — defined in catalog.js */
