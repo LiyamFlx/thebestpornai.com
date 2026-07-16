@@ -95,7 +95,7 @@ export default async function handler(req, res) {
     }));
 
     const src = `../media/uploads/${unique}`;
-    const url = `https://media.thebestpornai.com/media/uploads/${encodeURIComponent(unique)}`;
+    const url = `https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/uploads/${encodeURIComponent(unique)}`;
     return res.status(200).json({ ok: true, src, url, path: storagePath });
 
   } catch (e) {
