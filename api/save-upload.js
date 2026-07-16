@@ -1,8 +1,5 @@
 import { verifyUser } from "./upload.js";
-
-const STORAGE_BASE = "https://storage.bunnycdn.com/streamhub-media";
-const CDN_BASE     = "https://streamhub-media.b-cdn.net";
-const KEY          = process.env.BUNNY_STORAGE_KEY;
+import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export default async function handler(req, res) {
   // CORS headers
@@ -12,7 +9,15 @@ export default async function handler(req, res) {
 
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST")   return res.status(405).json({ error: "method not allowed" });
-  if (!KEY)                    return res.status(500).json({ error: "BUNNY_STORAGE_KEY not set on Vercel" });
+
+  const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
+  const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
+  const R2_ENDPOINT = process.env.R2_ENDPOINT;
+  const R2_BUCKET = process.env.R2_BUCKET || "streamhub-media";
+
+  if (!R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_ENDPOINT) {
+    return res.status(500).json({ error: "R2 credentials are not set on Vercel" });
+  }
 
   // TEMP: Auth/email verification removed for now to unblock creator uploads.
   // In production you should re-enable this.
@@ -29,18 +34,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Fetch current manifest.json from Bunny Storage (fresh source-of-truth)
-    const storageUrl = `${STORAGE_BASE}/manifest.json`;
-    const getHeaders = { "AccessKey": KEY, "Accept": "application/json" };
-    
+    const s3 = new S3Client({
+      region: "auto",
+      endpoint: R2_ENDPOINT,
+      credentials: {
+        accessKeyId: R2_ACCESS_KEY_ID,
+        secretAccessKey: R2_SECRET_ACCESS_KEY,
+      },
+    });
+
+    // 1. Fetch current manifest.json from R2 Storage (fresh source-of-truth)
     let existing = [];
-    const r = await fetch(storageUrl, { headers: getHeaders });
-    if (r.ok) {
-      try {
-        existing = await r.json();
-      } catch (_) {
-        existing = [];
-      }
+    try {
+      const getRes = await s3.send(new GetObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: "manifest.json"
+      }));
+      const manifestText = await getRes.Body.transformToString();
+      existing = JSON.parse(manifestText);
+    } catch (s3Err) {
+      console.warn("Could not retrieve manifest.json, starting fresh:", s3Err.message);
+      existing = [];
     }
 
     // Prepend the new entry
@@ -49,20 +63,13 @@ export default async function handler(req, res) {
     }
     existing.unshift(entry);
 
-    // 2. Save back to Bunny Storage
-    const put = await fetch(storageUrl, {
-      method: "PUT",
-      headers: {
-        "AccessKey": KEY,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(existing, null, 2),
-    });
-
-    if (!put.ok) {
-      const detail = await put.text().catch(() => "");
-      return res.status(502).json({ error: "manifest update failed", status: put.status, detail });
-    }
+    // 2. Save back to R2 Storage
+    await s3.send(new PutObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: "manifest.json",
+      Body: JSON.stringify(existing, null, 2),
+      ContentType: "application/json"
+    }));
 
     // 3. Save to Supabase (forwarding the user JWT so RLS handles permissions)
     const supabaseUrl = process.env.SUPABASE_URL || "https://dabfxysxcngijcxxekzc.supabase.co";

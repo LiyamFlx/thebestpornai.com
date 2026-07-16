@@ -1,19 +1,17 @@
-/* Vercel serverless — Bunny Storage upload relay.
+/* Vercel serverless — Cloudflare R2 Storage upload relay.
  *
  * bodyParser: false → Vercel hands us the raw IncomingMessage stream.
- * We convert it to a Web ReadableStream and pipe it straight to Bunny —
+ * We convert it to a Web ReadableStream and pipe it straight to R2 —
  * no full-file buffering, no Vercel body-size wall.
  *
- * Required env var on Vercel: BUNNY_STORAGE_KEY
+ * Required env vars on Vercel: R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ENDPOINT, R2_BUCKET
  */
 
 import { Readable } from "stream";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export const config = { api: { bodyParser: false } };
 
-const STORAGE_BASE = "https://storage.bunnycdn.com/streamhub-media";
-const CDN_BASE     = "https://streamhub-media.b-cdn.net";
-const KEY          = process.env.BUNNY_STORAGE_KEY;
 const ALLOWED_EXT  = new Set(["mp4", "mov", "webm", "m4v", "jpg", "jpeg", "png", "webp"]);
 
 export async function verifyUser(req) {
@@ -45,7 +43,15 @@ export default async function handler(req, res) {
 
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST")   return res.status(405).json({ error: "method not allowed" });
-  if (!KEY)                    return res.status(500).json({ error: "BUNNY_STORAGE_KEY not set on Vercel" });
+
+  const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
+  const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
+  const R2_ENDPOINT = process.env.R2_ENDPOINT;
+  const R2_BUCKET = process.env.R2_BUCKET || "streamhub-media";
+
+  if (!R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_ENDPOINT) {
+    return res.status(500).json({ error: "R2 credentials are not set on Vercel" });
+  }
 
   // TEMP: Auth/email verification removed for now to unblock creator uploads.
   // In production you should re-enable this.
@@ -64,35 +70,36 @@ export default async function handler(req, res) {
   const unique      = "up_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
   const storagePath = `media/uploads/${unique}`;
 
-  const putHeaders  = { "AccessKey": KEY, "Content-Type": "application/octet-stream" };
-  const cl = req.headers["content-length"];
-  if (cl) putHeaders["Content-Length"] = cl;
-
   try {
     // Convert Node IncomingMessage (Readable) → Web ReadableStream for fetch
     const bodyStream = Readable.toWeb(req);
 
-    const put = await fetch(`${STORAGE_BASE}/${storagePath}`, {
-      method:  "PUT",
-      headers: putHeaders,
-      body:    bodyStream,
-      duplex:  "half",
+    const s3 = new S3Client({
+      region: "auto",
+      endpoint: R2_ENDPOINT,
+      credentials: {
+        accessKeyId: R2_ACCESS_KEY_ID,
+        secretAccessKey: R2_SECRET_ACCESS_KEY,
+      },
     });
 
-    if (!put.ok) {
-      const detail = await put.text().catch(() => "");
-      return res.status(502).json({ error: "bunny PUT failed", status: put.status, detail });
-    }
+    const cl = req.headers["content-length"];
+    const contentLength = cl ? parseInt(cl, 10) : undefined;
+
+    await s3.send(new PutObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: storagePath,
+      Body: bodyStream,
+      ContentLength: contentLength,
+      ContentType: "application/octet-stream"
+    }));
 
     const src = `../media/uploads/${unique}`;
-    // Files are stored under media/uploads/ (storagePath above), so the public
-    // CDN URL must include that same media/ prefix — otherwise the returned URL
-    // 404s while the file sits one level deeper. (Bug: url dropped `media/`.)
-    const url = `${CDN_BASE}/media/uploads/${encodeURIComponent(unique)}`;
+    const url = `https://media.thebestpornai.com/media/uploads/${encodeURIComponent(unique)}`;
     return res.status(200).json({ ok: true, src, url, path: storagePath });
 
   } catch (e) {
     // Always return CORS-safe JSON even on unexpected errors
-    return res.status(500).json({ error: "relay error", detail: String(e?.message || e) });
+    return res.status(500).json({ error: "R2 upload relay error", detail: String(e?.message || e) });
   }
 }

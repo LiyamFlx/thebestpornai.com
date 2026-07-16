@@ -8,7 +8,7 @@
    catalog.js to Bunny storage and purge the Pull Zone cache (see CLAUDE.md).
    ============================================================ */
 
-const MEDIA_BASE = "https://streamhub-media.b-cdn.net";
+const MEDIA_BASE = "https://media.thebestpornai.com/media";
 
 /* HTML-escape a value for safe interpolation into innerHTML template strings.
    Use for ALL dynamic/user/catalog text rendered via innerHTML (titles, comments,

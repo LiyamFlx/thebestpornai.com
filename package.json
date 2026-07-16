@@ -15,5 +15,9 @@
   },
   "devDependencies": {
     "vite": "^5.4.10"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1089.0",
+    "dotenv": "^17.4.2"
   }
 }
