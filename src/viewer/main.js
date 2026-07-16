@@ -832,7 +832,10 @@ updateVideoCount();
    minimal re-render when possible. */
 (async () => {
   try {
-    const url = 'https://streamhub-media.b-cdn.net/manifest.json?t=' + Date.now();
+    // Same-origin relative path: the manifest lives in the same Bunny storage the
+    // HTML is served from, so a relative URL avoids the cross-origin CORS check
+    // that blocks the absolute b-cdn.net form (Bunny returns no ACAO header).
+    const url = '/manifest.json?t=' + Date.now();
     const r = await fetch(url, { cache: 'no-store' });
     if (!r.ok) {
       console.warn('[manifest] fetch failed', r.status);
@@ -890,7 +893,7 @@ window.refreshManifest = async () => {
   // Re-execute the loader logic by forcing a reload of the IIFE effect is complex,
   // so we do a lightweight re-fetch here for power users.
   try {
-    const r = await fetch('https://streamhub-media.b-cdn.net/manifest.json?t=' + Date.now());
+    const r = await fetch('/manifest.json?t=' + Date.now());
     if (!r.ok) throw new Error('bad status ' + r.status);
     const uploads = await r.json();
     // Minimal merge (same rules)
