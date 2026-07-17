@@ -14,7 +14,7 @@
 <meta property="og:image" content="/src/shared/assets/logo.png"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <!-- Basic CSP (permissive due to inline onclick/styles; tighten when moving away from inline handlers) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://streamhub-media.b-cdn.net https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev https://dabfxysxcngijcxxekzc.supabase.co https://x-flxx.vercel.app; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https: blob:; frame-src https://www.youtube.com;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev https://dabfxysxcngijcxxekzc.supabase.co; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https: blob:; frame-src https://www.youtube.com;">
 <link rel="stylesheet" href="/src/shared/theme.css" />
 <link rel="stylesheet" href="/src/viewer/style.css" />
 </head>
@@ -24,7 +24,7 @@
   <div class="sidebar">
     <a class="brand" href="/"><img src="/src/shared/assets/logo.png" alt="thebestpornai"/></a>
     <div class="nav" id="nav">
-      <button data-page="upload-trigger" class="nav-upload"><span class="ico">⬆</span> Upload Video</button>
+      <button onclick="window.location.href='/creator/index.html'" class="nav-upload"><span class="ico">⬆</span> Upload Video</button>
       <button data-page="home"        onclick="go('home')"><span class="ico">🏠</span> Home</button>
       <button data-page="explore"     onclick="go('explore')"><span class="ico">🧭</span> Explore</button>
       <button data-page="categories"  onclick="go('categories')"><span class="ico">▦</span> Categories</button>

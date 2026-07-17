@@ -4,8 +4,12 @@
 // Best-effort: any failure leaves the seed catalog intact.
 import { DATA } from "../shared/catalog.js";
 
-const REST = "https://dabfxysxcngijcxxekzc.supabase.co/rest/v1";
-const ANON = "sb_publishable_moBiV9AidT0XkL-L6wilYw_Jfn25YDr";
+const REST = process.env.SUPABASE_URL ? process.env.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1" : "";
+const ANON = process.env.SUPABASE_KEY || "";
+
+if (!REST || !ANON) {
+  console.warn("Supabase environment variables missing in catalog-overlay.js; live upload overlay disabled (seed catalog still works).");
+}
 
 function rowToVideo(r) {
   return {
@@ -28,6 +32,7 @@ function rowToVideo(r) {
 }
 
 export async function mergeLiveUploads() {
+  if (!REST || !ANON) return;   // API not configured: leave seed catalog intact
   try {
     const rows = await fetch(
       `${REST}/uploads?status=eq.live&select=*&order=published_at.desc&limit=500`,

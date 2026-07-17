@@ -6,49 +6,40 @@ video platform (viewer / creator studio / platform manager). Live at
 
 | App | Entry | Role |
 |-----|-------|------|
-| **Viewer** | `viewer/index.html` (mirrored at root `index.html`) | Browse, watch, favorite, comment, playlists |
+| **Viewer** | `index.html` (root) | Browse, watch, favorite, comment, playlists |
 | **Creator Studio** | `creator/index.html` | Upload wizard, analytics, revenue, subscribers |
 | **Platform Manager** | `manager/index.html` | Users, moderation, recommendations, homepage builder, infra |
 
 `choose.html` is the persona picker (linked from the viewer sidebar as
 "Creator / Manager").
 
-## ⚠️ How the live site is actually served
+## ⚙️ How the live site is served
 
-**Not from Vercel**, despite the GitHub→Vercel auto-deploy on every push.
+The site is served directly from **Vercel** with media assets hosted on **Cloudflare R2**:
 
 ```
-thebestpornai.com  ──►  Bunny Pull Zone  ──►  Bunny Storage Zone (streamhub-media)
+thebestpornai.com ──► Vercel (hosting HTML/JS pages and Serverless APIs)
+media requests    ──► Cloudflare R2 Bucket (streamhub-media)
 ```
 
-The built HTML/JS/CSS live **in Bunny storage**. `git push` updates GitHub +
-Vercel but does **nothing** to the live domain. To actually update the site you
-must build and upload to Bunny — see **Deploy**, below.
-
-Full detail (credentials, manual curl fallback, gotchas) lives in
-[`CLAUDE.md`](CLAUDE.md) — read that before touching deploy or the catalog.
+Full detail (credentials, sync script, gotchas) lives in [`CLAUDE.md`](CLAUDE.md) — read that before working on deployment or the catalog.
 
 ## Architecture
 
-Real source lives under `src/`, built by **Vite**. There is no more inlining /
-`_shared.css` / `_data.js` / `build.js` pipeline — that was an earlier,
-abandoned approach and has been deleted. Don't recreate it.
+Real source lives under `src/`, built by **Vite**.
 
 ```
 src/
   shared/catalog.js     Single source of truth: MEDIA_BASE, mediaUrl(), DATA
                          (videos, creators, categories, comments, moderation, user)
-  shared/ui.js           Shared render helpers (videoCard, playerEmbed, rowSection, ...)
+  shared/ui.js           Shared render helpers (videoCard, playerEmbed, barChart, ...)
   viewer/  creator/  manager/    Per-app main.js + style.css, each imports catalog.js
 scripts/
-  add-bunny-folder.js    Lists a Bunny subfolder and inserts catalog entries
-                         for every file in it (see "Adding videos", below)
-deploy.js                Uploads dist/ to Bunny storage (dry-run by default)
-Start.command/.bat       Local dev launcher (see "Local dev")
+  upload-catalog-to-r2.js Uploads local files under media/ to Cloudflare R2 bucket.
+  find-local-media.js    Scans local directories, compares against catalog, and reports missing files.
 ```
 
-Each app's `main.js` imports `src/shared/catalog.js` as an ES module — **edit
-the catalog in exactly one place**, no per-app copies to keep in sync.
+Each app's `main.js` imports `src/shared/catalog.js` as an ES module — **edit the catalog in exactly one place**, no per-app copies to keep in sync.
 
 ## Local dev
 
@@ -57,33 +48,21 @@ npm install
 npm run dev        # Vite dev server with hot reload
 ```
 
-Or for a quick look at pre-built output without Vite: `Start.command` (Mac) /
-`Start.bat` (Windows) serve the current directory over `http://localhost:PORT`
-and open `index.html` — useful for eyeballing a `dist/` build, not for editing
-source (`src/**` isn't watched or rebuilt by the launcher).
-
-`MEDIA_BASE` always points at the Bunny CDN, so playback works locally without
-any video files present.
+`MEDIA_BASE` always points at the Cloudflare R2 public URL, so playback works locally without any local video files present.
 
 ## Adding videos to the catalog
 
-**Read [`CLAUDE.md`](CLAUDE.md) → "Adding videos"** for the full, current
-procedure, including the required Bunny filename-matching step and the
-Movies/Scenes/Clips naming convention for structured long-form content.
+**Read [`CLAUDE.md`](CLAUDE.md) → "Adding videos"** for the full, current procedure.
 
 Short version:
-1. Upload the `.mp4` file(s) to the Bunny storage zone.
-2. Add one entry per video to `DATA.videos` in `src/shared/catalog.js` — either
-   by hand, or generate them from an existing Bunny folder with:
+1. Move the `.mp4` file(s) into one of the `media/` subfolders.
+2. Add one entry per video to `DATA.videos` in `src/shared/catalog.js`.
+3. Run the media sync script to upload them to R2:
    ```bash
-   BUNNY_STORAGE_KEY=xxx npm run add-videos -- "folder name" --category "..." --tags "..." --patch
+   npm run sync-media
    ```
-   **Always inspect the diff after `--patch` runs** — see the CLAUDE.md
-   "Known incident" note on why this matters.
-3. `npm run build`, then `npm run deploy:apply` (uploads to Bunny) — see
-   CLAUDE.md's Deploy checklist for the cache-purge step that must follow.
+4. Push to GitHub to trigger Vercel build/deploy, or trigger it manually via Vercel CLI.
 
 ## Videos are not committed to git
 
-`.gitignore` / `.vercelignore` exclude `media/**/*.mp4` — see
-[`media/README.md`](media/README.md). Videos live on Bunny, never in the repo.
+`.gitignore` / `.vercelignore` exclude `media/**/*.mp4` — see [`media/README.md`](media/README.md). Videos live on Cloudflare R2, never in the repo.

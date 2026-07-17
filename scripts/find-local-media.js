@@ -1,5 +1,5 @@
-import path from "path";
 import fs from "fs";
+import path from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -15,8 +15,16 @@ eval(catalogSrc);
 const catalogVideos = global.DATA.videos;
 console.log(`Catalog has ${catalogVideos.length} videos.`);
 
-// Search under the main project media directory: /Users/liyam/Thebestpornai.com/media
-const localMediaDir = "/Users/liyam/Thebestpornai.com/media";
+// Consolidate all standard scan directories
+const scanDirs = [
+  path.join(__dirname, "../media"),
+  "/Users/liyam/Thebestpornai.com/media",
+  "/Users/liyam/Thebestpornai.com/platform/media",
+  "/Users/liyam/Downloads/Bunny uploud",
+  "/Users/liyam/Downloads/Upload Bunny",
+  "/Users/liyam/Downloads/to uplode",
+  "/Users/liyam/Downloads/new bunny uplode"
+].filter((dir, index, self) => fs.existsSync(dir) && self.indexOf(dir) === index);
 
 function getFilesRecursively(dir) {
   let results = [];
@@ -34,33 +42,42 @@ function getFilesRecursively(dir) {
   return results;
 }
 
-console.log(`Scanning local media directory ${localMediaDir} recursively...`);
-const allLocalFiles = getFilesRecursively(localMediaDir);
-console.log(`Found ${allLocalFiles.length} local files.`);
-
-// Map filename to absolute path
 const localFileMap = new Map();
-allLocalFiles.forEach((p) => {
-  const name = path.basename(p);
-  localFileMap.set(name, p);
+scanDirs.forEach((dir) => {
+  console.log(`Scanning ${dir}...`);
+  const files = getFilesRecursively(dir);
+  files.forEach((p) => {
+    const name = path.basename(p).toLowerCase().trim();
+    localFileMap.set(name, p);
+    // Also store decoded version just in case
+    localFileMap.set(decodeURIComponent(name), p);
+  });
 });
 
+console.log(`Total unique local files indexed: ${localFileMap.size}`);
+
 let foundCount = 0;
-let missingVideos = [];
+let missing = [];
 catalogVideos.forEach((v) => {
   if (v.src) {
-    const filename = path.basename(v.src);
-    if (localFileMap.has(filename)) {
+    const filename = path.basename(v.src).toLowerCase().trim();
+    const decodedName = decodeURIComponent(filename);
+    if (localFileMap.has(filename) || localFileMap.has(decodedName)) {
       foundCount++;
     } else {
-      missingVideos.push(v);
+      missing.push(v);
     }
   }
 });
 
-console.log(`Matched locally: ${foundCount} / ${catalogVideos.length}`);
-console.log(`Missing locally: ${missingVideos.length} / ${catalogVideos.length}`);
-if (missingVideos.length > 0) {
-  console.log("First 10 missing locally:");
-  missingVideos.slice(0, 10).forEach((v) => console.log(` - ID ${v.id}: ${v.src} (${v.title})`));
+console.log(`\nResults:`);
+console.log(`Matched: ${foundCount} / ${catalogVideos.length}`);
+console.log(`Missing: ${missing.length} / ${catalogVideos.length}`);
+
+if (missing.length > 0) {
+  const missingLogPath = path.join(__dirname, "../missing-videos.json");
+  fs.writeFileSync(missingLogPath, JSON.stringify(missing, null, 2));
+  console.log(`\nWritten list of missing videos to: ${missingLogPath}`);
+  console.log("\nFirst 15 missing videos:");
+  missing.slice(0, 15).forEach((m) => console.log(`- ID ${m.id}: src="${m.src}" (title: ${m.title})`));
 }

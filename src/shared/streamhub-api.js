@@ -10,11 +10,14 @@
    in-memory behavior — the site must never break because the API is down.
    ============================================================ */
 
-const SUPABASE_URL = "https://dabfxysxcngijcxxekzc.supabase.co";
-/* Publishable (client) key — public by design, like an API endpoint. NOT a secret. */
-const SUPABASE_KEY = "sb_publishable_moBiV9AidT0XkL-L6wilYw_Jfn25YDr";
+const SUPABASE_URL = process.env.SUPABASE_URL || "";
+const SUPABASE_KEY = process.env.SUPABASE_KEY || "";
 
-const _REST = SUPABASE_URL.replace(/\/$/, "") + "/rest/v1";
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.warn("Supabase environment variables (SUPABASE_URL, SUPABASE_KEY) are missing. API features will be disabled.");
+}
+
+const _REST = SUPABASE_URL ? SUPABASE_URL.replace(/\/$/, "") + "/rest/v1" : "";
 const _HEADERS = {
   "apikey": SUPABASE_KEY,
   "Authorization": "Bearer " + SUPABASE_KEY,
@@ -56,7 +59,7 @@ async function _authedReq(path, opts={}){
 const SH_API_ENABLED = !!(SUPABASE_URL && SUPABASE_KEY);
 
 /* ---------- AUTH (magic link / email OTP via Supabase GoTrue) ---------- */
-const _AUTH = SUPABASE_URL.replace(/\/$/, "") + "/auth/v1";
+const _AUTH = SUPABASE_URL ? SUPABASE_URL.replace(/\/$/, "") + "/auth/v1" : "";
 /* ============================================================
    UNIFIED AUTH — one system for viewer / creator / manager.
    Email + password only. One shared session in localStorage["sh_session"],

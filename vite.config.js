@@ -1,8 +1,15 @@
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export default defineConfig({
   root: ".",
+  define: {
+    "process.env.SUPABASE_URL": JSON.stringify(process.env.SUPABASE_URL),
+    "process.env.SUPABASE_KEY": JSON.stringify(process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY),
+  },
   build: {
     rollupOptions: {
       input: {

@@ -37,16 +37,22 @@ function toast(msg){
   clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>t.classList.remove("show"),2400);
 }
 
-/* Rewrite a "../media/x.mp4" path to the CDN when MEDIA_BASE is set */
+/* Rewrite a "../media/x.mp4" path to the CDN when MEDIA_BASE is set and HTML-escape it. */
 function mediaUrl(src){
-  if(!src) return src;
-  if(/^https?:\/\//.test(src) || src.startsWith("blob:") || src.startsWith("data:")) return src;
-  if(!MEDIA_BASE) return src;                       // local mode, keep relative path
-  // strip leading "../media/" (or "media/") then keep the rest of the path,
-  // URL-encoding each segment so spaces/subfolders work.
-  const rel = src.replace(/^(\.\.\/)?media\//, "");
-  const path = rel.split("/").map(encodeURIComponent).join("/");
-  return MEDIA_BASE.replace(/\/$/,"") + "/" + path;
+  if(!src) return "";
+  // Block dangerous protocol schemes
+  if (/:/.test(src) && !/^https?:\/\//i.test(src) && !/^blob:/i.test(src) && !/^data:image\//i.test(src)) {
+    return "";
+  }
+  let result = src;
+  if(!/^https?:\/\//i.test(src) && !src.startsWith("blob:") && !src.startsWith("data:")) {
+    if(MEDIA_BASE) {
+      const rel = src.replace(/^(\.\.\/)?media\//, "");
+      const path = rel.split("/").map(encodeURIComponent).join("/");
+      result = MEDIA_BASE.replace(/\/$/,"") + "/" + path;
+    }
+  }
+  return esc(result);
 }
 
 /* Extract YouTube ID from common URL formats. Shared so videoCard etc can use it everywhere. */

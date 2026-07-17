@@ -1,9 +1,7 @@
 import { toast, DATA } from "../shared/catalog.js";
 import { ShAuth } from "../shared/streamhub-api.js";
 import { ageGate } from "../shared/age-gate.js";
-import { mountDropzone } from "../upload/global-dropzone.js";
 import { mergeLiveUploads } from "../upload/catalog-overlay.js";
-import "../upload/upload.css";
 
 import { vstate, onWatch } from "./state.js";
 import { applyHash, initRouter } from "./router.js";
@@ -30,7 +28,6 @@ import {
   doSearch,
 } from "./actions.js";
 import { refreshManifest, syncManifestOnLoad } from "./manifest-sync.js";
-import { promptUploadSignIn } from "./upload-signin.js";
 import { pubVideos } from "./catalog-queries.js";
 
 // Keep the session alive on load (refresh the token if near expiry)
@@ -46,10 +43,6 @@ initRouter(render);
 // Initial bootstrap render
 render();
 
-// Mount global drag-and-drop upload if enabled
-if (vstate.flags.globalUpload) {
-  mountDropzone({ onNeedLogin: promptUploadSignIn });
-}
 
 // Fetch live database catalog updates and remote manifest uploads
 syncManifestOnLoad().then(() => {

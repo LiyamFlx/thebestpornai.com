@@ -2,10 +2,9 @@
 media/
 
 # Editor sources / build tooling — not needed at runtime
-*.src.html
-build.js
-Start.command
-Start.bat
+# Staging / temporary manifest and video catalog helper files
+missing-videos.json
+manifest.json
 .playwright-mcp/
 *.zip
 .DS_Store

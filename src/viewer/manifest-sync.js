@@ -31,7 +31,7 @@ async function fetchManifest() {
    refreshManifest with subtly different rules). Validates each entry, dedupes
    against the catalog AND within the manifest itself, prepends fresh entries,
    and returns how many were added. */
-function mergeManifest(uploads) {
+export function mergeManifest(uploads) {
   if (!Array.isArray(uploads)) return 0;
   const existingSrc = new Set(DATA.videos.map(v => v.src));
   const existingIds = new Set(DATA.videos.map(v => v.id));

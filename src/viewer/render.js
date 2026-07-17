@@ -121,7 +121,7 @@ function revealThumb(el){
 /* Asymmetric margin: generous vertical lookahead for the scrolling grid pages,
    tighter horizontal so off-screen cards in `.row-scroll` rows aren't all
    fetched at once on the home feed. */
-const _lazyObserver = ("IntersectionObserver" in window)
+const _lazyObserver = (typeof window !== "undefined" && "IntersectionObserver" in window)
   ? new IntersectionObserver((entries, obs)=>{
       entries.forEach(e=>{
         if(!e.isIntersecting) return;
