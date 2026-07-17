@@ -1,17 +1,32 @@
 /* Home page: hero, filter/sort bars, and the row-based feed. */
 import { DATA, esc, creatorName, fmt, mediaUrl, ytId } from "../../shared/catalog.js";
 import { videoCard, rowSection } from "../../shared/ui.js";
+import { CATEGORIES } from "../../shared/taxonomy.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
-import { pubVideos, trending, byCat, sortedVideos, movies, actNames, clipsByAct, highlights } from "../catalog-queries.js";
+import { pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies, actNames, clipsByAct, highlights } from "../catalog-queries.js";
 
 export const HERO_VIDEO_ID = 470; // pinned homepage hero — update this id to change it
+
+// Top categories shown inline in the filter bar; the rest live under "More ▾".
+const TOP_CATEGORIES = CATEGORIES.slice(0, 8);
+const MORE_CATEGORIES = CATEGORIES.slice(8);
 
 function homeFilterBar(){
   const filters = [["all","All"],["movies","Movies"],["scenes","Scenes"],["clips","Clips"]];
   const sorts = [["none","Default"],["latest","Latest"],["likes","Most Liked"],["views","Most Viewed"]];
+  const activeCat = vstate.homeCategory;
   return `<div class="pill-row home-filter-bar">
-    ${filters.map(([key,label])=>`<button class="filter-pill ${vstate.homeFilter===key?'active':''}" onclick="setHomeFilter('${key}')">${label}</button>`).join("")}
+    ${filters.map(([key,label])=>`<button class="filter-pill ${(vstate.homeFilter===key && !activeCat)?'active':''}" onclick="setHomeFilter('${key}')">${label}</button>`).join("")}
+  </div>
+  <div class="pill-row home-cat-bar">
+    ${TOP_CATEGORIES.map(c=>`<button class="filter-pill ${activeCat===c?'active':''}" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
+    <span class="cat-more">
+      <button class="filter-pill" onclick="this.parentNode.classList.toggle('open')">More ▾</button>
+      <div class="cat-more-menu">
+        ${MORE_CATEGORIES.map(c=>`<button class="cat-more-item ${activeCat===c?'active':''}" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
+      </div>
+    </span>
   </div>
   <div class="pill-row home-sort-bar">
     ${sorts.map(([key,label])=>`<button class="filter-pill ${vstate.homeSort===key?'active':''}" onclick="setHomeSort('${key}')">${label}</button>`).join("")}
@@ -27,6 +42,21 @@ export function renderHome(){
   const top = trending();   // compute once; reused by the two rows below
   const filter = vstate.homeFilter;
   const sort = vstate.homeSort;
+
+  // A selected category filters the whole feed to matching videos (category or
+  // tag match), overriding the row layout with a focused grid.
+  if(vstate.homeCategory){
+    const cat = vstate.homeCategory;
+    let matches = byCategoryFilter(cat);
+    if(sort!=="none") matches = sortedVideos(sort).filter(v=>matches.includes(v));
+    const shown = matches.slice(0, vstate.limit);
+    return `
+      ${homeFilterBar()}
+      <h3>${esc(cat)} <span class="small">(${matches.length})</span></h3>
+      ${shown.length ? `<div class="grid">${shown.map(v=>videoCard(v)).join("")}</div>` : `<div class="empty">No ${esc(cat)} videos yet.</div>`}
+      ${matches.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more</button>` : ''}
+    `;
+  }
 
   // A non-default sort takes priority over the Movies/Scenes/Clips filter and
   // replaces the usual row set with one flat grid, same pattern as those filters.

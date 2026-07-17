@@ -11,6 +11,37 @@ export const pubVideos = () => DATA.videos.filter(visible);
 export const trending = ()=> pubVideos().sort((a,b)=> (b.likes*1.2+b.views*0.01) - (a.likes*1.2+a.views*0.01));
 export const byCat = (c)=> pubVideos().filter(v=>v.category===c);
 
+/* Broader category match for the filter bar: a video matches a category if its
+   primary category, its categories[] list, OR its tags contain the term
+   (case-insensitive). Lets "Big Ass" surface videos merely tagged "Big Ass". */
+export function byCategoryFilter(cat){
+  const c = String(cat||"").toLowerCase();
+  return pubVideos().filter(v=>
+    (v.category||"").toLowerCase()===c ||
+    (v.categories||[]).some(x=>String(x).toLowerCase()===c) ||
+    (v.tags||[]).some(t=>String(t).toLowerCase()===c)
+  );
+}
+
+/* Tag-weighted recommendations: rank other public videos by how many tags /
+   category they share with `video`, then break ties by popularity. Powers the
+   watch-page "Up Next" and the home "Because you watched…" row. */
+export function relatedTo(video, limit=12){
+  if(!video) return [];
+  const vt = new Set([...(video.tags||[]), ...(video.categories||[]), video.category].filter(Boolean).map(x=>String(x).toLowerCase()));
+  return pubVideos()
+    .filter(u=>u.id!==video.id)
+    .map(u=>{
+      const ut = [...(u.tags||[]), ...(u.categories||[]), u.category].filter(Boolean).map(x=>String(x).toLowerCase());
+      const overlap = ut.reduce((n,t)=>n + (vt.has(t)?1:0), 0);
+      return { u, score: overlap*100 + (u.views||0)*0.0001 + (u.likes||0)*0.01 };
+    })
+    .filter(x=>x.score>0)
+    .sort((a,b)=>b.score-a.score)
+    .slice(0, limit)
+    .map(x=>x.u);
+}
+
 export function sortedVideos(sort){
   const vids = pubVideos().slice();
   if(sort==="latest") return vids.sort((a,b)=>b.uploaded.localeCompare(a.uploaded));

@@ -32,6 +32,18 @@ export function distRows(arr) {
    ============================================================ */
 
 import { esc, mediaUrl, ytId, creatorName, fmt } from './catalog.js';
+import { jsq } from '../viewer/util.js';
+
+/* Clickable tag chips. `stop` guards the parent card's onclick so tapping a tag
+   searches instead of opening the video. `max` caps how many render. */
+export function tagChips(tags, { max = 3, stop = false } = {}){
+  if(!Array.isArray(tags) || !tags.length) return '';
+  const guard = stop ? 'event.stopPropagation();' : '';
+  const chips = tags.slice(0, max).map(t =>
+    `<span class="tag-chip" onclick="${guard}searchTag('${jsq(t)}')">#${esc(t)}</span>`
+  ).join('');
+  return `<div class="tag-chips">${chips}</div>`;
+}
 
 export function playerEmbed(v){
   const yt = ytId(v.src);
@@ -59,6 +71,7 @@ export function videoCard(v, opts={}){
       </div>
       <div class="title">${esc(v.title)}</div>
       <div class="meta">${esc(creatorName(v.creator))} • ${fmt(v.views)} views</div>
+      ${opts.hideTags ? `` : tagChips(v.tags, { max: 3, stop: true })}
       ${opts.extra ? opts.extra(v) : ``}
     </div>`;
 }

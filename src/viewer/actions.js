@@ -46,8 +46,29 @@ export function openCreator(cid){
   render();
 }
 
-export function setHomeFilter(f){ vstate.homeFilter = f; render(); }
+export function setHomeFilter(f){ vstate.homeFilter = f; vstate.homeCategory = ""; render(); }
 export function setHomeSort(s){ vstate.homeSort = s; render(); }
+
+/* Filter the home feed to a single category (from the filter bar "More" menu). */
+export function setHomeCategory(c){
+  c = jsdec(c);
+  vstate.homeCategory = (vstate.homeCategory === c) ? "" : c;   // toggle off if same
+  vstate.page = "home";
+  vstate.homeFilter = "all";
+  setHash(vstate.homeCategory ? "category/"+encodeURIComponent(vstate.homeCategory) : "");
+  render();
+}
+
+/* Clicking a tag chip (card / watch page) runs a search for that tag. */
+export function searchTag(tag){
+  tag = jsdec(tag);
+  vstate.searchQuery = tag;
+  vstate.page = "search";
+  setHash("search/"+encodeURIComponent(tag));
+  render();
+  const el = document.getElementById("searchInput");
+  if(el) el.value = tag;
+}
 
 export function loadMore(){
   vstate.limit = (vstate.limit || 36) + 24;

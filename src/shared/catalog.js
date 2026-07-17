@@ -8,6 +8,8 @@
    catalog.js to Bunny storage and purge the Pull Zone cache (see CLAUDE.md).
    ============================================================ */
 
+import { CATEGORIES } from "./taxonomy.js";
+
 const MEDIA_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media";
 
 /* HTML-escape a value for safe interpolation into innerHTML template strings.
@@ -72,7 +74,9 @@ const DATA = {
     { id:"c4", name:"Alex",            handle:"@alex",  subs:1240,     verified:false },
   ],
 
-  categories: ["POV","Big Ass","Cumshot","Squirt","Big","Beauty","AI","Boy Girl","Girl Girl","Boy Boy","Blowjob","Compilation","Facial","Threesome","Blond","18-25","Amateur","Asian","Babe","Anal","Titsjob"],
+  // Homepage rows / sidebar / filter bar taxonomy — sourced from taxonomy.js
+  // (single source of truth, shared with the creator wizard and search).
+  categories: CATEGORIES,
 
   videos: [
     { id:1, title:"Blonde Office Twerk", creator:"c3", type:"ugc", category:"Blond", views:14312, likes:222, dislikes:5, comments:0, favorites:0, duration:"0:26", uploaded:"2026-05-04", src:"../media/Blonde Office Twerk video by ttt-ai on DeviantArt.mp4", status:"published", flagged:false },

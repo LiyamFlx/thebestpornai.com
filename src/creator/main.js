@@ -1,6 +1,7 @@
 import { DATA, esc, creatorName, fmt, toast, mediaUrl } from "../shared/catalog.js";
 import { ShAuth, ShAPI } from "../shared/streamhub-api.js";
 import { metric, barChart, distRows } from "../shared/ui.js";
+import { ALL_CATEGORIES, ALL_TAGS, POPULAR_TAGS, isPopularTag } from "../shared/taxonomy.js";
 import { ageGate } from "../shared/age-gate.js";
 ageGate();
 
@@ -59,14 +60,11 @@ function signOutCreator(){ localStorage.removeItem("creatorProfile"); creator=nu
 /* Options for the Metadata step */
 const AI_TOOLS = ["Joi.ai","Candy.ai","Ourdream.ai","Zen Creator","Spicy AI","Grok","ComfyUI"];
 const MAX_CATS = 5, MAX_TAGS = 10;
-const CATEGORY_LIBRARY = ["Lesbian","Transgender","MILF","Anal","Mature","Hentai","Japanese","Threesome",
-  "Ebony","Asian","Big Tits","Creampie","Amateur","Big Ass","POV","Latina","Massage","BBW","Teen","Femboy",
-  "Step Family","Cosplay","Blowjob","Gangbang","Squirt","Foot Fetish","Public","BDSM","Interracial","Rough Sex"];
-const TAG_LIBRARY = ["Hentai","MILF","Pinay","Lesbian","Anal","Big Ass","Latina","Anime","Asian","Femboy",
-  "Stepmom","Japanese","Creampie","Threesome","Cosplay","Trans","Big Tits","Blowjob","Gangbang","POV","Massage",
-  "Amateur","Cheating","Squirt","BBW","Office","Foot Fetish","Deepthroat","Public","Rough Sex","Pregnant","BDSM",
-  "Handjob","GILF","Interracial","JOI","Petite","Lingerie","Pissing","Roleplay","VR","Cumshot","Redhead","Indian",
-  "Lesbian Strapon","Cuckold","Gym","No Makeup","ASMR","Double Penetration"];
+/* Category & tag libraries come from the shared taxonomy (single source of
+   truth). Popular tags are floated to the top of the tag picker so creators
+   pick high-traffic terms first. */
+const CATEGORY_LIBRARY = ALL_CATEGORIES;
+const TAG_LIBRARY = [...POPULAR_TAGS, ...ALL_TAGS.filter(t => !isPopularTag(t))];
 
 function go(p){ cstate.page=p; render(); }
 

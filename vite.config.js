@@ -27,7 +27,10 @@ export default defineConfig({
         // Split the huge catalog data (500+ videos) into its own chunk.
         // This allows better caching, parallel loading, and keeps main app chunks smaller.
         manualChunks(id) {
-          if (id.includes('/shared/catalog.js')) {
+          // Keep taxonomy in the same chunk as catalog.js — catalog's DATA
+          // references taxonomy's CATEGORIES at module-init time, so splitting
+          // them across chunks causes a cross-chunk temporal-dead-zone error.
+          if (id.includes('/shared/catalog.js') || id.includes('/shared/taxonomy.js')) {
             return 'catalog-data';
           }
           if (id.includes('/shared/streamhub-api.js')) {

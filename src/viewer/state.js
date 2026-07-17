@@ -7,6 +7,7 @@ export const vstate = {
   favorites:[], later:[], history:[], downloads:[],
   subs:["c1","c2"],
   homeFilter:"all",   // "all" | "movies" | "scenes" | "clips"
+  homeCategory:"",    // "" = no category filter, else a category name from taxonomy
   homeSort:"none",    // "none" | "latest" | "likes" | "views"
   commentPage: 1,     // comments paginated at COMMENTS_PER_PAGE
   commentSort: "new", // owned by state, not read back from the DOM mid-render

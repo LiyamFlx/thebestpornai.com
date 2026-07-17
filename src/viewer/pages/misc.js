@@ -100,18 +100,51 @@ export function renderPlaylists(){
     </div>`;
 }
 
+/* Fuzzy multi-term search: every whitespace-separated term must match somewhere
+   (title / category / categories / tags). Results are ranked — tag & category
+   hits and title-start matches score highest — so the most relevant filth
+   surfaces first. */
+function scoreVideo(v, terms){
+  const title = (v.title||"").toLowerCase();
+  const cats = [(v.category||""), ...(v.categories||[])].map(x=>String(x).toLowerCase());
+  const tags = (v.tags||[]).map(t=>String(t).toLowerCase());
+  let score = 0;
+  for(const term of terms){
+    let hit = 0;
+    if(tags.includes(term) || cats.includes(term)) hit = 10;          // exact tag/category
+    else if(tags.some(t=>t.includes(term)) || cats.some(c=>c.includes(term))) hit = 6;
+    else if(title.startsWith(term)) hit = 5;
+    else if(title.includes(term)) hit = 3;
+    if(!hit) return -1;   // every term must match somewhere (AND)
+    score += hit;
+  }
+  score += (v.views||0) * 0.00001 + (v.likes||0) * 0.001;   // popularity tiebreaker
+  return score;
+}
+
 export function renderSearch(){
-  const q = vstate.searchQuery.toLowerCase();
-  const vids = pubVideos().filter(v=>
-    v.title.toLowerCase().includes(q) ||
-    (v.category||"").toLowerCase().includes(q) ||
-    (v.categories||[]).some(c=>c.toLowerCase().includes(q)) ||
-    (v.tags||[]).some(t=>t.toLowerCase().includes(q))
-  );
-  const crs  = DATA.creators.filter(c=>c.name.toLowerCase().includes(q) || (c.handle||"").toLowerCase().includes(q));
+  const raw = (vstate.searchQuery||"").trim();
+  const terms = raw.toLowerCase().split(/\s+/).filter(Boolean);
+  const scored = pubVideos()
+    .map(v=>({ v, s: scoreVideo(v, terms) }))
+    .filter(x=>x.s >= 0)
+    .sort((a,b)=>b.s - a.s);
+  const vids = scored.map(x=>x.v);
+  const crs  = DATA.creators.filter(c=>c.name.toLowerCase().includes(raw.toLowerCase()) || (c.handle||"").toLowerCase().includes(raw.toLowerCase()));
+
+  // Related tags: most common tags among the results, minus the query itself, as
+  // clickable refinements.
+  const tagFreq = {};
+  for(const v of vids.slice(0, 60)) for(const t of (v.tags||[])){
+    if(t.toLowerCase()===raw.toLowerCase()) continue;
+    tagFreq[t] = (tagFreq[t]||0)+1;
+  }
+  const related = Object.entries(tagFreq).sort((a,b)=>b[1]-a[1]).slice(0, 12).map(x=>x[0]);
+
   return `
-    <h2>Search: "${esc(vstate.searchQuery)}"</h2>
-    <div class="pill-row"><span class="filter-pill active">All</span><span class="filter-pill">Videos</span><span class="filter-pill">Creators</span><span class="filter-pill">Playlists</span></div>
-    <h3>Creators</h3>${crs.length?`<div class="pill-row">${crs.map(c=>`<span class="filter-pill" onclick="openCreator('${jsq(c.id)}')">${esc(c.name)} ${c.verified?'✔️':''}</span>`).join("")}</div>`:'<div class="small">None</div>'}
-    <h3>Videos</h3>${vids.length?`<div class="grid">${vids.map(v=>videoCard(v)).join("")}</div>`:'<div class="empty">No videos found.</div>'}`;
+    <h2>Search: "${esc(raw)}"</h2>
+    <p class="sub">${vids.length} video${vids.length!==1?'s':''}</p>
+    ${related.length?`<div class="pill-row related-tags">${related.map(t=>`<span class="filter-pill" onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}</div>`:''}
+    ${crs.length?`<h3>Creators</h3><div class="pill-row">${crs.map(c=>`<span class="filter-pill" onclick="openCreator('${jsq(c.id)}')">${esc(c.name)} ${c.verified?'✔️':''}</span>`).join("")}</div>`:''}
+    <h3>Videos</h3>${vids.length?`<div class="grid">${vids.map(v=>videoCard(v)).join("")}</div>`:'<div class="empty">No videos found for “'+esc(raw)+'”.</div>'}`;
 }

@@ -3,7 +3,7 @@ import { DATA, esc, creatorName, fmt, mediaUrl, ytId } from "../../shared/catalo
 import { playerEmbed, videoCard } from "../../shared/ui.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
-import { pubVideos, trending } from "../catalog-queries.js";
+import { pubVideos, trending, relatedTo } from "../catalog-queries.js";
 import { renderCommentList } from "../comments.js";
 
 export function renderWatch(){
@@ -13,7 +13,13 @@ export function renderWatch(){
   const subbed = vstate.subs.includes(v.creator);
   const cms = DATA.comments.filter(m=>m.video===v.id);
   const live = vstate.live[v.id] || {like:0, dislike:0};
-  const related = trending().filter(u=>u.id!==v.id).slice(0,6);
+  // Tag-weighted "Up Next": videos sharing tags/category with this one, then
+  // fill with trending if there aren't enough related matches.
+  let related = relatedTo(v, 6);
+  if(related.length < 6){
+    const seen = new Set([v.id, ...related.map(u=>u.id)]);
+    related = related.concat(trending().filter(u=>!seen.has(u.id)).slice(0, 6-related.length));
+  }
   const suggestedCard = u=>`
     <div class="card" style="display:flex;gap:10px;margin-bottom:10px;padding:8px" onclick="openVideo(${u.id})">
       <div class="video-thumb ${u.type==='original'?'original':''}" style="width:120px;height:68px;margin:0;flex:none">
@@ -29,8 +35,8 @@ export function renderWatch(){
         <h2 class="watch-title">${esc(v.title)}</h2>
         <p class="sub watch-sub" id="watchSub"><span class="ic-eye">👁</span> ${fmt(v.views)} views <span class="dot-sep">•</span> ${esc(v.uploaded)}</p>
         ${(v.categories?.length || v.category || v.tags?.length) ? `<div class="video-tags">
-          ${[v.category,...(v.categories||[])].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,5).map(c=>`<span class="vtag vtag-cat" onclick="go('categories')">${esc(c)}</span>`).join("")}
-          ${(v.tags||[]).slice(0,8).map(t=>`<span class="vtag vtag-tag">#${esc(t)}</span>`).join("")}
+          ${[v.category,...(v.categories||[])].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,5).map(c=>`<span class="vtag vtag-cat" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</span>`).join("")}
+          ${(v.tags||[]).slice(0,8).map(t=>`<span class="vtag vtag-tag" onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}
         </div>` : ''}
 
         <div class="watch-actions">
