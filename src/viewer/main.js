@@ -837,12 +837,16 @@ updateVideoCount();
     // that blocks the absolute b-cdn.net form (Bunny returns no ACAO header).
     const url = 'https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/manifest.json?t=' + Date.now();
     const r = await fetch(url, { cache: 'no-store' });
-    if (!r.ok) {
+    let uploads = [];
+    if (r.status === 404) {
+      uploads = [];
+    } else if (!r.ok) {
       console.warn('[manifest] fetch failed', r.status);
       updateVideoCount(' • sync failed');
       return;
+    } else {
+      uploads = await r.json();
     }
-    const uploads = await r.json();
     if (!Array.isArray(uploads) || !uploads.length) return;
 
     const existingSrc = new Set(DATA.videos.map(v => v.src));
@@ -894,8 +898,14 @@ window.refreshManifest = async () => {
   // so we do a lightweight re-fetch here for power users.
   try {
     const r = await fetch('https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/manifest.json?t=' + Date.now());
-    if (!r.ok) throw new Error('bad status ' + r.status);
-    const uploads = await r.json();
+    let uploads = [];
+    if (r.status === 404) {
+      uploads = [];
+    } else if (!r.ok) {
+      throw new Error('bad status ' + r.status);
+    } else {
+      uploads = await r.json();
+    }
     // Minimal merge (same rules)
     const existingSrc = new Set(DATA.videos.map(v => v.src));
     const existingIds = new Set(DATA.videos.map(v => v.id));

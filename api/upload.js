@@ -81,6 +81,7 @@ export default async function handler(req, res) {
         accessKeyId: R2_ACCESS_KEY_ID,
         secretAccessKey: R2_SECRET_ACCESS_KEY,
       },
+      forcePathStyle: true,
     });
 
     const cl = req.headers["content-length"];
