@@ -246,32 +246,38 @@ const ShAPI = {
     return (rows||[]).length;
   },
 
-  /* ---- VIDEO UPLOAD (Bunny Storage via the serverless relay) ---- */
-  /* Base for the upload function. The static site is on Bunny but the function
-     runs on Vercel, NOT on Bunny (which serves the site and has no /api), so
-     this MUST point at the Vercel relay — a relative /api/upload 405s on Bunny. */
-  uploadApiBase: (typeof SH_UPLOAD_API_BASE!=="undefined" ? SH_UPLOAD_API_BASE : "https://x-flxx.vercel.app"),
+  /* ---- VIDEO UPLOAD (direct-to-R2 via presigned PUT) ----
+     No sign-in required. The browser asks our /api/presign endpoint for a
+     short-lived signed URL, then PUTs the file bytes STRAIGHT to Cloudflare R2 —
+     no serverless relay in the byte path, so there's no Vercel body-size wall,
+     real upload progress, and multiple uploads can run in parallel.
+     Same-origin (`/api/...`) — the site and functions are both on Vercel now. */
+  uploadApiBase: (typeof SH_UPLOAD_API_BASE!=="undefined" ? SH_UPLOAD_API_BASE : ""),
   async uploadVideo(file, title, onProgress){
-    // TEMP: Auth removed for now to unblock uploads. No sign-in required.
-    const sess = (typeof ShAuth!=="undefined") ? ShAuth.session() : null;
-    // POST the raw file bytes to our relay, which streams them to Bunny Storage.
-    const info = await new Promise((resolve, reject)=>{
+    // 1. Ask the server to sign a one-time PUT URL for this file.
+    const presignRes = await fetch((this.uploadApiBase||"") + "/api/presign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename: file.name || "video.mp4", size: file.size }),
+    });
+    if(!presignRes.ok){
+      let msg = "presign " + presignRes.status;
+      try { const j = await presignRes.json(); if(j.error) msg = j.error; } catch(_){}
+      throw new Error(msg);
+    }
+    const { putUrl, contentType, src, url, path } = await presignRes.json();
+
+    // 2. PUT the raw bytes directly to R2 with progress.
+    await new Promise((resolve, reject)=>{
       const xhr = new XMLHttpRequest();
-      xhr.open("POST", (this.uploadApiBase||"") + "/api/upload", true);
-      xhr.setRequestHeader("Content-Type", "application/octet-stream");
-      xhr.setRequestHeader("X-Filename", (file.name||"video.mp4"));
-      if (sess && sess.access_token) {
-        xhr.setRequestHeader("Authorization", "Bearer " + sess.access_token);
-      }
+      xhr.open("PUT", putUrl, true);
+      xhr.setRequestHeader("Content-Type", contentType || "application/octet-stream");
       if(onProgress) xhr.upload.onprogress = e=>{ if(e.lengthComputable) onProgress(Math.round(e.loaded/e.total*100)); };
-      xhr.onload = ()=>{
-        if(xhr.status>=200 && xhr.status<300){ try{ resolve(JSON.parse(xhr.responseText)); }catch(_){ reject(new Error("bad response")); } }
-        else reject(new Error("upload "+xhr.status));
-      };
+      xhr.onload = ()=> (xhr.status>=200 && xhr.status<300) ? resolve() : reject(new Error("upload "+xhr.status));
       xhr.onerror = ()=> reject(new Error("upload network error"));
       xhr.send(file);
     });
-    return info;   // { ok, src, url, path }
+    return { ok:true, src, url, path };
   },
 
   /* Persist an uploaded video's metadata so it appears in the catalog for
@@ -287,18 +293,12 @@ const ShAPI = {
   async listUploadedVideos(){
     return (await _req(`/uploads_legacy?select=*&order=created_at.desc`)) || [];
   },
+  /* Publish the uploaded video's metadata to the shared R2 manifest so it
+     appears in every visitor's feed. No sign-in required (open uploads). */
   async saveToManifest(entry){
-    // TEMP: Auth removed for now to unblock uploads. No sign-in required.
-    const sess = (typeof ShAuth!=="undefined") ? ShAuth.session() : null;
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    if (sess && sess.access_token) {
-      headers["Authorization"] = "Bearer " + sess.access_token;
-    }
     const r = await fetch((this.uploadApiBase||"") + "/api/save-upload", {
       method: "POST",
-      headers,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(entry),
     });
     if(!r.ok) throw new Error("save manifest HTTP " + r.status);

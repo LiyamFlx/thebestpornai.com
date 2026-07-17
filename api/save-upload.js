@@ -1,4 +1,3 @@
-import { verifyUser } from "./upload.js";
 import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export default async function handler(req, res) {
@@ -41,17 +40,32 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "R2 credentials or bucket name are not set on Vercel" });
   }
 
-  // Hard gate verifyUser
-  try {
-    await verifyUser(req);
-  } catch (err) {
-    return res.status(401).json({ error: "Unauthorized", detail: err.message });
-  }
-
+  // Open uploads: no sign-in required. Validate the entry shape instead.
   const entry = req.body;
-  if (!entry || !entry.src) {
+  if (!entry || typeof entry !== "object" || typeof entry.src !== "string" || !entry.src) {
     return res.status(400).json({ error: "invalid catalog entry metadata" });
   }
+  // Whitelist + cap fields so a caller can't bloat/poison the manifest.
+  const safeEntry = {
+    id: entry.id,
+    title: String(entry.title || "Untitled").slice(0, 200),
+    creator: String(entry.creator || "").slice(0, 80),
+    type: entry.type === "original" ? "original" : "ugc",
+    src: String(entry.src).slice(0, 500),
+    thumb: String(entry.thumb || "").slice(0, 500),
+    category: String(entry.category || "Amateur").slice(0, 60),
+    categories: Array.isArray(entry.categories) ? entry.categories.slice(0, 8).map(c => String(c).slice(0, 60)) : [],
+    tags: Array.isArray(entry.tags) ? entry.tags.slice(0, 20).map(t => String(t).slice(0, 60)) : [],
+    duration: String(entry.duration || "").slice(0, 12),
+    uploaded: String(entry.uploaded || new Date().toISOString().slice(0, 10)).slice(0, 10),
+    views: Number(entry.views) || 0,
+    likes: Number(entry.likes) || 0,
+    dislikes: Number(entry.dislikes) || 0,
+    comments: 0,
+    favorites: 0,
+    status: "public",
+    flagged: false,
+  };
 
   try {
     const s3 = new S3Client({
@@ -91,8 +105,8 @@ export default async function handler(req, res) {
       }
 
       // Prepend the new entry if not already present by src
-      if (!existing.some(item => item.src === entry.src)) {
-        existing.unshift(entry);
+      if (!existing.some(item => item.src === safeEntry.src)) {
+        existing.unshift(safeEntry);
       }
 
       try {
@@ -121,45 +135,10 @@ export default async function handler(req, res) {
       }
     }
 
-    // 2. Save to Supabase (forwarding the user JWT so RLS handles permissions)
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_KEY;
-
-    if (supabaseUrl && supabaseKey) {
-      try {
-        const dbRes = await fetch(`${supabaseUrl}/rest/v1/uploads_legacy`, {
-          method: "POST",
-          headers: {
-            "apikey": supabaseKey,
-            "Authorization": req.headers["authorization"],
-            "Content-Type": "application/json",
-            "Prefer": "return=representation"
-          },
-          body: JSON.stringify({
-            title: entry.title,
-            creator: entry.creator,
-            src: entry.src,
-            category: entry.category,
-            categories: entry.categories,
-            tags: entry.tags,
-            duration: entry.duration,
-            views_seed: entry.views,
-            likes_seed: entry.likes,
-            status: entry.status || "public",
-            thumb: entry.thumb || ""
-          })
-        });
-
-        if (!dbRes.ok) {
-          const dbErr = await dbRes.text().catch(() => "");
-          console.warn("Supabase database insert failed:", dbRes.status, dbErr);
-        }
-      } catch (dbErr) {
-        console.warn("Supabase connection failed:", dbErr);
-      }
-    }
-
-    return res.status(200).json({ ok: true });
+    // The R2 manifest is the single source of truth for open uploads — the
+    // viewer reads it on load (manifest-sync.js), so the video is now live for
+    // everyone. No Supabase write needed (that path required a per-user JWT).
+    return res.status(200).json({ ok: true, entry: safeEntry });
 
   } catch (e) {
     return res.status(500).json({ error: "save upload error", detail: String(e?.message || e) });

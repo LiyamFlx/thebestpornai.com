@@ -352,41 +352,35 @@ async function uPublish(){
     });
 
     try {
-      // 1. Upload main video file securely via Vercel serverless relay
-      const uploadInfo = await ShAPI.uploadVideo(u.file, u.title||"Untitled", pct=>{
+      // Upload the main video, thumbnail, and sample clips ALL IN PARALLEL —
+      // each goes directly to R2 via a presigned PUT, so they don't contend for
+      // a single relay. The main file drives the progress bar; the rest ride
+      // alongside and never block "live".
+      const mainP = ShAPI.uploadVideo(u.file, u.title||"Untitled", pct=>{
         u.progress = pct; setBar(pct);
       });
-      const cdnSrc = uploadInfo.src;
-      setBar(100); u.progress = 100;
 
-      // 2. Convert and upload thumbnail if it is a base64 Data URL
-      let thumbUrl = "";
+      let thumbP = Promise.resolve({ url: u.thumb || "" });
       if (u.thumb && u.thumb.startsWith("data:")) {
-        try {
-          const thumbFile = dataURLtoFile(u.thumb, `thumb_${localId}.jpg`);
-          const thumbUploadInfo = await ShAPI.uploadVideo(thumbFile, u.title + " Thumbnail", () => {});
-          thumbUrl = thumbUploadInfo.url;
-        } catch (e) {
-          console.error("Thumbnail upload failed, falling back to data URL:", e);
-          thumbUrl = u.thumb;
-        }
-      } else {
-        thumbUrl = u.thumb;
+        const thumbFile = dataURLtoFile(u.thumb, `thumb_${localId}.jpg`);
+        thumbP = ShAPI.uploadVideo(thumbFile, u.title + " Thumbnail", () => {})
+          .catch(e => { console.error("Thumbnail upload failed, using data URL:", e); return { url: u.thumb }; });
       }
 
-      // 3. Upload sample clips if captured (non-blocking) securely via Vercel relay
+      const clipPromises = [];
       if(u.sample5){
-        try{
-          const f5 = new File([u.sample5], (u.title||"video").replace(/\s+/g,"-")+"-5s.webm", {type:"video/webm"});
-          await ShAPI.uploadVideo(f5, u.title+"-5s", ()=>{});
-        }catch(_){}
+        const f5 = new File([u.sample5], (u.title||"video").replace(/\s+/g,"-")+"-5s.webm", {type:"video/webm"});
+        clipPromises.push(ShAPI.uploadVideo(f5, u.title+"-5s", ()=>{}).catch(()=>{}));
       }
       if(u.sample30){
-        try{
-          const f30 = new File([u.sample30], (u.title||"video").replace(/\s+/g,"-")+"-30s.webm", {type:"video/webm"});
-          await ShAPI.uploadVideo(f30, u.title+"-30s", ()=>{});
-        }catch(_){}
+        const f30 = new File([u.sample30], (u.title||"video").replace(/\s+/g,"-")+"-30s.webm", {type:"video/webm"});
+        clipPromises.push(ShAPI.uploadVideo(f30, u.title+"-30s", ()=>{}).catch(()=>{}));
       }
+
+      const [uploadInfo, thumbInfo] = await Promise.all([mainP, thumbP, ...clipPromises]);
+      const cdnSrc = uploadInfo.src;
+      const thumbUrl = thumbInfo.url || "";
+      setBar(100); u.progress = 100;
 
       // Point local entry at real CDN src and thumbnail URL
       const vid = DATA.videos.find(v=>v.id===localId);
@@ -640,23 +634,20 @@ async function publishQueue(){
         flagged: false
       });
 
-      // 1. Upload main file
-      const uploadInfo = await ShAPI.uploadVideo(item.file, item.title || "Untitled", (pct) => {
+      // Upload main file + thumbnail in parallel (direct-to-R2 presigned PUT).
+      const mainP = ShAPI.uploadVideo(item.file, item.title || "Untitled", (pct) => {
         item._progress = pct;
         render();
       });
-
-      const cdnSrc = uploadInfo.src;
-
-      // 2. Upload thumb if base64
-      let thumbUrl = item.thumb || "";
+      let thumbP = Promise.resolve({ url: item.thumb || "" });
       if(item.thumb && item.thumb.startsWith("data:")){
-        try{
-          const thumbFile = dataURLtoFile(item.thumb, `thumb_${localId}.jpg`);
-          const tinfo = await ShAPI.uploadVideo(thumbFile, (item.title||"video") + " thumb", ()=>{});
-          thumbUrl = tinfo.url;
-        }catch(e){ console.warn("thumb upload failed", e); }
+        const thumbFile = dataURLtoFile(item.thumb, `thumb_${localId}.jpg`);
+        thumbP = ShAPI.uploadVideo(thumbFile, (item.title||"video") + " thumb", ()=>{})
+          .catch(e => { console.warn("thumb upload failed", e); return { url: item.thumb || "" }; });
       }
+      const [uploadInfo, tinfo] = await Promise.all([mainP, thumbP]);
+      const cdnSrc = uploadInfo.src;
+      const thumbUrl = tinfo.url || "";
 
       // 3. Save manifest
       const manifestEntry = {
