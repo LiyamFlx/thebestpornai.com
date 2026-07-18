@@ -13,6 +13,13 @@ export function renderWatch(){
   const subbed = vstate.subs.includes(v.creator);
   const cms = DATA.comments.filter(m=>m.video===v.id);
   const live = vstate.live[v.id] || {like:0, dislike:0};
+  // Single consolidated tag row: category chips + hashtags share one container,
+  // and hashtags that merely repeat a category (e.g. "Big Tits") are dropped so
+  // the same label never shows twice. The cat/tag distinction stays in the data
+  // and in the chip styling — only the visual duplication is removed.
+  const catList = [v.category, ...(v.categories||[])].filter((x,i,a)=>x && a.indexOf(x)===i).slice(0,5);
+  const catSet = new Set(catList.map(c=>String(c).toLowerCase()));
+  const tagList = (v.tags||[]).filter(t=>!catSet.has(String(t).toLowerCase())).slice(0,8);
   // Tag-weighted "Up Next": videos sharing tags/category with this one, then
   // fill with trending if there aren't enough related matches.
   let related = relatedTo(v, 6);
@@ -38,9 +45,9 @@ export function renderWatch(){
       <div>
         <h2 class="watch-title">${esc(v.title)}</h2>
         <p class="sub watch-sub" id="watchSub"><span class="ic-eye">👁</span> ${fmt(v.views)} views <span class="dot-sep">•</span> ${esc(v.uploaded)}</p>
-        ${(v.categories?.length || v.category || v.tags?.length) ? `<div class="video-tags">
-          ${[v.category,...(v.categories||[])].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,5).map(c=>`<span class="vtag vtag-cat" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</span>`).join("")}
-          ${(v.tags||[]).slice(0,8).map(t=>`<span class="vtag vtag-tag" onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}
+        ${(catList.length || tagList.length) ? `<div class="video-tags">
+          ${catList.map(c=>`<span class="vtag vtag-cat" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</span>`).join("")}
+          ${tagList.map(t=>`<span class="vtag vtag-tag" onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}
         </div>` : ''}
         ${v.desc ? `<p class="watch-desc">${esc(v.desc)}</p>` : ''}
 
@@ -50,10 +57,15 @@ export function renderWatch(){
             <span class="vote-div"></span>
             <button id="btnDislike" class="vote-btn" onclick="dislikeVideo(${v.id})" aria-label="Dislike this video"><span class="ic">👎</span> <span id="disNum">${fmt(v.dislikes + live.dislike)}</span></button>
           </div>
-          <button id="btnFav" class="act-btn ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})" aria-label="${vstate.favorites.includes(v.id)?'Remove from favorites':'Add to favorites'}"><span class="ic">♥</span> Favorite<span id="favCount"></span></button>
-          <button id="btnLater" class="act-btn ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})" aria-label="${vstate.later.includes(v.id)?'Remove from saved':'Save for later'}"><span class="ic">🔖</span> Save</button>
-          <button class="act-btn" onclick="shareVideo(${v.id})" aria-label="Share this video"><span class="ic">↗</span> Share</button>
-          <button class="act-btn" onclick="reportVideo(${v.id})" title="Report" aria-label="Report">⚑ Report</button>
+          <button id="btnFav" class="act-btn ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})" aria-label="${vstate.favorites.includes(v.id)?'Remove from favorites':'Add to favorites'}"><span class="ic">♥</span> <span class="act-label">Favorite</span><span id="favCount"></span></button>
+          <div class="act-overflow">
+            <button class="act-btn act-more" data-mobile-action="toggle-actions-menu" aria-haspopup="true" aria-expanded="false" aria-label="More actions">⋯</button>
+            <div class="act-menu">
+              <button id="btnLater" class="act-btn ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})" aria-label="${vstate.later.includes(v.id)?'Remove from saved':'Save for later'}"><span class="ic">🔖</span> <span class="act-label">Save</span></button>
+              <button class="act-btn" onclick="shareVideo(${v.id})" aria-label="Share this video"><span class="ic">↗</span> <span class="act-label">Share</span></button>
+              <button class="act-btn" onclick="reportVideo(${v.id})" title="Report" aria-label="Report"><span class="ic">⚑</span> <span class="act-label">Report</span></button>
+            </div>
+          </div>
         </div>
 
         <div class="creator-card">

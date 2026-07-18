@@ -653,6 +653,17 @@ iframe.player{object-fit:contain}
 .home-sort-bar{margin-bottom:20px;opacity:.85}
 .home-sort-bar .filter-pill{font-size:12px}
 
+/* ===== Mobile chrome density pass — desktop defaults =====
+   These keep the new mobile-only controls out of the desktop layout. Each is
+   re-enabled inside the max-width:760px block further down. */
+.topbar-search-toggle{display:none}   /* collapsed-header search icon (mobile only) */
+.home-sort-mobile{display:none}       /* desktop keeps the inline sort button row */
+.cat-scroll-extra{display:none}       /* overflow categories inline only when the row scrolls (mobile) */
+.act-more{display:none}               /* action overflow trigger (mobile only) */
+/* On desktop the overflow wrapper + menu dissolve so Favorite/Save/Share/Report
+   flow inline in .watch-actions exactly as before this pass. */
+.act-overflow,.act-menu{display:contents}
+
 /* Category bar with "More ▾" dropdown */
 .home-cat-bar{flex-wrap:wrap;gap:4px;margin:4px 0}
 .home-cat-bar .filter-pill.active{background:var(--accent);color:#fff}
@@ -962,6 +973,87 @@ iframe.player{object-fit:contain}
   right: 0;
   height: 2px;
   background: var(--accent);
+}
+
+/* ============================================================
+   MOBILE UI DENSITY PASS  (≤760px only — desktop is untouched)
+   Fix 1 header collapse · Fix 2 chip scroll · Fix 3 sort control
+   · Fix 5 action overflow. Fix 4 (tag dedup) is handled in watch.js.
+   ============================================================ */
+@media(max-width:760px){
+
+  /* ---- Fix 1: collapse-on-scroll header ---- */
+  .topbar{transition:min-height .2s ease, padding .2s ease}
+  /* `.topbar-actions .icon-btn{display:none}` (below) hides the 🕒 button on
+     mobile at (0,2,0) — match that specificity so the search toggle can show. */
+  .topbar-actions .topbar-search-toggle{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:44px;min-height:44px;padding:0;
+  }
+  /* search icon belongs to the collapsed state only */
+  .topbar:not(.mchrome-collapsed) .topbar-search-toggle{display:none}
+
+  .topbar.mchrome-collapsed{min-height:0;padding-top:6px;padding-bottom:6px}
+  .topbar.mchrome-collapsed .video-count-badge{display:none}
+  .topbar.mchrome-collapsed .search-input{display:none}
+
+  /* tap-to-expand: the collapsed search icon reveals the field on its own line */
+  .topbar.mchrome-collapsed.mchrome-search-open .search-input{
+    display:block;flex:1 0 100%;width:100%;margin-top:8px;order:5;
+  }
+
+  /* ---- Fix 2: filter/category chips scroll horizontally, never wrap ---- */
+  .mchrome-scroll{
+    flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
+    scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;padding-bottom:4px;
+    /* trailing fade signals more content; JS drops it via .at-end at the end */
+    -webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);
+    mask-image:linear-gradient(90deg,#000 88%,transparent);
+  }
+  .mchrome-scroll.at-end{-webkit-mask-image:none;mask-image:none}
+  .mchrome-scroll::-webkit-scrollbar{display:none}
+  .mchrome-scroll .filter-pill{flex:0 0 auto;scroll-snap-align:start;min-height:40px}
+  /* a scroll container clips the "More ▾" dropdown, so on mobile the overflow
+     categories are shown inline in the scroll strip instead */
+  .home-cat-bar .cat-more{display:none}
+  .home-cat-bar .cat-scroll-extra{display:inline-flex;align-items:center}
+
+  /* ---- Fix 3: sort collapses to one dropdown ---- */
+  .home-sort-bar{display:none}
+  .home-sort-mobile{display:block;margin:2px 0 16px}
+  .sort-mobile-select{
+    background:var(--surface2);border:1px solid var(--border);color:var(--text);
+    font-size:13px;font-weight:600;min-height:44px;padding:0 36px 0 16px;
+    border-radius:999px;cursor:pointer;outline:none;
+    -webkit-appearance:none;appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23A0A0A0' stroke-width='1.5'/></svg>");
+    background-repeat:no-repeat;background-position:right 14px center;
+  }
+  .sort-mobile-select:focus{border-color:var(--accent)}
+
+  /* ---- Fix 5: compact action row + overflow menu ---- */
+  .watch-actions{gap:8px;flex-wrap:nowrap;align-items:stretch}
+  .watch-actions .vote-btn,.watch-actions .act-btn{min-height:44px;padding:0 14px}
+  .watch-actions .vote-pill{flex:0 0 auto}
+  /* primary Favorite: compact icon + count, no text label */
+  #btnFav .act-label{display:none}
+  #btnFav{padding:0 16px}
+
+  .act-overflow{display:inline-flex;position:relative;flex:0 0 auto}
+  .act-more{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:44px;min-height:44px;padding:0;font-size:18px;letter-spacing:0;
+  }
+  .act-menu{
+    display:none;position:absolute;right:0;top:calc(100% + 8px);z-index:40;
+    flex-direction:column;gap:6px;min-width:184px;padding:8px;
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    box-shadow:0 12px 32px rgba(0,0,0,.45);
+  }
+  .act-overflow.open .act-menu{display:flex}
+  .act-menu .act-btn{width:100%;justify-content:flex-start;border-radius:8px;min-height:44px}
+  .act-menu .act-label{display:inline}
 }
 
 

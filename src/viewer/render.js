@@ -12,6 +12,7 @@ import { renderWatch } from "./pages/watch.js";
 import { renderMovieDetail } from "./pages/movie.js";
 import { renderCreatorPage } from "./pages/creator.js";
 import { renderFeed, attachFeedObserver } from "./pages/feed.js";
+import { refreshChipRows } from "./mobile-chrome.js";
 import {
   listPage, renderCategories, renderSubs, renderProfile, renderSettings,
   renderLive, renderPlaylists, renderSearch,
@@ -37,6 +38,7 @@ export function render(){
 
   document.querySelectorAll("#nav button, #bottomNav button").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
   lazyLoadThumbs();
+  refreshChipRows();          // recompute horizontal chip-row edge fades (mobile)
   attachPlayerGestures();
   attachPlayerStatus();
   attachPlayerControls();

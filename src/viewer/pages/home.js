@@ -16,10 +16,15 @@ function homeFilterBar(){
   const filters = [["all","All"],["movies","Movies"],["scenes","Scenes"],["clips","Clips"]];
   const sorts = [["none","Default"],["latest","Latest"],["likes","Most Liked"],["views","Most Viewed"]];
   const activeCat = vstate.homeCategory;
-  return `<div class="pill-row home-filter-bar">
+  // `.mchrome-scroll` turns the filter/category rows into a single horizontal
+  // scroll strip on mobile (never wraps); desktop keeps the wrapping pill rows.
+  // On mobile the "More ▾" dropdown would be clipped by the scroll container, so
+  // the overflow categories are also emitted inline as `.cat-scroll-extra` pills
+  // (hidden on desktop, shown inline on mobile) — everything scrolls instead.
+  return `<div class="pill-row home-filter-bar mchrome-scroll">
     ${filters.map(([key,label])=>`<button class="filter-pill ${(vstate.homeFilter===key && !activeCat)?'active':''}" onclick="setHomeFilter('${key}')">${label}</button>`).join("")}
   </div>
-  <div class="pill-row home-cat-bar">
+  <div class="pill-row home-cat-bar mchrome-scroll">
     ${TOP_CATEGORIES.map(c=>`<button class="filter-pill ${activeCat===c?'active':''}" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
     <span class="cat-more">
       <button class="filter-pill" onclick="this.parentNode.classList.toggle('open')">More ▾</button>
@@ -27,9 +32,15 @@ function homeFilterBar(){
         ${MORE_CATEGORIES.map(c=>`<button class="cat-more-item ${activeCat===c?'active':''}" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
       </div>
     </span>
+    ${MORE_CATEGORIES.map(c=>`<button class="filter-pill cat-scroll-extra ${activeCat===c?'active':''}" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
   </div>
   <div class="pill-row home-sort-bar">
     ${sorts.map(([key,label])=>`<button class="filter-pill ${vstate.homeSort===key?'active':''}" onclick="setHomeSort('${key}')">${label}</button>`).join("")}
+  </div>
+  <div class="home-sort-mobile">
+    <select class="sort-mobile-select" data-mobile-action="home-sort" aria-label="Sort videos">
+      ${sorts.map(([key,label])=>`<option value="${key}" ${vstate.homeSort===key?'selected':''}>Sort: ${label}</option>`).join("")}
+    </select>
   </div>`;
 }
 

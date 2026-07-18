@@ -32,6 +32,7 @@ import {
   stepWatch,
 } from "./actions.js";
 import { refreshManifest, syncManifestOnLoad } from "./manifest-sync.js";
+import { initMobileChrome } from "./mobile-chrome.js";
 
 // Keep the session alive on load (refresh the token if near expiry)
 if (typeof ShAuth !== "undefined") ShAuth.ensureFresh();
@@ -45,6 +46,10 @@ initRouter(render);
 
 // Initial bootstrap render
 render();
+
+// Mobile chrome: header collapse-on-scroll, tap-to-expand search, sort dropdown,
+// and the watch-page action overflow menu (all no-ops above the mobile breakpoint).
+initMobileChrome();
 
 
 // Fetch live database catalog updates and remote manifest uploads
