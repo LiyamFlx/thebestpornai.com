@@ -5,6 +5,7 @@
    (speed, PiP) the native bar doesn't offer everywhere.
    Re-attached on every render() since the player element is recreated on
    each innerHTML swap (see render.js). */
+import { stepWatch, openVideo } from "./actions.js";
 
 function fmtTime(s){
   if(!isFinite(s) || s < 0) return "0:00";
@@ -109,4 +110,47 @@ export function attachPlayerControls(){
   bar.addEventListener("mouseleave", show);
   video.addEventListener("pause", () => wrap.classList.add("pc-visible"));
   show();
+
+  attachAutoAdvance(wrap, video);
+}
+
+/* "Up next" overlay: on video end, auto-advance to the first suggested video
+   after a 5s countdown (cancelable), mirroring the YouTube/Netflix pattern —
+   without this, every watch session dead-ends and requires a manual click. */
+function attachAutoAdvance(wrap, video){
+  const nextCard = document.querySelector(".watch-side [data-video-id]");
+  if(!nextCard) return;
+  const nextId = +nextCard.dataset.videoId;
+  const nextTitle = nextCard.querySelector(".title")?.textContent || "next video";
+  let overlay = null, timer = null;
+
+  const cancel = () => { clearInterval(timer); timer = null; if(overlay){ overlay.remove(); overlay = null; } };
+
+  video.addEventListener("ended", () => {
+    if(overlay || !Number.isFinite(nextId)) return;
+    overlay = document.createElement("div");
+    overlay.className = "pc-upnext";
+    overlay.innerHTML = `
+      <div class="pc-upnext-box">
+        <div class="pc-upnext-label">Up next</div>
+        <div class="pc-upnext-title"></div>
+        <div class="pc-upnext-row">
+          <button class="btn sm ghost pc-upnext-cancel">Cancel</button>
+          <button class="btn sm pc-upnext-play">Play now (<span class="pc-upnext-count">5</span>)</button>
+        </div>
+      </div>`;
+    overlay.querySelector(".pc-upnext-title").textContent = nextTitle;   // textContent: no HTML injection risk
+    wrap.appendChild(overlay);
+    wrap.classList.add("pc-visible");
+
+    let n = 5;
+    const countEl = overlay.querySelector(".pc-upnext-count");
+    timer = setInterval(() => {
+      n--;
+      if(countEl) countEl.textContent = String(n);
+      if(n <= 0){ clearInterval(timer); openVideo(nextId); }
+    }, 1000);
+    overlay.querySelector(".pc-upnext-cancel").addEventListener("click", cancel);
+    overlay.querySelector(".pc-upnext-play").addEventListener("click", () => { clearInterval(timer); openVideo(nextId); });
+  });
 }

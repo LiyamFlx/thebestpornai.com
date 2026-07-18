@@ -569,6 +569,21 @@ iframe.player{object-fit:cover}
 @media (prefers-reduced-motion: reduce){
   .pc-bar{transition:none}
 }
+.pc-upnext{
+  position:absolute;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.72);
+}
+.pc-upnext-box{background:var(--surface2,#1E1E1E);border:1px solid var(--border);border-radius:12px;padding:18px 22px;max-width:320px;text-align:center}
+.pc-upnext-label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.pc-upnext-title{color:#fff;font-weight:700;font-size:15px;margin-bottom:14px}
+.pc-upnext-row{display:flex;gap:10px;justify-content:center}
+/* Keyboard focus ring — matches the accent color used across the site;
+   nothing previously styled :focus-visible for player/action controls. */
+.pc-btn:focus-visible,.player-nav:focus-visible,.pc-seek:focus-visible,
+.pc-volume:focus-visible,.pc-speed:focus-visible,
+.act-btn:focus-visible,.vote-btn:focus-visible,.subscribe-btn:focus-visible{
+  outline:2px solid var(--accent2);outline-offset:2px;
+}
 .player-status{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   flex-direction:column;gap:12px;background:rgba(10,10,10,.55);pointer-events:none;

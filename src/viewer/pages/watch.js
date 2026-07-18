@@ -21,7 +21,7 @@ export function renderWatch(){
     related = related.concat(trending().filter(u=>!seen.has(u.id)).slice(0, 6-related.length));
   }
   const suggestedCard = u=>`
-    <div class="card" style="display:flex;gap:10px;margin-bottom:10px;padding:8px" onclick="openVideo(${u.id})">
+    <div class="card" style="display:flex;gap:10px;margin-bottom:10px;padding:8px" data-video-id="${u.id}" onclick="openVideo(${u.id})">
       <div class="video-thumb ${u.type==='original'?'original':''}" style="width:120px;height:68px;margin:0;flex:none">
         ${u.src && !ytId(u.src) ? `<video class="thumb-video lazy" data-src="${mediaUrl(u.src)}#t=1" muted preload="none"></video>` : ``}
       </div>
