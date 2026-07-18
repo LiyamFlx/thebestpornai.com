@@ -102,3 +102,11 @@ document.addEventListener("keydown", (e) => {
     openVideo(list[nextIdx].id);
   }
 });
+
+// Register the service worker for an installable, app-shell-cached PWA.
+// Best-effort: never blocks the app if SW registration fails or isn't supported.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}

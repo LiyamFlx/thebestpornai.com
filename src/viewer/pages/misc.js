@@ -2,7 +2,8 @@
    live, playlists, search, and the generic grid listPage used by
    explore/trending/originals/favorites/later/history/downloads. */
 import { DATA, esc, fmt, mediaUrl, ytId } from "../../shared/catalog.js";
-import { videoCard } from "../../shared/ui.js";
+import { videoCard, emptyState } from "../../shared/ui.js";
+import { POPULAR_TAGS } from "../../shared/taxonomy.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
 import { pubVideos, byCat } from "../catalog-queries.js";
@@ -146,5 +147,5 @@ export function renderSearch(){
     <p class="sub">${vids.length} video${vids.length!==1?'s':''}</p>
     ${related.length?`<div class="pill-row related-tags">${related.map(t=>`<span class="filter-pill" onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}</div>`:''}
     ${crs.length?`<h3>Creators</h3><div class="pill-row">${crs.map(c=>`<span class="filter-pill" onclick="openCreator('${jsq(c.id)}')">${esc(c.name)} ${c.verified?'✔️':''}</span>`).join("")}</div>`:''}
-    <h3>Videos</h3>${vids.length?`<div class="grid">${vids.map(v=>videoCard(v)).join("")}</div>`:'<div class="empty">No videos found for “'+esc(raw)+'”.</div>'}`;
+    <h3>Videos</h3>${vids.length?`<div class="grid">${vids.map(v=>videoCard(v)).join("")}</div>`:emptyState(`No videos found for “${raw}”.`, POPULAR_TAGS.slice(0,8))}`;
 }

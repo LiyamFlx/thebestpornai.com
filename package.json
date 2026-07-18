@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "sync-media": "node scripts/upload-catalog-to-r2.js",
     "publish": "node scripts/publish-folder.js",
+    "sitemap": "node scripts/gen-sitemap.js",
     "test": "node --test src/"
   },
   "devDependencies": {

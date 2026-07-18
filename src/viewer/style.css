@@ -100,6 +100,26 @@ h3{font-size:15px;margin:18px 0 10px}
 }
 .video-thumb.original{background:linear-gradient(135deg,#7A0008,#E50914)}
 .thumb-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+/* Hover preview: the preview <video> sits above the poster and fades in only
+   while the card is being previewed. On touch (no hover) it stays hidden. */
+.thumb-preview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .25s}
+.card.previewing .thumb-preview{opacity:1}
+.card.previewing .play-badge{opacity:0}
+
+/* Quick actions (❤ / ＋) — hidden until card hover, top-right of the thumb. */
+.video-thumb .card-actions{
+  position:absolute;top:8px;left:8px;display:flex;gap:6px;margin:0;flex-wrap:nowrap;
+  opacity:0;transform:translateY(-4px);transition:opacity .18s,transform .18s;z-index:3;
+}
+.card:hover .video-thumb .card-actions{opacity:1;transform:none}
+.card-act{
+  width:30px;height:30px;border:none;border-radius:50%;cursor:pointer;
+  background:rgba(0,0,0,.6);color:#fff;font-size:14px;line-height:1;backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;transition:background .15s,transform .15s;
+}
+.card-act:hover{background:var(--accent);transform:scale(1.12)}
+@media (hover: none){ .video-thumb .card-actions{display:none} .thumb-preview{display:none} }
 .play-badge{
   position:absolute;bottom:8px;right:8px;width:28px;height:28px;
   display:flex;align-items:center;justify-content:center;
@@ -514,6 +534,20 @@ iframe.player{object-fit:cover}
 
 /* Empty / skeleton */
 .empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:14px}
+.empty-emoji{font-size:34px;margin-bottom:8px;opacity:.7}
+.empty-msg{font-size:14px;margin-bottom:14px}
+.empty-suggest{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;font-size:12.5px;color:var(--muted)}
+.empty-suggest .tag-chip{font-size:12px}
+
+/* Loading skeletons */
+.card.skeleton{pointer-events:none}
+.video-thumb.sk,.sk-line{
+  background:linear-gradient(90deg,var(--surface2) 25%,rgba(255,255,255,.06) 37%,var(--surface2) 63%);
+  background-size:400% 100%;animation:sk-shimmer 1.4s ease infinite;border-radius:8px;
+}
+.sk-line{height:12px;margin-top:10px}
+.sk-line.short{width:55%}
+@keyframes sk-shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
 .pill-row{display:flex;gap:2px;flex-wrap:wrap;margin-bottom:10px}
 .filter-pill{
   background:transparent;border:none;color:var(--muted);

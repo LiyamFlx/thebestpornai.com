@@ -1,0 +1,16 @@
+{
+  "name": "thebestpornai",
+  "short_name": "thebestpornai",
+  "description": "AI Porn & Community Videos — stream AI scenes, amateur uploads, full movies & clips.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a0a",
+  "theme_color": "#E50914",
+  "icons": [
+    { "src": "/src/shared/assets/favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/src/shared/assets/favicon-64.png", "sizes": "64x64", "type": "image/png" },
+    { "src": "/src/shared/assets/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

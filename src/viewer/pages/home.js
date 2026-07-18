@@ -1,7 +1,7 @@
 /* Home page: hero, filter/sort bars, and the row-based feed. */
 import { DATA, esc, creatorName, fmt, mediaUrl, ytId } from "../../shared/catalog.js";
-import { videoCard, rowSection } from "../../shared/ui.js";
-import { CATEGORIES } from "../../shared/taxonomy.js";
+import { videoCard, rowSection, emptyState } from "../../shared/ui.js";
+import { CATEGORIES, POPULAR_TAGS } from "../../shared/taxonomy.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
 import { pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies, actNames, clipsByAct, highlights } from "../catalog-queries.js";
@@ -53,7 +53,7 @@ export function renderHome(){
     return `
       ${homeFilterBar()}
       <h3>${esc(cat)} <span class="small">(${matches.length})</span></h3>
-      ${shown.length ? `<div class="grid">${shown.map(v=>videoCard(v)).join("")}</div>` : `<div class="empty">No ${esc(cat)} videos yet.</div>`}
+      ${shown.length ? `<div class="grid">${shown.map(v=>videoCard(v)).join("")}</div>` : emptyState(`No ${cat} videos yet.`, POPULAR_TAGS.filter(t=>t!==cat).slice(0,8))}
       ${matches.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more</button>` : ''}
     `;
   }

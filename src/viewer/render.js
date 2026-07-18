@@ -35,6 +35,7 @@ export function render(){
   document.querySelectorAll("#nav button, #bottomNav button").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
   lazyLoadThumbs();
   attachPlayerGestures();
+  attachHoverPreview();
 
   const pending = takePendingHydrate();
   if(pending!=null) hydrateWatch(pending);
@@ -71,6 +72,34 @@ function attachPlayerGestures(){
       }
     }
   });
+}
+
+/* Hover-to-preview: on desktop, hovering a card plays its muted thumb/preview
+   video from the start; leaving pauses and resets. Uses event delegation on
+   #view so it survives innerHTML swaps and never stacks listeners. No-op on
+   touch devices (no hover). */
+let _hoverBound = false;
+function attachHoverPreview(){
+  if(_hoverBound) return;                 // delegate once, survives re-renders
+  if(window.matchMedia && window.matchMedia("(hover: none)").matches) return;  // touch: skip
+  const view = document.getElementById("view");
+  if(!view) return;
+  _hoverBound = true;
+  const play = (card)=>{
+    const vid = card.querySelector("video.thumb-preview, video.thumb-video");
+    if(!vid) return;
+    if(vid.dataset.src){ vid.src = vid.dataset.src; vid.removeAttribute("data-src"); vid.classList.remove("lazy"); }
+    vid.currentTime = 0;
+    const p = vid.play(); if(p && p.catch) p.catch(()=>{});
+    card.classList.add("previewing");
+  };
+  const stop = (card)=>{
+    const vid = card.querySelector("video.thumb-preview, video.thumb-video");
+    if(vid){ try{ vid.pause(); vid.currentTime = 0; }catch(_){}}
+    card.classList.remove("previewing");
+  };
+  view.addEventListener("mouseover", e=>{ const c=e.target.closest(".card"); if(c && !c.contains(e.relatedTarget)) play(c); });
+  view.addEventListener("mouseout",  e=>{ const c=e.target.closest(".card"); if(c && !c.contains(e.relatedTarget)) stop(c); });
 }
 
 /* Basic structured data for SEO / AI Overviews (VideoObject on watch, WebSite
