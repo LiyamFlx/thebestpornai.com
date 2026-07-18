@@ -102,6 +102,7 @@ export function renderHome(){
       </div>
     </div>
     ${vstate.history.length ? rowSection("Continue Watching", vstate.history.map(id=>DATA.videos.find(v=>v.id===id)).filter(Boolean)) : ""}
+    ${rowSection("🔥 Fresh Uploads", pubVideos().slice().sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0)).slice(0, vstate.limit))}
     ${rowSection("Recommended For You", (()=>{ const nw=top.filter(v=>!vstate.history.includes(v.id)); return nw.length>=6?nw.slice(0, vstate.limit):top.slice(0, vstate.limit); })())}
     ${rowSection("Trending Now", pubVideos().sort((a,b)=>b.views-a.views).slice(0, vstate.limit))}
     ${rowSection("House Originals", pubVideos().filter(v=>v.type==="original").slice(0, vstate.limit))}
