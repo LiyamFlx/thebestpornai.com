@@ -26,6 +26,7 @@ function rowToVideo(r) {
     tags: r.tags || [],
     status: "published",
     flagged: false,
+    orientation: r.orientation || "horizontal",
     _fromUpload: true,
     _bunnyPath: r.bunny_path,
   };

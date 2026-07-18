@@ -79,8 +79,8 @@ const DATA = {
   categories: CATEGORIES,
 
   videos: [
-    { id:1, title:"Blonde Office Twerk", creator:"c3", type:"ugc", category:"Blond", views:14312, likes:222, dislikes:5, comments:0, favorites:0, duration:"0:26", uploaded:"2026-05-04", src:"../media/to upload/Blonde Office Twerk video by ttt-ai on DeviantArt.mp4", status:"published", flagged:false },
-    { id:2, title:"HUge TITS PINK00005", creator:"c1", type:"original", category:"Big", views:12033, likes:136, dislikes:16, comments:3, favorites:0, duration:"0:10", uploaded:"2026-04-03", src:"../media/to upload/HUge TITS PINK00005.mp4", status:"published", flagged:false },
+    { id:1, title:"Blonde Office Twerk", creator:"c3", type:"ugc", category:"Blond", views:14312, likes:222, dislikes:5, comments:0, favorites:0, duration:"0:26", uploaded:"2026-05-04", src:"../media/to upload/Blonde Office Twerk video by ttt-ai on DeviantArt.mp4", status:"published", flagged:false, orientation:"vertical" },
+    { id:2, title:"HUge TITS PINK00005", creator:"c1", type:"original", category:"Big", views:12033, likes:136, dislikes:16, comments:3, favorites:0, duration:"0:10", uploaded:"2026-04-03", src:"../media/to upload/HUge TITS PINK00005.mp4", status:"published", flagged:false, orientation:"vertical" },
     { id:3, title:"Naked surfer G2159", creator:"c4", type:"ugc", category:"Boy Boy", views:10222, likes:136, dislikes:10, comments:1, favorites:0, duration:"0:20", uploaded:"2026-06-21", src:"../media/to upload/Naked surfer -G2159 video by The-Satin-Pause on DeviantArt.mp4", status:"published", flagged:false },
     { id:4, title:"Perfect Pussy Twerk", creator:"c1", type:"original", category:"Babe", views:10533, likes:264, dislikes:5, comments:1, favorites:0, duration:"0:15", uploaded:"2026-01-18", src:"../media/to upload/Perfect Pussy Twerk .mp4", status:"published", flagged:false },
     { id:5, title:"Perfect doggy cumming00001", creator:"c3", type:"ugc", category:"Anal", views:11208, likes:119, dislikes:10, comments:4, favorites:0, duration:"0:09", uploaded:"2026-03-18", src:"../media/to upload/Perfect doggy cumming00001.mp4", status:"published", flagged:false },

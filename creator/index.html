@@ -59,10 +59,26 @@
   </div>
   <div class="main">
     <header class="topbar">
-      <div class="left">Creator Studio · <span id="creatorName">…</span></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button type="button" id="quickNavBtn" class="quick-nav-btn" aria-label="Quick Navigation">☰</button>
+        <div class="left">Creator Studio · <span id="creatorName">…</span></div>
+      </div>
       <div class="topbar-actions">
         <button type="button" class="btn sm" data-page="upload">＋ Upload</button>
         <button type="button" class="avatar" data-page="settings" aria-label="Account settings" id="avatarBtn">A</button>
+      </div>
+      <div class="quick-nav-dropdown" id="quickNavDropdown">
+        <a href="/"><span class="ico">📺</span> Viewer Home</a>
+        <a href="/choose.html"><span class="ico">🛡</span> Choose Experience</a>
+        <a href="/manager/index.html"><span class="ico">💼</span> Platform Manager</a>
+        <div id="quickNavStudioLinks" style="display:none">
+          <hr style="border:0;border-top:1px solid var(--border);margin:8px 0;"/>
+          <a href="#" data-page="dashboard"><span class="ico">▤</span> Dashboard</a>
+          <a href="#" data-page="content"><span class="ico">🎞</span> Content</a>
+          <a href="#" data-page="upload"><span class="ico">⤒</span> Upload</a>
+          <a href="#" data-page="analytics"><span class="ico">📈</span> Analytics</a>
+          <a href="#" data-page="revenue"><span class="ico">💰</span> Revenue</a>
+        </div>
       </div>
     </header>
     <main class="content" id="view" tabindex="-1"></main>

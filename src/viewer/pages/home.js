@@ -36,7 +36,14 @@ function homeFilterBar(){
 const moviesRow = (allMovies) =>
   `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`})).join("")}</div>`;
 
-export function renderHome(){
+function viewToggleTabs(active) {
+  return `<div class="view-toggle-tabs">
+    <button class="toggle-tab ${active==='grid'?'active':''}" onclick="go('home')">Grid View</button>
+    <button class="toggle-tab ${active==='feed'?'active':''}" onclick="go('feed')">Vertical Feed</button>
+  </div>`;
+}
+
+function _renderHomeBody(){
   const hero = pubVideos().find(v=>v.id===HERO_VIDEO_ID) || pubVideos().find(v=>v.type==="original") || pubVideos()[0];
   if(!hero) return `<div class="empty">No videos available yet.</div>`;
   const top = trending();   // compute once; reused by the two rows below
@@ -113,4 +120,10 @@ export function renderHome(){
     ${rowSection("Recently Uploaded", pubVideos().sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0, vstate.limit))}
     ${pubVideos().length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
   `;
+}
+
+export function renderHome() {
+  const res = _renderHomeBody();
+  if (res.includes('class="empty"') || res.includes('class="empty-msg"')) return res;
+  return viewToggleTabs('grid') + res;
 }

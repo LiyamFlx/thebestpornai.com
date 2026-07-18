@@ -7,7 +7,8 @@ import { DATA } from "../shared/catalog.js";
    filtered them). Uploads land as status:"pending" (api/save-upload.js) and
    stay hidden until a moderator approves them (api/moderate-manifest.js). */
 export const visible = v => v && v.status !== "private" && v.status !== "pending";
-export const pubVideos = () => DATA.videos.filter(visible);
+export const pubVideos = () => DATA.videos.filter(v => visible(v) && v.orientation !== "vertical");
+export const pubVerticalVideos = () => DATA.videos.filter(v => visible(v) && v.orientation === "vertical");
 
 export const trending = ()=> pubVideos().sort((a,b)=> (b.likes*1.2+b.views*0.01) - (a.likes*1.2+a.views*0.01));
 export const byCat = (c)=> pubVideos().filter(v=>v.category===c);

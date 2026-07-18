@@ -11,6 +11,7 @@ import { renderHome } from "./pages/home.js";
 import { renderWatch } from "./pages/watch.js";
 import { renderMovieDetail } from "./pages/movie.js";
 import { renderCreatorPage } from "./pages/creator.js";
+import { renderFeed, attachFeedObserver } from "./pages/feed.js";
 import {
   listPage, renderCategories, renderSubs, renderProfile, renderSettings,
   renderLive, renderPlaylists, renderSearch,
@@ -22,6 +23,7 @@ export function render(){
     home:renderHome, watch:renderWatch, categories:renderCategories, subscriptions:renderSubs,
     profile:renderProfile, settings:renderSettings, live:renderLive, playlists:renderPlaylists,
     movie:renderMovieDetail, creator:renderCreatorPage, search:renderSearch,
+    feed:renderFeed,
   };
   if(map[p]) v.innerHTML = map[p]();
   else if(p==="explore")   v.innerHTML = listPage("Explore", trending(), "");
@@ -39,6 +41,9 @@ export function render(){
   attachPlayerStatus();
   attachPlayerControls();
   attachHoverPreview();
+  if (p === "feed") {
+    attachFeedObserver();
+  }
 
   const pending = takePendingHydrate();
   if(pending!=null) hydrateWatch(pending);

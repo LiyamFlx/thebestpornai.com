@@ -65,6 +65,7 @@ export default async function handler(req, res) {
     favorites: 0,
     status: "pending",
     flagged: false,
+    orientation: (entry.orientation === "vertical") ? "vertical" : "horizontal",
   };
 
   try {

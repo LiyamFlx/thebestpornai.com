@@ -12,7 +12,7 @@ const MY = "c4"; // Alex's creator id
 const myVideos = ()=> DATA.videos.filter(v=>v.creator===MY);
 function freshUpload(){ return {step:0, title:"", desc:"", visibility:"public", monet:true,
   file:null, url:"", duration:"0:00", durationSec:0, thumb:"", thumbOptions:[],
-  categories:[], createdWith:[], tags:[],
+  categories:[], createdWith:[], tags:[], orientation:"horizontal",
   q_cat:"", q_tool:"", q_tag:"",
   sample5:null, sample30:null, capturingClip:"",
   progress:0, uploading:false}; }   // search query per picker
@@ -140,47 +140,28 @@ function fmtDur(sec){ sec=Math.round(sec||0); const m=Math.floor(sec/60), s=sec%
 
 /* User picked a real file: create object URL, read real duration, advance to Processing */
 function uPickFile(input){
-  const files = Array.from(input.files || []);
-  if(!files.length) return;
+  const file = (input.files || [])[0];
+  if(!file) return;
 
-  // Enforce max 10 videos
-  const currentCount = (cstate.queue && cstate.queue.length) || 0;
-  const available = 10 - currentCount;
-  if(available <= 0){
-    toast("You can upload a maximum of 10 videos at a time");
+  if(!file.type.startsWith("video/")){
+    toast("Skipped non-video file: " + file.name);
     return;
   }
 
-  const toAdd = files.slice(0, available);
-  if(toAdd.length < files.length){
-    toast(`Only ${available} more video(s) allowed (max 10 total)`);
-  }
+  cstate.upload = freshUpload();
+  cstate.upload.file = file;
+  cstate.upload.url = URL.createObjectURL(file);
+  cstate.upload.title = file.name.replace(/\.[^.]+$/,"").replace(/[-_]/g," ");
+  cstate.upload.step = 0; // will be probed
 
-  if(!cstate.queue) cstate.queue = [];
-  if(!cstate.mode) cstate.mode = 'queue';
+  // Probe metadata + generate thumbs (async)
+  uProbeQueueItem(cstate.upload);
 
-  toAdd.forEach(f => {
-    if(!f.type.startsWith("video/")){
-      toast("Skipped non-video file: " + f.name);
-      return;
-    }
-    const u = freshUpload();
-    u.file = f;
-    u.url = URL.createObjectURL(f);
-    u.title = f.name.replace(/\.[^.]+$/,"").replace(/[-_]/g," ");
-    u.step = 0; // will be probed
-    cstate.queue.push(u);
-
-    // Probe metadata + generate thumbs for this item (async)
-    uProbeQueueItem(u);
-  });
-
-  // If this is the first selection, go to queue review
   cstate.page = "upload";
   render();
 }
 
-// Probe a single queue item (duration + thumbnails)
+// Probe a single item (duration + thumbnails)
 function uProbeQueueItem(u){
   if(!u || u._probing) return;
   u._probing = true;
@@ -191,6 +172,11 @@ function uProbeQueueItem(u){
   v.onloadedmetadata = () => {
     u.duration = fmtDur(v.duration);
     u.durationSec = v.duration;
+    u.width = v.videoWidth;
+    u.height = v.videoHeight;
+    if (v.videoHeight && v.videoWidth) {
+      u.orientation = (v.videoHeight > v.videoWidth) ? "vertical" : "horizontal";
+    }
 
     const dur = v.duration;
     const stamps = [0.05,0.15,0.30,0.50,0.70,0.85].map(p => Math.max(0.05, Math.min(dur * p, dur - 0.1)));
@@ -199,7 +185,7 @@ function uProbeQueueItem(u){
       u.thumbOptions = thumbs;
       u.thumb = thumbs[0] || "";
       u._probing = false;
-      if(cstate.page === "upload") render();
+      render();
     });
   };
 
@@ -217,6 +203,11 @@ function uProbe(){
   v.onloadedmetadata = ()=>{
     u.duration = fmtDur(v.duration);
     u.durationSec = v.duration;
+    u.width = v.videoWidth;
+    u.height = v.videoHeight;
+    if (v.videoHeight && v.videoWidth) {
+      u.orientation = (v.videoHeight > v.videoWidth) ? "vertical" : "horizontal";
+    }
     // capture 6 frames spread across the video for thumbnail options
     const dur = v.duration;
     const stamps = [0.05,0.15,0.30,0.50,0.70,0.85].map(p=>Math.max(0.05, Math.min(dur*p, dur-0.1)));
@@ -327,6 +318,7 @@ function dataURLtoFile(dataurl, filename) {
 async function uPublish(){
   if (_publishing) { toast("Upload already in progress…"); return; }
   const u = cstate.upload;
+  if (u._probing) { toast("Still probing video file. Please wait…"); return; }
   if(!u.file){ toast("No file selected"); cstate.upload.step=0; render(); return; }
   _publishing = true;
   u.uploading = true; u.progress = 0; render();
@@ -406,7 +398,8 @@ async function uPublish(){
         comments: 0,
         favorites: 0,
         status: "public",
-        flagged: false
+        flagged: false,
+        orientation: u.orientation || "horizontal"
       };
       try{
         await ShAPI.saveToManifest(manifestEntry);
@@ -425,34 +418,8 @@ async function uPublish(){
     }
 
     u.uploading = false;
-
-    // If we were editing a queue item, go back to queue instead of content
-    if(cstate._queueContext){
-      const ctx = cstate._queueContext;
-      // Update the item in queue with edited values
-      if(ctx.queue && ctx.queue[ctx.idx]){
-        const edited = cstate.upload;
-        Object.assign(ctx.queue[ctx.idx], {
-          title: edited.title,
-          desc: edited.desc,
-          categories: edited.categories,
-          tags: edited.tags,
-          thumb: edited.thumb,
-          visibility: edited.visibility,
-          duration: edited.duration,
-          durationSec: edited.durationSec,
-          thumbOptions: edited.thumbOptions,
-        });
-      }
-      cstate.queue = ctx.queue;
-      cstate.mode = 'queue';
-      delete cstate._queueContext;
-      cstate.upload = freshUpload();
-      cstate.page = "upload";
-    } else {
-      cstate.upload = freshUpload();
-      cstate.page = "content";
-    }
+    cstate.upload = freshUpload();
+    cstate.page = "content";
     render();
   } finally {
     _publishing = false;
@@ -471,395 +438,163 @@ function retryUpload(id){
 
 /* ==================== MULTI UPLOAD QUEUE (up to 10 videos) ==================== */
 
-function renderUploadQueue(){
-  const q = cstate.queue || [];
-  const count = q.length;
-
-  const itemsHTML = q.map((item, idx) => {
-    const thumb = item.thumb || (item.thumbOptions && item.thumbOptions[0]) || '';
-    return `
-      <div class="queue-item" style="display:flex;gap:12px;align-items:flex-start;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:var(--surface2)">
-        <div style="width:110px;height:62px;flex-shrink:0;border-radius:6px;overflow:hidden;background:#111">
-          ${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover"/>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:11px;color:#666">No thumb</div>`}
-        </div>
-        <div style="flex:1;min-width:0">
-          <input class="fld" style="font-size:13px;padding:4px 8px;margin-bottom:4px" value="${esc(item.title)}"
-            oninput="cstate.queue[${idx}].title = this.value" />
-          <div class="small" style="color:var(--muted)">${esc(item.duration || '—')} • ${esc(item.categories && item.categories[0] || 'No cat')}</div>
-          <div style="margin-top:6px">
-            <button class="chip" onclick="editQueueItem(${idx})">Edit details</button>
-            <button class="chip" style="color:var(--accent2)" onclick="removeFromQueue(${idx})">Remove</button>
-          </div>
-        </div>
-        <div style="text-align:right;min-width:70px">
-          ${item._uploading ? `<div class="small" style="color:var(--accent)">${item._progress||0}%</div>` : ''}
-          ${item.status === 'done' ? `<span class="tag-pill green">Done</span>` : ''}
-          ${item.status === 'failed' ? `<span class="tag-pill red">Failed</span>` : ''}
-        </div>
-      </div>`;
-  }).join('');
-
-  return `
-    <h1>Upload Queue</h1>
-    <p class="sub">You have <b>${count}</b> video(s) ready (max 10)</p>
-
-    <div class="panel" style="padding:12px">
-      ${itemsHTML || '<div class="empty">No videos in queue</div>'}
-    </div>
-
-    <div style="margin:16px 0">
-      <label class="lbl">Apply to all (quick bulk)</label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <select class="fld" style="max-width:180px" onchange="bulkApplyCategory(this.value)">
-          <option value="">— Set category for all —</option>
-          ${CATEGORY_LIBRARY.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}
-        </select>
-        <button class="btn ghost sm" onclick="bulkApplyToAll()">Apply common settings</button>
-      </div>
-    </div>
-
-    <div style="margin-top:16px">
-      <button class="btn" style="width:100%;padding:14px;font-size:15px" onclick="publishQueue()" ${count===0 ? 'disabled' : ''}>
-        🚀 Publish All (${count} videos)
-      </button>
-
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <label class="btn ghost sm" style="flex:1;text-align:center;cursor:pointer">
-          + Add more videos (up to 10)
-          <input type="file" accept="video/*" multiple style="display:none" onchange="uPickFile(this)"/>
-        </label>
-        <button class="btn ghost sm" style="flex:1" onclick="clearQueue()">Clear</button>
-      </div>
-
-      <p class="small" style="text-align:center;margin-top:8px;color:var(--muted)">Videos will be uploaded one by one</p>
-    </div>
-  `;
-}
-
-function editQueueItem(idx){
-  // Switch temporarily to single-item wizard for detailed editing
-  const item = cstate.queue[idx];
-  if(!item) return;
-
-  // Save current queue context
-  cstate._queueContext = { idx, queue: cstate.queue };
-
-  // Load item into the classic single upload state
-  cstate.upload = {...item, step: 2}; // jump to thumbnail step or 3 for metadata
-  cstate.mode = 'single-edit';
-  cstate.page = 'upload';
-  render();
-}
-
-function removeFromQueue(idx){
-  if(!cstate.queue) return;
-  cstate.queue.splice(idx,1);
-  if(cstate.queue.length === 0){
-    cstate.queue = null;
-    cstate.mode = null;
+function uUpdateScrub(val) {
+  const scrubVid = document.getElementById("thumbScrubVideo");
+  if (scrubVid) {
+    scrubVid.currentTime = val;
   }
-  render();
+  const label = document.getElementById("scrubTimeLabel");
+  if (label) {
+    label.textContent = parseFloat(val).toFixed(1) + "s";
+  }
 }
 
-function bulkApplyCategory(cat){
-  if(!cstate.queue || !cat) return;
-  cstate.queue.forEach(item => {
-    item.categories = [cat];
-    item.category = cat;
-  });
-  render();
-}
-
-function bulkApplyToAll(){
-  // Simple: copy common fields from first item to others
-  if(!cstate.queue || cstate.queue.length < 2) return;
-  const src = cstate.queue[0];
-  cstate.queue.forEach((item,i) => {
-    if(i===0) return;
-    item.categories = [...(src.categories||[])];
-    item.tags = [...(src.tags||[])];
-    item.visibility = src.visibility || 'public';
-  });
-  toast("Applied common settings to all videos");
-  render();
-}
-
-function clearQueue(){
-  cstate.queue = null;
-  cstate.mode = null;
+function uCancelUpload() {
   cstate.upload = freshUpload();
   render();
 }
 
-async function publishQueue(){
-  const q = cstate.queue;
-  if(!q || !q.length) return;
-
-  let success = 0;
-  let failed = 0;
-
-  for(let i = 0; i < q.length; i++){
-    const item = q[i];
-    item._uploading = true;
-    item._progress = 0;
-    item.status = '';
-    render();
-
-    try{
-      const seedViews = 10000 + Math.floor(Math.random()*5001);
-      const seedLikes = 100 + Math.floor(Math.random()*201);
-      const localId = Date.now() + i;
-
-      // Add optimistic entry
-      DATA.videos.unshift({
-        id: localId,
-        title: item.title || "Untitled",
-        creator: MY,
-        type: "ugc",
-        category: item.categories && item.categories[0] || "POV",
-        categories: item.categories || [],
-        views: seedViews,
-        likes: seedLikes,
-        dislikes: 0,
-        comments: 0,
-        favorites: 0,
-        duration: item.duration || "",
-        uploaded: new Date().toISOString().slice(0,10),
-        src: item.url,
-        thumb: item.thumb || "",
-        tags: item.tags || [],
-        status: "public",
-        flagged: false
-      });
-
-      // Upload main file + thumbnail in parallel (direct-to-R2 presigned PUT).
-      const mainP = ShAPI.uploadVideo(item.file, item.title || "Untitled", (pct) => {
-        item._progress = pct;
-        render();
-      });
-      let thumbP = Promise.resolve({ url: item.thumb || "" });
-      if(item.thumb && item.thumb.startsWith("data:")){
-        const thumbFile = dataURLtoFile(item.thumb, `thumb_${localId}.jpg`);
-        thumbP = ShAPI.uploadVideo(thumbFile, (item.title||"video") + " thumb", ()=>{})
-          .catch(e => { console.warn("thumb upload failed", e); return { url: item.thumb || "" }; });
-      }
-      const [uploadInfo, tinfo] = await Promise.all([mainP, thumbP]);
-      const cdnSrc = uploadInfo.src;
-      const thumbUrl = tinfo.url || "";
-
-      // 3. Save manifest
-      const manifestEntry = {
-        id: localId,
-        title: item.title || "Untitled",
-        creator: MY,
-        type: "ugc",
-        src: cdnSrc,
-        thumb: thumbUrl,
-        category: item.categories && item.categories[0] || "Amateur",
-        categories: item.categories || [],
-        tags: item.tags || [],
-        duration: item.duration || "",
-        uploaded: new Date().toISOString().slice(0,10),
-        views: seedViews,
-        likes: seedLikes,
-        status: "public",
-        flagged: false
-      };
-
-      await ShAPI.saveToManifest(manifestEntry);
-
-      // Update the optimistic entry
-      const vid = DATA.videos.find(v => v.id === localId);
-      if(vid){
-        vid.src = cdnSrc;
-        vid.thumb = thumbUrl;
-      }
-
-      item.status = 'done';
-      success++;
-
-    }catch(e){
-      console.error("Queue item failed", e);
-      item.status = 'failed';
-      failed++;
-      // remove the optimistic entry on failure
-      // (we can leave it or remove — for now leave as "local" like before)
-    }
-
-    item._uploading = false;
-    render();
-  }
-
-  toast(`${success} uploaded${failed ? `, ${failed} failed` : ''}`);
-
-  // Clean up queue
-  cstate.queue = null;
-  cstate.mode = null;
-  cstate.page = "content";
-  render();
-}
-
-function renderDashboard(){
-  const r=DATA.revenue;
-  return `<h1>Dashboard</h1><p class="sub">Welcome back, Alex — here's how your channel is doing.</p>
-    <div class="metrics">
-      ${metric("Revenue (mo)","$"+((r.history&&r.history.length?r.history[r.history.length-1].v:0)).toLocaleString(),"18%",true)}
-      ${metric("Subscribers",fmt(DATA.creators.find(c=>c.id===MY).subs),"4.2%",true)}
-      ${metric("Views (7d)",fmt(DATA.analytics.views7d.reduce((a,b)=>a+b,0)),"9%",true)}
-      ${metric("Watch Time","54.2K min","6%",true)}
-      ${metric("CTR","7.8%","0.4%",true)}
-      ${metric("Engagement","12.4%","1.1%",true)}
-      ${metric("Comments",DATA.comments.length,"3",true)}
-      ${metric("Growth","+312","subs",true)}
-    </div>
-    <div class="grid" style="grid-template-columns:2fr 1fr;margin-top:18px">
-      <div class="panel"><h3 style="margin-top:0">Views — last 7 days</h3>${barChart(DATA.analytics.views7d,["M","T","W","T","F","S","S"])}</div>
-      <div class="panel"><h3 style="margin-top:0">Top Traffic Sources</h3>${distRows(DATA.analytics.traffic)}</div>
-    </div>`;
-}
-
-function renderContent(){
-  return `<h1>Content</h1><p class="sub">Manage your videos</p>
-    <div class="panel" style="padding:0">
-    <table class="data"><thead><tr><th>Video</th><th>Status</th><th>Views</th><th>Likes</th><th>Comments</th><th>Date</th></tr></thead><tbody>
-    ${myVideos().map(v=>`<tr style="cursor:pointer" onclick="toast('Opening editor for: ${esc(v.title)}')">
-      <td><b>${esc(v.title)}</b><div class="small">${esc(v.category)}</div></td>
-      <td><span class="tag-pill ${v.status==='published'?'green':v.status==='review'?'warn':v.status==='upload-failed'?'red':'muted'}">${esc(v.status==='upload-failed'?'Failed':v.status)}</span>${v.status==='upload-failed'?` <button class="chip retry-btn" onclick="event.stopPropagation();retryUpload(${v.id})">↺ Retry</button>`:''}</td>
-      <td>${fmt(v.views)}</td><td>${fmt(v.likes)}</td><td>${v.comments}</td><td class="small">${esc(v.uploaded)}</td></tr>`).join("")}
-    </tbody></table></div>`;
-}
-
-/* ---- Auth gate removed for now (temp) to unblock uploads.
-   Email/magic link requirement disabled. The functions below are left for future re-enable. ---- */
-// Open uploads (no sign-in) by design — see the upload-policy decision. Return
-// false so the wizard never gates on auth. Re-enable by wiring a real check.
-function authReady(){ return false; }
-// renderSignIn, sendMagicLink, signOutCreatorAuth left commented for easy re-enable
-/* 
-function renderSignIn(){ ... }
-async function sendMagicLink(){ ... }
-function signOutCreatorAuth(){ ... }
-*/
-
-function renderUpload(){
-  // MULTI-UPLOAD QUEUE MODE (up to 10 videos)
-  if(cstate.queue && cstate.queue.length > 0 && cstate.mode !== 'single-edit'){
-    return renderUploadQueue();
-  }
-
-  const s=cstate.upload.step;
+function renderUpload() {
   const u = cstate.upload;
-  const body = [
-    `<p><b>Select up to 10 videos</b></p>
-      <label class="empty" style="cursor:pointer;display:block">
-        ⤒ Click to choose video files (max 10)<div class="small" style="margin-top:6px">MP4, WebM, MOV — you can upload multiple at once</div>
-        <input type="file" accept="video/*" multiple style="display:none" onchange="uPickFile(this)"/>
-      </label>
-      ${ (cstate.queue && cstate.queue.length) ? `<div class="small" style="margin-top:8px;color:var(--accent)">${cstate.queue.length} video(s) selected — scroll down to review & publish</div>` : '' }`,
-    `<p><b>Reading your video…</b></p><p class="small">Extracting duration and generating thumbnails from real frames</p><div class="loader"></div>
-      ${u.url?`<br/><video class="player" style="height:180px" src="${u.url}" muted></video>`:''}`,
-    `<p><b>Thumbnail &amp; Previews</b></p>
-      <p class="small" style="margin-bottom:12px">Pick a frame or scrub to any moment in your video.</p>
-
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px">
-        ${(u.thumbOptions.length?u.thumbOptions:['']).map((t,i)=>`
-          <div style="height:80px;border:2px solid ${u.thumb===t&&t?'var(--accent)':'rgba(255,255,255,.1)'};border-radius:6px;overflow:hidden;cursor:pointer;background:#111" onclick="uChooseThumb(${i})">
-            ${t?`<img src="${t}" style="width:100%;height:100%;object-fit:cover"/>`:'<div class="small" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted)">⋯</div>'}
-          </div>`).join("")}
+  
+  if (!u.file) {
+    return `
+      <div class="upload-start-container">
+        <h1>Upload Video</h1>
+        <p class="sub">Publish high-quality vertical or horizontal videos to the bestpornai catalog.</p>
+        
+        <label class="upload-dropzone" id="uploadDropzone">
+          <span class="upload-icon">⤒</span>
+          <span class="upload-title">Select video file to upload</span>
+          <span class="upload-sub">Or drag and drop a file here</span>
+          <span class="upload-formats">MP4, WebM, MOV (Max 500MB)</span>
+          <input type="file" accept="video/*" style="display:none" onchange="uPickFile(this)"/>
+        </label>
       </div>
+    `;
+  }
 
-      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;margin-bottom:12px">
-        <p class="small" style="margin:0 0 8px;color:var(--muted);letter-spacing:.06em;font-size:.7rem">CUSTOM FRAME</p>
-        <video id="thumbScrubVideo" src="${u.url||''}" muted playsinline
-          style="width:100%;height:130px;object-fit:contain;background:#000;border-radius:6px;display:block;margin-bottom:8px"></video>
-        <input type="range" style="width:100%;margin-bottom:8px;accent-color:var(--accent)"
-          min="0" max="${(u.durationSec||100).toFixed(1)}" step="0.1" value="0"
-          oninput="document.getElementById('thumbScrubVideo').currentTime=this.value"/>
-        <button class="btn ghost sm" style="width:100%" onclick="uCaptureCurrentFrame()">📸 Use this frame as thumbnail</button>
+  const isProbing = u._probing;
+  const isUploading = u.uploading;
+
+  return `
+    <div class="upload-flow-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div>
+          <h1 style="margin:0;">Video Details</h1>
+          <p class="sub" style="margin:0;margin-top:4px;">Configure details and publish your video.</p>
+        </div>
+        <div>
+          <button class="btn ghost sm" onclick="uCancelUpload()">Cancel</button>
+        </div>
       </div>
+    </div>
 
-      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px">
-        <p class="small" style="margin:0 0 10px;color:var(--muted);letter-spacing:.06em;font-size:.7rem">PREVIEW SAMPLES</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div>
-            <p class="small" style="margin:0 0 6px;font-weight:600">5-second teaser</p>
-            ${u.sample5?`<p class="small" style="color:var(--accent);margin:0 0 6px">✓ Captured</p>`:''}
-            <button class="btn ghost sm" style="width:100%" onclick="uCaptureClip(5)" ${u.capturingClip==="5s"?'disabled':''}>
-              ${u.capturingClip==="5s"?'⏺ Recording…':u.sample5?'↻ Re-capture':'⏺ Capture 5s'}
-            </button>
+    <div class="upload-grid">
+      <!-- LEFT COLUMN: Preview & Thumbnails -->
+      <div class="upload-col-left">
+        <!-- Player / Preview Box -->
+        <div class="upload-preview-card panel" style="padding:12px; margin-bottom:16px;">
+          <div class="upload-preview-player-wrap" style="position:relative; aspect-ratio:16/9; background:#000; border-radius:10px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+            ${isProbing ? `
+              <div class="upload-probing-overlay" style="display:flex; flex-direction:column; align-items:center; gap:12px; color:var(--muted);">
+                <div class="player-spinner"></div>
+                <div class="small">Extracting video metadata…</div>
+              </div>
+            ` : `
+              <video id="uploadPreviewVideo" src="${u.url}" muted playsinline controls style="width:100%; height:100%; object-fit:contain;"></video>
+            `}
           </div>
-          <div>
-            <p class="small" style="margin:0 0 6px;font-weight:600">30-second preview</p>
-            ${u.sample30?`<p class="small" style="color:var(--accent);margin:0 0 6px">✓ Captured</p>`:''}
-            <button class="btn ghost sm" style="width:100%" onclick="uCaptureClip(30)" ${u.capturingClip==="30s"?'disabled':''}>
-              ${u.capturingClip==="30s"?'⏺ Recording 30s…':u.sample30?'↻ Re-capture':'⏺ Capture 30s'}
-            </button>
+          <div class="upload-file-info" style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="min-width:0; flex:1;">
+              <div class="small" style="font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${esc(u.file.name)}">${esc(u.file.name)}</div>
+              <div class="small" style="color:var(--muted); margin-top:2px;">
+                ${esc(u.duration)} • ${u.orientation === "vertical" ? "📱 Portrait" : "🖥 Landscape"}
+              </div>
+            </div>
+            <div>
+              <span class="tag-pill ${u.orientation === 'vertical' ? 'purple' : 'blue'}" style="font-size:10px; padding:2px 6px;">
+                ${u.orientation === 'vertical' ? 'Vertical Feed' : 'Grid'}
+              </span>
+            </div>
           </div>
         </div>
-        <p class="small" style="margin-top:8px;color:var(--muted)">Clips start 10% in. Optional but boost conversions.</p>
-      </div>`,
-    `<label class="lbl">Title</label><input class="fld" id="uTitle" value="${esc(u.title)}" placeholder="Add a title"/>
-      <label class="lbl">Description</label><textarea class="fld" id="uDesc" placeholder="Tell viewers about your video">${esc(u.desc)}</textarea>
-      <label class="lbl">Category <span class="small">(${u.categories.length}/${MAX_CATS})</span></label>
-      ${pickerHTML('cat')}
-      <label class="lbl">Created using <span class="small">(${u.createdWith.length} selected)</span></label>
-      ${pickerHTML('tool')}
-      <label class="lbl">Tags <span class="small">(${u.tags.length}/${MAX_TAGS})</span></label>
-      ${pickerHTML('tag')}`,
-    `<label class="lbl">Visibility</label>
-      <select class="fld" onchange="cstate.upload.visibility=this.value">
-        <option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select>`,
-    `<p><b>Scheduling</b></p><label class="lbl">Publish</label>
-      <select class="fld"><option>Now</option><option>Schedule for later</option></select>
-      <label class="lbl">Date</label><input class="fld" type="date"/>`,
-    `<p><b>Monetization</b></p>
-      <label class="lbl"><input type="checkbox" checked onchange="cstate.upload.monet=this.checked"/> Enable ads</label>
-      <label class="lbl"><input type="checkbox" checked/> Allow Premium revenue</label>
-      <label class="lbl"><input type="checkbox"/> Accept tips</label>`,
-    `${u.uploading ? `
-      <p><b>Uploading…</b></p>
-      <div class="upload-progress-track"><div class="upload-progress-bar" id="uploadProgressBar" style="width:${u.progress.toFixed(0)}%"></div></div>
-      <p class="small" style="margin-top:8px">${u.progress < 100 ? 'Sending your video to the CDN…' : '✓ Upload complete — saving metadata…'}</p>
-    ` : `
-      <p><b>Ready to publish</b></p>
-      <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">
-        <div class="video-thumb" style="width:140px;height:80px;margin:0;flex:none">
-          ${u.thumb?`<img src="${u.thumb}" style="width:100%;height:100%;object-fit:cover"/>`:`<div class="thumb-placeholder">🎬</div>`}
+
+        <!-- Thumbnail Selector -->
+        <div class="panel" style="padding:16px; margin-bottom:16px;">
+          <h3 style="margin:0 0 12px 0;">Thumbnail</h3>
+          <p class="small" style="margin:0 0 12px 0;">Choose a frame from the video or extract a custom moment.</p>
+          
+          <div class="upload-thumb-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:16px;">
+            ${(u.thumbOptions.length ? u.thumbOptions : ['', '', '', '', '', '']).map((t, i) => `
+              <div class="upload-thumb-option" style="aspect-ratio:16/9; border:2px solid ${u.thumb === t && t ? 'var(--accent)' : 'var(--border)'}; border-radius:6px; overflow:hidden; cursor:pointer; background:#111;" onclick="uChooseThumb(${i})">
+                ${t ? `<img src="${t}" style="width:100%; height:100%; object-fit:cover;"/>` : '<div class="small" style="display:flex; align-items:center; justify-content:center; height:100%; color:var(--muted)">⋯</div>'}
+              </div>`).join("")}
+          </div>
+
+          <!-- Timeline scrub thumbnail extraction -->
+          <div style="background:rgba(255,255,255,.02); border:1px solid var(--border); border-radius:8px; padding:12px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+              <span class="small" style="font-weight:600; color:var(--muted);">CUSTOM FRAME</span>
+              <span class="small" id="scrubTimeLabel" style="font-family:monospace; color:var(--muted);">0.0s</span>
+            </div>
+            <video id="thumbScrubVideo" src="${u.url || ''}" muted playsinline style="display:none;"></video>
+            <input type="range" style="width:100%; margin-bottom:8px; accent-color:var(--accent);"
+              min="0" max="${(u.durationSec || 100).toFixed(1)}" step="0.1" value="0"
+              oninput="uUpdateScrub(this.value)"/>
+            <button class="btn ghost sm" style="width:100%;" onclick="uCaptureCurrentFrame()" ${isProbing ? 'disabled' : ''}>📸 Extract & Use Current Frame</button>
+          </div>
         </div>
-        <div><b>${esc(u.title||'Untitled')}</b>
-          <div class="small">${esc(u.categories.join(', ')||'No category')} · ${esc(u.visibility)} · ${esc(u.duration)}${u.createdWith.length?` · ${esc(u.createdWith.join(', '))}`:''}</div>
-          ${u.tags.length?`<div class="small" style="margin-top:4px">${esc(u.tags.join(', '))}</div>`:''}
+
+        <!-- Upload Status / Progress Card -->
+        ${isUploading ? `
+          <div class="panel" style="padding:16px; border-color:var(--accent);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-weight:600; font-size:13px;">Uploading to CDN…</span>
+              <span style="font-family:monospace; font-weight:700; color:var(--accent);">${u.progress.toFixed(0)}%</span>
+            </div>
+            <div class="upload-progress-track" style="height:6px; background:var(--surface3); border-radius:999px; overflow:hidden;">
+              <div class="upload-progress-bar" id="uploadProgressBar" style="width:${u.progress}%; height:100%; background:linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.1s ease;"></div>
+            </div>
+            <p class="small" style="margin:8px 0 0 0; color:var(--muted);">
+              ${u.progress < 100 ? 'Transferring video file packets...' : '✓ Upload complete! Saving metadata...'}
+            </p>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- RIGHT COLUMN: Form Fields -->
+      <div class="upload-col-right panel" style="padding:20px;">
+        <label class="lbl">Title *</label>
+        <input class="fld" id="uTitle" value="${esc(u.title)}" placeholder="Give your video a catchy title" oninput="cstate.upload.title=this.value"/>
+        
+        <label class="lbl">Description</label>
+        <textarea class="fld" id="uDesc" placeholder="Tell viewers what this video is about" style="height:90px;" oninput="cstate.upload.desc=this.value">${esc(u.desc)}</textarea>
+        
+        <label class="lbl">Category *</label>
+        ${pickerHTML('cat')}
+
+        <label class="lbl">Visibility</label>
+        <select class="fld" onchange="cstate.upload.visibility=this.value">
+          <option value="public" ${u.visibility === 'public' ? 'selected' : ''}>Public</option>
+          <option value="unlisted" ${u.visibility === 'unlisted' ? 'selected' : ''}>Unlisted</option>
+          <option value="private" ${u.visibility === 'private' ? 'selected' : ''}>Private</option>
+        </select>
+
+        <label class="lbl">Created using</label>
+        ${pickerHTML('tool')}
+
+        <label class="lbl">Tags</label>
+        ${pickerHTML('tag')}
+
+        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:16px; display:flex; justify-content:flex-end; gap:12px;">
+          <button type="button" class="btn" style="padding:10px 24px;" onclick="uPublish()" ${isProbing || isUploading ? 'disabled' : ''}>
+            ${isUploading ? 'Publishing…' : '🚀 Publish Video'}
+          </button>
         </div>
       </div>
-      `}`,
-  ][s];
-
-  // Shared footer: Back on the left, primary action on the bottom-right.
-  // Step 1 (Processing) is auto-advancing, so no buttons.
-  const primary = [
-    null,                                                            // 0 Upload (file picker advances)
-    null,                                                            // 1 Processing (auto)
-    {label:"Use selected", fn:"uNext()"},                            // 2 Thumbnail
-    {label:"Next →",        fn:"uSaveMeta()"},                       // 3 Metadata
-    {label:"Next →",        fn:"uNext()"},                           // 4 Visibility
-    {label:"Next →",        fn:"uNext()"},                           // 5 Scheduling
-    {label:"Next →",        fn:"uNext()"},                           // 6 Monetization
-    u.uploading ? null : {label:"🚀 Publish Video", fn:"uPublish()"},  // 7 Publish
-  ][s];
-
-  const showBack = s>0 && s!==1;
-  const footer = (showBack || primary) ? `
-    <div class="wizard-footer">
-      <div>${showBack?`<button class="btn ghost sm" onclick="uPrev()">← Back</button>`:''}</div>
-      <div>${primary?`<button class="btn" onclick="${primary.fn}">${primary.label}</button>`:''}</div>
-    </div>` : '';
-
-  return `<h1>Upload</h1><p class="sub">Step ${s+1} of ${STEPS.length} — ${STEPS[s]}</p>
-    <div class="steps">${STEPS.map((_,i)=>`<div class="dot ${i<=s?'active':''}"></div>`).join("")}</div>
-    <div class="panel" style="max-width:640px">
-      <div class="wizard-body">${body}</div>
-      ${footer}
-    </div>`;
+    </div>
+  `;
 }
 
 function renderAnalytics(){
@@ -1032,6 +767,8 @@ function syncChrome(){
   // Hide sidebar nav + upload button until subscribed
   document.querySelector(".sidebar").style.display = gated ? "none" : "";
   document.querySelector(".topbar-actions").style.visibility = gated ? "hidden" : "";
+  const navStudio = document.getElementById("quickNavStudioLinks");
+  if(navStudio) navStudio.style.display = gated ? "none" : "block";
   if(creator){
     const nameEl = document.getElementById("creatorName");
     if(nameEl) nameEl.textContent = creator.name;
@@ -1083,10 +820,25 @@ if(typeof ShAuth!=="undefined"){
   });
 }
 
-/* Delegated nav click listener (replaces inline onclick) */
+/* Delegated nav click listener (replaces inline onclick) + Quick Nav dropdown toggle */
 document.addEventListener("click", (e) => {
+  const qBtn = e.target.closest("#quickNavBtn");
+  const dropdown = document.getElementById("quickNavDropdown");
+  
+  if (qBtn) {
+    e.stopPropagation();
+    dropdown.classList.toggle("open");
+  } else if (dropdown && !e.target.closest("#quickNavDropdown")) {
+    dropdown.classList.remove("open");
+  }
+
   const b = e.target.closest("[data-page]");
-  if (b) go(b.dataset.page);
+  if (b) {
+    if (dropdown && b.closest("#quickNavDropdown")) {
+      dropdown.classList.remove("open");
+    }
+    go(b.dataset.page);
+  }
 });
 
 render();
@@ -1098,7 +850,6 @@ window.finishSubscribe = finishSubscribe;
 window.pickKey = pickKey;
 window.pickSearch = pickSearch;
 window.pickToggle = pickToggle;
-// (magic-link sign-in intentionally not wired — open uploads)
 window.signOutCreator = signOutCreator;
 window.startSubscribe = startSubscribe;
 window.editProfile = editProfile;
@@ -1110,10 +861,6 @@ window.uChooseThumb = uChooseThumb;
 window.uCaptureCurrentFrame = uCaptureCurrentFrame;
 window.uCaptureClip = uCaptureClip;
 window.uPickFile = uPickFile;
-window.uPrev = uPrev;
-window.uNext = uNext;
-window.uSaveMeta = uSaveMeta;
 window.uPublish = uPublish;
-window.publishQueue = publishQueue;
-window.removeFromQueue = removeFromQueue;
-window.editQueueItem = editQueueItem;
+window.uUpdateScrub = uUpdateScrub;
+window.uCancelUpload = uCancelUpload;
