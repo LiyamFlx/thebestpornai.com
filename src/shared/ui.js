@@ -51,11 +51,32 @@ export function playerEmbed(v){
   if(v.src) {
     const poster = v.thumb ? ` poster="${mediaUrl(v.thumb)}"` : '';
     return `<div class="player-wrap">
-      <video class="player" src="${mediaUrl(v.src)}" controls autoplay muted${poster} aria-label="${esc(v.title)}"></video>
+      <video class="player" src="${mediaUrl(v.src)}" autoplay muted playsinline${poster} aria-label="${esc(v.title)}"></video>
       <div class="player-status player-status-loading" aria-hidden="true"><div class="player-spinner"></div></div>
       <div class="player-status player-status-error" style="display:none" role="alert">
         <div class="player-error-msg">This video couldn't be loaded.</div>
         <button class="btn sm" onclick="event.stopPropagation();this.closest('.player-wrap').querySelector('video.player').load()">Retry</button>
+      </div>
+      <div class="pc-bar">
+        <div class="pc-progress">
+          <div class="pc-buffered"></div>
+          <div class="pc-played"></div>
+          <input type="range" class="pc-seek" min="0" max="1000" value="0" step="1" aria-label="Seek"/>
+        </div>
+        <div class="pc-row">
+          <button class="pc-btn pc-play" aria-label="Pause">⏸</button>
+          <button class="pc-btn pc-mute" aria-label="Unmute">🔇</button>
+          <input type="range" class="pc-volume" min="0" max="1" step="0.05" value="1" aria-label="Volume"/>
+          <span class="pc-time" aria-hidden="true">0:00 / 0:00</span>
+          <span class="pc-spacer"></span>
+          <select class="pc-speed" aria-label="Playback speed">
+            <option value="0.5">0.5x</option><option value="0.75">0.75x</option>
+            <option value="1" selected>1x</option><option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option><option value="2">2x</option>
+          </select>
+          <button class="pc-btn pc-pip" aria-label="Picture in picture">⧉</button>
+          <button class="pc-btn pc-fs" aria-label="Fullscreen">⛶</button>
+        </div>
       </div>
     </div>`;
   }

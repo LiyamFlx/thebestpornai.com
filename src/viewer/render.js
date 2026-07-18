@@ -6,6 +6,7 @@ import { vstate } from "./state.js";
 import { pubVideos, trending } from "./catalog-queries.js";
 import { takePendingHydrate } from "./router.js";
 import { hydrateWatch } from "./hydrate.js";
+import { attachPlayerControls } from "./player-controls.js";
 import { renderHome } from "./pages/home.js";
 import { renderWatch } from "./pages/watch.js";
 import { renderMovieDetail } from "./pages/movie.js";
@@ -36,6 +37,7 @@ export function render(){
   lazyLoadThumbs();
   attachPlayerGestures();
   attachPlayerStatus();
+  attachPlayerControls();
   attachHoverPreview();
 
   const pending = takePendingHydrate();
@@ -66,10 +68,11 @@ function attachPlayerGestures(){
         : activePlayer.currentTime + 10;
       toast("⏭ +10s");
     } else {
+      const wrap = activePlayer.closest(".player-wrap") || activePlayer;
       if(!document.fullscreenElement){
-        activePlayer.requestFullscreen().catch(()=>{});
+        wrap.requestFullscreen?.().catch(()=>{});
       } else {
-        document.exitFullscreen().catch(()=>{});
+        document.exitFullscreen?.().catch(()=>{});
       }
     }
   });
