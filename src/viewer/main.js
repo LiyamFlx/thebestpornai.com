@@ -105,8 +105,9 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// Register the service worker for an installable, app-shell-cached PWA.
-// Best-effort: never blocks the app if SW registration fails or isn't supported.
+// Register /sw.js — currently a KILL SWITCH that unregisters any old service
+// worker and wipes its caches (the old SW was serving stale content). Once
+// browsers have run it, the site is served fresh from the network every time.
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(() => {});
