@@ -1002,6 +1002,11 @@ iframe.player{object-fit:contain}
     display:block;flex:1 0 100%;width:100%;margin-top:8px;order:5;
   }
 
+  /* declutter the resting header on a phone: the "1.4K videos · synced" badge is
+     noise, and tighter padding lifts everything below it up a little */
+  .topbar{padding-top:8px;padding-bottom:8px}
+  .topbar .video-count-badge{display:none}
+
   /* ---- First screen: lead with real content, not chrome ---- */
   /* The home promo hero ("Welcome … · 0 views") pushed every real video below
      the fold on first paint. Hide it on mobile so the first content row (Fresh
