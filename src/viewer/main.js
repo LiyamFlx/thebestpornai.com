@@ -27,6 +27,7 @@ import {
   setCommentSort,
   loadMoreComments,
   shareVideo,
+  reportVideo,
   doSearch,
 } from "./actions.js";
 import { refreshManifest, syncManifestOnLoad } from "./manifest-sync.js";
@@ -66,6 +67,7 @@ Object.assign(window, {
   subscribe,
   addComment,
   shareVideo,
+  reportVideo,
   doSearch,
   render,
   toast,

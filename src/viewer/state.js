@@ -1,6 +1,21 @@
 /* ===================== VIEWER STATE =====================
    Single mutable state object shared by every viewer module. Mutate fields,
    never reassign the object (modules hold a live binding to it). */
+
+/* User collections persist across reloads via localStorage. Only these fields
+   are stored (not transient UI state like page/search). */
+const PERSIST_KEY = "sh_viewer_state";
+const PERSIST_FIELDS = ["favorites", "later", "history", "downloads", "subs"];
+function loadPersisted(){
+  try {
+    const saved = JSON.parse(localStorage.getItem(PERSIST_KEY) || "null");
+    if(!saved || typeof saved !== "object") return {};
+    const out = {};
+    for(const f of PERSIST_FIELDS){ if(Array.isArray(saved[f])) out[f] = saved[f]; }
+    return out;
+  } catch(_){ return {}; }
+}
+
 export const vstate = {
   page:"home", current:null, creatorId:null,
   currentMovieTitle:null,
@@ -16,16 +31,31 @@ export const vstate = {
   limit: 36,          // simple grid pagination / load more
   flags: { globalUpload: true },  // feature flag: site-wide drag-drop upload
   pendingUploads: [], // uploader-only overlay of in-flight/own uploads
+  ...loadPersisted(),   // rehydrate favorites/later/history/downloads/subs
 };
+
+/* Save the persisted collections. Call after any mutation to those fields.
+   Cheap + synchronous; best-effort (ignores quota/private-mode errors). */
+export function persistState(){
+  try {
+    const data = {};
+    for(const f of PERSIST_FIELDS) data[f] = vstate[f];
+    localStorage.setItem(PERSIST_KEY, JSON.stringify(data));
+  } catch(_){}
+}
 
 export const COMMENTS_PER_PAGE = 20;
 export const HISTORY_MAX = 50;
 export const COMMENT_MAX_LEN = 2000;
 
 export function pushHistory(id){
-  if(vstate.history.includes(id)) return;
+  if(vstate.history.includes(id)){
+    // move to front (most-recent) without duplicating
+    vstate.history = vstate.history.filter(x=>x!==id);
+  }
   vstate.history.unshift(id);
   if(vstate.history.length > HISTORY_MAX) vstate.history.length = HISTORY_MAX;
+  persistState();
 }
 
 /* Watch-page check used by every action that patches DOM in place instead of

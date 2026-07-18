@@ -49,7 +49,7 @@ export function renderWatch(){
           <button id="btnFav" class="act-btn ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})"><span class="ic">♥</span> Favorite<span id="favCount"></span></button>
           <button id="btnLater" class="act-btn ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})"><span class="ic">🔖</span> Save</button>
           <button class="act-btn" onclick="shareVideo(${v.id})"><span class="ic">↗</span> Share</button>
-          <button class="act-btn act-more" onclick="toast('Report submitted (simulated)')" title="More" aria-label="More">···</button>
+          <button class="act-btn" onclick="reportVideo(${v.id})" title="Report" aria-label="Report">⚑ Report</button>
         </div>
 
         <div class="creator-card">

@@ -6,7 +6,7 @@
    refresh. */
 import { DATA, toast, fmt, mediaUrl } from "../shared/catalog.js";
 import { ShAPI } from "../shared/streamhub-api.js";
-import { vstate, pushHistory, onWatch, COMMENT_MAX_LEN } from "./state.js";
+import { vstate, pushHistory, onWatch, persistState, COMMENT_MAX_LEN } from "./state.js";
 import { jsdec } from "./util.js";
 import { setHash } from "./router.js";
 import { render } from "./render.js";
@@ -79,6 +79,7 @@ export function toggleFav(id){
   id = +id;
   const on = vstate.favorites.includes(id);
   on ? vstate.favorites=vstate.favorites.filter(x=>x!==id) : vstate.favorites.push(id);
+  persistState();
   toast(!on?"Added to Favorites":"Removed from Favorites");
   persist(()=> on ? ShAPI.removeFavorite(id) : ShAPI.addFavorite(id));
   const btn=document.getElementById("btnFav");
@@ -89,6 +90,7 @@ export function toggleLater(id){
   id = +id;
   const on = vstate.later.includes(id);
   on ? vstate.later=vstate.later.filter(x=>x!==id) : vstate.later.push(id);
+  persistState();
   toast(!on?"Saved to Watch Later":"Removed");
   const btn=document.getElementById("btnLater");
   if(onWatch() && btn) btn.classList.toggle("on", !on); else render();
@@ -101,7 +103,7 @@ export async function download(id){
   id = +id;
   const v = DATA.videos.find(x=>x.id===id);
   if(!v || !v.src){ toast("No file to download"); return; }
-  if(!vstate.downloads.includes(id)) vstate.downloads.push(id);
+  if(!vstate.downloads.includes(id)){ vstate.downloads.push(id); persistState(); }
   const url = mediaUrl(v.src);
   const name = (v.title || "video").replace(/[^\w.-]+/g,"_") + (v.src.match(/\.\w+$/)?.[0] || ".mp4");
   toast("Downloading…");
@@ -146,6 +148,7 @@ export function subscribe(cid){
   cid = jsdec(cid);
   const on = vstate.subs.includes(cid);
   on ? vstate.subs=vstate.subs.filter(x=>x!==cid) : vstate.subs.push(cid);
+  persistState();
   const subbed = !on;
   // On the watch page patch the button in place — full render restarts the player.
   const btn = onWatch() ? document.querySelector(".subscribe-btn") : null;
@@ -180,6 +183,22 @@ export function setCommentSort(val){
 export function loadMoreComments(){
   vstate.commentPage++;
   if(onWatch() && vstate.current) patchComments(vstate.current); else render();
+}
+
+/* Report a video. Records the report locally (persistent, honest — the user's
+   report is remembered) and best-effort forwards it to the moderation queue if
+   the API accepts it. No fake "submitted" claim when it only stored locally. */
+export function reportVideo(id){
+  id = +id;
+  let reported = [];
+  try { reported = JSON.parse(localStorage.getItem("sh_reported") || "[]"); } catch(_){}
+  if(reported.includes(id)){ toast("You already reported this video"); return; }
+  reported.push(id);
+  try { localStorage.setItem("sh_reported", JSON.stringify(reported)); } catch(_){}
+  toast("Report received — thanks for flagging");
+  // Best-effort: forward to the moderation queue if the API allows it (requires
+  // a moderator session; silently ignored otherwise — the local report stands).
+  persist(()=> ShAPI.moderate(id, "reported", "user report", null));
 }
 
 export function shareVideo(id){
