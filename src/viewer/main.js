@@ -29,9 +29,9 @@ import {
   shareVideo,
   reportVideo,
   doSearch,
+  stepWatch,
 } from "./actions.js";
 import { refreshManifest, syncManifestOnLoad } from "./manifest-sync.js";
-import { pubVideos } from "./catalog-queries.js";
 
 // Keep the session alive on load (refresh the token if near expiry)
 if (typeof ShAuth !== "undefined") ShAuth.ensureFresh();
@@ -81,6 +81,7 @@ Object.assign(window, {
   loadMore,
   loadMoreComments,
   refreshManifest,
+  stepWatch,
 });
 
 // Keyboard navigation (Watch page Arrow keys cycling public videos)
@@ -95,13 +96,7 @@ document.addEventListener("keydown", (e) => {
 
   if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
     e.preventDefault();
-    const list = pubVideos();
-    if (!list.length) return;
-    const currentIdx = list.findIndex((v) => v.id === vstate.current?.id);
-    if (currentIdx === -1) return;
-    const step = e.key === "ArrowRight" ? 1 : -1;
-    const nextIdx = (currentIdx + step + list.length) % list.length;
-    openVideo(list[nextIdx].id);
+    stepWatch(e.key === "ArrowRight" ? 1 : -1);
   }
 });
 

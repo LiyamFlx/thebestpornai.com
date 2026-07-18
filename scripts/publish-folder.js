@@ -29,7 +29,7 @@
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import "dotenv/config";
 import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 
@@ -150,6 +150,9 @@ function describeFor(title, cat, tags, creator) {
 const catalogText = fs.readFileSync(CATALOG_PATH, "utf8");
 const publishedSrcs = new Set([...catalogText.matchAll(/src:\s*"([^"]+)"/g)].map(m => m[1]));
 const maxId = Math.max(0, ...[...catalogText.matchAll(/\bid:\s*(\d+)/g)].map(m => +m[1]));
+// Baseline video count, captured by actually importing the pre-write module —
+// used post-write to confirm the array grew by exactly the right amount.
+const originalVideoCount = (await import(pathToFileURL(CATALOG_PATH).href + "?verify=" + Date.now())).DATA.videos.length;
 
 // ---------- scan folder ----------
 function walk(dir) {
@@ -243,6 +246,29 @@ async function run() {
   const entries = newEntries.map(x => x.entry);
   if (!entries.length) { console.log("Nothing to insert."); return; }
 
+  // ---------- validate entries BEFORE touching catalog.js ----------
+  // Catches the two failure modes that have actually happened in production:
+  // batch entries silently missing required fields, and duplicate/malformed
+  // ids that later corrupt the array structure.
+  const seenIds = new Set();
+  const badEntries = [];
+  for (const e of entries) {
+    const problems = [];
+    if (!Number.isInteger(e.id) || e.id <= 0) problems.push("id is not a positive integer");
+    if (seenIds.has(e.id)) problems.push(`duplicate id ${e.id} within this batch`);
+    seenIds.add(e.id);
+    if (!e.title || typeof e.title !== "string") problems.push("missing/invalid title");
+    if (!e.src || typeof e.src !== "string" || !e.src.startsWith("../media/")) problems.push(`src must start with "../media/" (got ${JSON.stringify(e.src)})`);
+    if (!e.category || typeof e.category !== "string") problems.push("missing/invalid category");
+    if (!e.status) problems.push("missing status");
+    if (problems.length) badEntries.push({ title: e.title, problems });
+  }
+  if (badEntries.length) {
+    console.error(`❌ ${badEntries.length} generated entries failed validation — aborting (no changes made):`);
+    for (const b of badEntries) console.error(`   - ${b.title || "(untitled)"}: ${b.problems.join("; ")}`);
+    process.exit(1);
+  }
+
   if (dryRun) {
     console.log(`\n[dry-run] would insert ${entries.length} entries (ids ${entries[0].id}–${entries[entries.length - 1].id}). No upload, no file change.`);
     console.log(JSON.stringify(entries.slice(0, 2), null, 2), entries.length > 2 ? `\n… +${entries.length - 2} more` : "");
@@ -262,6 +288,36 @@ async function run() {
   const block = entries.map(fmt);
   lines.splice(closeIdx, 0, ...block);
   fs.writeFileSync(CATALOG_PATH, lines.join("\n"));
+
+  // ---------- verify the write actually produced a valid, complete catalog ----------
+  // Root-caused two prior incidents (entries landing outside the videos array,
+  // 805 corrupted paths): re-import the file we just wrote and confirm the
+  // array grew by exactly the right amount with every new id present and
+  // correctly shaped. If not, restore the pre-write backup immediately.
+  let verifyOk = false;
+  let verifyError = "";
+  try {
+    const mod = await import(pathToFileURL(CATALOG_PATH).href + "?verify=" + Date.now());
+    const videos = mod.DATA?.videos;
+    if (!Array.isArray(videos)) throw new Error("DATA.videos is not an array after write");
+    const expectedCount = originalVideoCount + entries.length;
+    if (videos.length !== expectedCount) throw new Error(`expected ${expectedCount} videos, found ${videos.length}`);
+    for (const e of entries) {
+      const v = videos.find(x => x.id === e.id);
+      if (!v) throw new Error(`id ${e.id} missing from parsed catalog after write`);
+      if (v.src !== e.src) throw new Error(`id ${e.id} src mismatch after write`);
+    }
+    verifyOk = true;
+  } catch (e) {
+    verifyError = e.message;
+  }
+  if (!verifyOk) {
+    fs.copyFileSync(CATALOG_PATH + ".bak", CATALOG_PATH);
+    console.error(`\n❌ Post-write verification failed: ${verifyError}`);
+    console.error(`   catalog.js has been restored from the pre-write backup — no changes were kept.`);
+    console.error(`   The media files ARE already uploaded to R2 (safe to re-run once the generator issue is fixed).`);
+    process.exit(1);
+  }
 
   console.log(`\n✅ Published ${entries.length} videos.`);
   console.log(`   Uploaded ${uploaded} to R2, skipped ${skipped} already there, ${failed} failed.`);

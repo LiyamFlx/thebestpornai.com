@@ -51,7 +51,7 @@ export function playerEmbed(v){
   if(v.src) {
     const poster = v.thumb ? ` poster="${mediaUrl(v.thumb)}"` : '';
     return `<div class="player-wrap">
-      <video class="player" src="${mediaUrl(v.src)}" controls autoplay${poster} aria-label="${esc(v.title)}"></video>
+      <video class="player" src="${mediaUrl(v.src)}" controls autoplay muted${poster} aria-label="${esc(v.title)}"></video>
       <div class="player-status player-status-loading" aria-hidden="true"><div class="player-spinner"></div></div>
       <div class="player-status player-status-error" style="display:none" role="alert">
         <div class="player-error-msg">This video couldn't be loaded.</div>

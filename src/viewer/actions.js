@@ -12,6 +12,7 @@ import { setHash } from "./router.js";
 import { render } from "./render.js";
 import { hydrateWatch, persist } from "./hydrate.js";
 import { patchComments } from "./comments.js";
+import { pubVideos } from "./catalog-queries.js";
 
 export function go(p){ vstate.page=p; setHash(p==="home"?"":p); render(); }
 
@@ -28,6 +29,18 @@ export function openVideo(id){
   vstate.commentPage = 1;
   vstate.page="watch"; setHash("video/"+id); render();
   hydrateWatch(id);   // fetch real counts/comments and patch them in (non-blocking)
+}
+
+/* Cycle to the previous/next public video from the watch page (dir: -1 | 1).
+   Shared by the on-screen prev/next buttons and the ArrowLeft/ArrowRight
+   keyboard shortcut in main.js so both stay in sync. */
+export function stepWatch(dir){
+  const list = pubVideos();
+  if(!list.length) return;
+  const currentIdx = list.findIndex(v=>v.id===vstate.current?.id);
+  if(currentIdx===-1) return;
+  const nextIdx = (currentIdx + dir + list.length) % list.length;
+  openVideo(list[nextIdx].id);
 }
 
 export function openMovie(title){

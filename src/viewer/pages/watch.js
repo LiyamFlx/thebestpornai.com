@@ -29,7 +29,11 @@ export function renderWatch(){
     </div>`;
   return `
     <div class="watch">
-      ${playerEmbed(v)}
+      <div class="player-nav-wrap">
+        ${playerEmbed(v)}
+        <button class="player-nav player-nav-prev" onclick="stepWatch(-1)" aria-label="Previous video">‹</button>
+        <button class="player-nav player-nav-next" onclick="stepWatch(1)" aria-label="Next video">›</button>
+      </div>
       <div class="watch-body">
       <div>
         <h2 class="watch-title">${esc(v.title)}</h2>
