@@ -4,7 +4,7 @@
    fall back to render() when the relevant control isn't on screen (e.g.
    favoriting from a grid card), so list pages that depend on the state still
    refresh. */
-import { DATA, toast, fmt } from "../shared/catalog.js";
+import { DATA, toast, fmt, mediaUrl } from "../shared/catalog.js";
 import { ShAPI } from "../shared/streamhub-api.js";
 import { vstate, pushHistory, onWatch, COMMENT_MAX_LEN } from "./state.js";
 import { jsdec } from "./util.js";
@@ -94,7 +94,32 @@ export function toggleLater(id){
   if(onWatch() && btn) btn.classList.toggle("on", !on); else render();
 }
 
-export function download(id){ id=+id; if(!vstate.downloads.includes(id))vstate.downloads.push(id); toast("Download started (simulated)"); }
+/* Real download: videos are public on R2, so we fetch the file and save it via
+   a temporary object URL (forces a download instead of navigating to it). Falls
+   back to opening the direct URL if the fetch is blocked. */
+export async function download(id){
+  id = +id;
+  const v = DATA.videos.find(x=>x.id===id);
+  if(!v || !v.src){ toast("No file to download"); return; }
+  if(!vstate.downloads.includes(id)) vstate.downloads.push(id);
+  const url = mediaUrl(v.src);
+  const name = (v.title || "video").replace(/[^\w.-]+/g,"_") + (v.src.match(/\.\w+$/)?.[0] || ".mp4");
+  toast("Downloading…");
+  try {
+    const res = await fetch(url);
+    if(!res.ok) throw new Error("http "+res.status);
+    const blob = await res.blob();
+    const objUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = objUrl; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(objUrl), 4000);
+    toast("Saved: " + name);
+  } catch(_){
+    // CORS/network fallback: open the direct URL in a new tab
+    window.open(url, "_blank", "noopener");
+  }
+}
 
 const _voting = new Set();
 

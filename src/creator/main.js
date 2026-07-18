@@ -417,8 +417,8 @@ async function uPublish(){
       await new Promise(r=>setTimeout(r,300));
       toast(`✓ "${u.title||'Untitled'}" is live!`);
     } catch(e){
-      // TEMP: do not mark as "upload-failed" to avoid blocking the creator list.
-      // The entry stays as optimistic "public" with local blob URL for now.
+      // On remote failure we keep the optimistic "public" entry (local blob URL)
+      // rather than marking it failed, so the creator list isn't blocked.
       // Remote upload (Bunny) may have failed due to missing API base / env / network.
       console.error("Upload remote step failed (kept local):", e);
       toast("Remote upload step failed (kept locally for now): " + (e.message || "see console"));
@@ -731,7 +731,9 @@ function renderContent(){
 
 /* ---- Auth gate removed for now (temp) to unblock uploads.
    Email/magic link requirement disabled. The functions below are left for future re-enable. ---- */
-function authReady(){ return false; } // TEMP: always pretend not to force sign-in
+// Open uploads (no sign-in) by design — see the upload-policy decision. Return
+// false so the wizard never gates on auth. Re-enable by wiring a real check.
+function authReady(){ return false; }
 // renderSignIn, sendMagicLink, signOutCreatorAuth left commented for easy re-enable
 /* 
 function renderSignIn(){ ... }
@@ -1041,7 +1043,7 @@ function syncChrome(){
 function render(){
   const v=document.getElementById("view"); const p=cstate.page;
 
-  // TEMP: Email/magic link auth gate removed for now to unblock uploads.
+  // Open uploads: no sign-in gate. Re-enable by restoring the guard below.
   // if(authReady() && !ShAuth.isSignedIn()){ v.innerHTML = renderSignIn(); syncChrome(); return; }
 
   // GATE: must subscribe + create a profile first (demo onboarding)
@@ -1096,7 +1098,7 @@ window.finishSubscribe = finishSubscribe;
 window.pickKey = pickKey;
 window.pickSearch = pickSearch;
 window.pickToggle = pickToggle;
-// TEMP: sendMagicLink removed (auth disabled for uploads)
+// (magic-link sign-in intentionally not wired — open uploads)
 window.signOutCreator = signOutCreator;
 window.startSubscribe = startSubscribe;
 window.editProfile = editProfile;
