@@ -5,25 +5,14 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load catalog
-const catalogPath = path.join(__dirname, "../src/shared/catalog.js");
-const catalogSrc = fs.readFileSync(catalogPath, "utf8")
-  .replace("const DATA = {", "global.DATA = {")
-  .replace(/export \{[^}]*\};?\s*$/, "");
-eval(catalogSrc);
+import { DATA } from "../src/shared/catalog.js";
 
-const catalogVideos = global.DATA.videos;
+const catalogVideos = DATA.videos;
 console.log(`Catalog has ${catalogVideos.length} videos.`);
 
 // Consolidate all standard scan directories
 const scanDirs = [
-  path.join(__dirname, "../media"),
-  "/Users/liyam/Thebestpornai.com/media",
-  "/Users/liyam/Thebestpornai.com/platform/media",
-  "/Users/liyam/Downloads/Bunny uploud",
-  "/Users/liyam/Downloads/Upload Bunny",
-  "/Users/liyam/Downloads/to uplode",
-  "/Users/liyam/Downloads/new bunny uplode"
+  path.join(__dirname, "../media")
 ].filter((dir, index, self) => fs.existsSync(dir) && self.indexOf(dir) === index);
 
 function getFilesRecursively(dir) {

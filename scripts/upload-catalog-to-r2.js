@@ -30,13 +30,9 @@ const s3 = new S3Client({
 });
 
 // Load catalog
-const catalogPath = path.join(__dirname, "../src/shared/catalog.js");
-const catalogSrc = fs.readFileSync(catalogPath, "utf8")
-  .replace("const DATA = {", "global.DATA = {")
-  .replace(/export \{[^}]*\};?\s*$/, "");
-eval(catalogSrc);
+const { DATA } = await import("../src/shared/catalog.js");
 
-const catalogVideos = global.DATA.videos;
+const catalogVideos = DATA.videos;
 
 const scanDirs = [
   "/Users/liyam/Thebestpornai.com/media",

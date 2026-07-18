@@ -16,6 +16,7 @@ const client = new S3Client({
     accessKeyId: process.env.R2_ACCESS_KEY_ID,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
+  forcePathStyle: true,
 });
 
 async function getAllR2Keys() {
@@ -42,13 +43,8 @@ async function main() {
   console.log(`R2 Bucket has ${r2Keys.size} files.`);
 
   // Load catalog
-  const catalogPath = path.join(__dirname, "../src/shared/catalog.js");
-  const catalogSrc = fs.readFileSync(catalogPath, "utf8")
-    .replace("const DATA = {", "global.DATA = {")
-    .replace(/export \{[^}]*\};?\s*$/, "");
-  eval(catalogSrc);
-
-  const catalogVideos = global.DATA.videos;
+  const { DATA } = await import("../src/shared/catalog.js");
+  const catalogVideos = DATA.videos;
   console.log(`Catalog has ${catalogVideos.length} videos.`);
 
   let missingInR2 = [];

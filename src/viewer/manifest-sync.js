@@ -56,6 +56,7 @@ export function mergeManifest(uploads) {
 
 /* Initial load: best-effort, console-only errors, minimal re-render. */
 export async function syncManifestOnLoad() {
+  updateVideoCount();
   try {
     let uploads;
     try {
