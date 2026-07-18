@@ -35,3 +35,4 @@ media/**/*.mkv
 # Staging / temporary manifest and video catalog helper files
 missing-videos.json
 manifest.json
+src/shared/catalog.js.bak
