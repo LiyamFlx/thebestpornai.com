@@ -338,7 +338,8 @@ async function uPublish(){
       duration:u.duration||"0:00", uploaded:new Date().toISOString().slice(0,10),
       src:u.url, thumb:u.thumb||"",
       createdWith:u.createdWith.slice(), tags:u.tags.slice(),
-      status:"public", flagged:false
+      status: u.visibility === "private" ? "private" : "published",
+      flagged:false
     });
 
     try {
@@ -397,7 +398,7 @@ async function uPublish(){
         dislikes: 0,
         comments: 0,
         favorites: 0,
-        status: "public",
+        status: u.visibility === "private" ? "private" : "published",
         flagged: false,
         orientation: u.orientation || "horizontal"
       };

@@ -63,7 +63,7 @@ export default async function handler(req, res) {
     dislikes: Number(entry.dislikes) || 0,
     comments: 0,
     favorites: 0,
-    status: "pending",
+    status: (entry.visibility === "private" || entry.status === "private") ? "private" : "published",
     flagged: false,
     orientation: (entry.orientation === "vertical") ? "vertical" : "horizontal",
   };
