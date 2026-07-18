@@ -38,6 +38,7 @@ export function renderWatch(){
           ${[v.category,...(v.categories||[])].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,5).map(c=>`<span class="vtag vtag-cat" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</span>`).join("")}
           ${(v.tags||[]).slice(0,8).map(t=>`<span class="vtag vtag-tag" onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}
         </div>` : ''}
+        ${v.desc ? `<p class="watch-desc">${esc(v.desc)}</p>` : ''}
 
         <div class="watch-actions">
           <div class="vote-pill">

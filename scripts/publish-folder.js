@@ -47,8 +47,14 @@ if (!folderArg) {
   process.exit(1);
 }
 const opt = (name, def) => { const i = args.indexOf("--" + name); return i >= 0 && args[i + 1] && !args[i + 1].startsWith("--") ? args[i + 1] : def; };
+const splitList = s => (s || "").split(",").map(t => t.trim()).filter(Boolean);
 const category = opt("category", "Amateur");
-const extraTags = (opt("tags", "") || "").split(",").map(t => t.trim()).filter(Boolean);
+const extraTags = splitList(opt("tags", ""));
+// Per-video variety pools (optional). --categories rotates a category per video;
+// --tag-pool draws a varied random tag set per video (on top of --tags).
+const categoryPool = splitList(opt("categories", ""));
+const tagPool = splitList(opt("tag-pool", ""));
+const tagsPerVideo = parseInt(opt("tags-per-video", "5"), 10) || 5;
 const creatorOverride = opt("creator", null);
 const concurrency = parseInt(opt("concurrency", "8"), 10) || 8;
 const dryRun = args.includes("--dry-run");
@@ -92,14 +98,52 @@ function parseStructure(filename) {
   }
   return { movieTitle, level, sceneNumber, clipNumber, actName };
 }
-function generateTags(title) {
+// Deterministic per-file seed so a given filename always yields the same
+// "random" variety (re-runs are stable; no Math.random noise in the catalog).
+function seedFrom(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0);
+}
+// Small seeded PRNG (mulberry32) for stable per-video shuffling.
+function rng(seed) {
+  return function () {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function seededPick(arr, r) { return arr[Math.floor(r() * arr.length)]; }
+function seededSample(arr, n, r) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a.slice(0, n);
+}
+
+// Category for a video: rotate from --categories pool if given, else --category.
+function categoryFor(filename, r) {
+  return categoryPool.length ? seededPick(categoryPool, r) : category;
+}
+
+// Tags for a video: filename-derived signals + explicit --tags + a varied sample
+// from --tag-pool, deduped. Deterministic per filename.
+function tagsFor(title, cat, r) {
   const t = title.toLowerCase();
-  const common = ["Hardcore", category];
-  if (t.includes("ass")) common.push("Big Ass", "PAWG");
-  if (t.includes("teen") || /\b18\b/.test(t)) common.push("18+");
-  if (t.includes("milf")) common.push("MILF");
-  if (t.includes("blow") || t.includes("suck")) common.push("Blowjob", "Deepthroat");
-  return [...new Set([...common, ...extraTags])].slice(0, 8);
+  const derived = ["Hardcore", cat];
+  if (t.includes("ass")) derived.push("Big Ass", "PAWG");
+  if (t.includes("teen") || /\b18\b/.test(t)) derived.push("18+");
+  if (t.includes("milf")) derived.push("MILF");
+  if (t.includes("blow") || t.includes("suck")) derived.push("Blowjob", "Deepthroat");
+  const pooled = tagPool.length ? seededSample(tagPool, tagsPerVideo, r) : [];
+  return [...new Set([...derived, ...extraTags, ...pooled])].slice(0, 8);
+}
+
+// Templated, keyword-rich description for SEO + the watch page + JSON-LD.
+function describeFor(title, cat, tags, creator) {
+  const tagPhrase = tags.filter(t => t !== "Hardcore" && t !== cat).slice(0, 3).join(", ");
+  return `Watch ${title} — a hot ${cat} scene${tagPhrase ? ` featuring ${tagPhrase}` : ""} on thebestpornai. `
+       + `Stream this and more AI-generated & community adult videos in stunning quality.`;
 }
 
 // ---------- read catalog + build "already published" index ----------
@@ -162,11 +206,17 @@ async function processOne(fp, i) {
     }
     const title = titleFromFile(fp);
     const st = parseStructure(fp);
+    // Per-video variety, seeded by filename so re-runs are stable.
+    const r = rng(seedFrom(path.basename(fp)));
+    const cat = categoryFor(fp, r);
+    const tags = tagsFor(title, cat, r);
+    const creator = creatorOverride || creators[i % creators.length];
     const entry = {
-      id: nextId++, title, creator: creatorOverride || creators[i % creators.length],
-      type: "ugc", category, categories: [category],
+      id: nextId++, title, creator,
+      type: "ugc", category: cat, categories: [cat, ...tags.filter(t => t !== cat && t !== "Hardcore").slice(0, 2)],
+      desc: describeFor(title, cat, tags, creator),
       views: 0, likes: 0, dislikes: 0, comments: 0, favorites: 0,
-      duration: getDuration(fp), uploaded: today, src, tags: generateTags(title),
+      duration: getDuration(fp), uploaded: today, src, tags,
       status: "published", flagged: false,
       ...(st.movieTitle ? { movieTitle: st.movieTitle } : {}),
       ...(st.level ? { level: st.level } : {}),

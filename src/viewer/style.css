@@ -598,3 +598,6 @@ iframe.player{object-fit:cover}
 .btn:active, .chip:active, .icon-btn:active, .act-btn:active, .vote-btn:active {
   transform: scale(0.97);
 }
+
+/* Video description on the watch page */
+.watch-desc{margin:12px 0 4px;color:var(--muted);font-size:13.5px;line-height:1.55;max-width:760px}

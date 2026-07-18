@@ -124,15 +124,40 @@ function addStructuredData(){
       "@context": "https://schema.org",
       "@type": "VideoObject",
       "name": v.title,
-      "description": `${v.title} by ${creatorName(v.creator)}`,
+      "description": v.desc || `${v.title} by ${creatorName(v.creator)}`,
       "thumbnailUrl": v.thumb ? mediaUrl(v.thumb) : undefined,
       "uploadDate": v.uploaded,
       "duration": v.duration ? `PT${v.duration.replace(':', 'M')}S` : undefined,
       "contentUrl": v.src ? mediaUrl(v.src) : undefined,
+      "genre": v.category,
+      "keywords": (v.tags || []).join(", ") || undefined,
       "interactionStatistic": [
         { "@type": "InteractionCounter", "interactionType": "https://schema.org/LikeAction", "userInteractionCount": v.likes },
         { "@type": "InteractionCounter", "interactionType": "https://schema.org/ViewAction", "userInteractionCount": v.views }
       ]
+    };
+  } else if (vstate.page === "home") {
+    // ItemList of top videos so crawlers/AI see the catalog, not an empty shell.
+    const top = trending().slice(0, 20);
+    json = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "thebestpornai — trending videos",
+      "url": "https://www.thebestpornai.com/",
+      "numberOfItems": top.length,
+      "itemListElement": top.map((v, idx) => ({
+        "@type": "ListItem",
+        "position": idx + 1,
+        "item": {
+          "@type": "VideoObject",
+          "name": v.title,
+          "description": v.desc || `${v.title} by ${creatorName(v.creator)}`,
+          "thumbnailUrl": v.thumb ? mediaUrl(v.thumb) : undefined,
+          "uploadDate": v.uploaded,
+          "contentUrl": v.src ? mediaUrl(v.src) : undefined,
+          "url": "https://www.thebestpornai.com/#video/" + v.id,
+        }
+      }))
     };
   }
 
