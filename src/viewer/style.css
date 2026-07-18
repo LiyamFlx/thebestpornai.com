@@ -492,8 +492,10 @@ table.data tr:hover td{background:var(--surface2)}
   .chip{padding:7px 12px;font-size:12px}
 }
 /* Big hero-style player: fills the full content width and a generous
-   viewport-relative height, edge-to-edge like a Netflix hero — no more
-   letterboxed video floating in a small centered box. */
+   viewport-relative height, edge-to-edge like a Netflix hero. The box itself
+   stays a fixed wide aspect ratio, but the video fits WITHIN it uncropped
+   (object-fit:contain) — cover previously cropped portrait/vertical source
+   videos (9:16, etc.) so badly that faces/tops of frame were cut off. */
 .player-wrap{
   position:relative;width:calc(100% + 48px);margin:-24px -24px 0;
   aspect-ratio:21/9;max-height:70vh;min-height:320px;background:#000;overflow:hidden;
@@ -502,8 +504,8 @@ table.data tr:hover td{background:var(--surface2)}
   width:100%;height:100%;border:none;display:block;
   background:#000;font-size:12px;color:#555;
 }
-video.player{object-fit:cover}
-iframe.player{object-fit:cover}
+video.player{object-fit:contain}
+iframe.player{object-fit:contain}
 @media(max-width:760px){
   .player-wrap{width:calc(100% + 28px);margin:-14px -14px 0;aspect-ratio:16/9;max-height:none;min-height:0}
 }
