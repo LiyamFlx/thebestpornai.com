@@ -454,6 +454,36 @@ function uCancelUpload() {
   render();
 }
 
+function renderDashboard(){
+  const r=DATA.revenue;
+  return `<h1>Dashboard</h1><p class="sub">Welcome back, Alex — here's how your channel is doing.</p>
+    <div class="metrics">
+      ${metric("Revenue (mo)","$"+((r.history&&r.history.length?r.history[r.history.length-1].v:0)).toLocaleString(),"18%",true)}
+      ${metric("Subscribers",fmt(DATA.creators.find(c=>c.id===MY).subs),"4.2%",true)}
+      ${metric("Views (7d)",fmt(DATA.analytics.views7d.reduce((a,b)=>a+b,0)),"9%",true)}
+      ${metric("Watch Time","54.2K min","6%",true)}
+      ${metric("CTR","7.8%","0.4%",true)}
+      ${metric("Engagement","12.4%","1.1%",true)}
+      ${metric("Comments",DATA.comments.length,"3",true)}
+      ${metric("Growth","+312","subs",true)}
+    </div>
+    <div class="grid" style="grid-template-columns:2fr 1fr;margin-top:18px">
+      <div class="panel"><h3 style="margin-top:0">Views — last 7 days</h3>${barChart(DATA.analytics.views7d,["M","T","W","T","F","S","S"])}</div>
+      <div class="panel"><h3 style="margin-top:0">Top Traffic Sources</h3>${distRows(DATA.analytics.traffic)}</div>
+    </div>`;
+}
+
+function renderContent(){
+  return `<h1>Content</h1><p class="sub">Manage your videos</p>
+    <div class="panel" style="padding:0">
+    <table class="data"><thead><tr><th>Video</th><th>Status</th><th>Views</th><th>Likes</th><th>Comments</th><th>Date</th></tr></thead><tbody>
+    ${myVideos().map(v=>`<tr style="cursor:pointer" onclick="toast('Opening editor for: ${esc(v.title)}')">
+      <td><b>${esc(v.title)}</b><div class="small">${esc(v.category)}</div></td>
+      <td><span class="tag-pill ${v.status==='published'?'green':v.status==='review'?'warn':v.status==='upload-failed'?'red':'muted'}">${esc(v.status==='upload-failed'?'Failed':v.status)}</span>${v.status==='upload-failed'?` <button class="chip retry-btn" onclick="event.stopPropagation();retryUpload(${v.id})">↺ Retry</button>`:''}</td>
+      <td>${fmt(v.views)}</td><td>${fmt(v.likes)}</td><td>${v.comments}</td><td class="small">${esc(v.uploaded)}</td></tr>`).join("")}
+    </tbody></table></div>`;
+}
+
 function renderUpload() {
   const u = cstate.upload;
   
