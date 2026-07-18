@@ -35,6 +35,7 @@ export function render(){
   document.querySelectorAll("#nav button, #bottomNav button").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
   lazyLoadThumbs();
   attachPlayerGestures();
+  attachPlayerStatus();
   attachHoverPreview();
 
   const pending = takePendingHydrate();
@@ -72,6 +73,34 @@ function attachPlayerGestures(){
       }
     }
   });
+}
+
+/* Loading/error feedback for the main player: shows a spinner while the video
+   is buffering (loadstart/waiting) and swaps in an inline error + retry button
+   if playback fails (error/prolonged stall). The player element is recreated
+   on every render, so this re-attaches cleanly each time like the gestures above. */
+function attachPlayerStatus(){
+  const wrap = document.querySelector(".player-wrap");
+  const activePlayer = wrap && wrap.querySelector("video.player");
+  if(!wrap || !activePlayer) return;
+  const loading = wrap.querySelector(".player-status-loading");
+  const errorBox = wrap.querySelector(".player-status-error");
+  const showLoading = () => { if(loading) loading.style.display = "flex"; if(errorBox) errorBox.style.display = "none"; };
+  const hideLoading = () => { if(loading) loading.style.display = "none"; };
+  const showError = () => { hideLoading(); if(errorBox) errorBox.style.display = "flex"; };
+
+  activePlayer.addEventListener("loadstart", showLoading);
+  activePlayer.addEventListener("waiting", showLoading);
+  activePlayer.addEventListener("playing", hideLoading);
+  activePlayer.addEventListener("canplay", hideLoading);
+  activePlayer.addEventListener("error", showError);
+  // A stall under 4s is normal buffering; only surface it as an error if it hangs.
+  let stallTimer = null;
+  activePlayer.addEventListener("stalled", () => {
+    clearTimeout(stallTimer);
+    stallTimer = setTimeout(showError, 4000);
+  });
+  activePlayer.addEventListener("playing", () => clearTimeout(stallTimer));
 }
 
 /* Hover-to-preview: on desktop, hovering a card plays its muted thumb/preview

@@ -42,13 +42,13 @@ export function renderWatch(){
 
         <div class="watch-actions">
           <div class="vote-pill">
-            <button id="btnLike" class="vote-btn" onclick="likeVideo(${v.id})"><span class="ic">👍</span> <span id="likeNum">${fmt(v.likes + live.like)}</span></button>
+            <button id="btnLike" class="vote-btn" onclick="likeVideo(${v.id})" aria-label="Like this video"><span class="ic">👍</span> <span id="likeNum">${fmt(v.likes + live.like)}</span></button>
             <span class="vote-div"></span>
-            <button id="btnDislike" class="vote-btn" onclick="dislikeVideo(${v.id})"><span class="ic">👎</span> <span id="disNum">${fmt(v.dislikes + live.dislike)}</span></button>
+            <button id="btnDislike" class="vote-btn" onclick="dislikeVideo(${v.id})" aria-label="Dislike this video"><span class="ic">👎</span> <span id="disNum">${fmt(v.dislikes + live.dislike)}</span></button>
           </div>
-          <button id="btnFav" class="act-btn ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})"><span class="ic">♥</span> Favorite<span id="favCount"></span></button>
-          <button id="btnLater" class="act-btn ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})"><span class="ic">🔖</span> Save</button>
-          <button class="act-btn" onclick="shareVideo(${v.id})"><span class="ic">↗</span> Share</button>
+          <button id="btnFav" class="act-btn ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})" aria-label="${vstate.favorites.includes(v.id)?'Remove from favorites':'Add to favorites'}"><span class="ic">♥</span> Favorite<span id="favCount"></span></button>
+          <button id="btnLater" class="act-btn ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})" aria-label="${vstate.later.includes(v.id)?'Remove from saved':'Save for later'}"><span class="ic">🔖</span> Save</button>
+          <button class="act-btn" onclick="shareVideo(${v.id})" aria-label="Share this video"><span class="ic">↗</span> Share</button>
           <button class="act-btn" onclick="reportVideo(${v.id})" title="Report" aria-label="Report">⚑ Report</button>
         </div>
 
@@ -58,7 +58,7 @@ export function renderWatch(){
             <div class="creator-name"><span class="creator-link" onclick="openCreator('${jsq(c.id)}')">${esc(c.name)}</span> ${c.verified?'<span class="verified" title="Verified">✓</span>':''}</div>
             <div class="small">${fmt(c.subs)} subscribers</div>
           </div>
-          <button class="btn subscribe-btn ${subbed?'ghost':''}" onclick="subscribe('${jsq(c.id)}')">${subbed?'Subscribed':'＋ Subscribe'}</button>
+          <button class="btn subscribe-btn ${subbed?'ghost':''}" onclick="subscribe('${jsq(c.id)}')" aria-label="${subbed?'Unsubscribe from '+esc(c.name):'Subscribe to '+esc(c.name)}">${subbed?'Subscribed':'＋ Subscribe'}</button>
         </div>
 
         <div class="comments-card">

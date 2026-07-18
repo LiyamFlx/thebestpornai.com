@@ -63,7 +63,7 @@ export default async function handler(req, res) {
     dislikes: Number(entry.dislikes) || 0,
     comments: 0,
     favorites: 0,
-    status: "public",
+    status: "pending",
     flagged: false,
   };
 
@@ -135,9 +135,11 @@ export default async function handler(req, res) {
       }
     }
 
-    // The R2 manifest is the single source of truth for open uploads — the
-    // viewer reads it on load (manifest-sync.js), so the video is now live for
-    // everyone. No Supabase write needed (that path required a per-user JWT).
+    // The R2 manifest is the single source of truth for open uploads. New
+    // entries land as status:"pending" — they're written to manifest.json now
+    // but stay hidden from the public viewer (see visible() in
+    // catalog-queries.js) until a moderator approves them via
+    // api/moderate-manifest.js, which flips status to "published" in place.
     return res.status(200).json({ ok: true, entry: safeEntry });
 
   } catch (e) {

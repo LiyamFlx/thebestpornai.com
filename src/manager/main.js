@@ -114,14 +114,24 @@ function videosNextPage(){
   if(_videoTablePage < pages-1){ _videoTablePage++; render(); }
 }
 
-/* Moderation queue = flagged catalog videos + creator uploads awaiting review.
+/* Moderation queue = flagged catalog videos + creator uploads awaiting review
+   (Supabase `uploads` table) + open manifest uploads awaiting review (R2
+   manifest.json, written status:"pending" by api/save-upload.js).
    _modDecisions holds the latest persisted decision per video so actioned items
    drop out of the queue across reloads/sessions. */
 let _modDecisions = {};
 let _modUploads = [];
+let _modPending = [];
+const MANIFEST_URL = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/manifest.json";
 
 async function loadModeration(){
-  if(typeof ShAPI==="undefined" || !ShAPI.enabled) return;
+  try {
+    const r = await fetch(MANIFEST_URL + "?t=" + Date.now(), { cache: "no-store" });
+    const list = r.ok ? await r.json() : [];
+    _modPending = Array.isArray(list) ? list.filter(v => v && v.status === "pending") : [];
+  } catch(_){ _modPending = []; }
+
+  if(typeof ShAPI==="undefined" || !ShAPI.enabled){ if(mstate.page==="moderation") render(); return; }
   try {
     const [dec, ups] = await Promise.all([ ShAPI.latestDecisions(), ShAPI.listUploadedVideos() ]);
     // Merge server decisions in WITHOUT clobbering optimistic local ones.
@@ -131,8 +141,27 @@ async function loadModeration(){
   } catch(_){}
 }
 
-async function modAction(videoId, action){
+async function modAction(videoId, action, kind){
   toast("Working…");
+  if(kind==="manifest"){
+    try {
+      const sess = ShAuth.session();
+      if(!sess) throw new Error("sign in required");
+      const r = await fetch("/api/moderate-manifest", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+sess.access_token },
+        body: JSON.stringify({ id: videoId, action: action==="escalate" ? "approve" : action }),
+      });
+      if(!r.ok) throw new Error((await r.json().catch(()=>({})))?.error || ("status "+r.status));
+      _modDecisions[String(videoId)] = action;
+      toast(action.charAt(0).toUpperCase()+action.slice(1)+"d");
+      await loadModeration();
+    } catch(e){
+      toast("Action failed to save — "+(e.message||"please retry"));
+    }
+    render();
+    return;
+  }
   if(typeof ShAPI!=="undefined" && ShAPI.enabled){
     let mod=""; try{ if(typeof ShAuth!=="undefined"){ const u=await ShAuth.user(); mod=u&&u.email||""; } }catch(_){}
     try {
@@ -155,18 +184,20 @@ function renderModeration(){
   const decided = id => { const d=_modDecisions[String(id)]; return d==="approve"||d==="remove"; };
   const flagged = DATA.videos.filter(v=>v.flagged && !decided(v.id));
   const reviews = (_modUploads||[]).filter(u=>(u.status==="review") && !decided(u.id));
+  const pending = (_modPending||[]).filter(u=>!decided(u.id));
   const queue = [
-    ...reviews.map(u=>({ id:u.id, title:u.title, who:u.creator||"upload", src:u.src, why:"New upload — pending review", isUpload:true })),
-    ...flagged.map(v=>({ id:v.id, title:v.title, who:creatorName(v.creator), src:v.src, why:"Flagged for review (demo data — not a real classifier signal)", isUpload:false })),
+    ...pending.map(u=>({ id:u.id, title:u.title, who:u.creator||"upload", src:u.src, why:"New open upload — pending review", isUpload:true, kind:"manifest" })),
+    ...reviews.map(u=>({ id:u.id, title:u.title, who:u.creator||"upload", src:u.src, why:"New upload — pending review", isUpload:true, kind:"supabase" })),
+    ...flagged.map(v=>({ id:v.id, title:v.title, who:creatorName(v.creator), src:v.src, why:"Flagged for review (demo data — not a real classifier signal)", isUpload:false, kind:"supabase" })),
   ];
   return `<h1>Content Moderation</h1><p class="sub">${queue.length} items in queue</p>
     <div class="tabs"><button class="active">Review Queue</button><button onclick="loadModeration()">↻ Refresh</button></div>
     ${queue.length? queue.map(it=>`<div class="panel" style="margin-bottom:10px;display:flex;gap:14px;align-items:center">
       <div class="video-thumb" style="width:120px;height:68px;margin:0;flex:none">${it.src?`<video class="thumb-video lazy" data-src="${mediaUrl(it.src)}#t=1" muted preload="none"></video>`:``}</div>
       <div style="flex:1"><b>${esc(it.title)}</b>${it.isUpload?' <span class="tag-pill warn">upload</span>':''}<div class="small">${esc(it.who)} • ${esc(it.why)}</div></div>
-      <div><button class="chip" style="color:var(--good);border-color:var(--good)" onclick="modAction('${esc(String(it.id))}','approve')">Approve</button>
-           <button class="chip" style="color:var(--accent2);border-color:var(--accent2)" onclick="modAction('${esc(String(it.id))}','remove')">Remove</button>
-           <button class="chip" onclick="modAction('${esc(String(it.id))}','escalate')">Escalate</button></div>
+      <div><button class="chip" style="color:var(--good);border-color:var(--good)" onclick="modAction('${esc(String(it.id))}','approve','${it.kind}')">Approve</button>
+           <button class="chip" style="color:var(--accent2);border-color:var(--accent2)" onclick="modAction('${esc(String(it.id))}','remove','${it.kind}')">Remove</button>
+           <button class="chip" onclick="modAction('${esc(String(it.id))}','escalate','${it.kind}')">Escalate</button></div>
     </div>`).join("") : `<div class="empty">Queue clear — nothing awaiting review. 🎉</div>`}`;
 }
 
