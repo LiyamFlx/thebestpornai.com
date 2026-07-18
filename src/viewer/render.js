@@ -169,7 +169,16 @@ function addStructuredData(){
    scrolls near the viewport. Without this, ~180 <video> elements would all
    request metadata from the CDN on load and crawl the page. */
 function revealThumb(el){
-  if(el.dataset.src){ el.src = el.dataset.src; el.preload = "metadata"; el.removeAttribute("data-src"); }
+  if(el.dataset.src){
+    el.preload = "metadata";
+    el.src = el.dataset.src;            // src includes #t=1 → seeks to 1s for a frame
+    el.removeAttribute("data-src");
+    // Force the browser to actually decode a frame so the thumb isn't blank.
+    el.addEventListener("loadedmetadata", () => {
+      try { if(el.currentTime === 0) el.currentTime = Math.min(1, (el.duration||2) * 0.1); } catch(_){}
+    }, { once: true });
+    el.load();
+  }
   el.classList.remove("lazy");
 }
 /* Asymmetric margin: generous vertical lookahead for the scrolling grid pages,
@@ -185,7 +194,12 @@ const _lazyObserver = (typeof window !== "undefined" && "IntersectionObserver" i
     }, { rootMargin: "250px 80px" })
   : null;
 function lazyLoadThumbs(){
-  const els = document.querySelectorAll("video.lazy[data-src]");
-  if(_lazyObserver){ els.forEach(el=>_lazyObserver.observe(el)); }
-  else { els.forEach(revealThumb); }   // no IntersectionObserver: load eagerly
+  const els = [...document.querySelectorAll("video.lazy[data-src]")];
+  // Eager-load the first screenful immediately so the grid is never blank; lazy
+  // the rest. A <video> thumb stays blank until its metadata loads AND it seeks
+  // to #t=1, so we force load+seek here rather than waiting on scroll.
+  els.forEach((el, i) => {
+    if(!_lazyObserver || i < 24){ revealThumb(el); }
+    else { _lazyObserver.observe(el); }
+  });
 }
