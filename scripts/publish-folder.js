@@ -1,0 +1,222 @@
+#!/usr/bin/env node
+/**
+ * 🚀 publish-folder.js — one command to publish a whole folder of videos.
+ *
+ * Drop videos in a folder under ./media/, then run:
+ *   node scripts/publish-folder.js "media/my-batch" --category "AI" --tags "Big Ass,POV"
+ *
+ * It does EVERYTHING in one pass, idempotently:
+ *   1. Scans the folder recursively for video files.
+ *   2. Skips anything already in catalog.js OR already on R2 (HEAD check).
+ *   3. Uploads missing files to R2 media/… IN PARALLEL BATCHES (fast for 1000s).
+ *   4. Generates catalog entries (ffprobe duration, smart tags, movie/scene
+ *      structure) — reusing the same rules as gen-catalog-from-local.js.
+ *   5. Inserts the new entries directly into src/shared/catalog.js (auto — no
+ *      manual paste). A .bak of catalog.js is written first.
+ *
+ * Then just: git add -A && git commit && git push  → live.
+ *
+ * Flags:
+ *   --category "AI"        primary category for the batch (default "Amateur")
+ *   --tags "Big Ass,POV"   extra tags applied to every entry
+ *   --creator c1           force a creator id (default: round-robin c1..c4)
+ *   --concurrency 8        parallel uploads (default 8)
+ *   --dry-run              scan + report only, upload nothing, edit nothing
+ *
+ * Requires R2_* env vars (from .env) and ffprobe on PATH (optional; falls back
+ * to 0:00 duration if missing).
+ */
+import fs from "fs";
+import path from "path";
+import { execSync } from "child_process";
+import { fileURLToPath } from "url";
+import "dotenv/config";
+import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const REPO = path.join(__dirname, "..");
+const CATALOG_PATH = path.join(REPO, "src/shared/catalog.js");
+const VIDEO_EXT = new Set([".mp4", ".mov", ".webm", ".m4v"]);
+const PUBLIC_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev";
+
+// ---------- args ----------
+const args = process.argv.slice(2);
+const folderArg = args.find(a => !a.startsWith("--"));
+if (!folderArg) {
+  console.error('Usage: node scripts/publish-folder.js "media/<folder>" [--category AI] [--tags "a,b"] [--creator c1] [--concurrency 8] [--dry-run]');
+  process.exit(1);
+}
+const opt = (name, def) => { const i = args.indexOf("--" + name); return i >= 0 && args[i + 1] && !args[i + 1].startsWith("--") ? args[i + 1] : def; };
+const category = opt("category", "Amateur");
+const extraTags = (opt("tags", "") || "").split(",").map(t => t.trim()).filter(Boolean);
+const creatorOverride = opt("creator", null);
+const concurrency = parseInt(opt("concurrency", "8"), 10) || 8;
+const dryRun = args.includes("--dry-run");
+
+const folder = path.isAbsolute(folderArg) ? folderArg : path.join(REPO, folderArg);
+if (!fs.existsSync(folder)) { console.error(`❌ Folder not found: ${folder}`); process.exit(1); }
+
+// ---------- R2 client ----------
+const { R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ENDPOINT, R2_BUCKET = "streamhub-media" } = process.env;
+if (!dryRun && (!R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_ENDPOINT)) {
+  console.error("❌ Missing R2 credentials in .env"); process.exit(1);
+}
+const s3 = new S3Client({
+  region: "auto", endpoint: R2_ENDPOINT,
+  credentials: { accessKeyId: R2_ACCESS_KEY_ID, secretAccessKey: R2_SECRET_ACCESS_KEY },
+  forcePathStyle: true,
+});
+
+// ---------- entry-generation helpers (same rules as gen-catalog-from-local.js) ----------
+function getDuration(fp) {
+  try {
+    const out = execSync(`ffprobe -v quiet -print_format json -show_format "${fp}"`, { encoding: "utf8" });
+    const secs = parseFloat(JSON.parse(out).format?.duration || 0);
+    return `${Math.floor(secs / 60)}:${String(Math.floor(secs % 60)).padStart(2, "0")}`;
+  } catch { return "0:00"; }
+}
+function titleFromFile(f) {
+  return path.basename(f, path.extname(f)).replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim().replace(/\b\w/g, c => c.toUpperCase());
+}
+function parseStructure(filename) {
+  const parts = path.basename(filename, path.extname(filename)).split("__");
+  if (parts.length < 2) return { movieTitle: null, level: null, sceneNumber: null, clipNumber: null, actName: null };
+  const movieTitle = parts[0].replace(/[-_]/g, " ").trim() || null;
+  let level = "clip", sceneNumber = null, clipNumber = null, actName = null;
+  for (const p of parts.slice(1)) {
+    if (p.startsWith("Scene-")) { level = "scene"; sceneNumber = parseInt(p.replace("Scene-", "")); }
+    if (p.startsWith("Clip-")) clipNumber = parseInt(p.replace("Clip-", ""));
+    if (p.startsWith("Act-")) { level = "act"; actName = p.replace("Act-", ""); }
+    if (p.includes("Full-Movie") || p.includes("Movie")) level = "movie";
+    if (p.includes("Highlight")) level = "highlight";
+  }
+  return { movieTitle, level, sceneNumber, clipNumber, actName };
+}
+function generateTags(title) {
+  const t = title.toLowerCase();
+  const common = ["Hardcore", category];
+  if (t.includes("ass")) common.push("Big Ass", "PAWG");
+  if (t.includes("teen") || /\b18\b/.test(t)) common.push("18+");
+  if (t.includes("milf")) common.push("MILF");
+  if (t.includes("blow") || t.includes("suck")) common.push("Blowjob", "Deepthroat");
+  return [...new Set([...common, ...extraTags])].slice(0, 8);
+}
+
+// ---------- read catalog + build "already published" index ----------
+const catalogText = fs.readFileSync(CATALOG_PATH, "utf8");
+const publishedSrcs = new Set([...catalogText.matchAll(/src:\s*"([^"]+)"/g)].map(m => m[1]));
+const maxId = Math.max(0, ...[...catalogText.matchAll(/\bid:\s*(\d+)/g)].map(m => +m[1]));
+
+// ---------- scan folder ----------
+function walk(dir) {
+  let out = [];
+  for (const name of fs.readdirSync(dir)) {
+    const fp = path.join(dir, name);
+    if (fs.statSync(fp).isDirectory()) out = out.concat(walk(fp));
+    else if (VIDEO_EXT.has(path.extname(fp).toLowerCase())) out.push(fp);
+  }
+  return out;
+}
+const files = walk(folder).sort((a, b) => a.localeCompare(b));
+console.log(`🔎 Found ${files.length} video files under ${path.relative(REPO, folder)}`);
+
+// Build the R2 key + relative src for a local file (relative to media/).
+function srcFor(fp) {
+  const rel = path.relative(path.join(REPO, "media"), fp).split(path.sep).join("/");
+  return { src: `../media/${rel}`, key: `media/${rel}`, publicUrl: `${PUBLIC_BASE}/media/${rel.split("/").map(encodeURIComponent).join("/")}` };
+}
+
+// Skip files already in the catalog by src.
+const todo = files.filter(fp => !publishedSrcs.has(srcFor(fp).src));
+console.log(`   ${files.length - todo.length} already in catalog, ${todo.length} to process.`);
+if (!todo.length) { console.log("✅ Nothing new to publish."); process.exit(0); }
+
+const creators = ["c1", "c2", "c3", "c4"];
+const today = new Date().toISOString().slice(0, 10);
+
+async function existsOnR2(key) {
+  try { await s3.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key })); return true; }
+  catch { return false; }
+}
+
+// ---------- upload (parallel batches) + build entries ----------
+const CONTENT_TYPES = { ".mp4": "video/mp4", ".mov": "video/quicktime", ".webm": "video/webm", ".m4v": "video/x-m4v" };
+let nextId = maxId + 1;
+const newEntries = [];
+let uploaded = 0, skipped = 0, failed = 0;
+
+async function processOne(fp, i) {
+  const { src, key, publicUrl } = srcFor(fp);
+  try {
+    if (!dryRun) {
+      if (await existsOnR2(key)) { skipped++; }
+      else {
+        await s3.send(new PutObjectCommand({
+          Bucket: R2_BUCKET, Key: key,
+          Body: fs.createReadStream(fp),
+          ContentLength: fs.statSync(fp).size,
+          ContentType: CONTENT_TYPES[path.extname(fp).toLowerCase()] || "application/octet-stream",
+        }));
+        uploaded++;
+      }
+    }
+    const title = titleFromFile(fp);
+    const st = parseStructure(fp);
+    const entry = {
+      id: nextId++, title, creator: creatorOverride || creators[i % creators.length],
+      type: "ugc", category, categories: [category],
+      views: 0, likes: 0, dislikes: 0, comments: 0, favorites: 0,
+      duration: getDuration(fp), uploaded: today, src, tags: generateTags(title),
+      status: "published", flagged: false,
+      ...(st.movieTitle ? { movieTitle: st.movieTitle } : {}),
+      ...(st.level ? { level: st.level } : {}),
+      ...(st.sceneNumber ? { sceneNumber: st.sceneNumber } : {}),
+      ...(st.clipNumber ? { clipNumber: st.clipNumber } : {}),
+      ...(st.actName ? { actName: st.actName } : {}),
+    };
+    newEntries.push({ i, entry });
+  } catch (e) {
+    failed++; console.error(`   ✗ ${path.basename(fp)}: ${e.message}`);
+  }
+}
+
+async function run() {
+  for (let start = 0; start < todo.length; start += concurrency) {
+    const batch = todo.slice(start, start + concurrency);
+    await Promise.all(batch.map((fp, j) => processOne(fp, start + j)));
+    process.stdout.write(`\r   ⬆ ${Math.min(start + concurrency, todo.length)}/${todo.length}  (uploaded ${uploaded}, skipped ${skipped}, failed ${failed})   `);
+  }
+  console.log("");
+
+  // preserve original file order for the catalog
+  newEntries.sort((a, b) => a.i - b.i);
+  const entries = newEntries.map(x => x.entry);
+  if (!entries.length) { console.log("Nothing to insert."); return; }
+
+  if (dryRun) {
+    console.log(`\n[dry-run] would insert ${entries.length} entries (ids ${entries[0].id}–${entries[entries.length - 1].id}). No upload, no file change.`);
+    console.log(JSON.stringify(entries.slice(0, 2), null, 2), entries.length > 2 ? `\n… +${entries.length - 2} more` : "");
+    return;
+  }
+
+  // ---------- insert into catalog.js before the videos-array close ----------
+  fs.writeFileSync(CATALOG_PATH + ".bak", catalogText);   // safety backup
+  const lines = catalogText.split("\n");
+  // find the videos:[ line, then its matching closing "  ],"
+  const startIdx = lines.findIndex(l => /^\s*videos:\s*\[/.test(l));
+  let closeIdx = -1;
+  for (let k = startIdx + 1; k < lines.length; k++) { if (/^\s*\],\s*$/.test(lines[k])) { closeIdx = k; break; } }
+  if (startIdx < 0 || closeIdx < 0) { console.error("❌ Could not locate videos:[…] array in catalog.js — aborting (no changes)."); process.exit(1); }
+
+  const fmt = e => "    " + JSON.stringify(e).replace(/"([a-zA-Z_]\w*)":/g, "$1:") + ",";
+  const block = entries.map(fmt);
+  lines.splice(closeIdx, 0, ...block);
+  fs.writeFileSync(CATALOG_PATH, lines.join("\n"));
+
+  console.log(`\n✅ Published ${entries.length} videos.`);
+  console.log(`   Uploaded ${uploaded} to R2, skipped ${skipped} already there, ${failed} failed.`);
+  console.log(`   Inserted ids ${entries[0].id}–${entries[entries.length - 1].id} into catalog.js (backup: catalog.js.bak).`);
+  console.log(`\nNext:\n   npm run build   # sanity check\n   git add -A && git commit -m "publish ${entries.length} videos" && git push`);
+}
+
+run().catch(e => { console.error("Fatal:", e); process.exit(1); });

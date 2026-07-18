@@ -64,23 +64,43 @@ This script scans local subdirectories under `media/`, matches them against `src
 
 Videos are streamed from the Cloudflare R2 bucket. `mediaUrl(src)` in `src/shared/catalog.js` points to `https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media`.
 
-Steps to add videos:
-1. Move the `.mp4` files into one of the `media/` subfolders.
-2. Add an entry per video to the `videos: [...]` array **in `src/shared/catalog.js`**:
+### Fast path — publish a whole folder in one command (recommended for bulk)
+
+Drop videos into a folder under `media/`, then:
+
+```bash
+npm run publish -- "media/<folder>" --category "AI" --tags "Big Ass,POV"
+# or: node scripts/publish-folder.js "media/<folder>" --category "AI"
+```
+
+This does everything in one idempotent pass — scans the folder, **skips anything
+already in the catalog or already on R2**, uploads missing files to R2 **in
+parallel batches**, generates entries (ffprobe duration, smart tags, movie/scene
+structure), and **inserts them straight into `src/shared/catalog.js`** (a
+`catalog.js.bak` is written first). Then:
+
+```bash
+npm run build                                  # sanity check
+git add -A && git commit -m "publish batch" && git push   # → live via Vercel
+```
+
+Flags: `--category`, `--tags "a,b"`, `--creator c1`, `--concurrency 8`,
+`--dry-run` (scan + report only, no upload, no edit — always dry-run a big batch
+first). Re-running is safe: already-published files are skipped. IDs auto-
+increment past the current max, so no collisions.
+
+### Manual path (single video / precise control)
+
+1. Move the `.mp4` into a `media/` subfolder.
+2. Add one entry to the `videos: [...]` array in `src/shared/catalog.js`:
    ```js
    { id:<n>, title:"...", creator:"c1", type:"ugc", category:"Cumshot",
      categories:["Cumshot"], views:0, likes:0, dislikes:0, comments:0, favorites:0,
      duration:"0:10", uploaded:"2026-06-29", src:"../media/<exact subfolder and filename>.mp4",
      tags:["Cumshot","Blowjob"], status:"published", flagged:false }
    ```
-3. Run the uploader to sync them to R2:
-   ```bash
-   node scripts/upload-catalog-to-r2.js
-   ```
-4. Deploy the frontend update:
-   ```bash
-   npx vercel --prod --yes
-   ```
+3. Sync to R2: `node scripts/upload-catalog-to-r2.js`
+4. Deploy: `git push` (auto) or `npx vercel --prod --yes`
 
 ---
 
