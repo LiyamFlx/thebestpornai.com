@@ -1002,6 +1002,17 @@ iframe.player{object-fit:contain}
     display:block;flex:1 0 100%;width:100%;margin-top:8px;order:5;
   }
 
+  /* ---- First screen: lead with real content, not chrome ---- */
+  /* The home promo hero ("Welcome … · 0 views") pushed every real video below
+     the fold on first paint. Hide it on mobile so the first content row (Fresh
+     Uploads / Trending thumbnails) leads instead. Home-only: .movie-hero is a
+     separate class and unaffected. Revert = delete this one rule. */
+  .hero{display:none}
+  /* tighten the tab + filter stack so thumbnails sit as high as possible */
+  .view-toggle-tabs{margin-bottom:10px;padding-bottom:8px}
+  .content{padding-top:10px}
+  h3{margin:12px 0 8px}
+
   /* ---- Fix 2: filter/category chips scroll horizontally, never wrap ---- */
   .mchrome-scroll{
     flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
