@@ -125,6 +125,9 @@ h3{font-size:15px;margin:18px 0 10px}
   display:flex;align-items:center;justify-content:center;transition:background .15s,transform .15s;
 }
 .card-act:hover{background:var(--accent);transform:scale(1.12)}
+/* Saved state (favorited / watch-later) — filled accent so a tap gives instant
+   feedback without re-rendering the grid. */
+.card-act.on{background:var(--accent);color:#fff}
 @media (hover: none){ .video-thumb .card-actions{display:none} .thumb-preview{display:none} }
 .play-badge{
   position:absolute;bottom:8px;right:8px;width:28px;height:28px;

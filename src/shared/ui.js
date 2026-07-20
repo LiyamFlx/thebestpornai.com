@@ -97,8 +97,8 @@ export function videoCard(v, opts={}){
   const badge = opts.badge ? opts.badge(v) : null;
   const quickActions = opts.hideActions ? `` : `
         <div class="card-actions">
-          <button class="card-act" title="Favorite" onclick="event.stopPropagation();toggleFav(${v.id})">❤</button>
-          <button class="card-act" title="Watch Later" onclick="event.stopPropagation();toggleLater(${v.id})">＋</button>
+          <button class="card-act" title="Favorite" data-fav-id="${v.id}" aria-pressed="false" onclick="event.stopPropagation();toggleFav(${v.id})">❤</button>
+          <button class="card-act" title="Watch Later" data-later-id="${v.id}" aria-pressed="false" onclick="event.stopPropagation();toggleLater(${v.id})">＋</button>
         </div>`;
   return `
     <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">

@@ -92,6 +92,25 @@ export function loadMore(){
   render();
 }
 
+/* Which page's *content* is exactly the toggled set. On that page the item
+   appears/disappears when toggled, so the list must be rebuilt (full render);
+   everywhere else we patch the affected controls in place and skip the render —
+   avoiding a full grid rebuild (and lost scroll position) for a single tap. */
+const SET_PAGE = { fav: "favorites", later: "later" };
+
+function reflectSetToggle(kind, id, active){
+  if(vstate.page === SET_PAGE[kind]){ render(); return; }
+  // Watch-page primary action button (present only on the watch page).
+  const watchBtn = document.getElementById(kind==="fav" ? "btnFav" : "btnLater");
+  if(watchBtn) watchBtn.classList.toggle("on", active);
+  // Any card quick-action buttons for this id (a video can appear in several
+  // rows at once — patch every instance so they stay in sync).
+  document.querySelectorAll(`[data-${kind}-id="${id}"]`).forEach(b => {
+    b.classList.toggle("on", active);
+    b.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+}
+
 export function toggleFav(id){
   id = +id;
   const on = vstate.favorites.includes(id);
@@ -99,8 +118,7 @@ export function toggleFav(id){
   persistState();
   toast(!on?"Added to Favorites":"Removed from Favorites");
   persist(()=> on ? ShAPI.removeFavorite(id) : ShAPI.addFavorite(id));
-  const btn=document.getElementById("btnFav");
-  if(onWatch() && btn) btn.classList.toggle("on", !on); else render();
+  reflectSetToggle("fav", id, !on);
 }
 
 export function toggleLater(id){
@@ -109,8 +127,7 @@ export function toggleLater(id){
   on ? vstate.later=vstate.later.filter(x=>x!==id) : vstate.later.push(id);
   persistState();
   toast(!on?"Saved to Watch Later":"Removed");
-  const btn=document.getElementById("btnLater");
-  if(onWatch() && btn) btn.classList.toggle("on", !on); else render();
+  reflectSetToggle("later", id, !on);
 }
 
 /* Real download: videos are public on R2, so we fetch the file and save it via
@@ -154,9 +171,21 @@ function vote(id, kind){
   const L = vstate.live[id] = vstate.live[id] || {like:0, dislike:0};
   L[kind]++; toast(kind==="like"?"Liked":"Disliked");
   persist(()=> ShAPI.addLike(id, kind)).finally(()=> _voting.delete(key));
-  const num=document.getElementById(kind==="like"?"likeNum":"disNum");
+  // Patch every on-screen counter for this video in place. Like counts only
+  // ever appear on the watch page (#likeNum/#disNum) and the vertical feed
+  // (#feedLike_<id>); nothing else in any layout changes on a vote, so we never
+  // need a full render() — which on the feed would rebuild the whole scroller,
+  // tear down the autoplay observer, and interrupt playback.
   const base = kind==="like" ? v.likes : v.dislikes;
-  if(onWatch() && num) num.textContent=fmt(base + L[kind]); else render();
+  const val = fmt(base + L[kind]);
+  const watchNum = document.getElementById(kind==="like"?"likeNum":"disNum");
+  if(watchNum) watchNum.textContent = val;
+  if(kind==="like"){
+    const feedLabel = document.getElementById("feedLike_"+id);
+    if(feedLabel) feedLabel.textContent = val;
+    const feedBtn = document.querySelector(`.feed-item[data-video-id="${id}"] .feed-btn.liked, .feed-item[data-video-id="${id}"] button[onclick*="likeVideo(${id})"]`);
+    if(feedBtn) feedBtn.classList.add("liked");
+  }
 }
 export const likeVideo    = id => vote(id, "like");
 export const dislikeVideo = id => vote(id, "dislike");

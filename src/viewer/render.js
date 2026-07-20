@@ -37,6 +37,7 @@ export function render(){
   else v.innerHTML = renderHome();
 
   document.querySelectorAll("#nav button, #bottomNav button").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
+  markToggleStates();
   lazyLoadThumbs();
   refreshChipRows();          // recompute horizontal chip-row edge fades (mobile)
   attachPlayerGestures();
@@ -52,6 +53,25 @@ export function render(){
 
   // Structured data for search engines and AI (called after DOM update)
   addStructuredData();
+}
+
+/* Reflect the current Favorites / Watch-Later membership on every card
+   quick-action button just rendered. Cards previously showed no saved state at
+   all; marking them here (and patching in place on toggle — see actions.js)
+   gives feedback without a full re-render on each tap. */
+function markToggleStates(){
+  const favs = new Set(vstate.favorites);
+  const later = new Set(vstate.later);
+  document.querySelectorAll("[data-fav-id]").forEach(b => {
+    const on = favs.has(+b.dataset.favId);
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  document.querySelectorAll("[data-later-id]").forEach(b => {
+    const on = later.has(+b.dataset.laterId);
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
 }
 
 /* Double-click on the player: left third rewinds 10s, right third skips 10s,
