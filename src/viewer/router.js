@@ -8,13 +8,19 @@ import { jsdec } from "./util.js";
 let _suppressHash = false;
 let _pendingHydrate = null;   // video id to hydrate after the next render
 
+export function scrollToTop(){
+  // On desktop layout #view (.content) is its own scroll container (.app is
+  // height:100vh), so window.scrollTo alone is a no-op there; on mobile
+  // .app is height:auto and the window itself scrolls. Reset both.
+  window.scrollTo(0, 0);
+  const view = document.getElementById("view");
+  if(view) view.scrollTop = 0;
+}
+
 export function setHash(h){
   _suppressHash = true;
   location.hash = h ? ("#"+h) : "";
   setTimeout(()=>_suppressHash=false, 0);
-  // Every programmatic navigation should land at the top of the new page,
-  // not wherever the user had scrolled to on the page they came from.
-  window.scrollTo(0, 0);
 }
 
 export function applyHash(){
@@ -48,6 +54,6 @@ export function initRouter(onChange){
     if(_suppressHash) return;
     applyHash();
     onChange();
-    window.scrollTo(0, 0);   // back/forward: land at the top of the restored page
+    scrollToTop();   // back/forward: land at the top of the restored page
   });
 }

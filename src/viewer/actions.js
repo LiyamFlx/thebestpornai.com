@@ -8,13 +8,13 @@ import { DATA, toast, fmt, mediaUrl } from "../shared/catalog.js";
 import { ShAPI } from "../shared/streamhub-api.js";
 import { vstate, pushHistory, onWatch, persistState, COMMENT_MAX_LEN } from "./state.js";
 import { jsdec } from "./util.js";
-import { setHash } from "./router.js";
+import { setHash, scrollToTop } from "./router.js";
 import { render } from "./render.js";
 import { hydrateWatch, persist } from "./hydrate.js";
 import { patchComments } from "./comments.js";
 import { pubVideos } from "./catalog-queries.js";
 
-export function go(p){ vstate.page=p; setHash(p==="home"?"":p); render(); }
+export function go(p){ vstate.page=p; setHash(p==="home"?"":p); render(); scrollToTop(); }
 
 export function focusSearch(){
   const i=document.getElementById("searchInput");
@@ -27,7 +27,7 @@ export function openVideo(id){
   if(!vstate.current) return;
   pushHistory(id);
   vstate.commentPage = 1;
-  vstate.page="watch"; setHash("video/"+id); render();
+  vstate.page="watch"; setHash("video/"+id); render(); scrollToTop();
   hydrateWatch(id);   // fetch real counts/comments and patch them in (non-blocking)
 }
 
@@ -49,6 +49,7 @@ export function openMovie(title){
   vstate.page = "movie";
   setHash("movie/"+encodeURIComponent(title));
   render();
+  scrollToTop();
 }
 
 export function openCreator(cid){
@@ -57,6 +58,7 @@ export function openCreator(cid){
   vstate.page = "creator";
   setHash("creator/"+encodeURIComponent(cid));
   render();
+  scrollToTop();
 }
 
 export function setHomeFilter(f){ vstate.homeFilter = f; vstate.homeCategory = ""; render(); }
@@ -70,6 +72,7 @@ export function setHomeCategory(c){
   vstate.homeFilter = "all";
   setHash(vstate.homeCategory ? "category/"+encodeURIComponent(vstate.homeCategory) : "");
   render();
+  scrollToTop();
 }
 
 /* Clicking a tag chip (card / watch page) runs a search for that tag. */
@@ -79,6 +82,7 @@ export function searchTag(tag){
   vstate.page = "search";
   setHash("search/"+encodeURIComponent(tag));
   render();
+  scrollToTop();
   const el = document.getElementById("searchInput");
   if(el) el.value = tag;
 }
