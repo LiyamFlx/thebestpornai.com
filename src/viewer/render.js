@@ -237,8 +237,13 @@ function lazyLoadThumbs(){
   // Eager-load the first screenful immediately so the grid is never blank; lazy
   // the rest. A <video> thumb stays blank until its metadata loads AND it seeks
   // to #t=1, so we force load+seek here rather than waiting on scroll.
+  // Eager-load only a first-screenful of thumbs; the observer streams the rest
+  // in as they approach the viewport. 24 concurrent <video> metadata fetches on
+  // load saturated the connection on mobile and stalled the initial paint —
+  // ~8 covers what's actually above the fold on a phone.
+  const eager = _lazyObserver ? 8 : els.length;
   els.forEach((el, i) => {
-    if(!_lazyObserver || i < 24){ revealThumb(el); }
+    if(i < eager){ revealThumb(el); }
     else { _lazyObserver.observe(el); }
   });
 }

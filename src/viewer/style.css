@@ -84,7 +84,13 @@ h3{font-size:15px;margin:18px 0 10px}
 
 /* Cards / grid */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
-.row-scroll{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px}
+.row-scroll{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;
+  /* Skip layout+paint for rows scrolled off-screen. The homepage stacks many
+     rows vertically; without this the browser lays out every card up-front,
+     which is the main cause of scroll jank / "stuck scrolling" on mobile. The
+     intrinsic-size hint keeps the scrollbar stable while rows are collapsed. */
+  content-visibility:auto;contain-intrinsic-size:auto 300px;
+  overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
 .row-scroll .card{min-width:220px}
 
 .card{

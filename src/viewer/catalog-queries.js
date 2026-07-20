@@ -7,11 +7,37 @@ import { DATA } from "../shared/catalog.js";
    filtered them). Uploads land as status:"pending" (api/save-upload.js) and
    stay hidden until a moderator approves them (api/moderate-manifest.js). */
 export const visible = v => v && v.status !== "private" && v.status !== "pending";
-export const pubVideos = () => DATA.videos.filter(v => visible(v) && v.orientation !== "vertical");
-export const pubVerticalVideos = () => DATA.videos.filter(v => visible(v) && v.orientation === "vertical");
 
-export const trending = ()=> pubVideos().sort((a,b)=> (b.likes*1.2+b.views*0.01) - (a.likes*1.2+a.views*0.01));
-export const byCat = (c)=> pubVideos().filter(v=>v.category===c);
+/* ---- Per-catalog-version memoization ----
+   The home page alone calls pubVideos()/trending()/byCat() ~15+ times per
+   render, each doing a full O(n) filter (and O(n log n) sort) over the whole
+   ~4k-entry catalog. That work is identical within a render and only changes
+   when the catalog itself does (manifest sync / live-upload merge push new
+   entries). We memoize on DATA.videos.length so the common case — many calls,
+   unchanged catalog — collapses to a single pass. invalidateCatalogCache() is
+   exported for the (rare) case where entries are mutated in place. */
+let _cacheRef = null, _cacheLen = -1;
+let _pub = null, _pubVert = null, _trending = null;
+const _byCat = new Map();
+function _ensure(){
+  // Invalidate when the array is replaced wholesale (tests, hot reload) OR when
+  // entries are added in place (manifest sync / live uploads use unshift/push,
+  // which keep the reference but change length).
+  if(DATA.videos !== _cacheRef || DATA.videos.length !== _cacheLen){
+    _cacheRef = DATA.videos; _cacheLen = DATA.videos.length;
+    _pub = null; _pubVert = null; _trending = null; _byCat.clear();
+  }
+}
+export function invalidateCatalogCache(){ _cacheRef = null; _cacheLen = -1; }
+
+export const pubVideos = () => { _ensure(); return _pub || (_pub = DATA.videos.filter(v => visible(v) && v.orientation !== "vertical")); };
+export const pubVerticalVideos = () => { _ensure(); return _pubVert || (_pubVert = DATA.videos.filter(v => visible(v) && v.orientation === "vertical")); };
+
+/* trending / byCat return cached arrays — callers must NOT mutate them in place
+   (e.g. .sort()). pubVideos() above is likewise shared; home.js clones with
+   .slice() before sorting. */
+export const trending = ()=> { _ensure(); return _trending || (_trending = pubVideos().slice().sort((a,b)=> (b.likes*1.2+b.views*0.01) - (a.likes*1.2+a.views*0.01))); };
+export const byCat = (c)=> { _ensure(); let r = _byCat.get(c); if(!r){ r = pubVideos().filter(v=>v.category===c); _byCat.set(c, r); } return r; };
 
 /* Broader category match for the filter bar: a video matches a category if its
    primary category, its categories[] list, OR its tags contain the term

@@ -8,6 +8,11 @@ import { pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies, act
 
 export const HERO_VIDEO_ID = 470; // pinned homepage hero — update this id to change it
 
+// A horizontal scroll row only ever shows a handful of cards at once; capping
+// each row keeps the homepage DOM to hundreds of cards instead of thousands
+// (categories/acts were previously rendered in full — every match got a card).
+const ROW_MAX = 24;
+
 // Top categories shown inline in the filter bar; the rest live under "More ▾".
 const TOP_CATEGORIES = CATEGORIES.slice(0, 8);
 const MORE_CATEGORIES = CATEGORIES.slice(8);
@@ -122,13 +127,13 @@ function _renderHomeBody(){
     ${vstate.history.length ? rowSection("Continue Watching", vstate.history.map(id=>DATA.videos.find(v=>v.id===id)).filter(Boolean)) : ""}
     ${rowSection("🔥 Fresh Uploads", pubVideos().slice().sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0)).slice(0, vstate.limit))}
     ${rowSection("Recommended For You", (()=>{ const nw=top.filter(v=>!vstate.history.includes(v.id)); return nw.length>=6?nw.slice(0, vstate.limit):top.slice(0, vstate.limit); })())}
-    ${rowSection("Trending Now", pubVideos().sort((a,b)=>b.views-a.views).slice(0, vstate.limit))}
+    ${rowSection("Trending Now", pubVideos().slice().sort((a,b)=>b.views-a.views).slice(0, vstate.limit))}
     ${rowSection("House Originals", pubVideos().filter(v=>v.type==="original").slice(0, vstate.limit))}
     ${allMovies.length ? moviesRow(allMovies) : ""}
-    ${rowSection("Highlights", highlights())}
-    ${actNames().map(a=>rowSection("Act: "+esc(a), clipsByAct(a))).join("")}
-    ${DATA.categories.map(c=>rowSection(c, byCat(c))).join("")}
-    ${rowSection("Recently Uploaded", pubVideos().sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0, vstate.limit))}
+    ${rowSection("Highlights", highlights().slice(0, ROW_MAX))}
+    ${actNames().map(a=>rowSection("Act: "+esc(a), clipsByAct(a).slice(0, ROW_MAX))).join("")}
+    ${DATA.categories.map(c=>rowSection(c, byCat(c).slice(0, ROW_MAX))).join("")}
+    ${rowSection("Recently Uploaded", pubVideos().slice().sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0, vstate.limit))}
     ${pubVideos().length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
   `;
 }
