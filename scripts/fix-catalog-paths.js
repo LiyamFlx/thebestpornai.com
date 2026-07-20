@@ -37,7 +37,7 @@ localFiles.forEach((p) => {
 console.log(`Found ${localFileMap.size} unique local files.`);
 
 // Read catalog.js
-const catalogPath = path.join(__dirname, "../src/shared/catalog.js");
+const catalogPath = path.join(__dirname, "../src/shared/catalog-videos.js");
 const catalogLines = fs.readFileSync(catalogPath, "utf8").split("\n");
 
 let fixedCount = 0;

@@ -29,10 +29,8 @@ const s3 = new S3Client({
   forcePathStyle: true,
 });
 
-// Load catalog
-const { DATA } = await import("../src/shared/catalog.js");
-
-const catalogVideos = DATA.videos;
+// Load catalog (full video list lives in catalog-videos.js)
+const { VIDEOS: catalogVideos } = await import("../src/shared/catalog-videos.js");
 
 const scanDirs = [
   "/Users/liyam/Thebestpornai.com/media",

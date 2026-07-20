@@ -1,4 +1,4 @@
-import { MEDIA_BASE, DATA, esc, creatorName, fmt, toast, mediaUrl } from "../shared/catalog.js";
+import { MEDIA_BASE, DATA, esc, creatorName, fmt, toast, mediaUrl, loadFullCatalog } from "../shared/catalog.js";
 import { ShAuth, ShAPI } from "../shared/streamhub-api.js";
 import { metric, barChart, distRows } from "../shared/ui.js";
 import { ageGate } from "../shared/age-gate.js";
@@ -311,6 +311,10 @@ if(typeof ShAuth!=="undefined"){
   ShAuth.ensureFresh().then(()=>render());
 }
 render();
+
+// catalog.js ships only a small seed for fast first paint; pull in the full
+// video list (code-split chunk) and re-render so moderation sees every video.
+loadFullCatalog().then(render);
 
 window.go = go;
 window.toast = toast;

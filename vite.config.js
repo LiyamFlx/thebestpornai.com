@@ -27,6 +27,14 @@ export default defineConfig({
         // Split the huge catalog data (500+ videos) into its own chunk.
         // This allows better caching, parallel loading, and keeps main app chunks smaller.
         manualChunks(id) {
+          // The full video list is ONLY reached via a dynamic import() from
+          // catalog.js. Give it its own chunk (not the catch-all 'shared' bucket
+          // below, which also holds statically-imported modules and would drag
+          // this 1.9 MB payload into the entry's eager modulepreload graph).
+          // On its own it stays a lazy async chunk, fetched after first paint.
+          if (id.includes('/shared/catalog-videos.js')) {
+            return 'catalog-videos';
+          }
           // Keep taxonomy in the same chunk as catalog.js — catalog's DATA
           // references taxonomy's CATEGORIES at module-init time, so splitting
           // them across chunks causes a cross-chunk temporal-dead-zone error.

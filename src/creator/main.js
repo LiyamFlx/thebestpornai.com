@@ -1,4 +1,4 @@
-import { DATA, esc, creatorName, fmt, toast, mediaUrl } from "../shared/catalog.js";
+import { DATA, esc, creatorName, fmt, toast, mediaUrl, loadFullCatalog } from "../shared/catalog.js";
 import { ShAuth, ShAPI } from "../shared/streamhub-api.js";
 import { metric, barChart, distRows } from "../shared/ui.js";
 import { ALL_CATEGORIES, ALL_TAGS, POPULAR_TAGS, isPopularTag } from "../shared/taxonomy.js";
@@ -873,6 +873,10 @@ document.addEventListener("click", (e) => {
 });
 
 render();
+
+// catalog.js ships only a small seed for fast first paint; pull in the full
+// video list (code-split chunk) and re-render so the creator's full library shows.
+loadFullCatalog().then(render);
 
 /* ---- Attach functions invoked from inline HTML event handler attributes ---- */
 window.go = go;

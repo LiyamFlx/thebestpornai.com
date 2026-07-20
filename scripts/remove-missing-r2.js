@@ -42,14 +42,14 @@ async function main() {
   const r2Keys = await getAllR2Keys();
   console.log(`   Found ${r2Keys.size} files in R2 bucket.`);
 
-  // Load catalog data
-  const { DATA } = await import("../src/shared/catalog.js");
-  
+  // Load catalog data (full video list lives in catalog-videos.js)
+  const { VIDEOS } = await import("../src/shared/catalog-videos.js");
+
   // Find which catalog entries are missing in R2
   const missingIds = new Set();
   const missingEntries = [];
 
-  DATA.videos.forEach((v) => {
+  VIDEOS.forEach((v) => {
     if (v.src) {
       const relPath = v.src.replace(/^(\.\.\/)?media\//, "");
       const r2Key = `media/${relPath}`;
@@ -66,8 +66,8 @@ async function main() {
     return;
   }
 
-  // Read catalog.js and filter out the missing IDs
-  const catalogPath = path.join(__dirname, "../src/shared/catalog.js");
+  // Read the video-entry file and filter out the missing IDs
+  const catalogPath = path.join(__dirname, "../src/shared/catalog-videos.js");
   const catalogLines = fs.readFileSync(catalogPath, "utf8").split("\n");
   
   let removedCount = 0;

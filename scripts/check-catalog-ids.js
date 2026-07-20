@@ -1,12 +1,13 @@
 #!/usr/bin/env node
-// Fails the build if src/shared/catalog.js contains duplicate video ids.
+// Fails the build if the catalog contains duplicate video ids.
+// The video entries live in catalog-videos.js (code-split out of catalog.js).
 // Run: node scripts/check-catalog-ids.js
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const CATALOG_PATH = path.join(__dirname, "..", "src", "shared", "catalog.js");
+const CATALOG_PATH = path.join(__dirname, "..", "src", "shared", "catalog-videos.js");
 
 const src = fs.readFileSync(CATALOG_PATH, "utf8");
 const idRe = /id:\s*(\d+)/g;

@@ -35,7 +35,9 @@ import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
-const CATALOG_PATH = path.join(REPO, "src/shared/catalog.js");
+// Video entries live in catalog-videos.js (code-split out of catalog.js so the
+// ~1.9 MB payload no longer blocks first paint). Insert/verify against it.
+const CATALOG_PATH = path.join(REPO, "src/shared/catalog-videos.js");
 const VIDEO_EXT = new Set([".mp4", ".mov", ".webm", ".m4v"]);
 const PUBLIC_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev";
 
@@ -152,7 +154,7 @@ const publishedSrcs = new Set([...catalogText.matchAll(/src:\s*"([^"]+)"/g)].map
 const maxId = Math.max(0, ...[...catalogText.matchAll(/\bid:\s*(\d+)/g)].map(m => +m[1]));
 // Baseline video count, captured by actually importing the pre-write module —
 // used post-write to confirm the array grew by exactly the right amount.
-const originalVideoCount = (await import(pathToFileURL(CATALOG_PATH).href + "?verify=" + Date.now())).DATA.videos.length;
+const originalVideoCount = (await import(pathToFileURL(CATALOG_PATH).href + "?verify=" + Date.now())).VIDEOS.length;
 
 // ---------- scan folder ----------
 function walk(dir) {
@@ -278,11 +280,11 @@ async function run() {
   // ---------- insert into catalog.js before the videos-array close ----------
   fs.writeFileSync(CATALOG_PATH + ".bak", catalogText);   // safety backup
   const lines = catalogText.split("\n");
-  // find the videos:[ line, then its matching closing "  ],"
-  const startIdx = lines.findIndex(l => /^\s*videos:\s*\[/.test(l));
+  // find the `export const VIDEOS = [` line, then its closing "];"
+  const startIdx = lines.findIndex(l => /export\s+const\s+VIDEOS\s*=\s*\[/.test(l));
   let closeIdx = -1;
-  for (let k = startIdx + 1; k < lines.length; k++) { if (/^\s*\],\s*$/.test(lines[k])) { closeIdx = k; break; } }
-  if (startIdx < 0 || closeIdx < 0) { console.error("❌ Could not locate videos:[…] array in catalog.js — aborting (no changes)."); process.exit(1); }
+  for (let k = startIdx + 1; k < lines.length; k++) { if (/^\s*\];?\s*$/.test(lines[k])) { closeIdx = k; break; } }
+  if (startIdx < 0 || closeIdx < 0) { console.error("❌ Could not locate VIDEOS array in catalog-videos.js — aborting (no changes)."); process.exit(1); }
 
   const fmt = e => "    " + JSON.stringify(e).replace(/"([a-zA-Z_]\w*)":/g, "$1:") + ",";
   const block = entries.map(fmt);
@@ -298,8 +300,8 @@ async function run() {
   let verifyError = "";
   try {
     const mod = await import(pathToFileURL(CATALOG_PATH).href + "?verify=" + Date.now());
-    const videos = mod.DATA?.videos;
-    if (!Array.isArray(videos)) throw new Error("DATA.videos is not an array after write");
+    const videos = mod.VIDEOS;
+    if (!Array.isArray(videos)) throw new Error("VIDEOS is not an array after write");
     const expectedCount = originalVideoCount + entries.length;
     if (videos.length !== expectedCount) throw new Error(`expected ${expectedCount} videos, found ${videos.length}`);
     for (const e of entries) {

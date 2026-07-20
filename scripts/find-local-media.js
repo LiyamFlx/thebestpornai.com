@@ -5,9 +5,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-import { DATA } from "../src/shared/catalog.js";
-
-const catalogVideos = DATA.videos;
+import { VIDEOS as catalogVideos } from "../src/shared/catalog-videos.js";
 console.log(`Catalog has ${catalogVideos.length} videos.`);
 
 // Consolidate all standard scan directories

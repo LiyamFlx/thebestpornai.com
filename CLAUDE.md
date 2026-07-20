@@ -19,7 +19,12 @@ media requests    ──► Cloudflare R2 Bucket (streamhub-media)
 
 ## Deploy Checklist (to update the live site)
 
-1. Edit the catalog in `src/shared/catalog.js` (see "Adding videos" below).
+1. Edit the video catalog in `src/shared/catalog-videos.js` (see "Adding videos"
+   below). NOTE: the ~4k video entries live in `catalog-videos.js`, which is
+   code-split into its own lazily-loaded chunk so the 1.9 MB payload no longer
+   blocks first paint. `catalog.js` keeps the helpers, `DATA` (creators,
+   comments, etc.) and a small inline SEED of the first entries for instant
+   render, then dynamically imports the full list via `loadFullCatalog()`.
 2. Run the build to test compile:
    ```bash
    npm run build
@@ -56,7 +61,7 @@ To upload local files to R2, execute:
 ```bash
 node scripts/upload-catalog-to-r2.js
 ```
-This script scans local subdirectories under `media/`, matches them against `src/shared/catalog.js` entries, checks if they already exist in R2 using a fast HEAD request, and streams missing files to the bucket.
+This script scans local subdirectories under `media/`, matches them against `src/shared/catalog-videos.js` entries, checks if they already exist in R2 using a fast HEAD request, and streams missing files to the bucket.
 
 ---
 
@@ -76,8 +81,8 @@ npm run publish -- "media/<folder>" --category "AI" --tags "Big Ass,POV"
 This does everything in one idempotent pass — scans the folder, **skips anything
 already in the catalog or already on R2**, uploads missing files to R2 **in
 parallel batches**, generates entries (ffprobe duration, smart tags, movie/scene
-structure), and **inserts them straight into `src/shared/catalog.js`** (a
-`catalog.js.bak` is written first). Then:
+structure), and **inserts them straight into `src/shared/catalog-videos.js`** (a
+`catalog-videos.js.bak` is written first). Then:
 
 ```bash
 npm run build                                  # sanity check
@@ -92,7 +97,7 @@ increment past the current max, so no collisions.
 ### Manual path (single video / precise control)
 
 1. Move the `.mp4` into a `media/` subfolder.
-2. Add one entry to the `videos: [...]` array in `src/shared/catalog.js`:
+2. Add one entry to the `VIDEOS` array in `src/shared/catalog-videos.js`:
    ```js
    { id:<n>, title:"...", creator:"c1", type:"ugc", category:"Cumshot",
      categories:["Cumshot"], views:0, likes:0, dislikes:0, comments:0, favorites:0,

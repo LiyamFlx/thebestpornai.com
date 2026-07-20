@@ -1,4 +1,4 @@
-import { toast, DATA } from "../shared/catalog.js";
+import { toast, DATA, loadFullCatalog } from "../shared/catalog.js";
 import { ShAuth } from "../shared/streamhub-api.js";
 import { ageGate } from "../shared/age-gate.js";
 import { mergeLiveUploads } from "../upload/catalog-overlay.js";
@@ -51,6 +51,10 @@ render();
 // and the watch-page action overflow menu (all no-ops above the mobile breakpoint).
 initMobileChrome();
 
+
+// Swap the inline seed for the full catalog as soon as its code-split chunk
+// lands (off the critical path), then re-render so every video is available.
+loadFullCatalog().then(() => { render(); });
 
 // Fetch live database catalog updates and remote manifest uploads
 syncManifestOnLoad().then(() => {

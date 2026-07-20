@@ -42,9 +42,8 @@ async function main() {
   const r2Keys = await getAllR2Keys();
   console.log(`R2 Bucket has ${r2Keys.size} files.`);
 
-  // Load catalog
-  const { DATA } = await import("../src/shared/catalog.js");
-  const catalogVideos = DATA.videos;
+  // Load catalog (full video list lives in catalog-videos.js)
+  const { VIDEOS: catalogVideos } = await import("../src/shared/catalog-videos.js");
   console.log(`Catalog has ${catalogVideos.length} videos.`);
 
   let missingInR2 = [];
