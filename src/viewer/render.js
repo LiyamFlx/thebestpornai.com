@@ -13,6 +13,7 @@ import { renderMovieDetail } from "./pages/movie.js";
 import { renderCreatorPage } from "./pages/creator.js";
 import { renderFeed, attachFeedObserver } from "./pages/feed.js";
 import { refreshChipRows } from "./mobile-chrome.js";
+import { resetGridWindow, observeSentinels, setGridAppendHook } from "./grid-window.js";
 import {
   listPage, renderCategories, renderSubs, renderProfile, renderSettings,
   renderLive, renderPlaylists, renderSearch,
@@ -20,6 +21,7 @@ import {
 
 export function render(){
   const v=document.getElementById("view"); const p=vstate.page;
+  resetGridWindow();          // drop stale windowed-grid state before rebuilding #view
   const map={
     home:renderHome, watch:renderWatch, categories:renderCategories, subscriptions:renderSubs,
     profile:renderProfile, settings:renderSettings, live:renderLive, playlists:renderPlaylists,
@@ -39,6 +41,7 @@ export function render(){
   document.querySelectorAll("#nav button, #bottomNav button").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
   markToggleStates();
   lazyLoadThumbs();
+  observeSentinels();         // wire lazy-append for any windowed grids on this page
   refreshChipRows();          // recompute horizontal chip-row edge fades (mobile)
   attachPlayerGestures();
   attachPlayerStatus();
@@ -267,3 +270,25 @@ function lazyLoadThumbs(){
     else { _lazyObserver.observe(el); }
   });
 }
+
+/* When a windowed grid appends its next batch, wire the new cards up the same
+   way a fresh render would: observe their lazy thumbnails and reflect saved
+   (fav / watch-later) state. Registered once; grid-window.js invokes it. */
+setGridAppendHook((added) => {
+  const favs = new Set(vstate.favorites);
+  const later = new Set(vstate.later);
+  for(const node of added){
+    if(!node || node.nodeType !== 1) continue;
+    node.querySelectorAll("video.lazy[data-src]").forEach(el => {
+      if(_lazyObserver) _lazyObserver.observe(el); else revealThumb(el);
+    });
+    node.querySelectorAll("[data-fav-id]").forEach(b => {
+      const on = favs.has(+b.dataset.favId);
+      b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    node.querySelectorAll("[data-later-id]").forEach(b => {
+      const on = later.has(+b.dataset.laterId);
+      b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+});

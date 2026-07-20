@@ -84,6 +84,13 @@ h3{font-size:15px;margin:18px 0 10px}
 
 /* Cards / grid */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+/* Grid cards are windowed in JS (grid-window.js) so the DOM stays bounded;
+   content-visibility additionally lets the browser skip painting cards in the
+   rendered window that are scrolled out of view. The intrinsic-size estimate
+   keeps the scrollbar stable while they're skipped. */
+.grid > .card{content-visibility:auto;contain-intrinsic-size:auto 250px}
+/* Zero-footprint marker the windowing observer watches to append the next batch. */
+.grid-sentinel{height:1px;width:100%}
 .row-scroll{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;
   /* Skip layout+paint for rows scrolled off-screen. The homepage stacks many
      rows vertically; without this the browser lays out every card up-front,
@@ -479,6 +486,7 @@ table.data tr:hover td{background:var(--surface2)}
 
   /* Comfortable 2-up grid instead of one giant column */
   .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .grid > .card{contain-intrinsic-size:auto 170px}   /* shorter cards on the 2-up mobile grid */
   .grid .card,.row-scroll .card{padding:8px}
   .row-scroll .card{min-width:150px}
   .video-thumb{height:96px}

@@ -4,6 +4,7 @@ import { videoCard } from "../../shared/ui.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
 import { visible } from "../catalog-queries.js";
+import { pagedGrid } from "../grid-window.js";
 
 export function renderCreatorPage(){
   const cid = vstate.creatorId;
@@ -27,7 +28,7 @@ export function renderCreatorPage(){
       ${top5.length ? `<h3 style="margin-top:28px">Top Videos</h3><div class="row-scroll">${top5.map(v=>videoCard(v)).join("")}</div>` : ''}
       <h3 style="margin-top:20px">All Videos <span class="count-bubble">${videos.length}</span></h3>
       ${videos.length
-        ? `<div class="grid">${videos.map(v=>videoCard(v)).join("")}</div>`
+        ? pagedGrid(videos, v=>videoCard(v))
         : `<div class="empty">No videos yet.</div>`}
     </div>`;
 }
