@@ -51,8 +51,10 @@ export function hasFfmpeg() {
    dirs. Returns true on success. `seek` is seconds (default 1); short clips
    safely fall back because ffmpeg clamps to the last frame. */
 export function generatePoster(localVideoPath, outJpgPath, opts = {}) {
-  const width = opts.width || 480;
-  const seek = opts.seek != null ? opts.seek : 1;
+  // Coerce to numbers — these are interpolated into the shell command unquoted,
+  // so they must never carry shell metacharacters (paths are shq()-quoted).
+  const width = Number(opts.width) || 480;
+  const seek = Number.isFinite(Number(opts.seek)) ? Number(opts.seek) : 1;
   fs.mkdirSync(path.dirname(outJpgPath), { recursive: true });
   // -ss before -i = fast seek; -frames:v 1 = single frame; scale keeps aspect
   // (-2 → even height); -q:v 4 ≈ good quality / small file. -y overwrites.
