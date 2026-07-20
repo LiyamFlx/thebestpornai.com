@@ -30,6 +30,7 @@ export default async function handler(req, res) {
 
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SUPABASE_KEY = process.env.SUPABASE_KEY;
+  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
   const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
   const R2_ENDPOINT = process.env.R2_ENDPOINT;
@@ -41,6 +42,9 @@ export default async function handler(req, res) {
   if (!R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_ENDPOINT || !R2_BUCKET) {
     return res.status(500).json({ error: "R2 credentials or bucket name are not set on Vercel" });
   }
+  if (!SUPABASE_SERVICE_ROLE_KEY) {
+    return res.status(500).json({ error: "SUPABASE_SERVICE_ROLE_KEY not set on Vercel" });
+  }
 
   // Require a real signed-in moderator: verify the bearer token with Supabase's
   // own auth server rather than trusting the client.
@@ -49,16 +53,38 @@ export default async function handler(req, res) {
   if (!token) return res.status(401).json({ error: "sign in required" });
 
   let moderatorEmail = "";
+  let userId = "";
   try {
     const userRes = await fetch(SUPABASE_URL.replace(/\/$/, "") + "/auth/v1/user", {
       headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + token },
     });
     if (!userRes.ok) return res.status(401).json({ error: "invalid or expired session" });
     const user = await userRes.json();
+    userId = user?.id || "";
     moderatorEmail = user?.email || user?.id || "";
-    if (!moderatorEmail) return res.status(401).json({ error: "invalid session" });
+    if (!userId) return res.status(401).json({ error: "invalid session" });
   } catch (e) {
     return res.status(401).json({ error: "session verification failed" });
+  }
+
+  // Require the signed-in user to actually be a moderator — being signed in
+  // is not enough (see supabase/migrations/20260720000000_moderators.sql).
+  // Uses SUPABASE_SERVICE_ROLE_KEY (not SUPABASE_KEY, whose value may be the
+  // anon/publishable key) so this check bypasses the "read own row" RLS
+  // policy on public.moderators and can look up any user's row.
+  try {
+    const modRes = await fetch(
+      SUPABASE_URL.replace(/\/$/, "") +
+        "/rest/v1/moderators?user_id=eq." + encodeURIComponent(userId) + "&select=user_id",
+      { headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: "Bearer " + SUPABASE_SERVICE_ROLE_KEY } }
+    );
+    if (!modRes.ok) throw new Error("moderator lookup failed: " + modRes.status);
+    const rows = await modRes.json();
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(403).json({ error: "moderator access required" });
+    }
+  } catch (e) {
+    return res.status(500).json({ error: "moderator check failed", detail: String(e?.message || e) });
   }
 
   const { id, action } = req.body || {};

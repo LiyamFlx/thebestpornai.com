@@ -153,7 +153,9 @@ export function attachFeedObserver() {
   items.forEach(item => feedObserver.observe(item));
 }
 
-// Window actions for comments drawer in the feed
+// Window actions for comments drawer in the feed. Guarded so importing this
+// module outside a browser (e.g. Node test runner) doesn't throw.
+if (typeof window !== "undefined") {
 window.openFeedComments = function(videoId) {
   const drawer = document.getElementById("feedCommentsDrawer");
   const backdrop = document.getElementById("feedCommentsBackdrop");
@@ -208,3 +210,4 @@ window.submitFeedComment = async function(videoId) {
     console.error("Failed to post comment", e);
   }
 };
+}
