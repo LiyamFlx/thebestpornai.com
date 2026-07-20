@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "sync-media": "node scripts/upload-catalog-to-r2.js",
+    "posters": "node scripts/gen-posters.js",
     "publish": "node scripts/publish-folder.js",
     "sitemap": "node scripts/gen-sitemap.js",
     "check-catalog-ids": "node scripts/check-catalog-ids.js",

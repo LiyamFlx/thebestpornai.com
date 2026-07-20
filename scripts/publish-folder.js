@@ -32,6 +32,7 @@ import { execSync } from "child_process";
 import { fileURLToPath, pathToFileURL } from "url";
 import "dotenv/config";
 import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { posterPaths, generatePoster, hasFfmpeg } from "./lib/posters.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
@@ -60,6 +61,13 @@ const tagsPerVideo = parseInt(opt("tags-per-video", "5"), 10) || 5;
 const creatorOverride = opt("creator", null);
 const concurrency = parseInt(opt("concurrency", "8"), 10) || 8;
 const dryRun = args.includes("--dry-run");
+const noPosters = args.includes("--no-posters");
+// Generate a JPEG poster per video (cheap card thumbnail instead of a <video>).
+// Needs ffmpeg; if absent we publish without posters rather than failing.
+const postersEnabled = !noPosters && (dryRun || hasFfmpeg());
+if (!noPosters && !dryRun && !hasFfmpeg()) {
+  console.warn("⚠ ffmpeg not found — publishing without poster thumbnails (videos still work).");
+}
 
 const folder = path.isAbsolute(folderArg) ? folderArg : path.join(REPO, folderArg);
 if (!fs.existsSync(folder)) { console.error(`❌ Folder not found: ${folder}`); process.exit(1); }
@@ -209,6 +217,26 @@ async function processOne(fp, i) {
         uploaded++;
       }
     }
+    // Poster thumbnail — best-effort; a video without one still renders (the
+    // client falls back to a lazy <video> thumb). Never fails the publish.
+    let thumb;
+    if (postersEnabled && !dryRun) {
+      try {
+        const pp = posterPaths(src);
+        const outJpg = path.join(REPO, "media", "thumbs", pp.relJpg);
+        if (!fs.existsSync(outJpg) || fs.statSync(outJpg).size === 0) generatePoster(fp, outJpg, { width: 480, seek: 1 });
+        if (!(await existsOnR2(pp.key))) {
+          await s3.send(new PutObjectCommand({
+            Bucket: R2_BUCKET, Key: pp.key,
+            Body: fs.createReadStream(outJpg),
+            ContentLength: fs.statSync(outJpg).size,
+            ContentType: "image/jpeg",
+          }));
+        }
+        thumb = pp.thumb;
+      } catch (e) { /* poster optional — leave thumb undefined */ }
+    }
+
     const title = titleFromFile(fp);
     const st = parseStructure(fp);
     // Per-video variety, seeded by filename so re-runs are stable.
@@ -222,6 +250,7 @@ async function processOne(fp, i) {
       desc: describeFor(title, cat, tags, creator),
       views: 0, likes: 0, dislikes: 0, comments: 0, favorites: 0,
       duration: getDuration(fp), uploaded: today, src, tags,
+      ...(thumb ? { thumb } : {}),
       status: "published", flagged: false,
       ...(st.movieTitle ? { movieTitle: st.movieTitle } : {}),
       ...(st.level ? { level: st.level } : {}),

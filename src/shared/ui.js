@@ -87,8 +87,11 @@ export function videoCard(v, opts={}){
   // The thumb <video> doubles as the hover preview: card hover plays it muted
   // (see .card:hover .thumb-video / hoverPreview() wiring in the viewer).
   const isPreviewable = v.src && !ytId(v.src);
+  // Prefer a lightweight JPEG poster (see scripts/gen-posters.js): a ~30 KB
+  // image instead of downloading video bytes + spinning a decoder just to paint
+  // one frame. Falls back to a lazy <video> thumb for entries without a poster.
   const thumb = v.thumb
-    ? `<img class="thumb-video" src="${mediaUrl(v.thumb)}" alt=""/>`
+    ? `<img class="thumb-video" src="${mediaUrl(v.thumb)}" alt="" loading="lazy" decoding="async"/>`
     : (isPreviewable
         ? `<video class="thumb-video lazy" data-src="${mediaUrl(v.src)}#t=1" muted preload="none" playsinline loop></video>` : ``);
   // When there's a poster image, still expose the source for hover preview.

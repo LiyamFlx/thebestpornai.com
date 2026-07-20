@@ -63,6 +63,32 @@ node scripts/upload-catalog-to-r2.js
 ```
 This script scans local subdirectories under `media/`, matches them against `src/shared/catalog-videos.js` entries, checks if they already exist in R2 using a fast HEAD request, and streams missing files to the bucket.
 
+### Poster thumbnails (card images)
+
+Grid/card thumbnails prefer a lightweight JPEG **poster** over a `<video>` element
+— a `<video>` thumb downloads real media bytes and spins a hardware decoder just
+to paint one frame (expensive on mobile). `videoCard()` renders `<img>` when an
+entry has a `thumb`, and falls back to a lazy `<video>` thumb otherwise, so
+posters are optional and can be backfilled incrementally.
+
+- **Backfill existing catalog** (run where the source videos + `ffmpeg` live):
+  ```bash
+  npm run posters -- --dry-run      # report what's missing, no changes
+  npm run posters                   # grab a frame per video, upload to R2, set `thumb`
+  ```
+  For each entry without a `thumb` it grabs a frame with ffmpeg →
+  `media/thumbs/<rel>.jpg`, uploads it to R2 under `media/thumbs/…`, and writes
+  `thumb:"../media/thumbs/<rel>.jpg"` onto the entry (a `catalog-videos.js.bak`
+  is written first). Idempotent — re-run any time; only missing posters are made.
+  Flags: `--concurrency N`, `--limit N`, `--force`.
+- **New uploads** get a poster automatically: `publish-folder.js` grabs+uploads a
+  poster and sets `thumb` during publish (needs `ffmpeg`; pass `--no-posters` to
+  skip, and it degrades gracefully to no-poster if ffmpeg is absent).
+- Poster path convention: a video `../media/<rel>.mp4` → poster
+  `../media/thumbs/<rel>.jpg` (mirrored under `thumbs/`, extension swapped).
+- Generated `media/thumbs/*.jpg` are **local build artifacts** (git-ignored, like
+  raw `.mp4`s) — they live on R2, not in the repo.
+
 ---
 
 ## Adding videos (the catalog)

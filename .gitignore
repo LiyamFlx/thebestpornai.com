@@ -5,6 +5,11 @@ media/*.webm
 media/*.mkv
 !media/sample-*.mp4
 
+# Generated poster thumbnails (gen-posters.js) — uploaded to R2, never committed
+media/thumbs/
+media/**/*.jpg
+media/**/*.jpeg
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db
