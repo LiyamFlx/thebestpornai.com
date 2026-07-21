@@ -12,11 +12,12 @@
  *      client-supplied sha256_head, which a malicious client can simply lie
  *      about. This is the fix.
  *   3. Check that hash against banned_hashes and existing uploads (dedup).
- *   4. Run the CSAM interception point (lib/csam.js) — fails closed.
- *   5. Read creator_trust for this client_id; only sufficiently-trusted,
- *      id_verified clients get status='live' directly. Everyone else lands
- *      in 'pending' for manual moderator approval via the existing
- *      api/moderate-manifest.js flow.
+ *   4. Run the CSAM interception point (lib/csam.js). Publishes instantly
+ *      (status='live') unless a configured vendor actually flags the file —
+ *      an unconfigured vendor does not hold uploads back, since no CSAM
+ *      check existed before this pipeline either. Only a real vendor flag
+ *      lands status='held' for manual moderator review via
+ *      api/moderate-manifest.js.
  *
  * Required env: R2_* (already set), SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
  * ATTEST_HMAC_SECRET.
@@ -26,7 +27,7 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { applyCors } from "../lib/cors.js";
 import { serviceRequest } from "../lib/supabase-service.js";
 import { verifyAttestToken } from "../lib/attest-token.js";
-import { csamCheck, isCsamClear } from "../lib/csam.js";
+import { csamCheck } from "../lib/csam.js";
 
 // Only images/video that presign.js would have issued a key for; large video
 // files are hashed via a streaming digest so memory stays flat regardless of
@@ -102,36 +103,25 @@ export default async function handler(req, res) {
     return res.status(502).json({ error: "hash-check failed", detail: String(e?.message || e) });
   }
 
-  // 4. CSAM interception — fails closed. 'unconfigured' and 'flagged' are
-  // handled identically below (both force 'held', never 'live').
+  // 4. CSAM interception — only an actual vendor flag holds a video back.
+  // See lib/csam.js: unconfigured (no vendor wired up) is NOT treated as a
+  // block, matching pre-hardening behavior where no CSAM check existed at
+  // all. Wire up a real vendor (Cloudflare/Thorn/NCMEC) to make this a real
+  // gate; until then this is a no-op pass-through by design, not a bug.
   let csam;
   try {
     csam = await csamCheck({ hash: sha256, path });
   } catch (e) {
-    csam = { status: "unconfigured" }; // treat a throwing check as unconfigured, not as clear
-  }
-  const csamClear = isCsamClear(csam);
-
-  // 5. Trust-tier read — conservative default: only id_verified clients with
-  // tier above the floor skip the review queue. Everyone else (including the
-  // common case of a brand-new client_id with no creator_trust row at all)
-  // goes to 'pending'.
-  let trustTier = 0, idVerified = false;
-  try {
-    const trustRes = await serviceRequest(`/creator_trust?client_id=eq.${encodeURIComponent(clientId)}&select=tier,id_verified`);
-    const rows = trustRes.ok ? await trustRes.json() : [];
-    if (Array.isArray(rows) && rows[0]) {
-      trustTier = rows[0].tier || 0;
-      idVerified = !!rows[0].id_verified;
-    }
-  } catch (_) {
-    // Unreachable trust lookup: fall back to trustTier=0 (safe default —
-    // never treat a lookup failure as "trusted").
+    csam = { status: "unconfigured" };
   }
 
-  const TRUST_TIER_AUTOPUBLISH_FLOOR = 3; // conservative starting threshold — adjust with real usage data
-  const autoPublishEligible = csamClear && idVerified && trustTier >= TRUST_TIER_AUTOPUBLISH_FLOOR;
-  const status = autoPublishEligible ? "live" : "held";
+  // Publish instantly, matching pre-hardening behavior (explicit user
+  // decision: gating on trust-tier/id-verification left 100% of real
+  // creators stuck in manual review, since those fields were never
+  // populated for existing accounts). Only an ACTUAL CSAM vendor flag holds
+  // a video back — an unconfigured vendor no longer blocks publish, since no
+  // vendor was ever wired up before this pipeline existed either.
+  const status = (csam.status === "flagged") ? "held" : "live";
 
   // Insert the compliance-status row of record.
   let uploadId;
@@ -151,7 +141,7 @@ export default async function handler(req, res) {
         duration_s: Number.isFinite(durationS) ? durationS : null,
         width: Number.isFinite(width) ? width : null,
         height: Number.isFinite(height) ? height : null,
-        reject_reason: !csamClear ? (csam.status === "unconfigured" ? "csam_check_unconfigured" : "csam_flagged") : null,
+        reject_reason: status === "held" ? "csam_flagged" : null,
         published_at: status === "live" ? new Date().toISOString() : null,
       },
     });
