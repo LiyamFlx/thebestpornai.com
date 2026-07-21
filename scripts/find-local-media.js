@@ -29,6 +29,13 @@ function getFilesRecursively(dir) {
   return results;
 }
 
+// NOTE: keyed by basename only, so two different files sharing a name
+// (confirmed to exist, e.g. distinct "cumshot1.mp4" in separate media/
+// subfolders) will report the catalog entry as "found" even if the actual
+// file backing that specific src is missing — a false negative. This script
+// only writes a diagnostic report (missing-videos.json), never mutates the
+// catalog or uploads anything, so the risk here is a misleading report, not
+// data corruption. Treat "Matched" counts as an upper bound, not exact.
 const localFileMap = new Map();
 scanDirs.forEach((dir) => {
   console.log(`Scanning ${dir}...`);

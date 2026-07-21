@@ -57,28 +57,41 @@ function getFilesRecursively(dir) {
 }
 
 console.log("Scanning local folders for video files...");
-const localFileMap = new Map();
+// Keyed by basename ONLY as a fallback index — basename collisions across
+// different subfolders are real (confirmed: multiple same-named-but-
+// different-content files already exist under media/, e.g. two distinct
+// "cumshot1.mp4"). Matching by bare basename previously let the wrong
+// file's bytes get uploaded to another catalog entry's R2 key. Primary
+// match is now by the catalog's own relative path (folder + filename),
+// which is unambiguous; basename is only used to report near-misses.
+const localByRelPath = new Map();   // "batch-1/foo.mp4" (lowercased) -> absolute path
+const localBasenames = new Map();   // basename (lowercased) -> count, for diagnostics
 scanDirs.forEach((dir) => {
   const files = getFilesRecursively(dir);
   files.forEach((p) => {
-    const name = path.basename(p).toLowerCase().trim();
-    localFileMap.set(name, p);
+    const rel = path.relative(dir, p).split(path.sep).join("/").toLowerCase().trim();
+    localByRelPath.set(rel, p);
+    const base = path.basename(p).toLowerCase().trim();
+    localBasenames.set(base, (localBasenames.get(base) || 0) + 1);
   });
 });
 
-console.log(`Found ${localFileMap.size} local files.`);
+console.log(`Found ${localByRelPath.size} local files.`);
+const dupBasenames = [...localBasenames.entries()].filter(([, n]) => n > 1);
+if (dupBasenames.length) {
+  console.warn(`⚠ ${dupBasenames.length} filenames appear in more than one scanned folder — matching by full relative path to avoid uploading the wrong file's bytes:`);
+  for (const [name, n] of dupBasenames.slice(0, 10)) console.warn(`   ${name} (${n}×)`);
+}
 
 // Filter catalog videos that we have locally
 const uploadQueue = [];
 catalogVideos.forEach((v) => {
   if (v.src) {
-    const filename = path.basename(v.src).toLowerCase().trim();
-    if (localFileMap.has(filename)) {
-      const localPath = localFileMap.get(filename);
-      // Map to correct R2 key. 
-      // The relative path in v.src strips "../media/" or "media/"
-      const relPath = v.src.replace(/^(\.\.\/)?media\//, "");
-      const r2Key = `media/${relPath}`;
+    // The relative path in v.src strips "../media/" or "media/"
+    const relPath = v.src.replace(/^(\.\.\/)?media\//, "").toLowerCase().trim();
+    if (localByRelPath.has(relPath)) {
+      const localPath = localByRelPath.get(relPath);
+      const r2Key = `media/${v.src.replace(/^(\.\.\/)?media\//, "")}`;
       uploadQueue.push({ localPath, r2Key, title: v.title });
     }
   }

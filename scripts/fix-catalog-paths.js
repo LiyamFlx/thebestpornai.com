@@ -26,15 +26,27 @@ const mediaDir = path.join(__dirname, "../media");
 console.log("Scanning local media directory...");
 const localFiles = getFilesRecursively(mediaDir);
 
-// Map of lowercase basename -> relative path from src/shared
+// Map of lowercase basename -> relative path from src/shared.
+// WARNING: basename collisions across subfolders are real (confirmed
+// distinct files sharing a name, e.g. two different "cumshot1.mp4" under
+// separate media/ subfolders). A broken src can only be repaired
+// unambiguously when exactly one local file has that basename — if more
+// than one does, skip it rather than guess and silently point the entry at
+// the wrong video's bytes.
 const localFileMap = new Map();
+const basenameCounts = new Map();
 localFiles.forEach((p) => {
   const base = path.basename(p).toLowerCase().trim();
   const relPath = "../media/" + path.relative(mediaDir, p);
-  // Store both the direct relPath and encoded version
   localFileMap.set(base, relPath);
+  basenameCounts.set(base, (basenameCounts.get(base) || 0) + 1);
 });
 console.log(`Found ${localFileMap.size} unique local files.`);
+const ambiguous = new Set([...basenameCounts.entries()].filter(([, n]) => n > 1).map(([b]) => b));
+if (ambiguous.size) {
+  console.warn(`⚠ ${ambiguous.size} filenames exist in more than one folder — those will be SKIPPED (not auto-fixed) to avoid pointing an entry at the wrong file's content:`);
+  for (const b of ambiguous) console.warn(`   ${b}`);
+}
 
 // Read catalog.js
 const catalogPath = path.join(__dirname, "../src/shared/catalog-videos.js");
@@ -55,7 +67,9 @@ catalogLines.forEach((line) => {
       // If the file does not exist at its current path
       if (!fs.existsSync(absoluteSrcPath)) {
         const filename = path.basename(currentSrc).toLowerCase().trim();
-        if (localFileMap.has(filename)) {
+        if (ambiguous.has(filename)) {
+          console.warn(`   ⚠ skipping ambiguous match for ${currentSrc} (multiple local files named "${filename}")`);
+        } else if (localFileMap.has(filename)) {
           const correctSrc = localFileMap.get(filename);
           // Replace in line
           const newLine = line.replace(currentSrc, correctSrc);
@@ -71,8 +85,9 @@ catalogLines.forEach((line) => {
 });
 
 if (fixedCount > 0) {
+  fs.writeFileSync(catalogPath + ".bak", fs.readFileSync(catalogPath));   // safety backup before overwrite
   fs.writeFileSync(catalogPath, newLines.join("\n"), "utf8");
-  console.log(`\n🎉 Successfully fixed ${fixedCount} broken path references in catalog.js!`);
+  console.log(`\n🎉 Successfully fixed ${fixedCount} broken path references in catalog.js! (backup: catalog-videos.js.bak)`);
 } else {
   console.log("\nNo catalog paths could be auto-corrected using local files.");
 }
