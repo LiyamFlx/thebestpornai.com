@@ -2,7 +2,10 @@
    post-render side effects (nav highlight, lazy thumbs, player gestures,
    pending hydrate, structured data). */
 import { DATA, toast, creatorName, mediaUrl } from "../shared/catalog.js";
-import defaultThumbUrl from "../shared/assets/favicon-64.png";
+// Plain public/ path (not a bundler import) — this file is also loaded by
+// the plain Node test runner (see manifest-sync.test.mjs's import chain),
+// which can't resolve a Vite-style asset import for a .png file.
+const defaultThumbUrl = "/favicon-64.png";
 import { vstate } from "./state.js";
 import { pubVideos, trending } from "./catalog-queries.js";
 import { takePendingHydrate } from "./router.js";
