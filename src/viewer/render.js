@@ -2,6 +2,7 @@
    post-render side effects (nav highlight, lazy thumbs, player gestures,
    pending hydrate, structured data). */
 import { DATA, toast, creatorName, mediaUrl } from "../shared/catalog.js";
+import defaultThumbUrl from "../shared/assets/favicon-64.png";
 import { vstate } from "./state.js";
 import { pubVideos, trending } from "./catalog-queries.js";
 import { takePendingHydrate } from "./router.js";
@@ -187,7 +188,10 @@ function addStructuredData(){
       "@type": "VideoObject",
       "name": v.title,
       "description": v.desc || `${v.title} by ${creatorName(v.creator)}`,
-      "thumbnailUrl": v.thumb ? mediaUrl(v.thumb) : undefined,
+      // schema.org VideoObject requires thumbnailUrl — never omit it even
+      // when a video has no generated poster yet (falls back to a site image
+      // rather than dropping the field, which Search Console flags as an error).
+      "thumbnailUrl": v.thumb ? mediaUrl(v.thumb) : new URL(defaultThumbUrl, location.origin).href,
       "uploadDate": v.uploaded,
       "duration": v.duration ? `PT${v.duration.replace(':', 'M')}S` : undefined,
       "contentUrl": v.src ? mediaUrl(v.src) : undefined,
@@ -214,7 +218,10 @@ function addStructuredData(){
           "@type": "VideoObject",
           "name": v.title,
           "description": v.desc || `${v.title} by ${creatorName(v.creator)}`,
-          "thumbnailUrl": v.thumb ? mediaUrl(v.thumb) : undefined,
+          // schema.org VideoObject requires thumbnailUrl — never omit it even
+      // when a video has no generated poster yet (falls back to a site image
+      // rather than dropping the field, which Search Console flags as an error).
+      "thumbnailUrl": v.thumb ? mediaUrl(v.thumb) : new URL(defaultThumbUrl, location.origin).href,
           "uploadDate": v.uploaded,
           "contentUrl": v.src ? mediaUrl(v.src) : undefined,
           "url": "https://www.thebestpornai.com/#video/" + v.id,
