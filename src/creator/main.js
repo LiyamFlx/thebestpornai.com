@@ -111,7 +111,7 @@ function pickKey(pk, ev){
     ev.preventDefault();
     const c=PICKERS[pk], q=(cstate.upload[c.q]||"").toLowerCase();
     const matches=c.lib.filter(o=>o.toLowerCase().includes(q) && !cstate.upload[c.key].includes(o));
-    if(matches.length){ pickToggle(pk, matches[0]); }
+    if(matches.length){ pickToggle(pk, jsq(matches[0])); }
   } else if(ev.key==="Backspace" && !ev.target.value){
     const arr=cstate.upload[PICKERS[pk].key]; if(arr.length){ arr.pop(); render(); }
   }
