@@ -92,9 +92,22 @@ export default async function handler(req, res) {
     if (Array.isArray(banned) && banned.length > 0) {
       return res.status(403).json({ ok: false, reason: "banned" });
     }
-    const dupRes = await serviceRequest(`/uploads?sha256_head=eq.${encodeURIComponent(sha256)}&select=id&limit=1`);
+    // Exclude this same client's own prior rows: if verifyUpload succeeded
+    // but a later step (saveToManifest) failed — network drop, cold start,
+    // etc. — the creator's retry re-selects the same file, hashes identically,
+    // and would otherwise be permanently rejected as a "duplicate" forever
+    // with no way to actually publish it. A different client uploading
+    // identical bytes is still flagged.
+    //
+    // PostgREST's neq uses standard SQL null semantics: `client_id=neq.X`
+    // silently excludes rows where client_id IS NULL (legacy/pre-hardening
+    // rows), which would let a hash matching one of those bypass the
+    // duplicate check for ANY uploader, not just the original one. Fetch by
+    // hash alone and filter client_id in JS instead, where null !== clientId
+    // behaves as expected.
+    const dupRes = await serviceRequest(`/uploads?sha256_head=eq.${encodeURIComponent(sha256)}&select=id,client_id`);
     const dup = dupRes.ok ? await dupRes.json() : [];
-    if (Array.isArray(dup) && dup.length > 0) {
+    if (Array.isArray(dup) && dup.some(r => r.client_id !== clientId)) {
       return res.status(409).json({ ok: false, reason: "duplicate" });
     }
   } catch (e) {
