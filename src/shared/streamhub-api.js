@@ -329,19 +329,6 @@ const ShAPI = {
     return { ok:true, src, url, path };
   },
 
-  /* Persist an uploaded video's metadata so it appears in the catalog for
-     everyone (until uploads are folded into the catalog build). Requires
-     sign-in — RLS restricts uploads inserts to the `authenticated` role. */
-  async saveUploadedVideo(meta){
-    const rows = await _authedReq(`/uploads_legacy`, {
-      method:"POST", headers:{ "Prefer":"return=representation" },
-      body: JSON.stringify(meta),
-    });
-    return rows && rows[0];
-  },
-  async listUploadedVideos(){
-    return (await _req(`/uploads_legacy?select=*&order=created_at.desc`)) || [];
-  },
   /* Publish the uploaded video's metadata to the shared R2 manifest so it
      appears in every visitor's feed. No sign-in required (open uploads). */
   async saveToManifest(entry){

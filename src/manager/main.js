@@ -120,7 +120,6 @@ function videosNextPage(){
    _modDecisions holds the latest persisted decision per video so actioned items
    drop out of the queue across reloads/sessions. */
 let _modDecisions = {};
-let _modUploads = [];
 let _modPending = [];
 const MANIFEST_URL = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/manifest.json";
 
@@ -133,10 +132,9 @@ async function loadModeration(){
 
   if(typeof ShAPI==="undefined" || !ShAPI.enabled){ if(mstate.page==="moderation") render(); return; }
   try {
-    const [dec, ups] = await Promise.all([ ShAPI.latestDecisions(), ShAPI.listUploadedVideos() ]);
+    const dec = await ShAPI.latestDecisions();
     // Merge server decisions in WITHOUT clobbering optimistic local ones.
     _modDecisions = Object.assign({}, dec, _modDecisions);
-    _modUploads = ups;
     if(mstate.page==="moderation") render();
   } catch(_){}
 }
@@ -183,11 +181,9 @@ function renderModeration(){
   if(authReady() && !ShAuth.isSignedIn()) return renderModSignIn();
   const decided = id => { const d=_modDecisions[String(id)]; return d==="approve"||d==="remove"; };
   const flagged = DATA.videos.filter(v=>v.flagged && !decided(v.id));
-  const reviews = (_modUploads||[]).filter(u=>(u.status==="review") && !decided(u.id));
   const pending = (_modPending||[]).filter(u=>!decided(u.id));
   const queue = [
     ...pending.map(u=>({ id:u.id, title:u.title, who:u.creator||"upload", src:u.src, why:"New open upload — pending review", isUpload:true, kind:"manifest" })),
-    ...reviews.map(u=>({ id:u.id, title:u.title, who:u.creator||"upload", src:u.src, why:"New upload — pending review", isUpload:true, kind:"supabase" })),
     ...flagged.map(v=>({ id:v.id, title:v.title, who:creatorName(v.creator), src:v.src, why:"Flagged for review (demo data — not a real classifier signal)", isUpload:false, kind:"supabase" })),
   ];
   return `<h1>Content Moderation</h1><p class="sub">${queue.length} items in queue</p>
