@@ -173,7 +173,21 @@ function uProbeQueueItem(u){
   const v = document.createElement("video");
   v.preload = "metadata"; v.muted = true; v.src = u.url;
 
+  // If loadedmetadata never fires (bad file, R2/network stall), _probing
+  // would otherwise stay true forever and silently block Publish on every
+  // click with no visible error — same failure class as captureFrames' seek
+  // timeout below.
+  let metaTimedOut = false;
+  const metaTimer = setTimeout(() => {
+    metaTimedOut = true;
+    u._probing = false;
+    toast("Could not read video metadata (timed out) — you can still publish.");
+    render();
+  }, 8000);
+
   v.onloadedmetadata = () => {
+    if(metaTimedOut) return;   // timeout already gave up and rendered; ignore late event
+    clearTimeout(metaTimer);
     u.duration = fmtDur(v.duration);
     u.durationSec = v.duration;
     u.width = v.videoWidth;
@@ -194,6 +208,7 @@ function uProbeQueueItem(u){
   };
 
   v.onerror = () => {
+    clearTimeout(metaTimer);
     u._probing = false;
     toast("Could not read: " + (u.title || "video"));
   };
@@ -228,12 +243,21 @@ function uProbe(){
 /* Grab still frames into data URLs using a canvas */
 function captureFrames(video, stamps, done){
   const canvas = document.createElement("canvas");
-  const out = []; let i = 0;
-  const grab = ()=>{
-    if(i >= stamps.length){ done(out); return; }
+  const out = []; let i = 0; let finished = false;
+  const finish = ()=>{ if(finished) return; finished = true; video.onseeked = null; video.src = ""; done(out); };
+  // Some videos never fire "seeked" for one or more of these timestamps
+  // (short clips, certain codecs/keyframe layouts, byte-range quirks over
+  // CORS) — without a timeout this hangs forever, leaving u._probing stuck
+  // true and silently blocking Publish on every click with no visible error.
+  let seekTimer = null;
+  const armTimeout = ()=>{ clearTimeout(seekTimer); seekTimer = setTimeout(()=>{ i++; grabOrFinish(); }, 2000); };
+  const grabOrFinish = ()=>{
+    if(i >= stamps.length){ finish(); return; }
+    armTimeout();
     video.currentTime = stamps[i];
   };
   video.onseeked = ()=>{
+    clearTimeout(seekTimer);
     const w = video.videoWidth || 320, h = video.videoHeight || 180;
     canvas.width = 320; canvas.height = Math.round(320 * h / w);
     try{
@@ -241,10 +265,9 @@ function captureFrames(video, stamps, done){
       out.push(canvas.toDataURL("image/jpeg", 0.7));
     }catch(e){ /* tainted/decode issue — skip */ }
     i++;
-    if(i >= stamps.length){ video.src = ""; done(out); } // cleanup src before done
-    else grab();
+    grabOrFinish();
   };
-  grab();
+  grabOrFinish();
 }
 
 function uChooseThumb(idx){ cstate.upload.thumb = cstate.upload.thumbOptions[idx]; render(); }
