@@ -255,7 +255,7 @@ const ShAPI = {
   uploadApiBase: (typeof SH_UPLOAD_API_BASE!=="undefined" ? SH_UPLOAD_API_BASE : ""),
 
   /* Consent/rights attestation — MUST be called (and its returned token
-     supplied to verifyUpload) before any upload is allowed to leave "held".
+     supplied to verifyUpload) before an upload is accepted at all.
      `statements` should reflect what the consent UI actually showed/checked
      (age confirmation, content-rights confirmation, etc.) — kept as the
      legal record in upload_attestations. Cached in-memory per session so a
@@ -279,8 +279,9 @@ const ShAPI = {
   },
 
   /* Server-verified compliance gate: real SHA-256 of the uploaded bytes,
-     banned/duplicate-hash check, CSAM interception (fail-closed), trust-tier
-     read. Must be called after uploadVideo() and before saveToManifest() —
+     banned/duplicate-hash check, CSAM interception (publishes instantly
+     unless an actual vendor flag comes back — see api/verify-upload.js).
+     Must be called after uploadVideo() and before saveToManifest() —
      saveToManifest now requires the uploadId this returns. Throws if
      attestUpload() hasn't been called yet in this session. */
   async verifyUpload({ path, title, width, height, durationS }){
