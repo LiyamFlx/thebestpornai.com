@@ -3,6 +3,7 @@ import { ShAuth, ShAPI } from "../shared/streamhub-api.js";
 import { metric, barChart, distRows } from "../shared/ui.js";
 import { ALL_CATEGORIES, ALL_TAGS, POPULAR_TAGS, isPopularTag } from "../shared/taxonomy.js";
 import { ageGate } from "../shared/age-gate.js";
+import { jsq, jsdec } from "../viewer/util.js";
 ageGate();
 
 /* creatorName(), fmt(), toast() are shared — defined in catalog.js */
@@ -91,6 +92,7 @@ function syncMetaInputs(){
   const d=document.getElementById("uDesc"); if(d) cstate.upload.desc=d.value;
 }
 function pickToggle(pk, value){
+  value = jsdec(value);
   syncMetaInputs();
   const c=PICKERS[pk], arr=cstate.upload[c.key];
   const i=arr.indexOf(value);
@@ -120,7 +122,7 @@ function pickerHTML(pk){
   const avail=c.lib.filter(o=>!sel.includes(o) && (!q || o.toLowerCase().includes(q)));
   return `
     <div class="ms-box" onclick="document.getElementById('pk_${pk}').focus()">
-      ${sel.map(s=>`<span class="ms-token">${esc(s)}<button type="button" onclick="event.stopPropagation();pickToggle('${pk}','${esc(s.replace(/'/g,"\\'"))}')">×</button></span>`).join("")}
+      ${sel.map(s=>`<span class="ms-token">${esc(s)}<button type="button" onclick="event.stopPropagation();pickToggle('${pk}','${jsq(s)}')">×</button></span>`).join("")}
       <input class="ms-input" id="pk_${pk}" value="${esc(u[c.q]||'')}" placeholder="${sel.length?'':'Type to search…'}"
         oninput="pickSearch('${pk}',this.value)" onkeydown="pickKey('${pk}',event)" autocomplete="off"/>
     </div>
@@ -128,7 +130,7 @@ function pickerHTML(pk){
 }
 function pickerOptions(pk, avail){
   if(!avail.length) return `<div class="ms-empty">No matches</div>`;
-  return avail.slice(0,40).map(o=>`<button type="button" class="ms-opt" onclick="pickToggle('${pk}','${esc(o.replace(/'/g,"\\'"))}')">${esc(o)}</button>`).join("");
+  return avail.slice(0,40).map(o=>`<button type="button" class="ms-opt" onclick="pickToggle('${pk}','${jsq(o)}')">${esc(o)}</button>`).join("");
 }
 function renderPickerList(pk){
   const c=PICKERS[pk], u=cstate.upload, q=(u[c.q]||"").toLowerCase();
@@ -522,11 +524,16 @@ function renderDashboard(){
     </div>`;
 }
 
+function openVideoEditor(id){
+  const v = DATA.videos.find(v=>v.id===id);
+  toast("Opening editor for: " + (v ? v.title : "video"));
+}
+
 function renderContent(){
   return `<h1>Content</h1><p class="sub">Manage your videos</p>
     <div class="panel" style="padding:0">
     <table class="data"><thead><tr><th>Video</th><th>Status</th><th>Views</th><th>Likes</th><th>Comments</th><th>Date</th></tr></thead><tbody>
-    ${myVideos().map(v=>`<tr style="cursor:pointer" onclick="toast('Opening editor for: ${esc(v.title)}')">
+    ${myVideos().map(v=>`<tr style="cursor:pointer" onclick="openVideoEditor(${v.id})">
       <td><b>${esc(v.title)}</b><div class="small">${esc(v.category)}</div></td>
       <td><span class="tag-pill ${v.status==='published'?'green':v.status==='review'?'warn':v.status==='upload-failed'?'red':'muted'}">${esc(v.status==='upload-failed'?'Failed':v.status)}</span>${v.status==='upload-failed'?` <button class="chip retry-btn" onclick="event.stopPropagation();retryUpload(${v.id})">↺ Retry</button>`:''}</td>
       <td>${fmt(v.views)}</td><td>${fmt(v.likes)}</td><td>${v.comments}</td><td class="small">${esc(v.uploaded)}</td></tr>`).join("")}
@@ -956,3 +963,4 @@ window.uPickFile = uPickFile;
 window.uPublish = uPublish;
 window.uUpdateScrub = uUpdateScrub;
 window.uCancelUpload = uCancelUpload;
+window.openVideoEditor = openVideoEditor;
