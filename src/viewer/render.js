@@ -165,6 +165,15 @@ function attachHoverPreview(){
   view.addEventListener("mouseout",  e=>{ const c=e.target.closest(".card"); if(c && !c.contains(e.relatedTarget)) stop(c); });
 }
 
+/* "YYYY-MM-DD" -> full ISO 8601 datetime with timezone, e.g.
+   "2026-07-04" -> "2026-07-04T00:00:00Z". Google's structured-data validator
+   flags a bare date as both an invalid datetime and missing a timezone. */
+function isoDate(d){
+  if(!d || typeof d !== "string") return undefined;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(d)) return d + "T00:00:00Z";
+  return d;   // already a full datetime (or unparseable) — pass through as-is
+}
+
 /* "M:SS" (or "H:MM:SS") -> ISO 8601 duration, e.g. "0:10" -> "PT10S",
    "2:05" -> "PT2M5S", "1:02:03" -> "PT1H2M3S". Omits zero-value components
    instead of emitting misleading "PT0M10S". Returns undefined for missing/
@@ -209,7 +218,7 @@ function addStructuredData(){
       // when a video has no generated poster yet (falls back to a site image
       // rather than dropping the field, which Search Console flags as an error).
       "thumbnailUrl": v.thumb ? mediaUrl(v.thumb) : new URL(defaultThumbUrl, location.origin).href,
-      "uploadDate": v.uploaded,
+      "uploadDate": isoDate(v.uploaded),
       "duration": isoDuration(v.duration),
       "contentUrl": v.src ? mediaUrl(v.src) : undefined,
       "genre": v.category,
@@ -236,7 +245,7 @@ function addStructuredData(){
           "name": v.title,
           "description": v.desc || `${v.title} by ${creatorName(v.creator)}`,
           "thumbnailUrl": v.thumb ? mediaUrl(v.thumb) : new URL(defaultThumbUrl, location.origin).href,
-          "uploadDate": v.uploaded,
+          "uploadDate": isoDate(v.uploaded),
           "duration": isoDuration(v.duration),
           "contentUrl": v.src ? mediaUrl(v.src) : undefined,
           "url": "https://www.thebestpornai.com/#video/" + v.id,
