@@ -22,7 +22,11 @@ function rowToVideo(r) {
     views: 0, likes: 0, dislikes: 0, comments: 0, favorites: 0,
     duration: r.duration_s ? `${Math.floor(r.duration_s / 60)}:${String(r.duration_s % 60).padStart(2, "0")}` : "0:00",
     uploaded: (r.published_at || r.created_at || "").slice(0, 10),
-    src: "../media/" + r.bunny_path,
+    // bunny_path already stores the full R2 key including the "media/"
+    // prefix (e.g. "media/uploads/up_123.mp4" — written by api/verify-upload.js),
+    // so prepending "../media/" here doubled the segment and 404'd every
+    // upload that reached status='live'. Legacy column name, current R2 data.
+    src: "../" + r.bunny_path,
     tags: r.tags || [],
     status: "published",
     flagged: false,
