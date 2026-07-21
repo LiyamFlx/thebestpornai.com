@@ -165,6 +165,23 @@ function attachHoverPreview(){
   view.addEventListener("mouseout",  e=>{ const c=e.target.closest(".card"); if(c && !c.contains(e.relatedTarget)) stop(c); });
 }
 
+/* "M:SS" (or "H:MM:SS") -> ISO 8601 duration, e.g. "0:10" -> "PT10S",
+   "2:05" -> "PT2M5S", "1:02:03" -> "PT1H2M3S". Omits zero-value components
+   instead of emitting misleading "PT0M10S". Returns undefined for missing/
+   unparseable input so the caller can drop the field rather than emit
+   invalid markup. */
+function isoDuration(d){
+  if(!d || typeof d !== "string") return undefined;
+  const parts = d.split(":").map(n => parseInt(n, 10));
+  if(parts.some(isNaN) || !parts.length) return undefined;
+  let h = 0, m = 0, s = 0;
+  if(parts.length === 3) [h, m, s] = parts;
+  else if(parts.length === 2) [m, s] = parts;
+  else [s] = parts;
+  if(h === 0 && m === 0 && s === 0) return undefined;   // zero-length: nothing to report
+  return "PT" + (h ? h+"H" : "") + (m ? m+"M" : "") + (s ? s+"S" : "");
+}
+
 /* Basic structured data for SEO / AI Overviews (VideoObject on watch, WebSite
    elsewhere). Injected dynamically so it reflects current video or page state. */
 function addStructuredData(){
@@ -193,7 +210,7 @@ function addStructuredData(){
       // rather than dropping the field, which Search Console flags as an error).
       "thumbnailUrl": v.thumb ? mediaUrl(v.thumb) : new URL(defaultThumbUrl, location.origin).href,
       "uploadDate": v.uploaded,
-      "duration": v.duration ? `PT${v.duration.replace(':', 'M')}S` : undefined,
+      "duration": isoDuration(v.duration),
       "contentUrl": v.src ? mediaUrl(v.src) : undefined,
       "genre": v.category,
       "keywords": (v.tags || []).join(", ") || undefined,
@@ -218,11 +235,9 @@ function addStructuredData(){
           "@type": "VideoObject",
           "name": v.title,
           "description": v.desc || `${v.title} by ${creatorName(v.creator)}`,
-          // schema.org VideoObject requires thumbnailUrl — never omit it even
-      // when a video has no generated poster yet (falls back to a site image
-      // rather than dropping the field, which Search Console flags as an error).
-      "thumbnailUrl": v.thumb ? mediaUrl(v.thumb) : new URL(defaultThumbUrl, location.origin).href,
+          "thumbnailUrl": v.thumb ? mediaUrl(v.thumb) : new URL(defaultThumbUrl, location.origin).href,
           "uploadDate": v.uploaded,
+          "duration": isoDuration(v.duration),
           "contentUrl": v.src ? mediaUrl(v.src) : undefined,
           "url": "https://www.thebestpornai.com/#video/" + v.id,
         }
