@@ -73,6 +73,7 @@ function go(p){ cstate.page=p; render(); }
 /* ---- Upload wizard (REAL, browser-based) ---- */
 const STEPS = ["Upload","Processing","AI Thumbnail","Metadata","Visibility","Scheduling","Monetization","Publish"];
 function uNext(){ cstate.upload.step=Math.min(cstate.upload.step+1,STEPS.length-1); render(); }
+function uSetRightsConfirmed(checked){ cstate.upload.rightsConfirmed = checked; render(); }
 function uPrev(){ cstate.upload.step=Math.max(cstate.upload.step-1,0); render(); }
 function uSaveMeta(){
   const t=document.getElementById("uTitle"); if(t) cstate.upload.title=t.value;
@@ -676,7 +677,7 @@ function renderUpload() {
         <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
           <label class="small" style="display:flex; gap:8px; align-items:flex-start; cursor:pointer;">
             <input type="checkbox" id="uRightsConfirm" ${u.rightsConfirmed ? 'checked' : ''}
-              onchange="cstate.upload.rightsConfirmed=this.checked; render()" style="margin-top:2px;"/>
+              onchange="uSetRightsConfirmed(this.checked)" style="margin-top:2px;"/>
             <span>I confirm all performers depicted are 18+ years of age, I hold the rights to
               upload this content, and any required 2257 documentation is on file.</span>
           </label>
@@ -964,3 +965,4 @@ window.uPublish = uPublish;
 window.uUpdateScrub = uUpdateScrub;
 window.uCancelUpload = uCancelUpload;
 window.openVideoEditor = openVideoEditor;
+window.uSetRightsConfirmed = uSetRightsConfirmed;
