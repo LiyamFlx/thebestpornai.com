@@ -253,6 +253,55 @@ const ShAPI = {
      real upload progress, and multiple uploads can run in parallel.
      Same-origin (`/api/...`) — the site and functions are both on Vercel now. */
   uploadApiBase: (typeof SH_UPLOAD_API_BASE!=="undefined" ? SH_UPLOAD_API_BASE : ""),
+
+  /* Consent/rights attestation — MUST be called (and its returned token
+     supplied to verifyUpload) before any upload is allowed to leave "held".
+     `statements` should reflect what the consent UI actually showed/checked
+     (age confirmation, content-rights confirmation, etc.) — kept as the
+     legal record in upload_attestations. Cached in-memory per session so a
+     multi-file batch upload only attests once. */
+  _attestToken: null, _attestClientId: null,
+  async attestUpload(statements){
+    const clientId = shClientId();
+    const r = await fetch((this.uploadApiBase||"") + "/api/attest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clientId, confirmed: true, statements }),
+    });
+    if(!r.ok){
+      let msg = "attest " + r.status;
+      try { const j = await r.json(); if(j.error) msg = j.error; } catch(_){}
+      throw new Error(msg);
+    }
+    const { token } = await r.json();
+    this._attestToken = token; this._attestClientId = clientId;
+    return token;
+  },
+
+  /* Server-verified compliance gate: real SHA-256 of the uploaded bytes,
+     banned/duplicate-hash check, CSAM interception (fail-closed), trust-tier
+     read. Must be called after uploadVideo() and before saveToManifest() —
+     saveToManifest now requires the uploadId this returns. Throws if
+     attestUpload() hasn't been called yet in this session. */
+  async verifyUpload({ path, title, width, height, durationS }){
+    if(!this._attestToken || this._attestClientId !== shClientId()){
+      throw new Error("call attestUpload() before verifyUpload()");
+    }
+    const r = await fetch((this.uploadApiBase||"") + "/api/verify-upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clientId: this._attestClientId, path, attestToken: this._attestToken,
+        title, width, height, durationS,
+      }),
+    });
+    const j = await r.json().catch(()=>({}));
+    if(!r.ok || j.ok === false){
+      throw new Error(j.reason || j.error || ("verify-upload " + r.status));
+    }
+    return j;   // { ok:true, uploadId, status: 'live'|'held', sha256 }
+  },
+
   async uploadVideo(file, title, onProgress){
     // 1. Ask the server to sign a one-time PUT URL for this file.
     const presignRes = await fetch((this.uploadApiBase||"") + "/api/presign", {

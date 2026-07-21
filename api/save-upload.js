@@ -1,4 +1,5 @@
 import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { serviceRequest } from "../lib/supabase-service.js";
 
 export default async function handler(req, res) {
   // Strict CORS checking
@@ -45,7 +46,33 @@ export default async function handler(req, res) {
   if (!entry || typeof entry !== "object" || typeof entry.src !== "string" || !entry.src) {
     return res.status(400).json({ error: "invalid catalog entry metadata" });
   }
+
+  // Compliance gate: every manifest write must point at a clean, verified
+  // uploads row from /api/verify-upload — no more trusting caller-supplied
+  // status/visibility directly. This is what actually closes the old bypass
+  // (POST straight to this endpoint, skip attestation/hash-check/CSAM
+  // entirely, land as "published" immediately).
+  if (!entry.uploadId || typeof entry.uploadId !== "string") {
+    return res.status(400).json({ error: "uploadId is required — call /api/verify-upload first" });
+  }
+  let uploadRow;
+  try {
+    const r = await serviceRequest(`/uploads?id=eq.${encodeURIComponent(entry.uploadId)}&select=id,status,client_id`);
+    if (!r.ok) return res.status(502).json({ error: "uploads lookup failed" });
+    const rows = await r.json();
+    uploadRow = rows?.[0];
+  } catch (e) {
+    return res.status(500).json({ error: "uploads lookup error", detail: String(e?.message || e) });
+  }
+  if (!uploadRow) return res.status(403).json({ error: "unknown uploadId" });
+  if (uploadRow.status === "rejected" || uploadRow.status === "processing") {
+    return res.status(403).json({ error: "upload has not cleared compliance checks" });
+  }
+
   // Whitelist + cap fields so a caller can't bloat/poison the manifest.
+  // status/visibility now come from the verified Postgres row, never from
+  // the caller: 'live' -> published, anything else ('held') -> pending
+  // review in the manager queue.
   const safeEntry = {
     id: entry.id,
     title: String(entry.title || "Untitled").slice(0, 200),
@@ -63,7 +90,9 @@ export default async function handler(req, res) {
     dislikes: Number(entry.dislikes) || 0,
     comments: 0,
     favorites: 0,
-    status: (entry.visibility === "private" || entry.status === "private") ? "private" : "published",
+    status: (entry.visibility === "private")
+      ? "private"
+      : (uploadRow.status === "live" ? "published" : "pending"),
     flagged: false,
     orientation: (entry.orientation === "vertical") ? "vertical" : "horizontal",
   };

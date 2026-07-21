@@ -15,6 +15,7 @@ function freshUpload(){ return {step:0, title:"", desc:"", visibility:"public", 
   categories:[], createdWith:[], tags:[], orientation:"horizontal",
   q_cat:"", q_tool:"", q_tag:"",
   sample5:null, sample30:null, capturingClip:"",
+  rightsConfirmed:false,
   progress:0, uploading:false}; }   // search query per picker
 let cstate = { page:"dashboard", upload:freshUpload(), editingProfile:false };
 // Inline oninput/onclick/onchange handlers in the rendered HTML run in GLOBAL
@@ -320,10 +321,27 @@ async function uPublish(){
   const u = cstate.upload;
   if (u._probing) { toast("Still probing video file. Please wait…"); return; }
   if(!u.file){ toast("No file selected"); cstate.upload.step=0; render(); return; }
+  if(!u.rightsConfirmed){ toast("Please confirm the rights/age statement before publishing"); return; }
   _publishing = true;
   u.uploading = true; u.progress = 0; render();
 
   const setBar = pct=>{ const b=document.getElementById("uploadProgressBar"); if(b) b.style.width=pct+"%"; };
+
+  // Consent/rights attestation MUST happen before any upload bytes are
+  // treated as compliant — this records the legal attestation record and
+  // gets a short-lived token that /api/verify-upload requires below.
+  try {
+    await ShAPI.attestUpload({
+      rightsConfirmed: true,
+      ageConfirmed: true,
+      title: u.title || "Untitled",
+      confirmedAt: new Date().toISOString(),
+    });
+  } catch(e){
+    _publishing = false; u.uploading = false; render();
+    toast("Could not record attestation, try again: " + (e.message || "unknown error"));
+    return;
+  }
 
   try {
     const seedViews = 10000 + Math.floor(Math.random()*5001);
@@ -380,9 +398,26 @@ async function uPublish(){
         vid.thumb = thumbUrl;
       }
 
-      // Save to Bunny manifest via secure serverless endpoint so the video appears for ALL visitors immediately
+      // Server-verified compliance gate: real SHA-256 of the uploaded bytes,
+      // banned/duplicate-hash check, CSAM interception, trust-tier read.
+      // Throws (banned/duplicate/etc.) — caught below, entry is NOT saved to
+      // the manifest if this fails.
+      const verified = await ShAPI.verifyUpload({
+        path: uploadInfo.path,
+        title: u.title || "Untitled",
+        width: u.width || null,
+        height: u.height || null,
+        durationS: u.durationSec || null,
+      });
+
+      // Save to the manifest via the secure serverless endpoint so the video
+      // appears for visitors — status is decided by verifyUpload's result
+      // (live -> published immediately, held -> pending review), never by
+      // what the uploader selected, except that an explicit "private"
+      // visibility choice always stays private regardless of trust tier.
       const manifestEntry = {
         id: localId,
+        uploadId: verified.uploadId,
         title: u.title||"Untitled",
         creator: MY,
         type: "ugc",
@@ -398,24 +433,37 @@ async function uPublish(){
         dislikes: 0,
         comments: 0,
         favorites: 0,
-        status: u.visibility === "private" ? "private" : "published",
+        visibility: u.visibility,
         flagged: false,
         orientation: u.orientation || "horizontal"
       };
-      try{
-        await ShAPI.saveToManifest(manifestEntry);
-      } catch(err){
-        console.error("Manifest save failed:", err);
-      }
+      await ShAPI.saveToManifest(manifestEntry);
 
       await new Promise(r=>setTimeout(r,300));
-      toast(`✓ "${u.title||'Untitled'}" is live!`);
+      if(verified.status === "live"){
+        toast(`✓ "${u.title||'Untitled'}" is live!`);
+      } else {
+        if(vid) vid.status = "pending";
+        toast(`"${u.title||'Untitled'}" uploaded — pending review before it goes live.`);
+      }
     } catch(e){
-      // On remote failure we keep the optimistic "public" entry (local blob URL)
-      // rather than marking it failed, so the creator list isn't blocked.
-      // Remote upload (Bunny) may have failed due to missing API base / env / network.
-      console.error("Upload remote step failed (kept local):", e);
-      toast("Remote upload step failed (kept locally for now): " + (e.message || "see console"));
+      const msg = String(e.message || "");
+      if(msg === "banned" || msg === "duplicate"){
+        // A genuine compliance rejection, not a network hiccup — the file
+        // must NOT stay visible/optimistic in the creator's list.
+        const idx = DATA.videos.findIndex(v=>v.id===localId);
+        if(idx>=0) DATA.videos.splice(idx,1);
+        toast(msg === "banned"
+          ? "This file was rejected: matches a banned-content hash."
+          : "This file was rejected: already uploaded (duplicate).");
+      } else {
+        // Network/infra failure: keep the optimistic local entry (local blob
+        // URL) rather than marking it failed, so the creator list isn't
+        // blocked — but it never reached the manifest, so it's not actually
+        // visible to other visitors yet.
+        console.error("Upload remote step failed (kept local):", e);
+        toast("Remote upload step failed (kept locally for now): " + (e.message || "see console"));
+      }
     }
 
     u.uploading = false;
@@ -618,10 +666,19 @@ function renderUpload() {
         <label class="lbl">Tags</label>
         ${pickerHTML('tag')}
 
-        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:16px; display:flex; justify-content:flex-end; gap:12px;">
-          <button type="button" class="btn" style="padding:10px 24px;" onclick="uPublish()" ${isProbing || isUploading ? 'disabled' : ''}>
-            ${isUploading ? 'Publishing…' : '🚀 Publish Video'}
-          </button>
+        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
+          <label class="small" style="display:flex; gap:8px; align-items:flex-start; cursor:pointer;">
+            <input type="checkbox" id="uRightsConfirm" ${u.rightsConfirmed ? 'checked' : ''}
+              onchange="cstate.upload.rightsConfirmed=this.checked; render()" style="margin-top:2px;"/>
+            <span>I confirm all performers depicted are 18+ years of age, I hold the rights to
+              upload this content, and any required 2257 documentation is on file.</span>
+          </label>
+          <div style="margin-top:16px; display:flex; justify-content:flex-end; gap:12px;">
+            <button type="button" class="btn" style="padding:10px 24px;" onclick="uPublish()"
+              ${isProbing || isUploading || !u.rightsConfirmed ? 'disabled' : ''}>
+              ${isUploading ? 'Publishing…' : '🚀 Publish Video'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
