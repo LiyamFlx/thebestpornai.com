@@ -214,58 +214,55 @@ function uProbeQueueItem(u){
   };
 }
 
-/* Read real duration from the file and generate REAL thumbnails from frames */
-function uProbe(){
-  const u = cstate.upload;
-  const v = document.createElement("video");
-  v.preload = "metadata"; v.muted = true; v.src = u.url;
-  v.onloadedmetadata = ()=>{
-    u.duration = fmtDur(v.duration);
-    u.durationSec = v.duration;
-    u.width = v.videoWidth;
-    u.height = v.videoHeight;
-    if (v.videoHeight && v.videoWidth) {
-      u.orientation = (v.videoHeight > v.videoWidth) ? "vertical" : "horizontal";
-    }
-    // capture 6 frames spread across the video for thumbnail options
-    const dur = v.duration;
-    const stamps = [0.05,0.15,0.30,0.50,0.70,0.85].map(p=>Math.max(0.05, Math.min(dur*p, dur-0.1)));
-    captureFrames(v, stamps, (thumbs)=>{
-      u.thumbOptions = thumbs;
-      u.thumb = thumbs[0] || "";
-      if(cstate.page==="upload" && cstate.upload.step===1) uNext();  // -> AI Thumbnail
-      else render();
-    });
-  };
-  v.onerror = ()=>{ toast("Couldn't read that file"); };
-}
-
 /* Grab still frames into data URLs using a canvas */
 function captureFrames(video, stamps, done){
   const canvas = document.createElement("canvas");
   const out = []; let i = 0; let finished = false;
+  // Bumped every time we move on from a seek (whether it completed or timed
+  // out) — lets a late "seeked" event that fires AFTER its own timeout
+  // already advanced i recognize it's stale and ignore itself, instead of
+  // capturing a frame at the wrong timestamp and double-incrementing i.
+  let seekToken = 0;
   const finish = ()=>{ if(finished) return; finished = true; video.onseeked = null; video.src = ""; done(out); };
   // Some videos never fire "seeked" for one or more of these timestamps
   // (short clips, certain codecs/keyframe layouts, byte-range quirks over
   // CORS) — without a timeout this hangs forever, leaving u._probing stuck
   // true and silently blocking Publish on every click with no visible error.
   let seekTimer = null;
-  const armTimeout = ()=>{ clearTimeout(seekTimer); seekTimer = setTimeout(()=>{ i++; grabOrFinish(); }, 2000); };
+  // Each seek gets its own token, captured by closure in both its timeout
+  // callback and its onseeked handler (reassigned fresh per seek below) —
+  // whichever fires first bumps seekToken and wins; the other reads its own
+  // frozen myToken, sees it no longer matches, and no-ops instead of
+  // capturing the wrong frame or double-advancing i. Reassigning
+  // video.onseeked each time also means a stale handler is simply no longer
+  // attached by the time a late event would have reached it.
+  const armTimeout = (myToken)=>{
+    clearTimeout(seekTimer);
+    seekTimer = setTimeout(()=>{
+      if(myToken !== seekToken) return;   // this seek already resolved via onseeked; ignore
+      seekToken++; i++; grabOrFinish();
+    }, 2000);
+  };
   const grabOrFinish = ()=>{
     if(i >= stamps.length){ finish(); return; }
-    armTimeout();
+    const myToken = seekToken;
+    armTimeout(myToken);
+    video.onseeked = ()=>{
+      clearTimeout(seekTimer);
+      // A late "seeked" whose own timeout already fired and moved i along —
+      // currentTime no longer matches the stamp this handler was set up
+      // for, so capturing now would grab the wrong frame under a stale index.
+      if(myToken !== seekToken || finished) return;
+      const w = video.videoWidth || 320, h = video.videoHeight || 180;
+      canvas.width = 320; canvas.height = Math.round(320 * h / w);
+      try{
+        canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+        out.push(canvas.toDataURL("image/jpeg", 0.7));
+      }catch(e){ /* tainted/decode issue — skip */ }
+      seekToken++; i++;
+      grabOrFinish();
+    };
     video.currentTime = stamps[i];
-  };
-  video.onseeked = ()=>{
-    clearTimeout(seekTimer);
-    const w = video.videoWidth || 320, h = video.videoHeight || 180;
-    canvas.width = 320; canvas.height = Math.round(320 * h / w);
-    try{
-      canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
-      out.push(canvas.toDataURL("image/jpeg", 0.7));
-    }catch(e){ /* tainted/decode issue — skip */ }
-    i++;
-    grabOrFinish();
   };
   grabOrFinish();
 }
@@ -483,12 +480,14 @@ async function uPublish(){
           ? "This file was rejected: matches a banned-content hash."
           : "This file was rejected: already uploaded (duplicate).");
       } else {
-        // Network/infra failure: keep the optimistic local entry (local blob
-        // URL) rather than marking it failed, so the creator list isn't
-        // blocked — but it never reached the manifest, so it's not actually
-        // visible to other visitors yet.
-        console.error("Upload remote step failed (kept local):", e);
-        toast("Remote upload step failed (kept locally for now): " + (e.message || "see console"));
+        // Network/infra failure: the entry never reached the manifest, so
+        // it's not actually visible to anyone else — mark it so (the
+        // Content table's "Failed" badge + Retry button already exist for
+        // exactly this status, they just had nothing setting it before).
+        const failedVid = DATA.videos.find(v=>v.id===localId);
+        if(failedVid) failedVid.status = "upload-failed";
+        console.error("Upload remote step failed:", e);
+        toast("Upload failed: " + (e.message || "see console") + " — you can retry from Content.");
       }
     }
 
