@@ -360,7 +360,7 @@ table.data tr:hover td{background:var(--surface2)}
 @media(max-width:900px){.watch-body{grid-template-columns:1fr}}
 
 /* ===== Watch page — redesigned ===== */
-.watch-title{margin:16px 0 6px;font-size:26px;font-weight:800}
+.watch-title{margin:16px 0 6px;font-size:26px;font-weight:800;overflow-wrap:break-word}
 .watch-sub{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:14px;margin:0 0 18px}
 .watch-sub .ic-eye{opacity:.8}
 .dot-sep{opacity:.5}
@@ -387,10 +387,11 @@ table.data tr:hover td{background:var(--surface2)}
   background:radial-gradient(120% 180% at 100% 50%, rgba(229,9,20,.10), var(--surface) 60%)}
 .avatar-lg{width:50px;height:50px;font-size:19px;flex:none}
 .avatar-sm{width:34px;height:34px;font-size:13px;flex:none}
-.creator-name{font-weight:700;font-size:16px;display:flex;align-items:center;gap:6px}
+.creator-name{font-weight:700;font-size:16px;display:flex;align-items:center;gap:6px;min-width:0}
+.creator-name span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .verified{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;
-  background:var(--muted);color:var(--bg);font-size:10px;font-weight:900}
-.subscribe-btn{display:flex;align-items:center;gap:7px;padding:11px 22px;border-radius:999px;font-size:14px}
+  background:var(--muted);color:var(--bg);font-size:10px;font-weight:900;flex:none}
+.subscribe-btn{display:flex;align-items:center;gap:7px;padding:11px 22px;border-radius:999px;font-size:14px;flex:none}
 
 /* comments card */
 .comments-card{border:1px solid var(--border);border-radius:16px;padding:20px;background:var(--surface);margin-bottom:24px}
@@ -463,25 +464,37 @@ table.data tr:hover td{background:var(--surface2)}
 @media(max-width:760px){
   .bottom-nav{
     display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;
-    background:rgba(20,20,20,0.96);backdrop-filter:blur(12px);
+    background:rgba(15,15,15,0.97);backdrop-filter:blur(16px);
     border-top:1px solid var(--border);
-    padding:6px 4px;padding-bottom:calc(6px + env(safe-area-inset-bottom));
+    padding:8px 6px;padding-bottom:calc(8px + env(safe-area-inset-bottom));
+    box-shadow:0 -8px 24px rgba(0,0,0,.35);
   }
   .bottom-nav button{
     flex:1;background:none;border:none;color:var(--muted);
-    display:flex;flex-direction:column;align-items:center;gap:3px;
-    min-height:48px;padding:4px 0;font-size:10px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    min-height:52px;padding:6px 4px;font-size:10.5px;font-weight:600;cursor:pointer;
+    border-radius:12px;transition:color .15s,background .15s;
   }
-  .bottom-nav button .ico{font-size:19px;line-height:1}
-  .bottom-nav button.active{color:#fff}
+  .bottom-nav button .ico{font-size:22px;line-height:1;transition:transform .15s}
+  .bottom-nav button.active{color:#fff;background:rgba(229,9,20,.14)}
+  .bottom-nav button.active .ico{transform:scale(1.08)}
+  .bottom-nav button:active .ico{transform:scale(.92)}
 }
 
 /* ---- Mobile layout (≤760px) ---- */
 @media(max-width:760px){
-  .app{flex-direction:column;height:auto;min-height:100vh}
+  .app{flex-direction:column;height:auto;min-height:100vh;max-width:100vw;overflow-x:hidden}
   .sidebar{display:none}
-  .main{min-height:100vh}
-  .content{padding:14px;padding-bottom:84px}   /* clear the bottom nav */
+  .main{min-height:100vh;max-width:100vw;overflow-x:hidden}
+  .content{padding:14px;padding-bottom:84px;max-width:100vw;box-sizing:border-box}   /* clear the bottom nav */
+  /* Safety net: any flex/grid child anywhere on this page that refuses to
+     shrink below its own content width (a long title, an unbreakable button
+     row) used to push .main wider than the viewport — body{overflow-x:hidden}
+     then silently clipped everything downstream instead of wrapping it,
+     which is what made the header/cards/buttons look sliced off on real
+     phones. min-width:0 lets flex/grid items actually shrink to their
+     container instead of their content. */
+  .content *{min-width:0}
 
   /* Watch: drop the side column, show Related below instead */
   .watch-side{display:none}
@@ -493,19 +506,41 @@ table.data tr:hover td{background:var(--surface2)}
   .comments-card{padding:14px}
   .comments-title{font-size:16px}
 
-  .topbar{padding:10px 14px;gap:8px}
+  /* padding-top clears the notch/status bar when installed as a standalone
+     PWA (site.webmanifest declares display:"standalone"); a no-op in a
+     regular mobile browser tab since the safe-area inset is 0 there. */
+  .topbar{padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));gap:8px}
   .topbar .left{font-size:16px}
   .topbar-actions{flex:1;justify-content:flex-end}
   .search-input{width:100%;flex:1;min-width:0;font-size:16px} /* 16px avoids iOS zoom */
   .topbar-actions .icon-btn{display:none}      /* declutter; Search/Later live in bottom nav */
 
   /* Comfortable 2-up grid instead of one giant column */
-  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
-  .grid > .card{contain-intrinsic-size:auto 170px}   /* shorter cards on the 2-up mobile grid */
-  .grid .card,.row-scroll .card{padding:8px}
-  .row-scroll .card{min-width:150px}
-  .video-thumb{height:96px}
-  .title{font-size:12px}
+  .grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .grid > .card{contain-intrinsic-size:auto 210px}   /* matches the taller aspect-ratio thumb below */
+  .grid .card,.row-scroll .card{
+    padding:0;overflow:hidden;border-radius:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,.35);
+  }
+  .row-scroll .card{min-width:160px}
+  /* Fixed px thumbs didn't scale with the column's actual width across phone
+     sizes; aspect-ratio keeps a consistent 16:9 frame at any width. The card
+     itself lost its own padding above (now padding:0 + overflow:hidden so the
+     thumb can sit flush with the rounded corners), so everything after the
+     thumb — title/meta/tags — needs that padding back. */
+  .grid .video-thumb,.row-scroll .video-thumb{
+    height:auto;aspect-ratio:16/9;border-radius:0;margin-bottom:0;
+  }
+  .grid .card > .video-thumb ~ *,.row-scroll .card > .video-thumb ~ *{
+    margin-left:10px;margin-right:10px;
+  }
+  .grid .card > .title,.row-scroll .card > .title{margin-top:10px}
+  .grid .card > .meta,.row-scroll .card > .meta{margin-bottom:0}
+  .grid .card > .tag-chips,.row-scroll .card > .tag-chips{margin-bottom:10px}
+  .grid .card > .meta:last-child,.row-scroll .card > .meta:last-child{margin-bottom:10px}
+  .title{font-size:13px;line-height:1.35;font-weight:700}
+  .meta{font-size:11.5px}
+  .card:active{transform:scale(.97)}
   .card:hover{transform:none}                  /* no hover-lift on touch */
 
   /* Hero scaled down */
@@ -515,13 +550,45 @@ table.data tr:hover td{background:var(--surface2)}
 
   h1{font-size:20px}h2{font-size:18px}
 
+  /* Every text input on the site was 13px, which triggers iOS Safari's
+     auto-zoom-on-focus (the whole page jumps to ~150% and has to be manually
+     zoomed back out) — only .search-input had the 16px fix. Applying it
+     everywhere: comment boxes, feed comment box, any .fld field. */
+  input.fld,textarea.fld,select.fld,.feed-comments-footer input{font-size:16px}
+
   /* Watch page tweaks */
   .player{height:auto;aspect-ratio:16/9}
   .modal{width:94vw;max-height:88vh}
 
-  /* Bigger tap targets */
-  .btn{padding:11px 18px}
-  .chip{padding:7px 12px;font-size:12px}
+  /* Creator page: the banner/avatar/name/subscribe row was never audited for
+     mobile — full-size 80px avatar + 160px banner ate the whole first screen,
+     and the subscribe button sat awkwardly inline instead of stacking. */
+  .creator-page-banner{height:100px;border-radius:12px}
+  .creator-page-header{gap:12px;margin-top:-28px;margin-bottom:18px}
+  .creator-page-avatar{width:64px;height:64px;font-size:22px;border-width:2px}
+  .creator-page-info{padding-top:28px}
+  .creator-page-name{font-size:18px}
+  .creator-bio{font-size:12.5px;max-width:100%}
+  .creator-page-header .subscribe-btn{flex:1 1 100%;justify-content:center}
+
+  .profile-hero{gap:14px}
+  .profile-avatar{width:56px;height:56px;font-size:20px}
+  .profile-stats{gap:12px;flex-wrap:wrap}
+
+  /* The toast sat at a fixed 24px from the bottom on every screen size, which
+     puts it directly behind/under the mobile bottom tab bar (~70px tall with
+     its own safe-area padding) — every "Liked"/"Added to Favorites" toast was
+     invisible on phones. Clear the tab bar and center it like a native app
+     toast instead of pinning to a corner that no longer exists on mobile. */
+  .toast{left:50%;right:auto;bottom:calc(78px + env(safe-area-inset-bottom));transform:translate(-50%,10px)}
+  .toast.show{transform:translate(-50%,0)}
+
+  /* Bigger tap targets (44px min per Apple HIG / WCAG 2.5.5) */
+  .btn{padding:11px 18px;min-height:44px}
+  .chip{padding:7px 12px;font-size:12px;min-height:36px;display:inline-flex;align-items:center}
+  .sort-select{min-height:44px;font-size:16px}
+  .subscribe-btn{min-height:44px}
+  .comments-top{flex-wrap:wrap;gap:10px}
 }
 /* Big hero-style player: fills the full content width and a generous
    viewport-relative height, edge-to-edge like a Netflix hero. The box itself
@@ -1044,7 +1111,7 @@ iframe.player{object-fit:contain}
   /* search icon belongs to the collapsed state only */
   .topbar:not(.mchrome-collapsed) .topbar-search-toggle{display:none}
 
-  .topbar.mchrome-collapsed{min-height:0;padding-top:6px;padding-bottom:6px}
+  .topbar.mchrome-collapsed{min-height:0;padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px}
   .topbar.mchrome-collapsed .video-count-badge{display:none}
   .topbar.mchrome-collapsed .search-input{display:none}
 
@@ -1080,7 +1147,10 @@ iframe.player{object-fit:contain}
   }
   .mchrome-scroll.at-end{-webkit-mask-image:none;mask-image:none}
   .mchrome-scroll::-webkit-scrollbar{display:none}
-  .mchrome-scroll .filter-pill{flex:0 0 auto;scroll-snap-align:start;min-height:40px}
+  .mchrome-scroll .filter-pill{
+    flex:0 0 auto;scroll-snap-align:start;min-height:44px;
+    display:inline-flex;align-items:center;
+  }
   /* a scroll container clips the "More ▾" dropdown, so on mobile the overflow
      categories are shown inline in the scroll strip instead */
   .home-cat-bar .cat-more{display:none}
@@ -1091,7 +1161,7 @@ iframe.player{object-fit:contain}
   .home-sort-mobile{display:block;margin:2px 0 16px}
   .sort-mobile-select{
     background:var(--surface2);border:1px solid var(--border);color:var(--text);
-    font-size:13px;font-weight:600;min-height:44px;padding:0 36px 0 16px;
+    font-size:16px;font-weight:600;min-height:44px;padding:0 36px 0 16px;
     border-radius:999px;cursor:pointer;outline:none;
     -webkit-appearance:none;appearance:none;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23A0A0A0' stroke-width='1.5'/></svg>");

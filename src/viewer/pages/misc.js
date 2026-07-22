@@ -1,7 +1,7 @@
 /* Simple list-style pages: categories, subscriptions, profile, settings,
    live, playlists, search, and the generic grid listPage used by
    explore/trending/originals/favorites/later/history/downloads. */
-import { DATA, esc, fmt, mediaUrl, ytId } from "../../shared/catalog.js";
+import { DATA, esc, fmt } from "../../shared/catalog.js";
 import { videoCard, emptyState } from "../../shared/ui.js";
 import { POPULAR_TAGS } from "../../shared/taxonomy.js";
 import { vstate } from "../state.js";
@@ -93,16 +93,22 @@ export function renderLive(){
     <div class="grid">${pubVideos().slice(0,3).map(v=>videoCard(v,{extra:()=>`<div class="card-actions"><span class="chip" style="color:var(--accent2);border-color:var(--accent2)">● LIVE</span><span class="chip">${fmt(v.views)} watching</span></div>`})).join("")}</div>`;
 }
 
+/* There's no real playlist data model yet (no create/name/add-to-playlist
+   anywhere in the app) — these three are a placeholder grouping of whatever
+   the first few public videos are. They render as real, clickable video
+   cards (via videoCard(), same as every other grid) so tapping one actually
+   opens and plays it instead of doing nothing. */
 export function renderPlaylists(){
+  const labels = ["My Mix","Chill","Tech Deep-Dives"];
+  const videos = pubVideos().slice(0, labels.length);
   return `<h2>Playlists</h2><p class="sub">Your collections</p>
-    <div class="grid">
-      ${["My Mix","Chill","Tech Deep-Dives"].map((p,i)=>{
-        const pv = pubVideos()[i];
-        const thumb = pv && pv.src && !ytId(pv.src) ? `<video class="thumb-video lazy" data-src="${mediaUrl(pv.src)}#t=1" muted preload="none"></video>` : ``;
-        return `<div class="card"><div class="video-thumb">${thumb}</div>
-        <div class="title">${esc(p)}</div><div class="meta">${(i+2)} videos</div></div>`;
-      }).join("")}
-    </div>`;
+    ${videos.length ? `<div class="grid">
+      ${videos.map((v,i)=>`
+        <div>
+          <div class="small" style="margin-bottom:6px;color:var(--muted)">${esc(labels[i])} · ${(i+2)} videos</div>
+          ${videoCard(v)}
+        </div>`).join("")}
+    </div>` : `<div class="empty">No videos yet.</div>`}`;
 }
 
 /* Fuzzy multi-term search: every whitespace-separated term must match somewhere
