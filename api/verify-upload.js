@@ -29,14 +29,32 @@ import { serviceRequest } from "../lib/supabase-service.js";
 import { verifyAttestToken } from "../lib/attest-token.js";
 import { csamCheck } from "../lib/csam.js";
 
+// Streaming a full video back from R2 to hash it can take a while for large
+// real files — give this function real headroom instead of relying on the
+// platform default (a legitimate 502 was observed in production during a
+// slow R2 read that this, plus the retry in hashR2Object below, addresses).
+export const config = { maxDuration: 120 };
+
 // Only images/video that presign.js would have issued a key for; large video
 // files are hashed via a streaming digest so memory stays flat regardless of
 // file size (no full-file buffering).
-async function hashR2Object(s3, bucket, key) {
+async function hashOnce(s3, bucket, key) {
   const obj = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
   const hash = crypto.createHash("sha256");
   for await (const chunk of obj.Body) hash.update(chunk);
   return hash.digest("hex");
+}
+
+// Streaming a large real video back from R2 inside a serverless function can
+// hit a transient network reset mid-read — that must not permanently block a
+// legitimate upload with a bare 502. One retry after a short backoff.
+async function hashR2Object(s3, bucket, key) {
+  try {
+    return await hashOnce(s3, bucket, key);
+  } catch (e) {
+    await new Promise(r => setTimeout(r, 1500));
+    return await hashOnce(s3, bucket, key);
+  }
 }
 
 export default async function handler(req, res) {
