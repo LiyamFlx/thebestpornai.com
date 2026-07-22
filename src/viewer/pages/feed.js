@@ -3,10 +3,19 @@ import { pubVerticalVideos } from "../catalog-queries.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
 import { renderCommentList } from "../comments.js";
+import { likeVideo } from "../actions.js";
 
 // Global pointer to track the current active observer and feed players
 let feedObserver = null;
 let currentActiveVideo = null;
+
+// Data-saver users on a metered connection: skip video autoplay in the feed
+// and show the poster only, so scrolling never silently burns their data cap.
+function isDataSaverMode(){
+  const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  if (!c) return false;
+  return !!c.saveData || c.effectiveType === "slow-2g" || c.effectiveType === "2g";
+}
 
 export function renderFeed() {
   const videos = pubVerticalVideos();
@@ -106,9 +115,10 @@ export function attachFeedObserver() {
 
       if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
         currentActiveVideo = videoId;
-        
-        // 1. Play active video
-        if (videoEl) {
+        const dataSaver = isDataSaverMode();
+
+        // 1. Play active video (skipped on data-saver — poster stays put)
+        if (videoEl && !dataSaver) {
           if (!videoEl.src) {
             videoEl.src = videoEl.dataset.src;
           }
@@ -124,7 +134,7 @@ export function attachFeedObserver() {
           const itemVid = item.querySelector(".feed-video");
           if (!itemVid) return;
 
-          const isNear = idx >= index - 1 && idx <= index + 2;
+          const isNear = !dataSaver && idx >= index - 1 && idx <= index + 2;
           if (isNear) {
             if (!itemVid.src) {
               itemVid.src = itemVid.dataset.src;
@@ -151,6 +161,38 @@ export function attachFeedObserver() {
   });
 
   items.forEach(item => feedObserver.observe(item));
+  attachFeedGestures(container);
+}
+
+/* Double-tap-to-like: a single delegated listener on the container (rebound
+   each render alongside the observer, same lifecycle) rather than one per
+   item. Ignores taps that land on the sidebar/overlay controls so it doesn't
+   fight their own onclick handlers. Fires a short haptic pulse on supported
+   devices as the like's tactile confirmation. */
+const DOUBLE_TAP_MS = 300;
+let _lastTapTime = 0;
+let _lastTapItem = null;
+
+function attachFeedGestures(container){
+  container.removeEventListener("pointerup", onFeedPointerUp);
+  container.addEventListener("pointerup", onFeedPointerUp);
+}
+
+function onFeedPointerUp(e){
+  if (e.target.closest(".feed-sidebar, .feed-creator-row, .feed-category")) return;
+  const item = e.target.closest(".feed-item");
+  if (!item) return;
+
+  const now = Date.now();
+  const isDoubleTap = item === _lastTapItem && (now - _lastTapTime) < DOUBLE_TAP_MS;
+  _lastTapTime = isDoubleTap ? 0 : now;
+  _lastTapItem = isDoubleTap ? null : item;
+  if (!isDoubleTap) return;
+
+  const videoId = parseInt(item.dataset.videoId, 10);
+  if (!videoId) return;
+  likeVideo(videoId);
+  if (navigator.vibrate) navigator.vibrate(15);
 }
 
 // Window actions for comments drawer in the feed. Guarded so importing this

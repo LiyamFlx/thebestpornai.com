@@ -10,7 +10,6 @@
   "theme_color": "#E50914",
   "icons": [
     { "src": "/src/shared/assets/favicon-32.png", "sizes": "32x32", "type": "image/png" },
-    { "src": "/src/shared/assets/favicon-64.png", "sizes": "64x64", "type": "image/png" },
-    { "src": "/src/shared/assets/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "/src/shared/assets/favicon-64.png", "sizes": "64x64", "type": "image/png" }
   ]
 }

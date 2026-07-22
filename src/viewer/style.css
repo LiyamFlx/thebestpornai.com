@@ -57,7 +57,8 @@
 .topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .search-input{
   background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  padding:8px 14px;border-radius:999px;font-size:13px;width:240px;outline:none;
+  padding:8px 14px;border-radius:999px;font-size:13px;width:240px;flex:1 1 auto;
+  min-width:0;max-width:240px;outline:none;
 }
 .search-input:focus{border-color:var(--accent)}
 .icon-btn{
@@ -113,6 +114,20 @@ h3{font-size:15px;margin:18px 0 10px}
 }
 .video-thumb.original{background:linear-gradient(135deg,#7A0008,#E50914)}
 .thumb-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* Skeleton shimmer while the poster <img> loads: the gradient background
+   already there is the base color, this just sweeps a lighter band across it
+   so the pop-in reads as "loading" instead of a flat color flash. The <img>
+   paints on top and visually covers it once loaded — no JS needed.
+   Animates `transform` only (not background-position) so it's compositor-only
+   and doesn't force a repaint every frame on every visible card — this page
+   can have dozens of cards on screen at once via the windowed grid. */
+.video-thumb::after{
+  content:"";position:absolute;top:0;bottom:0;left:-60%;width:60%;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
+  will-change:transform;animation:thumb-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes thumb-shimmer{0%{transform:translateX(0)}100%{transform:translateX(260%)}}
+@media (prefers-reduced-motion: reduce){.video-thumb::after{animation:none;display:none}}
 
 /* Hover preview: the preview <video> sits above the poster and fades in only
    while the card is being previewed. On touch (no hover) it stays hidden. */
@@ -567,7 +582,14 @@ iframe.player{object-fit:contain}
 .pc-btn{
   background:transparent;border:none;color:#fff;font-size:16px;line-height:1;
   width:30px;height:30px;display:flex;align-items:center;justify-content:center;
-  border-radius:6px;cursor:pointer;flex:none;
+  border-radius:6px;cursor:pointer;flex:none;position:relative;
+}
+/* Visual size stays 30px so the dense control bar doesn't crowd, but the tap
+   target is expanded to the 44px min (Apple HIG / WCAG 2.5.5) via an
+   invisible hit-slop rather than resizing the visible button. */
+.pc-btn::before{
+  content:"";position:absolute;inset:50% auto auto 50%;
+  width:44px;height:44px;transform:translate(-50%,-50%);
 }
 .pc-btn:hover{background:rgba(255,255,255,.15)}
 .pc-volume{width:70px;height:14px;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer}
@@ -741,6 +763,18 @@ iframe.player{object-fit:contain}
   background: #000;
   border-left: 1px solid var(--border);
   border-right: 1px solid var(--border);
+  /* Stops a pull-up-past-the-top gesture from handing off to the browser's
+     native pull-to-refresh, which otherwise fights the scroll-snap feed. */
+  overscroll-behavior-y: contain;
+}
+@media(max-width:760px){
+  /* On mobile the topbar can collapse and a fixed bottom-nav overlaps the
+     content column, so the desktop offset (56px) leaves slides taller than
+     the visible viewport — the tail of each slide sits under the tab bar.
+     Subtract the actual bottom-nav height + safe-area inset instead. */
+  .feed-container{
+    height: calc(100vh - 58px - 61px - env(safe-area-inset-bottom));
+  }
 }
 .feed-container::-webkit-scrollbar {
   display: none;
@@ -761,7 +795,7 @@ iframe.player{object-fit:contain}
 .feed-video {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 .feed-overlay {
   position: absolute;
