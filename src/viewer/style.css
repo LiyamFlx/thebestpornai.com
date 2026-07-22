@@ -85,6 +85,21 @@ h3{font-size:15px;margin:18px 0 10px}
 
 /* Cards / grid */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+/* .video-list: single-purpose row cards (thumb full-width on top, a small
+   creator avatar + two-line identity block below) — used by Home's default
+   feed, Search results, Subscriptions, and a channel's "All Videos" list on
+   every viewport, not just mobile. On desktop it's a responsive grid of
+   these cards (same auto-fill pattern as .grid); the mobile block below
+   collapses it to a true single, full-bleed column and strips the card's
+   own background/border/shadow to match YouTube's flatter mobile look. */
+.video-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.video-list .video-thumb{height:auto;aspect-ratio:16/9;margin-bottom:0}
+.card-identity{display:flex;gap:10px;margin-top:10px;align-items:flex-start}
+.card-avatar{flex:none;margin-top:1px}
+.card-text{min-width:0;flex:1}
+.video-list .title{font-size:14px;line-height:1.3;font-weight:600;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.video-list .meta{display:flex;flex-direction:column;gap:1px;margin-top:3px;font-size:12.5px}
 /* Grid cards are windowed in JS (grid-window.js) so the DOM stays bounded;
    content-visibility additionally lets the browser skip painting cards in the
    rendered window that are scrolled out of view. The intrinsic-size estimate
@@ -1084,10 +1099,11 @@ iframe.player{object-fit:contain}
   .sort-mobile-select:focus{border-color:var(--accent)}
 
   /* ---- Cards: two grammars, matching YouTube mobile's actual patterns ----
-     .video-list (new): single-column, full-width row cards — Home's default
-     feed, Search results, Explore/Trending/etc, a channel's "All Videos".
-     This is what YouTube's Home/Search/Channel tabs actually look like: NOT
-     a grid. .grid stays a 2-up dense grid as the explicit "Grid View" tab's
+     .video-list is a real grid of row cards on desktop (base rule, above the
+     mobile block); on mobile it collapses to a true single, full-bleed
+     column with the card's own chrome stripped (YouTube separates cards
+     with whitespace on mobile, not a background/border/shadow box).
+     .grid stays a 2-up dense grid as the explicit "Grid View" tab's
      secondary mode, restyled to the same flatter/no-shadow token language. */
   .video-list{display:flex;flex-direction:column;gap:20px}
   .video-list .card{
@@ -1095,15 +1111,7 @@ iframe.player{object-fit:contain}
     box-shadow:none;cursor:pointer;
   }
   .video-list .card:active{transform:scale(.99)}
-  .video-list .video-thumb{
-    height:auto;aspect-ratio:16/9;border-radius:10px;margin-bottom:0;
-  }
-  .card-identity{display:flex;gap:10px;margin-top:10px;align-items:flex-start}
-  .card-avatar{flex:none;margin-top:1px}
-  .card-text{min-width:0;flex:1}
-  .video-list .title{font-size:14.5px;line-height:1.3;font-weight:600;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .video-list .meta{display:flex;flex-direction:column;gap:1px;margin-top:3px;font-size:12.5px}
+  .video-list .video-thumb{border-radius:10px}
   .video-list .card--row .tag-chips{display:none}   /* YouTube's Home feed doesn't show hashtag chips per card */
 
   .grid{grid-template-columns:repeat(2,1fr);gap:12px}

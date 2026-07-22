@@ -14,6 +14,10 @@ on:
 
 concurrency:
   group: deploy-production
+  # Queue rather than cancel: an in-flight deploy is mid-build/mid-alias by
+  # the time a second push arrives, and cancelling it there can leave Vercel
+  # in a partial state. Runs execute strictly in queue order instead, so a
+  # newer push's deploy always lands after (and overwrites) an older one.
   cancel-in-progress: false
 
 env:

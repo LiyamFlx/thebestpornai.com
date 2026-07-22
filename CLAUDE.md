@@ -12,7 +12,8 @@ thebestpornai.com ──► Vercel (hosting HTML/JS pages and Serverless APIs)
 media requests    ──► Cloudflare R2 Bucket (streamhub-media)
 ```
 
-- **Vercel deploys**: `git push origin main` auto-deploys via GitHub integration. Alternatively, manual deploys can be pushed using `npx vercel --prod --yes`.
+- **Vercel deploys**: `git push origin main` triggers `.github/workflows/deploy.yml`, which builds and deploys straight to production via the Vercel CLI (not Vercel's own GitHub integration, which has intermittently left pushes as preview-only) and verifies `www.thebestpornai.com` is actually serving the new commit before the workflow succeeds — check `/api/version` or the Actions tab if a deploy needs confirming. Manual deploys can still be pushed with `npx vercel --prod --yes` if needed.
+- **Rollback**: if a deploy ships something broken, either run `npx vercel rollback <deployment-url>` (find the last-good URL via `npx vercel ls`), or promote a prior deployment from the Vercel dashboard → Deployments tab → "..." → Promote to Production.
 - **Media Asset Sync**: All matched local video files from the `media/` subdirectories are uploaded to Cloudflare R2 under the `media/` path prefix.
 
 ---
