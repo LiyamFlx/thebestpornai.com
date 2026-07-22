@@ -1,4 +1,4 @@
-import { DATA, esc, creatorName, fmt, toast, mediaUrl, loadFullCatalog } from "../shared/catalog.js";
+import { DATA, esc, fmt, toast, loadFullCatalog } from "../shared/catalog.js";
 import { ShAuth, ShAPI } from "../shared/streamhub-api.js";
 import { metric, barChart, distRows } from "../shared/ui.js";
 import { ALL_CATEGORIES, ALL_TAGS, POPULAR_TAGS, isPopularTag } from "../shared/taxonomy.js";
@@ -6,7 +6,7 @@ import { ageGate } from "../shared/age-gate.js";
 import { jsq, jsdec } from "../viewer/util.js";
 ageGate();
 
-/* creatorName(), fmt(), toast() are shared — defined in catalog.js */
+/* fmt(), toast(), esc() are shared — defined in catalog.js */
 
 /* ===================== CREATOR STUDIO ===================== */
 const MY = "c4"; // Alex's creator id
@@ -71,14 +71,14 @@ const TAG_LIBRARY = [...POPULAR_TAGS, ...ALL_TAGS.filter(t => !isPopularTag(t))]
 function go(p){ cstate.page=p; render(); }
 
 /* ---- Upload wizard (REAL, browser-based) ---- */
-const STEPS = ["Upload","Processing","AI Thumbnail","Metadata","Visibility","Scheduling","Monetization","Publish"];
-function uNext(){ cstate.upload.step=Math.min(cstate.upload.step+1,STEPS.length-1); render(); }
 function uSetRightsConfirmed(checked){ cstate.upload.rightsConfirmed = checked; render(); }
-function uPrev(){ cstate.upload.step=Math.max(cstate.upload.step-1,0); render(); }
-function uSaveMeta(){
-  const t=document.getElementById("uTitle"); if(t) cstate.upload.title=t.value;
-  const d=document.getElementById("uDesc"); if(d) cstate.upload.desc=d.value;
-  uNext();
+/* Revoke the current upload's object URL (unless the optimistic DATA entry
+   still points at it — e.g. an upload-failed stub previews from the blob). */
+function revokeUploadUrl(){
+  const url = cstate.upload && cstate.upload.url;
+  if(!url || !url.startsWith("blob:")) return;
+  if(DATA.videos.some(v=>v.src===url)) return;   // a stub still needs it
+  try{ URL.revokeObjectURL(url); }catch(_){}
 }
 /* ---- Searchable multi-select pickers (Category / Created using / Tags) ---- */
 /* config: key=field on upload, lib=options, max=limit, q=query field */
@@ -111,6 +111,7 @@ function pickKey(pk, ev){
   if(ev.key==="Enter"){
     ev.preventDefault();
     const c=PICKERS[pk], q=(cstate.upload[c.q]||"").toLowerCase();
+    if(!q) return;   // bare Enter must not blind-pick the first library option
     const matches=c.lib.filter(o=>o.toLowerCase().includes(q) && !cstate.upload[c.key].includes(o));
     if(matches.length){ pickToggle(pk, jsq(matches[0])); }
   } else if(ev.key==="Backspace" && !ev.target.value){
@@ -140,7 +141,7 @@ function renderPickerList(pk){
 }
 
 /* format seconds -> M:SS */
-function fmtDur(sec){ sec=Math.round(sec||0); const m=Math.floor(sec/60), s=sec%60; return m+":"+String(s).padStart(2,"0"); }
+function fmtDur(sec){ if(!isFinite(sec)) return "0:00"; sec=Math.round(sec||0); const m=Math.floor(sec/60), s=sec%60; return m+":"+String(s).padStart(2,"0"); }
 
 /* User picked a real file: create object URL, read real duration, advance to Processing */
 function uPickFile(input){
@@ -152,6 +153,7 @@ function uPickFile(input){
     return;
   }
 
+  revokeUploadUrl();   // release the previous pick's blob URL before replacing
   cstate.upload = freshUpload();
   cstate.upload.file = file;
   cstate.upload.url = URL.createObjectURL(file);
@@ -181,6 +183,7 @@ function uProbeQueueItem(u){
   const metaTimer = setTimeout(() => {
     metaTimedOut = true;
     u._probing = false;
+    v.onloadedmetadata = null; v.onerror = null; v.src = "";   // stop loading, release
     toast("Could not read video metadata (timed out) — you can still publish.");
     render();
   }, 8000);
@@ -189,7 +192,7 @@ function uProbeQueueItem(u){
     if(metaTimedOut) return;   // timeout already gave up and rendered; ignore late event
     clearTimeout(metaTimer);
     u.duration = fmtDur(v.duration);
-    u.durationSec = v.duration;
+    u.durationSec = isFinite(v.duration) ? v.duration : 0;
     u.width = v.videoWidth;
     u.height = v.videoHeight;
     if (v.videoHeight && v.videoWidth) {
@@ -197,6 +200,16 @@ function uProbeQueueItem(u){
     }
 
     const dur = v.duration;
+    if(!isFinite(dur) || dur <= 0){
+      // Streams/odd containers report Infinity/0 — seeking to NaN stamps would
+      // just burn six 2s timeouts in captureFrames. Skip frame capture, but
+      // tell the creator why the thumbnail grid is empty instead of leaving
+      // them guessing.
+      u._probing = false; v.onerror = null; v.src = "";
+      toast("Couldn't extract thumbnails from this file — pick one manually or publish without one.");
+      render();
+      return;
+    }
     const stamps = [0.05,0.15,0.30,0.50,0.70,0.85].map(p => Math.max(0.05, Math.min(dur * p, dur - 0.1)));
 
     captureFrames(v, stamps, (thumbs) => {
@@ -210,7 +223,9 @@ function uProbeQueueItem(u){
   v.onerror = () => {
     clearTimeout(metaTimer);
     u._probing = false;
+    v.onerror = null; v.src = "";   // null first — clearing src can re-fire error
     toast("Could not read: " + (u.title || "video"));
+    render();   // clear the "Extracting video metadata…" overlay
   };
 }
 
@@ -273,6 +288,7 @@ function uChooseThumb(idx){ cstate.upload.thumb = cstate.upload.thumbOptions[idx
 function uCaptureCurrentFrame(){
   const v = document.getElementById("thumbScrubVideo");
   if(!v) return;
+  if(v.readyState < 2){ toast("Video frame not ready yet — scrub again in a moment"); return; }
   const canvas = document.createElement("canvas");
   const w = v.videoWidth||320, h = v.videoHeight||180;
   canvas.width = 320; canvas.height = Math.round(320*h/w);
@@ -289,24 +305,33 @@ function uCaptureCurrentFrame(){
 async function captureClip(videoUrl, startTime, secs){
   return new Promise((resolve, reject)=>{
     const v = document.createElement("video");
+    let settled = false;
+    const fail = (msg)=>{ if(settled) return; settled = true; clearTimeout(watchdog); v.onerror=null; v.onloadeddata=null; v.onseeked=null; v.src=""; reject(new Error(msg)); };
+    const ok = (blob)=>{ if(settled) return; settled = true; clearTimeout(watchdog); resolve(blob); };
+    // loadeddata/seeked can silently never fire (same failure class as the
+    // probe/captureFrames timeouts) — without this the promise pends forever
+    // and the "capturing" spinner is stuck for the rest of the session.
+    const watchdog = setTimeout(()=>fail("Clip capture timed out"), secs*1000 + 10000);
     v.src = videoUrl; v.muted = true; v.preload = "auto";
     v.onloadeddata = ()=>{
       v.currentTime = startTime;
       v.onseeked = ()=>{
+        v.onseeked = null;   // one-shot — rec playback re-seeks must not re-enter
         let stream;
         try{ stream = v.captureStream(); }
-        catch(e){ reject(new Error("captureStream not supported in this browser")); return; }
+        catch(e){ fail("captureStream not supported in this browser"); return; }
         const mime = ["video/webm;codecs=vp8","video/webm"].find(t=>MediaRecorder.isTypeSupported(t)) || "video/webm";
         const rec = new MediaRecorder(stream, {mimeType:mime});
         const chunks = [];
         rec.ondataavailable = e=>{ if(e.data.size>0) chunks.push(e.data); };
-        rec.onstop = ()=>resolve(new Blob(chunks, {type: mime.split(";")[0]}));
+        rec.onerror = ()=>fail("Recording failed");
+        rec.onstop = ()=>ok(new Blob(chunks, {type: mime.split(";")[0]}));
         rec.start(200);
         v.play().catch(()=>{});
-        setTimeout(()=>{ rec.stop(); v.pause(); v.src=""; }, secs*1000+200);
+        setTimeout(()=>{ try{ rec.stop(); }catch(_){} v.pause(); v.src=""; }, secs*1000+200);
       };
     };
-    v.onerror = ()=>reject(new Error("Video load failed"));
+    v.onerror = ()=>fail("Video load failed");
   });
 }
 
@@ -329,7 +354,7 @@ let _publishing = false;
 
 function dataURLtoFile(dataurl, filename) {
   const arr = dataurl.split(',');
-  const mime = arr[0].match(/:(.*?);/)[1];
+  const mime = (arr[0].match(/:(.*?);/) || [])[1] || "image/jpeg";
   const bstr = atob(arr[arr.length - 1]);
   let n = bstr.length;
   const u8arr = new Uint8Array(n);
@@ -395,8 +420,11 @@ async function uPublish(){
       let thumbP = Promise.resolve({ url: u.thumb || "" });
       if (u.thumb && u.thumb.startsWith("data:")) {
         const thumbFile = dataURLtoFile(u.thumb, `thumb_${localId}.jpg`);
+        // On failure fall back to NO manifest thumb (viewer lazy-loads a video
+        // frame instead) — never push a ~300KB base64 data URL into the shared
+        // manifest that every visitor downloads.
         thumbP = ShAPI.uploadVideo(thumbFile, u.title + " Thumbnail", () => {})
-          .catch(e => { console.error("Thumbnail upload failed, using data URL:", e); return { url: u.thumb }; });
+          .catch(e => { console.error("Thumbnail upload failed, omitting from manifest:", e); return { url: "" }; });
       }
 
       const clipPromises = [];
@@ -418,7 +446,12 @@ async function uPublish(){
       const vid = DATA.videos.find(v=>v.id===localId);
       if(vid) {
         vid.src = cdnSrc;
-        vid.thumb = thumbUrl;
+        // If the thumb upload failed, thumbUrl is "" — keep showing the local
+        // data-URL thumb in THIS session's UI only, rather than flashing to
+        // blank. The manifest itself (what everyone else sees) correctly has
+        // no thumb in that case; this local view self-heals on next reload
+        // once the catalog re-fetches from the manifest.
+        vid.thumb = thumbUrl || u.thumb;
       }
 
       // Server-verified compliance gate: real SHA-256 of the uploaded bytes,
@@ -492,6 +525,7 @@ async function uPublish(){
     }
 
     u.uploading = false;
+    revokeUploadUrl();   // no-op if an upload-failed stub still previews from the blob
     cstate.upload = freshUpload();
     cstate.page = "content";
     render();
@@ -503,7 +537,11 @@ async function uPublish(){
 function retryUpload(id){
   // Remove the failed stub and re-open the upload wizard so user can re-pick the file
   const idx = DATA.videos.findIndex(v=>v.id===id);
-  if(idx>=0) DATA.videos.splice(idx,1);
+  if(idx>=0){
+    const stub = DATA.videos[idx];
+    DATA.videos.splice(idx,1);
+    if(stub.src && stub.src.startsWith("blob:")){ try{ URL.revokeObjectURL(stub.src); }catch(_){} }
+  }
   cstate.upload = freshUpload();
   cstate.page = "upload";
   toast("Please re-select your video file to retry");
@@ -524,21 +562,22 @@ function uUpdateScrub(val) {
 }
 
 function uCancelUpload() {
+  revokeUploadUrl();
   cstate.upload = freshUpload();
   render();
 }
 
 function renderDashboard(){
   const r=DATA.revenue;
-  return `<h1>Dashboard</h1><p class="sub">Welcome back, Alex — here's how your channel is doing.</p>
+  return `<h1>Dashboard</h1><p class="sub">Welcome back, ${esc(creator?.name||"Creator")} — here's how your channel is doing.</p>
     <div class="metrics">
       ${metric("Revenue (mo)","$"+((r.history&&r.history.length?r.history[r.history.length-1].v:0)).toLocaleString(),"18%",true)}
-      ${metric("Subscribers",fmt(DATA.creators.find(c=>c.id===MY).subs),"4.2%",true)}
+      ${metric("Subscribers",fmt(DATA.creators.find(c=>c.id===MY)?.subs ?? 0),"4.2%",true)}
       ${metric("Views (7d)",fmt(DATA.analytics.views7d.reduce((a,b)=>a+b,0)),"9%",true)}
       ${metric("Watch Time","54.2K min","6%",true)}
       ${metric("CTR","7.8%","0.4%",true)}
       ${metric("Engagement","12.4%","1.1%",true)}
-      ${metric("Comments",DATA.comments.length,"3",true)}
+      ${metric("Comments",(DATA.comments||[]).length,"3",true)}
       ${metric("Growth","+312","subs",true)}
     </div>
     <div class="grid" style="grid-template-columns:2fr 1fr;margin-top:18px">
@@ -740,7 +779,7 @@ function renderRevenue(){
 }
 
 function renderSubscribers(){
-  return `<h1>Subscribers</h1><p class="sub">${fmt(DATA.creators.find(c=>c.id===MY).subs)} total</p>
+  return `<h1>Subscribers</h1><p class="sub">${fmt(DATA.creators.find(c=>c.id===MY)?.subs ?? 0)} total</p>
     <div class="panel"><h3 style="margin-top:0">Growth</h3>${barChart([820,910,980,1050,1140,1240],["Jan","Feb","Mar","Apr","May","Jun"])}</div>
     <h3>Recent Subscribers</h3>
     <div class="panel" style="padding:0"><table class="data"><thead><tr><th>User</th><th>Tier</th><th>Joined</th></tr></thead><tbody>
@@ -750,8 +789,8 @@ function renderSubscribers(){
 
 function renderComments(){
   return `<h1>Comments</h1><p class="sub">Across all your videos</p>
-    ${DATA.comments.map(m=>`<div class="panel" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
-      <div><b>${esc(m.user)}</b> <span class="small">on "${esc(DATA.videos.find(v=>v.id===m.video)?.title)}"</span><div style="font-size:13px;margin-top:4px">${esc(m.text)}</div></div>
+    ${(DATA.comments||[]).map(m=>`<div class="panel" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+      <div><b>${esc(m.user)}</b> <span class="small">on "${esc(DATA.videos.find(v=>v.id===m.video)?.title || "removed video")}"</span><div style="font-size:13px;margin-top:4px">${esc(m.text)}</div></div>
       <div><button class="chip" onclick="toast('Replied (simulated)')">Reply</button> <button class="chip" onclick="toast('Hearted')">♥</button></div>
     </div>`).join("")}`;
 }
@@ -871,8 +910,8 @@ function renderProfile(){
       <button class="btn sm ghost" onclick="editProfile()" style="align-self:flex-start">Edit</button>
     </div>
     <div class="metrics" style="margin-top:16px">
-      ${metric("Plan",c.plan.charAt(0).toUpperCase()+c.plan.slice(1))}
-      ${metric("Member since",c.joined)}
+      ${metric("Plan",esc(c.plan.charAt(0).toUpperCase()+c.plan.slice(1)))}
+      ${metric("Member since",esc(c.joined))}
       ${metric("Your videos",myVideos().length)}
       ${metric("Category",esc(c.category))}
     </div>
@@ -883,8 +922,10 @@ function renderProfile(){
 function syncChrome(){
   const gated = !creator;
   // Hide sidebar nav + upload button until subscribed
-  document.querySelector(".sidebar").style.display = gated ? "none" : "";
-  document.querySelector(".topbar-actions").style.visibility = gated ? "hidden" : "";
+  const sidebar = document.querySelector(".sidebar");
+  if(sidebar) sidebar.style.display = gated ? "none" : "";
+  const topbarActions = document.querySelector(".topbar-actions");
+  if(topbarActions) topbarActions.style.visibility = gated ? "hidden" : "";
   const navStudio = document.getElementById("quickNavStudioLinks");
   if(navStudio) navStudio.style.display = gated ? "none" : "block";
   if(creator){
@@ -943,7 +984,7 @@ document.addEventListener("click", (e) => {
   const qBtn = e.target.closest("#quickNavBtn");
   const dropdown = document.getElementById("quickNavDropdown");
   
-  if (qBtn) {
+  if (qBtn && dropdown) {
     e.stopPropagation();
     dropdown.classList.toggle("open");
   } else if (dropdown && !e.target.closest("#quickNavDropdown")) {
@@ -963,7 +1004,7 @@ render();
 
 // catalog.js ships only a small seed for fast first paint; pull in the full
 // video list (code-split chunk) and re-render so the creator's full library shows.
-loadFullCatalog().then(render);
+loadFullCatalog().then(render).catch(e=>console.error("Full catalog load failed (seed catalog still shown):", e));
 
 /* ---- Attach functions invoked from inline HTML event handler attributes ---- */
 window.go = go;
