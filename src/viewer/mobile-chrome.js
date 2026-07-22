@@ -104,6 +104,21 @@ function onClick(e){
     if(!wrap) return;
     const open = wrap.classList.toggle("open");
     trigger.setAttribute("aria-expanded", open ? "true" : "false");
+  } else if(action === "toggle-desc"){
+    // Watch page description: clamped to 2 lines by default on mobile
+    // (.watch-desc-wrap CSS), this just lifts the clamp and swaps the label.
+    const wrap = trigger.closest(".watch-desc-wrap");
+    if(!wrap) return;
+    const open = wrap.classList.toggle("expanded");
+    trigger.textContent = open ? "…less" : "…more";
+    trigger.setAttribute("aria-expanded", open ? "true" : "false");
+  } else if(action === "toggle-comments"){
+    // Comments preview crop on mobile: same idea, lifts a max-height clamp on
+    // #commentList without touching the id itself or its content.
+    const wrap = trigger.closest(".comment-list-wrap");
+    if(!wrap) return;
+    const open = wrap.classList.toggle("expanded");
+    trigger.setAttribute("aria-expanded", open ? "true" : "false");
   }
 }
 

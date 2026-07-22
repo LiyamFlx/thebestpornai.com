@@ -49,7 +49,10 @@ export function renderWatch(){
           ${catList.map(c=>`<span class="vtag vtag-cat" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</span>`).join("")}
           ${tagList.map(t=>`<span class="vtag vtag-tag" onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}
         </div>` : ''}
-        ${v.desc ? `<p class="watch-desc">${esc(v.desc)}</p>` : ''}
+        ${v.desc ? `<div class="watch-desc-wrap">
+          <p class="watch-desc" id="watchDesc">${esc(v.desc)}</p>
+          <button class="watch-desc-more" data-mobile-action="toggle-desc" aria-expanded="false">…more</button>
+        </div>` : ''}
 
         <div class="watch-actions">
           <div class="vote-pill">
@@ -90,14 +93,17 @@ export function renderWatch(){
             <input class="fld" id="cbox" placeholder="Add a comment…" onkeydown="if(event.key==='Enter')addComment(${v.id})"/>
             <button class="btn" onclick="addComment(${v.id})">Comment</button>
           </div>
-          <div class="comment-list" id="commentList">
-            ${renderCommentList(v)}
+          <div class="comment-list-wrap" id="commentListWrap">
+            <div class="comment-list" id="commentList">
+              ${renderCommentList(v)}
+            </div>
+            ${cms.length > 2 ? `<button class="comment-list-more" data-mobile-action="toggle-comments" aria-expanded="false">View all ${cms.length} comments</button>` : ''}
           </div>
         </div>
 
         <div class="related-below">
-          <h3>Related Videos</h3>
-          <div class="grid">${related.map(u=>videoCard(u)).join("")}</div>
+          <h3>Up Next</h3>
+          ${related.map(suggestedCard).join("")}
         </div>
       </div>
       <div class="watch-side">

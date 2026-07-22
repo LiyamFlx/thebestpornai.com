@@ -14,7 +14,7 @@ const CAT_ROW_MAX = 24;
 
 export function listPage(title, list, emptyMsg){
   return `<h2>${title}</h2><p class="sub">${list.length} item${list.length!==1?'s':''}</p>
-    ${list.length?pagedGrid(list, v=>videoCard(v)):`<div class="empty">${emptyMsg}</div>`}`;
+    ${list.length?pagedGrid(list, v=>videoCard(v,{layout:'row'}), {cls:'video-list'}):`<div class="empty">${emptyMsg}</div>`}`;
 }
 
 export function renderCategories(){
@@ -26,7 +26,7 @@ export function renderSubs(){
   const list = pubVideos().filter(v=>vstate.subs.includes(v.creator));
   return `<h2>Subscriptions</h2><p class="sub">Latest from creators you follow</p>
     <div class="pill-row">${DATA.creators.filter(c=>vstate.subs.includes(c.id)).map(c=>`<span class="filter-pill active">${esc(c.name)}</span>`).join("")}</div>
-    ${list.length?pagedGrid(list, v=>videoCard(v)):`<div class="empty">Nothing from your subscriptions yet.</div>`}`;
+    ${list.length?pagedGrid(list, v=>videoCard(v,{layout:'row'}), {cls:'video-list'}):`<div class="empty">Nothing from your subscriptions yet.</div>`}`;
 }
 
 export function renderProfile(){
@@ -157,5 +157,5 @@ export function renderSearch(){
     <p class="sub">${vids.length} video${vids.length!==1?'s':''}</p>
     ${related.length?`<div class="pill-row related-tags">${related.map(t=>`<span class="filter-pill" onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}</div>`:''}
     ${crs.length?`<h3>Creators</h3><div class="pill-row">${crs.map(c=>`<span class="filter-pill" onclick="openCreator('${jsq(c.id)}')">${esc(c.name)} ${c.verified?'✔️':''}</span>`).join("")}</div>`:''}
-    <h3>Videos</h3>${vids.length?pagedGrid(vids, v=>videoCard(v)):emptyState(`No videos found for “${raw}”.`, POPULAR_TAGS.slice(0,8))}`;
+    <h3>Videos</h3>${vids.length?pagedGrid(vids, v=>videoCard(v,{layout:'row'}), {cls:'video-list'}):emptyState(`No videos found for “${raw}”.`, POPULAR_TAGS.slice(0,8))}`;
 }

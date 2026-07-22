@@ -104,8 +104,27 @@ export function videoCard(v, opts={}){
           <button class="card-act" title="Watch Later" data-later-id="${v.id}" aria-pressed="false" onclick="event.stopPropagation();toggleLater(${v.id})">＋</button>
           <button class="card-act" title="Share" aria-label="Share this video" onclick="event.stopPropagation();shareVideo(${v.id})">↗</button>
         </div>`;
+  // 'row' is the YouTube-Home-style single-column card (thumb full-width on
+  // top, a small creator avatar + two-line identity block below); 'grid' is
+  // the existing default (2-up dense browse mode). Purely additive: the
+  // avatar is a new element, but .card/.video-thumb/.title/.meta/.tag-chips
+  // and the data-fav-id/data-later-id contract are unchanged either way, so
+  // markToggleStates()/reflectSetToggle() and hover-preview wiring keep
+  // working without modification.
+  const isRow = opts.layout === 'row';
+  const cName = creatorName(v.creator);
+  const metaBlock = isRow
+    ? `<div class="card-identity">
+        <div class="avatar-sm card-avatar">${esc((cName||"?")[0])}</div>
+        <div class="card-text">
+          <div class="title">${esc(v.title)}</div>
+          <div class="meta"><span class="meta-creator">${esc(cName)}</span><span class="meta-stats">${fmt(v.views)} views</span></div>
+        </div>
+      </div>`
+    : `<div class="title">${esc(v.title)}</div>
+      <div class="meta">${esc(cName)} • ${fmt(v.views)} views</div>`;
   return `
-    <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">
+    <div class="card${isRow ? ' card--row' : ''}" onclick="${opts.onClick || `openVideo(${v.id})`}">
       <div class="video-thumb ${v.type==='original'?'original':''}">
         ${badge?`<span class="corner-badge">${esc(badge)}</span>`:``}
         ${thumb}
@@ -114,8 +133,7 @@ export function videoCard(v, opts={}){
         ${v.duration?`<span class="dur-badge">${esc(v.duration)}</span>`:``}
         ${v.src?`<span class="play-badge">▶</span>`:``}
       </div>
-      <div class="title">${esc(v.title)}</div>
-      <div class="meta">${esc(creatorName(v.creator))} • ${fmt(v.views)} views</div>
+      ${metaBlock}
       ${opts.hideTags ? `` : tagChips(v.tags, { max: 3, stop: true })}
       ${opts.extra ? opts.extra(v) : ``}
     </div>`;

@@ -76,7 +76,7 @@ function _renderHomeBody(){
     return `
       ${homeFilterBar()}
       <h3>${esc(cat)} <span class="small">(${matches.length})</span></h3>
-      ${shown.length ? `<div class="grid">${shown.map(v=>videoCard(v)).join("")}</div>` : emptyState(`No ${cat} videos yet.`, POPULAR_TAGS.filter(t=>t!==cat).slice(0,8))}
+      ${shown.length ? `<div class="video-list">${shown.map(v=>videoCard(v,{layout:'row'})).join("")}</div>` : emptyState(`No ${cat} videos yet.`, POPULAR_TAGS.filter(t=>t!==cat).slice(0,8))}
       ${matches.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more</button>` : ''}
     `;
   }
@@ -88,7 +88,7 @@ function _renderHomeBody(){
     const all = sortedVideos(sort).slice(0, vstate.limit);
     return `
       ${homeFilterBar()}
-      ${all.length ? `<h3>${label}</h3><div class="grid">${all.map(v=>videoCard(v)).join("")}</div>` : `<div class="empty">No videos yet.</div>`}
+      ${all.length ? `<h3>${label}</h3><div class="video-list">${all.map(v=>videoCard(v,{layout:'row'})).join("")}</div>` : `<div class="empty">No videos yet.</div>`}
       ${pubVideos().length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
     `;
   }

@@ -28,7 +28,7 @@ export function renderCreatorPage(){
       ${top5.length ? `<h3 style="margin-top:28px">Top Videos</h3><div class="row-scroll">${top5.map(v=>videoCard(v)).join("")}</div>` : ''}
       <h3 style="margin-top:20px">All Videos <span class="count-bubble">${videos.length}</span></h3>
       ${videos.length
-        ? pagedGrid(videos, v=>videoCard(v))
+        ? pagedGrid(videos, v=>videoCard(v,{layout:'row'}), {cls:'video-list'})
         : `<div class="empty">No videos yet.</div>`}
     </div>`;
 }
