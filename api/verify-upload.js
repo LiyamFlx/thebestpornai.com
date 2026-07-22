@@ -86,6 +86,25 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: "missing or expired attestation — call /api/attest first" });
   }
 
+  // Idempotency: `path` is unique per upload attempt (presign.js mints a
+  // fresh up_<timestamp>_<random> key every time) and bunny_path is a unique
+  // column, so it doubles as a natural idempotency key. The client retries
+  // this call on network failure even when the server actually completed
+  // the first attempt and only the RESPONSE got lost — without this check
+  // that retry would insert a second row for the same file (the same-client
+  // dup-check further down is intentionally bypassed for the legitimate
+  // manual-retry case, so it would not catch this).
+  try {
+    const existingRes = await serviceRequest(`/uploads?bunny_path=eq.${encodeURIComponent(path)}&select=id,status,sha256_head`);
+    const existing = existingRes.ok ? await existingRes.json() : [];
+    if (Array.isArray(existing) && existing[0]) {
+      return res.status(200).json({ ok: true, uploadId: existing[0].id, status: existing[0].status, sha256: existing[0].sha256_head });
+    }
+  } catch (e) {
+    // Lookup failure: fall through to the normal path rather than blocking
+    // a genuinely-new upload on a transient read error here.
+  }
+
   const s3 = new S3Client({
     region: "auto",
     endpoint: R2_ENDPOINT,

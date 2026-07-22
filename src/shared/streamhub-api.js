@@ -254,6 +254,39 @@ const ShAPI = {
      Same-origin (`/api/...`) — the site and functions are both on Vercel now. */
   uploadApiBase: (typeof SH_UPLOAD_API_BASE!=="undefined" ? SH_UPLOAD_API_BASE : ""),
 
+  /* Shared fetch wrapper for the upload pipeline's own /api/* calls (attest,
+     verify-upload, save-upload) — NOT the R2 PUT itself, which has its own
+     progress/error handling and must never be silently retried mid-transfer.
+     By the time these run the file is already safely on R2, so a transient
+     network hiccup on the follow-up call shouldn't force a full re-upload:
+     one retry after a short backoff, plus a generous timeout since
+     verify-upload streams the file back from R2 to hash it server-side and
+     can legitimately take a while for a large real video. */
+  async _uploadApiFetch(pathSuffix, body, { timeoutMs = 90000 } = {}){
+    const attempt = async ()=>{
+      const ctrl = new AbortController();
+      const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+      try {
+        return await fetch((this.uploadApiBase||"") + pathSuffix, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal: ctrl.signal,
+        });
+      } finally { clearTimeout(t); }
+    };
+    try {
+      return await attempt();
+    } catch(e){
+      // Network-level failure (abort/timeout/DNS) — retry once. A real HTTP
+      // error response (4xx/5xx) still reaches the caller on the first try,
+      // since fetch() only throws for network failures, not error statuses;
+      // callers already handle non-ok statuses themselves.
+      await new Promise(r=>setTimeout(r, 1500));
+      return await attempt();
+    }
+  },
+
   /* Consent/rights attestation — MUST be called (and its returned token
      supplied to verifyUpload) before an upload is accepted at all.
      `statements` should reflect what the consent UI actually showed/checked
@@ -263,11 +296,7 @@ const ShAPI = {
   _attestToken: null, _attestClientId: null,
   async attestUpload(statements){
     const clientId = shClientId();
-    const r = await fetch((this.uploadApiBase||"") + "/api/attest", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clientId, confirmed: true, statements }),
-    });
+    const r = await this._uploadApiFetch("/api/attest", { clientId, confirmed: true, statements }, { timeoutMs: 15000 });
     if(!r.ok){
       let msg = "attest " + r.status;
       try { const j = await r.json(); if(j.error) msg = j.error; } catch(_){}
@@ -288,14 +317,10 @@ const ShAPI = {
     if(!this._attestToken || this._attestClientId !== shClientId()){
       throw new Error("call attestUpload() before verifyUpload()");
     }
-    const r = await fetch((this.uploadApiBase||"") + "/api/verify-upload", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        clientId: this._attestClientId, path, attestToken: this._attestToken,
-        title, width, height, durationS,
-      }),
-    });
+    const r = await this._uploadApiFetch("/api/verify-upload", {
+      clientId: this._attestClientId, path, attestToken: this._attestToken,
+      title, width, height, durationS,
+    }, { timeoutMs: 90000 });
     const j = await r.json().catch(()=>({}));
     if(!r.ok || j.ok === false){
       throw new Error(j.reason || j.error || ("verify-upload " + r.status));
@@ -305,11 +330,7 @@ const ShAPI = {
 
   async uploadVideo(file, title, onProgress){
     // 1. Ask the server to sign a one-time PUT URL for this file.
-    const presignRes = await fetch((this.uploadApiBase||"") + "/api/presign", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ filename: file.name || "video.mp4", size: file.size }),
-    });
+    const presignRes = await this._uploadApiFetch("/api/presign", { filename: file.name || "video.mp4", size: file.size }, { timeoutMs: 15000 });
     if(!presignRes.ok){
       let msg = "presign " + presignRes.status;
       try { const j = await presignRes.json(); if(j.error) msg = j.error; } catch(_){}
@@ -317,14 +338,19 @@ const ShAPI = {
     }
     const { putUrl, contentType, src, url, path } = await presignRes.json();
 
-    // 2. PUT the raw bytes directly to R2 with progress.
+    // 2. PUT the raw bytes directly to R2 with progress. Without xhr.timeout a
+    // genuinely stalled transfer (connection silently dies mid-upload, no
+    // error, no more progress events) hangs forever — neither onload nor
+    // onerror ever fires on their own.
     await new Promise((resolve, reject)=>{
       const xhr = new XMLHttpRequest();
       xhr.open("PUT", putUrl, true);
+      xhr.timeout = 20 * 60 * 1000;   // 20 min ceiling for very large files on slow connections
       xhr.setRequestHeader("Content-Type", contentType || "application/octet-stream");
       if(onProgress) xhr.upload.onprogress = e=>{ if(e.lengthComputable) onProgress(Math.round(e.loaded/e.total*100)); };
       xhr.onload = ()=> (xhr.status>=200 && xhr.status<300) ? resolve() : reject(new Error("upload "+xhr.status));
       xhr.onerror = ()=> reject(new Error("upload network error"));
+      xhr.ontimeout = ()=> reject(new Error("upload timed out — check your connection and try again"));
       xhr.send(file);
     });
     return { ok:true, src, url, path };
@@ -333,12 +359,15 @@ const ShAPI = {
   /* Publish the uploaded video's metadata to the shared R2 manifest so it
      appears in every visitor's feed. No sign-in required (open uploads). */
   async saveToManifest(entry){
-    const r = await fetch((this.uploadApiBase||"") + "/api/save-upload", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(entry),
-    });
-    if(!r.ok) throw new Error("save manifest HTTP " + r.status);
+    // Longer timeout + retry: this does a read-modify-write of the whole R2
+    // manifest with optimistic-concurrency retries server-side, which can
+    // legitimately take a few seconds under contention.
+    const r = await this._uploadApiFetch("/api/save-upload", entry, { timeoutMs: 30000 });
+    if(!r.ok){
+      let msg = "save manifest HTTP " + r.status;
+      try { const j = await r.json(); if(j.error) msg = j.error; } catch(_){}
+      throw new Error(msg);
+    }
     return await r.json();
   },
 
