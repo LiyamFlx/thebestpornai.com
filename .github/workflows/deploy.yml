@@ -41,18 +41,26 @@ jobs:
           url=$(vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}")
           echo "deployment_url=$url" >> "$GITHUB_OUTPUT"
 
-      - name: Verify thebestpornai.com is serving this commit
+      - name: Verify www.thebestpornai.com is serving this commit
+        # Checked against www, not the bare apex domain: as of 2026-07-22 the
+        # apex (thebestpornai.com with no www) is on a DNS A-record pointing
+        # at a third-party forwarding service, not Vercel's edge network —
+        # it 301-redirects "/" to www but 404s on every other path,
+        # including this one. That's a DNS/registrar fix, not something a
+        # deploy workflow can verify around. www resolves correctly to
+        # Vercel (CNAME to vercel-dns) and is the reliable check until the
+        # apex DNS is corrected — see the Vercel project's Domains settings.
         run: |
           expected="${{ github.sha }}"
-          echo "Waiting for thebestpornai.com to report commit $expected..."
+          echo "Waiting for www.thebestpornai.com to report commit $expected..."
           for i in $(seq 1 12); do
-            served=$(curl -fsS "https://thebestpornai.com/api/version" 2>/dev/null | jq -r '.sha // empty')
+            served=$(curl -fsS "https://www.thebestpornai.com/api/version" 2>/dev/null | jq -r '.sha // empty')
             if [ "$served" = "$expected" ]; then
-              echo "Confirmed: thebestpornai.com is serving $expected"
+              echo "Confirmed: www.thebestpornai.com is serving $expected"
               exit 0
             fi
             echo "  attempt $i: got '${served:-<none>}', retrying in 10s..."
             sleep 10
           done
-          echo "::error::thebestpornai.com is NOT serving commit $expected after 2 minutes (last seen: '${served:-<none>}'). Deployment call reported success (${{ steps.deploy.outputs.deployment_url }}) but the live domain didn't update — investigate the Vercel project's Git integration / production alias."
+          echo "::error::www.thebestpornai.com is NOT serving commit $expected after 2 minutes (last seen: '${served:-<none>}'). Deployment call reported success (${{ steps.deploy.outputs.deployment_url }}) but the live domain didn't update — investigate the Vercel project's Git integration / production alias."
           exit 1
