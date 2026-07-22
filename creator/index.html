@@ -8,16 +8,19 @@
 <meta name="theme-color" content="#E50914"/>
 <meta name="robots" content="noindex, nofollow"/>
 
-<!-- CSP: uncomment and set your Supabase project host before shipping.
-     Studio pages expose API keys + revenue — inline handlers are gone below,
-     so a strict policy is now possible. Prefer sending this as an HTTP header.
+<!-- CSP: uncomment before shipping. Studio pages expose API keys + revenue —
+     inline handlers are gone below, so a strict policy is now possible.
+     Prefer sending this as an HTTP header instead of a meta tag if possible.
+     connect-src MUST include the R2 S3-style endpoint (api/presign.js issues
+     PUT URLs directly against it, not the pub-...r2.dev public dev host) or
+     the upload's direct-to-R2 PUT will be silently blocked by the browser.
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
   script-src 'self';
   style-src 'self';
-  img-src 'self' https://streamhub-media.b-cdn.net https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev data:;
-  media-src 'self' https://streamhub-media.b-cdn.net https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev blob:;
-  connect-src 'self' https://streamhub-media.b-cdn.net https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev https://YOUR-PROJECT.supabase.co;
+  img-src 'self' https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev data:;
+  media-src 'self' https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev blob:;
+  connect-src 'self' https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev https://f0094d08f5ce974044087c377652c2ad.r2.cloudflarestorage.com https://dabfxysxcngijcxxekzc.supabase.co;
   frame-src https://www.youtube.com;
   base-uri 'self'; form-action 'self'; frame-ancestors 'none';
 "/>

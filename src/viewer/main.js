@@ -3,7 +3,7 @@ import { ShAuth } from "../shared/streamhub-api.js";
 import { ageGate } from "../shared/age-gate.js";
 import { mergeLiveUploads } from "../upload/catalog-overlay.js";
 
-import { vstate, onWatch } from "./state.js";
+import { vstate } from "./state.js";
 import { applyHash, initRouter } from "./router.js";
 import { render } from "./render.js";
 import {
