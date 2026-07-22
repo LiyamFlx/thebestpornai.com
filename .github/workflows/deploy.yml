@@ -10,6 +10,7 @@ name: Deploy to Production
 on:
   push:
     branches: [main]
+  workflow_dispatch: {}   # allows a manual re-run from the Actions tab without an empty commit
 
 concurrency:
   group: deploy-production
