@@ -1,6 +1,11 @@
 import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { serviceRequest } from "../lib/supabase-service.js";
 
+// Up to 5 read-modify-write round trips to R2 with jittered backoff under
+// contention — give it real headroom rather than relying on platform
+// defaults, matching api/verify-upload.js.
+export const config = { maxDuration: 60 };
+
 export default async function handler(req, res) {
   // Strict CORS checking
   const allowedOrigins = [

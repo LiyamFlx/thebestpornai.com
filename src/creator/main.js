@@ -17,7 +17,7 @@ function freshUpload(){ return {step:0, title:"", desc:"", visibility:"public", 
   q_cat:"", q_tool:"", q_tag:"",
   sample5:null, sample30:null, capturingClip:"",
   rightsConfirmed:false,
-  progress:0, uploading:false}; }   // search query per picker
+  progress:0, uploading:false, verifying:false}; }   // search query per picker
 let cstate = { page:"dashboard", upload:freshUpload(), editingProfile:false };
 // Inline oninput/onclick/onchange handlers in the rendered HTML run in GLOBAL
 // scope (type="module" keeps module vars private), so cstate must be on window
@@ -457,7 +457,11 @@ async function uPublish(){
       // Server-verified compliance gate: real SHA-256 of the uploaded bytes,
       // banned/duplicate-hash check, CSAM interception, trust-tier read.
       // Throws (banned/duplicate/etc.) — caught below, entry is NOT saved to
-      // the manifest if this fails.
+      // the manifest if this fails. Can legitimately take a while for a
+      // large file (server streams it back from R2 to hash it) — flag this
+      // distinct phase so the UI doesn't look stuck at a static "Saving
+      // metadata..." for minutes with no explanation.
+      u.verifying = true; render();
       const verified = await ShAPI.verifyUpload({
         path: uploadInfo.path,
         title: u.title || "Untitled",
@@ -465,6 +469,7 @@ async function uPublish(){
         height: u.height || null,
         durationS: u.durationSec || null,
       });
+      u.verifying = false;
 
       // Save to the manifest via the secure serverless endpoint so the video
       // appears for visitors — status is decided by verifyUpload's result
@@ -705,7 +710,9 @@ function renderUpload() {
               <div class="upload-progress-bar" id="uploadProgressBar" style="width:${u.progress}%; height:100%; background:linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.1s ease;"></div>
             </div>
             <p class="small" style="margin:8px 0 0 0; color:var(--muted);">
-              ${u.progress < 100 ? 'Transferring video file packets...' : '✓ Upload complete! Saving metadata...'}
+              ${u.progress < 100 ? 'Transferring video file packets...'
+                : u.verifying ? '✓ Upload complete! Verifying file (this can take a few minutes for large videos, please don’t close this tab)...'
+                : '✓ Upload complete! Saving metadata...'}
             </p>
           </div>
         ` : ''}

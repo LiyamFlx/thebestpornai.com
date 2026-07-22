@@ -317,10 +317,14 @@ const ShAPI = {
     if(!this._attestToken || this._attestClientId !== shClientId()){
       throw new Error("call attestUpload() before verifyUpload()");
     }
+    // Timeout must exceed the server's own maxDuration (300s in
+    // api/verify-upload.js, since it streams+hashes the full file from R2
+    // and retries once on failure) — otherwise the client gives up and
+    // retries a request the server was still legitimately working on.
     const r = await this._uploadApiFetch("/api/verify-upload", {
       clientId: this._attestClientId, path, attestToken: this._attestToken,
       title, width, height, durationS,
-    }, { timeoutMs: 90000 });
+    }, { timeoutMs: 320000 });
     const j = await r.json().catch(()=>({}));
     if(!r.ok || j.ok === false){
       throw new Error(j.reason || j.error || ("verify-upload " + r.status));

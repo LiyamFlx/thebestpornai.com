@@ -30,10 +30,11 @@ import { verifyAttestToken } from "../lib/attest-token.js";
 import { csamCheck } from "../lib/csam.js";
 
 // Streaming a full video back from R2 to hash it can take a while for large
-// real files — give this function real headroom instead of relying on the
-// platform default (a legitimate 502 was observed in production during a
-// slow R2 read that this, plus the retry in hashR2Object below, addresses).
-export const config = { maxDuration: 120 };
+// real files — presign.js allows up to 2GB, and hashR2Object below retries
+// once on failure (up to ~2x the read time in the worst case), so give this
+// function real headroom instead of relying on the platform default (a
+// legitimate 502 was observed in production during a slow R2 read).
+export const config = { maxDuration: 300 };
 
 // Only images/video that presign.js would have issued a key for; large video
 // files are hashed via a streaming digest so memory stays flat regardless of
@@ -86,14 +87,18 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: "missing or expired attestation — call /api/attest first" });
   }
 
-  // Idempotency: `path` is unique per upload attempt (presign.js mints a
-  // fresh up_<timestamp>_<random> key every time) and bunny_path is a unique
-  // column, so it doubles as a natural idempotency key. The client retries
-  // this call on network failure even when the server actually completed
-  // the first attempt and only the RESPONSE got lost — without this check
-  // that retry would insert a second row for the same file (the same-client
-  // dup-check further down is intentionally bypassed for the legitimate
-  // manual-retry case, so it would not catch this).
+  // Idempotency pre-check: `path` is unique per upload attempt (presign.js
+  // mints a fresh up_<timestamp>_<random> key every time) and bunny_path is
+  // a unique DB column. The client retries this call on network failure
+  // even when the server actually completed the first attempt and only the
+  // RESPONSE got lost — this check catches the common case cheaply (skip
+  // re-hashing a large file that was already processed). It is NOT the
+  // actual safety net though: if the client's retry races the first
+  // request (fires before the first has inserted its row), this check can
+  // still miss and both would try to insert — that's caught for real by the
+  // unique constraint on bunny_path at insert time below, which turns a
+  // losing race into "fetch and return the winner's row" instead of a
+  // duplicate. This pre-check is purely a fast path, not the guarantee.
   try {
     const existingRes = await serviceRequest(`/uploads?bunny_path=eq.${encodeURIComponent(path)}&select=id,status,sha256_head`);
     const existing = existingRes.ok ? await existingRes.json() : [];
@@ -173,7 +178,13 @@ export default async function handler(req, res) {
   // vendor was ever wired up before this pipeline existed either.
   const status = (csam.status === "flagged") ? "held" : "live";
 
-  // Insert the compliance-status row of record.
+  // Insert the compliance-status row of record. bunny_path is UNIQUE NOT
+  // NULL in the schema — this is the actual idempotency guarantee (the
+  // check above is only a fast-path optimization, not race-proof). If a
+  // concurrent request for the same path already inserted, Postgres
+  // rejects this insert with a unique-violation (PostgREST surfaces it as
+  // 409); on that specific case, fetch and return the winner's row instead
+  // of failing the request that lost the race.
   let uploadId;
   try {
     const insertRes = await serviceRequest("/uploads", {
@@ -196,6 +207,13 @@ export default async function handler(req, res) {
       },
     });
     if (!insertRes.ok) {
+      if (insertRes.status === 409) {
+        const raceRes = await serviceRequest(`/uploads?bunny_path=eq.${encodeURIComponent(path)}&select=id,status,sha256_head`);
+        const raceRows = raceRes.ok ? await raceRes.json() : [];
+        if (Array.isArray(raceRows) && raceRows[0]) {
+          return res.status(200).json({ ok: true, uploadId: raceRows[0].id, status: raceRows[0].status, sha256: raceRows[0].sha256_head });
+        }
+      }
       const detail = await insertRes.text().catch(() => "");
       return res.status(502).json({ error: "uploads insert failed", detail });
     }
