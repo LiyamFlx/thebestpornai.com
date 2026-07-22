@@ -135,22 +135,35 @@ h3{font-size:15px;margin:18px 0 10px}
 .card.previewing .thumb-preview{opacity:1}
 .card.previewing .play-badge{opacity:0}
 
-/* Quick actions (❤ / ＋) — hidden until card hover, top-right of the thumb. */
+/* Quick actions (❤ / ＋ / ↗) — hover-reveal on desktop (pointer with hover
+   support), always visible on touch. The old @media(hover:none) rule hid
+   this row completely on every phone — favorite/watch-later/share were
+   unreachable from any grid card on mobile. */
 .video-thumb .card-actions{
-  position:absolute;top:8px;left:8px;display:flex;gap:6px;margin:0;flex-wrap:nowrap;
+  /* top-right, not top-left — .corner-badge (e.g. "ORIGINAL") already owns
+     the top-left corner, and this row is no longer hover-only on touch. */
+  position:absolute;top:8px;right:8px;display:flex;gap:6px;margin:0;flex-wrap:nowrap;
   opacity:0;transform:translateY(-4px);transition:opacity .18s,transform .18s;z-index:3;
 }
 .card:hover .video-thumb .card-actions{opacity:1;transform:none}
 .card-act{
-  width:30px;height:30px;border:none;border-radius:50%;cursor:pointer;
-  background:rgba(0,0,0,.6);color:#fff;font-size:14px;line-height:1;backdrop-filter:blur(4px);
-  display:flex;align-items:center;justify-content:center;transition:background .15s,transform .15s;
+  width:32px;height:32px;border:none;border-radius:50%;cursor:pointer;
+  background:rgba(10,10,10,.68);color:#fff;font-size:14px;line-height:1;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,transform .15s,box-shadow .15s;
 }
-.card-act:hover{background:var(--accent);transform:scale(1.12)}
+.card-act:hover{background:var(--accent);transform:scale(1.12);box-shadow:0 4px 12px rgba(229,9,20,.4)}
+.card-act:active{transform:scale(.94)}
 /* Saved state (favorited / watch-later) — filled accent so a tap gives instant
    feedback without re-rendering the grid. */
 .card-act.on{background:var(--accent);color:#fff}
-@media (hover: none){ .video-thumb .card-actions{display:none} .thumb-preview{display:none} }
+@media (hover: none){
+  .thumb-preview{display:none}
+  .video-thumb .card-actions{opacity:1;transform:none}
+  .card-act{width:34px;height:34px;font-size:15px}
+}
 .play-badge{
   position:absolute;bottom:8px;right:8px;width:28px;height:28px;
   display:flex;align-items:center;justify-content:center;
@@ -371,6 +384,7 @@ table.data tr:hover td{background:var(--surface2)}
 .vote-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text);
   padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
 .vote-btn:hover{background:var(--surface3)}
+.vote-btn:active{transform:scale(.96)}
 .vote-btn .ic{filter:saturate(1.4)}
 .vote-div{width:1px;align-self:stretch;background:var(--border)}
 .act-btn{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);
@@ -972,7 +986,12 @@ iframe.player{object-fit:contain}
 .feed-btn.liked {
   background: rgba(220, 20, 60, 0.9);
   border-color: transparent;
+  animation: feed-like-pop .3s ease;
 }
+@keyframes feed-like-pop {
+  0%{transform:scale(1)} 40%{transform:scale(1.25)} 100%{transform:scale(1)}
+}
+@media (prefers-reduced-motion: reduce){ .feed-btn.liked{animation:none} }
 .feed-label {
   font-size: 11px;
   font-weight: 600;

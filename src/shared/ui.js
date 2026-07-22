@@ -102,6 +102,7 @@ export function videoCard(v, opts={}){
         <div class="card-actions">
           <button class="card-act" title="Favorite" data-fav-id="${v.id}" aria-pressed="false" onclick="event.stopPropagation();toggleFav(${v.id})">❤</button>
           <button class="card-act" title="Watch Later" data-later-id="${v.id}" aria-pressed="false" onclick="event.stopPropagation();toggleLater(${v.id})">＋</button>
+          <button class="card-act" title="Share" aria-label="Share this video" onclick="event.stopPropagation();shareVideo(${v.id})">↗</button>
         </div>`;
   return `
     <div class="card" onclick="${opts.onClick || `openVideo(${v.id})`}">

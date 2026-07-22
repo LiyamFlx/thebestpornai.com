@@ -109,6 +109,23 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+// The Vertical Feed is a scroll-snap container, so the browser's default
+// ArrowUp/ArrowDown behavior (scroll the focused/hovered scrollable element
+// by a line) silently advances it one slide — arrow keys were never meant to
+// control this feed, only swipe/wheel/touch. Block just those two keys here.
+document.addEventListener("keydown", (e) => {
+  if (vstate.page !== "feed") return;
+  if (
+    document.activeElement &&
+    (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA")
+  ) {
+    return;
+  }
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+  }
+});
+
 // Register /sw.js — currently a KILL SWITCH that unregisters any old service
 // worker and wipes its caches (the old SW was serving stale content). Once
 // browsers have run it, the site is served fresh from the network every time.
