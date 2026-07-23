@@ -1,5 +1,5 @@
-/* Mobile chrome interactions — header collapse-on-scroll, tap-to-expand search,
-   the collapsed sort control, and the watch-page action overflow menu.
+/* Mobile chrome interactions — tap-to-expand search, and the watch-page
+   action overflow menu.
 
    Every behavior here is gated to the mobile breakpoint (max-width:760px) so
    desktop is never touched. The new controls introduced by this pass are wired
@@ -10,46 +10,16 @@
 const MOBILE = "(max-width:760px)";
 const isMobile = () => !!(window.matchMedia && window.matchMedia(MOBILE).matches);
 
-/* ---- Fix 1: header collapse on scroll ----
-   Shrinks the topbar to brand + avatar (+ search icon) once scrolled past a
-   threshold, and restores the full header near the very top. A small
-   hysteresis gap between collapse/expand thresholds avoids flicker when the
-   user hovers around the boundary. The topbar is position:sticky, so resizing
-   it while stuck never reflows content above the fold — no layout shift. */
-const COLLAPSE_AT = 56;
-const EXPAND_AT = 10;
-let _collapsed = false;
-
-function scrollY(){
-  return window.scrollY || document.documentElement.scrollTop || 0;
-}
-
+/* The header is icon-only-search at all scroll positions on mobile now (see
+   .search-input{display:none} in style.css), so there's no longer a
+   collapse/expand state to track on scroll — only the desktop->mobile
+   breakpoint transition needs to reset a lingering open search field. */
 function applyHeaderState(){
   const topbar = document.querySelector(".topbar");
   if(!topbar) return;
   if(!isMobile()){
-    topbar.classList.remove("mchrome-collapsed", "mchrome-search-open");
-    _collapsed = false;
-    return;
-  }
-  const y = scrollY();
-  if(!_collapsed && y > COLLAPSE_AT) _collapsed = true;
-  else if(_collapsed && y < EXPAND_AT) _collapsed = false;
-  topbar.classList.toggle("mchrome-collapsed", _collapsed);
-  // The full (expanded) header always shows the real search bar, so drop any
-  // lingering tap-to-expand state when we return to the top.
-  if(!_collapsed){
     topbar.classList.remove("mchrome-search-open");
-    const t = topbar.querySelector('[data-mobile-action="toggle-search"]');
-    if(t) t.setAttribute("aria-expanded", "false");
   }
-}
-
-let _ticking = false;
-function onScroll(){
-  if(_ticking) return;
-  _ticking = true;
-  requestAnimationFrame(() => { applyHeaderState(); _ticking = false; });
 }
 
 /* ---- Fix 2: trailing-edge fade for horizontal chip rows ----
@@ -122,20 +92,9 @@ function onClick(e){
   }
 }
 
-/* ---- Delegated change for the collapsed sort <select> (Fix 3) ----
-   change bubbles for <select>, so one document listener is enough. Routes to
-   the same setHomeSort the desktop button row already uses. */
-function onChange(e){
-  const sel = e.target.closest && e.target.closest('[data-mobile-action="home-sort"]');
-  if(!sel) return;
-  if(typeof window.setHomeSort === "function") window.setHomeSort(sel.value);
-}
-
 export function initMobileChrome(){
-  window.addEventListener("scroll", onScroll, { passive: true });
   document.addEventListener("scroll", onScrollCapture, true);   // capture: catches chip-row scroll
   document.addEventListener("click", onClick);
-  document.addEventListener("change", onChange);
 
   if(window.matchMedia){
     const mq = window.matchMedia(MOBILE);

@@ -642,23 +642,33 @@ iframe.player{object-fit:contain}
 }
 .filter-pill:hover{color:var(--text);background:var(--surface2)}
 .filter-pill.active{color:#fff;background:var(--surface2);font-weight:600}
-.home-sort-bar{margin-bottom:20px;opacity:.85}
-.home-sort-bar .filter-pill{font-size:12px}
 
 /* ===== Mobile chrome density pass — desktop defaults =====
    These keep the new mobile-only controls out of the desktop layout. Each is
    re-enabled inside the max-width:760px block further down. */
 .topbar-search-toggle{display:none}   /* collapsed-header search icon (mobile only) */
-.home-sort-mobile{display:none}       /* desktop keeps the inline sort button row */
 .cat-scroll-extra{display:none}       /* overflow categories inline only when the row scrolls (mobile) */
 .act-more{display:none}               /* action overflow trigger (mobile only) */
 /* On desktop the overflow wrapper + menu dissolve so Favorite/Save/Share/Report
    flow inline in .watch-actions exactly as before this pass. */
 .act-overflow,.act-menu{display:contents}
 
-/* Category bar with "More ▾" dropdown */
-.home-cat-bar{flex-wrap:wrap;gap:4px;margin:4px 0}
-.home-cat-bar .filter-pill.active{background:var(--accent);color:#fff}
+/* Combined type-filter + category bar with "More ▾" dropdown. Desktop wraps
+   to multiple lines as needed; mobile forces it into one scrollable strip
+   (.mchrome-scroll, in the max-width:760px block below). */
+.home-combined-bar{flex-wrap:wrap;gap:4px;margin:4px 0;align-items:center}
+.home-combined-bar .filter-pill.active{background:var(--accent);color:#fff}
+.chip-sep{width:1px;align-self:stretch;min-height:18px;background:var(--border);margin:0 4px;flex:0 0 auto}
+.sort-select{
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  font-size:12.5px;font-weight:500;padding:6px 28px 6px 12px;border-radius:999px;
+  cursor:pointer;outline:none;margin-bottom:16px;
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23A0A0A0' stroke-width='1.5'/></svg>");
+  background-repeat:no-repeat;background-position:right 10px center;
+}
+.sort-select:hover{color:var(--text);border-color:var(--muted)}
+.sort-select:focus{border-color:var(--accent)}
 .cat-more{position:relative;display:inline-block}
 .cat-more-menu{
   display:none;position:absolute;z-index:40;top:100%;left:0;margin-top:6px;
@@ -1034,16 +1044,20 @@ iframe.player{object-fit:contain}
   .topbar-actions{flex:1;justify-content:flex-end}
   .search-input{width:100%;flex:1;min-width:0;font-size:16px} /* 16px avoids iOS zoom */
   .topbar-actions .icon-btn{display:none}      /* declutter; Search/Later live in bottom nav */
+  /* Search is icon-only on mobile at all scroll positions — the full input
+     row was permanently reserving a line even at the very top of the page,
+     duplicating the bottom-nav's own Search tab. Tap-to-expand still works
+     via mchrome-search-open (wired in mobile-chrome.js), independent of the
+     scroll-collapse state below. */
   .topbar-actions .topbar-search-toggle{
     display:inline-flex;align-items:center;justify-content:center;
     min-width:44px;min-height:44px;padding:0;
   }
-  .topbar:not(.mchrome-collapsed) .topbar-search-toggle{display:none}
-  .topbar.mchrome-collapsed{min-height:0;padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px}
-  .topbar.mchrome-collapsed .search-input{display:none}
-  .topbar.mchrome-collapsed.mchrome-search-open .search-input{
+  .search-input{display:none}
+  .topbar.mchrome-search-open .search-input{
     display:block;flex:1 0 100%;width:100%;margin-top:8px;order:5;
   }
+  .topbar{min-height:0;padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px}
 
   /* ---- Bottom tab bar ---- */
   .bottom-nav{
@@ -1071,7 +1085,8 @@ iframe.player{object-fit:contain}
      selector was fully dead code once this hide rule was added; only the
      hide is kept.) */
   .hero{display:none}
-  .view-toggle-tabs{margin-bottom:10px;padding-bottom:8px}
+  .view-toggle-tabs{justify-content:flex-start;gap:20px;margin-bottom:8px;padding-bottom:6px}
+  .toggle-tab{font-size:13px;padding:4px 0}
   h3{margin:12px 0 8px}
 
   /* ---- Filter/category/sort chip rows: scroll horizontally, never wrap --- */
@@ -1088,19 +1103,10 @@ iframe.player{object-fit:contain}
     flex:0 0 auto;scroll-snap-align:start;min-height:44px;
     display:inline-flex;align-items:center;
   }
-  .home-cat-bar .cat-more{display:none}   /* the dropdown gets clipped by the scroll container */
-  .home-cat-bar .cat-scroll-extra{display:inline-flex;align-items:center}
-  .home-sort-bar{display:none}
-  .home-sort-mobile{display:block;margin:2px 0 16px}
-  .sort-mobile-select{
-    background:var(--surface2);border:1px solid var(--border);color:var(--text);
-    font-size:16px;font-weight:600;min-height:44px;padding:0 36px 0 16px;
-    border-radius:999px;cursor:pointer;outline:none;
-    -webkit-appearance:none;appearance:none;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23A0A0A0' stroke-width='1.5'/></svg>");
-    background-repeat:no-repeat;background-position:right 14px center;
-  }
-  .sort-mobile-select:focus{border-color:var(--accent)}
+  .home-combined-bar .cat-more{display:none}   /* the dropdown gets clipped by the scroll container */
+  .home-combined-bar .cat-scroll-extra{display:inline-flex;align-items:center}
+  .chip-sep{display:none}   /* the type/category split isn't visually meaningful once it's one scroll strip */
+  .sort-select{min-height:36px;margin-bottom:12px}
 
   /* ---- Cards: two grammars, matching YouTube mobile's actual patterns ----
      .video-list is a real grid of row cards on desktop (base rule, above the
