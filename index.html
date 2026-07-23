@@ -24,6 +24,31 @@
 <link rel="stylesheet" href="/src/viewer/style.css" />
 </head>
 <body>
+<!-- Bottom-nav icon sprite: a small hand-authored set instead of raw OS
+     emoji, which render inconsistently across platforms and can't be
+     tinted to match the active-tab color. stroke="currentColor" lets each
+     icon inherit .bottom-nav button's existing color/active-state rules
+     with no extra CSS. Referenced via <svg class="ico"><use href="#icon-x"/></svg>. -->
+<svg style="display:none" aria-hidden="true">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/>
+  </symbol>
+  <symbol id="icon-explore" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="9"/><path d="m15 9-3.5 6.5L8 12l3.5-6.5L15 9Z"/>
+  </symbol>
+  <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+  </symbol>
+  <symbol id="icon-later" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>
+  </symbol>
+  <symbol id="icon-you" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/>
+  </symbol>
+  <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 4v11M8 8l4-4 4 4"/><path d="M5 16v3a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3"/>
+  </symbol>
+</svg>
 <div class="app">
   <!-- Sidebar -->
   <div class="sidebar">
@@ -90,11 +115,12 @@
 
   <!-- Mobile Bottom Navigation -->
   <nav class="bottom-nav" id="bottomNav" aria-label="Primary navigation">
-    <button data-page="home"    onclick="go('home')"><span class="ico">🏠</span><span>Home</span></button>
-    <button data-page="explore" onclick="go('explore')"><span class="ico">🧭</span><span>Explore</span></button>
-    <button data-page="_search" onclick="focusSearch()"><span class="ico">🔍</span><span>Search</span></button>
-    <button data-page="later"   onclick="go('later')"><span class="ico">🕒</span><span>Later</span></button>
-    <button data-page="profile" onclick="go('profile')"><span class="ico">👤</span><span>You</span></button>
+    <button data-page="home"    onclick="go('home')"><svg class="ico"><use href="#icon-home"/></svg><span>Home</span></button>
+    <button data-page="explore" onclick="go('explore')"><svg class="ico"><use href="#icon-explore"/></svg><span>Explore</span></button>
+    <button data-page="_search" onclick="focusSearch()"><svg class="ico"><use href="#icon-search"/></svg><span>Search</span></button>
+    <button data-page="later"   onclick="go('later')"><svg class="ico"><use href="#icon-later"/></svg><span>Later</span></button>
+    <button data-page="profile" onclick="go('profile')"><svg class="ico"><use href="#icon-you"/></svg><span>You</span></button>
+    <button onclick="window.location.href='/creator/index.html'" aria-label="Upload"><svg class="ico"><use href="#icon-upload"/></svg><span>Upload</span></button>
   </nav>
 </div>
 

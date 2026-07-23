@@ -50,7 +50,7 @@ function homeFilterBar(){
 }
 
 const moviesRow = (allMovies) =>
-  `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`})).join("")}</div>`;
+  `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`, layout:'row'})).join("")}</div>`;
 
 function viewToggleTabs(active) {
   return `<div class="view-toggle-tabs">
@@ -104,11 +104,11 @@ function _renderHomeBody(){
   }
   if(filter==="scenes"){
     const allScenes = pubVideos().filter(v=>v.level==="scene");
-    return `${homeFilterBar()}${allScenes.length ? rowSection("Scenes", allScenes) : `<div class="empty">No scenes yet.</div>`}`;
+    return `${homeFilterBar()}${allScenes.length ? rowSection("Scenes", allScenes, {layout:'row'}) : `<div class="empty">No scenes yet.</div>`}`;
   }
   if(filter==="clips"){
     const allClips = pubVideos().filter(v=>v.level==="clip");
-    return `${homeFilterBar()}${allClips.length ? rowSection("Clips", allClips) : `<div class="empty">No clips yet.</div>`}`;
+    return `${homeFilterBar()}${allClips.length ? rowSection("Clips", allClips, {layout:'row'}) : `<div class="empty">No clips yet.</div>`}`;
   }
 
   const allMovies = movies();
@@ -124,16 +124,16 @@ function _renderHomeBody(){
         <button class="btn ghost" onclick="toggleLater(${hero.id})">+ Watch Later</button>
       </div>
     </div>
-    ${vstate.history.length ? rowSection("Continue Watching", vstate.history.map(id=>DATA.videos.find(v=>v.id===id)).filter(Boolean)) : ""}
-    ${rowSection("🔥 Fresh Uploads", pubVideos().slice().sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0)).slice(0, vstate.limit))}
-    ${rowSection("Recommended For You", (()=>{ const nw=top.filter(v=>!vstate.history.includes(v.id)); return nw.length>=6?nw.slice(0, vstate.limit):top.slice(0, vstate.limit); })())}
-    ${rowSection("Trending Now", pubVideos().slice().sort((a,b)=>b.views-a.views).slice(0, vstate.limit))}
-    ${rowSection("House Originals", pubVideos().filter(v=>v.type==="original").slice(0, vstate.limit))}
+    ${vstate.history.length ? rowSection("Continue Watching", vstate.history.map(id=>DATA.videos.find(v=>v.id===id)).filter(Boolean), {layout:'row'}) : ""}
+    ${rowSection("🔥 Fresh Uploads", pubVideos().slice().sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0)).slice(0, vstate.limit), {layout:'row'})}
+    ${rowSection("Recommended For You", (()=>{ const nw=top.filter(v=>!vstate.history.includes(v.id)); return nw.length>=6?nw.slice(0, vstate.limit):top.slice(0, vstate.limit); })(), {layout:'row'})}
+    ${rowSection("Trending Now", pubVideos().slice().sort((a,b)=>b.views-a.views).slice(0, vstate.limit), {layout:'row'})}
+    ${rowSection("House Originals", pubVideos().filter(v=>v.type==="original").slice(0, vstate.limit), {layout:'row'})}
     ${allMovies.length ? moviesRow(allMovies) : ""}
-    ${rowSection("Highlights", highlights().slice(0, ROW_MAX))}
-    ${actNames().map(a=>rowSection("Act: "+esc(a), clipsByAct(a).slice(0, ROW_MAX))).join("")}
-    ${DATA.categories.map(c=>rowSection(c, byCat(c).slice(0, ROW_MAX))).join("")}
-    ${rowSection("Recently Uploaded", pubVideos().slice().sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0, vstate.limit))}
+    ${rowSection("Highlights", highlights().slice(0, ROW_MAX), {layout:'row'})}
+    ${actNames().map(a=>rowSection("Act: "+esc(a), clipsByAct(a).slice(0, ROW_MAX), {layout:'row'})).join("")}
+    ${DATA.categories.map(c=>rowSection(c, byCat(c).slice(0, ROW_MAX), {layout:'row'})).join("")}
+    ${rowSection("Recently Uploaded", pubVideos().slice().sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0, vstate.limit), {layout:'row'})}
     ${pubVideos().length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
   `;
 }

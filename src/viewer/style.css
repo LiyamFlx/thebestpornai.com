@@ -94,12 +94,16 @@ h3{font-size:15px;margin:18px 0 10px}
    own background/border/shadow to match YouTube's flatter mobile look. */
 .video-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
 .video-list .video-thumb{height:auto;aspect-ratio:16/9;margin-bottom:0}
+/* Row-layout card identity block (avatar + stacked title/creator/views) —
+   scoped to .card-text, not .video-list, so it applies to ANY layout:'row'
+   card regardless of container (.video-list on Search/channel pages,
+   .row-scroll on Home's shelves) instead of only the former. */
 .card-identity{display:flex;gap:10px;margin-top:10px;align-items:flex-start}
 .card-avatar{flex:none;margin-top:1px}
 .card-text{min-width:0;flex:1}
-.video-list .title{font-size:14px;line-height:1.3;font-weight:600;
+.card-text .title{font-size:14px;line-height:1.3;font-weight:600;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.video-list .meta{display:flex;flex-direction:column;gap:1px;margin-top:3px;font-size:12.5px}
+.card-text .meta{display:flex;flex-direction:column;gap:1px;margin-top:3px;font-size:12.5px}
 /* Grid cards are windowed in JS (grid-window.js) so the DOM stays bounded;
    content-visibility additionally lets the browser skip painting cards in the
    rendered window that are scrolled out of view. The intrinsic-size estimate
@@ -1055,7 +1059,7 @@ iframe.player{object-fit:contain}
     min-height:52px;padding:6px 4px;font-size:10.5px;font-weight:600;cursor:pointer;
     border-radius:12px;transition:color .15s,background .15s;
   }
-  .bottom-nav button .ico{font-size:22px;line-height:1;transition:transform .15s}
+  .bottom-nav button .ico{width:22px;height:22px;flex:none;transition:transform .15s}
   .bottom-nav button.active{color:#fff;background:rgba(229,9,20,.14)}
   .bottom-nav button.active .ico{transform:scale(1.08)}
   .bottom-nav button:active .ico{transform:scale(.92)}
@@ -1116,23 +1120,34 @@ iframe.player{object-fit:contain}
 
   .grid{grid-template-columns:repeat(2,1fr);gap:12px}
   .grid > .card{contain-intrinsic-size:auto 210px}
-  .grid .card,.row-scroll .card{
+  .grid .card{
     padding:0;overflow:hidden;border-radius:10px;
     box-shadow:none;border-color:transparent;
   }
-  .row-scroll .card{min-width:160px}
-  .grid .video-thumb,.row-scroll .video-thumb{
+  .grid .video-thumb{
     height:auto;aspect-ratio:16/9;border-radius:0;margin-bottom:0;
   }
-  .grid .card > .video-thumb ~ *,.row-scroll .card > .video-thumb ~ *{
+  .grid .card > .video-thumb ~ *{
     margin-left:10px;margin-right:10px;
   }
-  .grid .card > .title,.row-scroll .card > .title{margin-top:10px}
-  .grid .card > .meta,.row-scroll .card > .meta{margin-bottom:0}
-  .grid .card > .tag-chips,.row-scroll .card > .tag-chips{margin-bottom:10px}
-  .grid .card > .meta:last-child,.row-scroll .card > .meta:last-child{margin-bottom:10px}
-  .grid .title,.row-scroll .title{font-size:13px;line-height:1.35;font-weight:700}
-  .grid .meta,.row-scroll .meta{font-size:11.5px}
+  .grid .card > .title{margin-top:10px}
+  .grid .card > .meta{margin-bottom:0}
+  .grid .card > .tag-chips{margin-bottom:10px}
+  .grid .card > .meta:last-child{margin-bottom:10px}
+  .grid .title{font-size:13px;line-height:1.35;font-weight:700}
+  .grid .meta{font-size:11.5px}
+
+  /* Home's horizontal shelves ("Continue Watching", "Trending Now", etc.)
+     now render the same layout:'row' avatar+identity cards as .video-list
+     (category/search pages) — see home.js. They keep .row-scroll's
+     horizontal strip behavior but need a wider min-width than the old
+     dense .grid cards did, or the avatar+two-line text block wraps
+     awkwardly in a narrow shelf card. Sizing (title/meta font, avatar,
+     spacing) is inherited from the base .card-identity rules — same as
+     .video-list — not redeclared here. */
+  .row-scroll .card{min-width:220px;box-shadow:none;border-color:transparent}
+  .row-scroll .video-thumb{border-radius:10px}
+
   .card:active{transform:scale(.97)}
   .card:hover{transform:none}   /* no hover-lift on touch */
 
