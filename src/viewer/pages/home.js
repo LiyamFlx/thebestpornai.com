@@ -115,6 +115,7 @@ function _renderHomeBody(){
   const allMovies = movies();
   return `
     ${homeFilterBar()}
+    <!-- Desktop Hero -->
     <div class="hero">
       ${hero.src && !ytId(hero.src) ? `<video src="${mediaUrl(hero.src)}" muted autoplay loop playsinline></video>` : ``}
       <div class="hero-body">
@@ -125,6 +126,22 @@ function _renderHomeBody(){
         <button class="btn ghost" onclick="toggleLater(${hero.id})">+ Watch Later</button>
       </div>
     </div>
+
+    <!-- Mobile Featured Hero Banner (Above-the-Fold Anchor) -->
+    <div class="mobile-hero" onclick="openVideo(${hero.id})">
+      <div class="mobile-hero-bg">
+        ${hero.thumb ? `<img src="${mediaUrl(hero.thumb)}" alt="" loading="eager"/>` : (hero.src && !ytId(hero.src) ? `<video src="${mediaUrl(hero.src)}#t=1" muted autoplay loop playsinline></video>` : ``)}
+      </div>
+      <div class="mobile-hero-overlay">
+        <span class="mobile-hero-tag">⚡ FEATURED ORIGINAL</span>
+        <div class="mobile-hero-title">${esc(hero.title)}</div>
+        <div class="mobile-hero-meta">${esc(creatorName(hero.creator))} • ${fmt(hero.views)} views</div>
+        <button class="btn mobile-hero-cta" onclick="event.stopPropagation();openVideo(${hero.id})">
+          ▶ Watch Now
+        </button>
+      </div>
+    </div>
+
     ${vstate.history.length ? rowSection("Continue Watching", vstate.history.map(id=>DATA.videos.find(v=>v.id===id)).filter(Boolean), {layout:'row'}) : ""}
     ${rowSection("🔥 Fresh Uploads", pubVideos().slice().sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0)).slice(0, vstate.limit), {layout:'row'})}
     ${rowSection("Recommended For You", (()=>{ const nw=top.filter(v=>!vstate.history.includes(v.id)); return nw.length>=6?nw.slice(0, vstate.limit):top.slice(0, vstate.limit); })(), {layout:'row'})}

@@ -61,7 +61,17 @@ function onClick(e){
   if(!trigger) return;
 
   const action = trigger.dataset.mobileAction;
-  if(action === "toggle-search"){
+  if(action === "toggle-drawer"){
+    const drawer = document.getElementById("mobileDrawer");
+    const backdrop = document.getElementById("drawerBackdrop");
+    if(drawer) drawer.classList.toggle("open");
+    if(backdrop) backdrop.classList.toggle("show");
+  } else if(action === "close-drawer"){
+    const drawer = document.getElementById("mobileDrawer");
+    const backdrop = document.getElementById("drawerBackdrop");
+    if(drawer) drawer.classList.remove("open");
+    if(backdrop) backdrop.classList.remove("show");
+  } else if(action === "toggle-search"){
     const topbar = trigger.closest(".topbar");
     if(!topbar) return;
     const open = topbar.classList.toggle("mchrome-search-open");
@@ -75,20 +85,24 @@ function onClick(e){
     const open = wrap.classList.toggle("open");
     trigger.setAttribute("aria-expanded", open ? "true" : "false");
   } else if(action === "toggle-desc"){
-    // Watch page description: clamped to 2 lines by default on mobile
-    // (.watch-desc-wrap CSS), this just lifts the clamp and swaps the label.
     const wrap = trigger.closest(".watch-desc-wrap");
     if(!wrap) return;
     const open = wrap.classList.toggle("expanded");
     trigger.textContent = open ? "…less" : "…more";
     trigger.setAttribute("aria-expanded", open ? "true" : "false");
   } else if(action === "toggle-comments"){
-    // Comments preview crop on mobile: same idea, lifts a max-height clamp on
-    // #commentList without touching the id itself or its content.
     const wrap = trigger.closest(".comment-list-wrap");
     if(!wrap) return;
     const open = wrap.classList.toggle("expanded");
     trigger.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+  
+  // Close drawer if clicking any navigation link inside mobile-drawer
+  if(e.target.closest("#mobileDrawer button, #mobileDrawer a")){
+    const drawer = document.getElementById("mobileDrawer");
+    const backdrop = document.getElementById("drawerBackdrop");
+    if(drawer) drawer.classList.remove("open");
+    if(backdrop) backdrop.classList.remove("show");
   }
 }
 
