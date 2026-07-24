@@ -15,7 +15,23 @@ function fmtTime(s){
   return (h ? h+":" : "") + mm + ":" + String(sec).padStart(2,"0");
 }
 
+// Outlive a single attachPlayerControls() call across video-to-video
+// re-renders — cleared at the top of each call so a stale timer can't fire
+// against a detached player or navigate the user to a video they didn't pick.
+let hideTimer = null;
+let advanceTimer = null;
+let advanceOverlay = null;
+
+function clearAutoHide(){ clearTimeout(hideTimer); hideTimer = null; }
+function clearAutoAdvance(){
+  clearInterval(advanceTimer); advanceTimer = null;
+  if(advanceOverlay){ advanceOverlay.remove(); advanceOverlay = null; }
+}
+
 export function attachPlayerControls(){
+  clearAutoHide();
+  clearAutoAdvance();
+
   const wrap = document.querySelector(".player-wrap");
   const video = wrap && wrap.querySelector("video.player");
   const bar = wrap && wrap.querySelector(".pc-bar");
@@ -98,15 +114,14 @@ export function attachPlayerControls(){
 
   // Auto-hide the bar after 2.5s of no mouse/touch activity, unless paused
   // or the user is actively interacting with a control.
-  let hideTimer = null;
   const show = () => {
     wrap.classList.add("pc-visible");
-    clearTimeout(hideTimer);
+    clearAutoHide();
     hideTimer = setTimeout(() => { if(!video.paused) wrap.classList.remove("pc-visible"); }, 2500);
   };
   wrap.addEventListener("mousemove", show);
   wrap.addEventListener("touchstart", show, { passive: true });
-  bar.addEventListener("mouseenter", () => clearTimeout(hideTimer));
+  bar.addEventListener("mouseenter", () => clearAutoHide());
   bar.addEventListener("mouseleave", show);
   video.addEventListener("pause", () => wrap.classList.add("pc-visible"));
   show();
@@ -122,15 +137,12 @@ function attachAutoAdvance(wrap, video){
   if(!nextCard) return;
   const nextId = +nextCard.dataset.videoId;
   const nextTitle = nextCard.querySelector(".title")?.textContent || "next video";
-  let overlay = null, timer = null;
-
-  const cancel = () => { clearInterval(timer); timer = null; if(overlay){ overlay.remove(); overlay = null; } };
 
   video.addEventListener("ended", () => {
-    if(overlay || !Number.isFinite(nextId)) return;
-    overlay = document.createElement("div");
-    overlay.className = "pc-upnext";
-    overlay.innerHTML = `
+    if(advanceOverlay || !Number.isFinite(nextId)) return;
+    advanceOverlay = document.createElement("div");
+    advanceOverlay.className = "pc-upnext";
+    advanceOverlay.innerHTML = `
       <div class="pc-upnext-box">
         <div class="pc-upnext-label">Up next</div>
         <div class="pc-upnext-title"></div>
@@ -139,18 +151,18 @@ function attachAutoAdvance(wrap, video){
           <button class="btn sm pc-upnext-play">Play now (<span class="pc-upnext-count">5</span>)</button>
         </div>
       </div>`;
-    overlay.querySelector(".pc-upnext-title").textContent = nextTitle;   // textContent: no HTML injection risk
-    wrap.appendChild(overlay);
+    advanceOverlay.querySelector(".pc-upnext-title").textContent = nextTitle;   // textContent: no HTML injection risk
+    wrap.appendChild(advanceOverlay);
     wrap.classList.add("pc-visible");
 
     let n = 5;
-    const countEl = overlay.querySelector(".pc-upnext-count");
-    timer = setInterval(() => {
+    const countEl = advanceOverlay.querySelector(".pc-upnext-count");
+    advanceTimer = setInterval(() => {
       n--;
       if(countEl) countEl.textContent = String(n);
-      if(n <= 0){ clearInterval(timer); openVideo(nextId); }
+      if(n <= 0){ clearInterval(advanceTimer); advanceTimer = null; openVideo(nextId); }
     }, 1000);
-    overlay.querySelector(".pc-upnext-cancel").addEventListener("click", cancel);
-    overlay.querySelector(".pc-upnext-play").addEventListener("click", () => { clearInterval(timer); openVideo(nextId); });
+    advanceOverlay.querySelector(".pc-upnext-cancel").addEventListener("click", clearAutoAdvance);
+    advanceOverlay.querySelector(".pc-upnext-play").addEventListener("click", () => { clearInterval(advanceTimer); advanceTimer = null; openVideo(nextId); });
   });
 }
