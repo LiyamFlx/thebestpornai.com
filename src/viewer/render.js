@@ -25,6 +25,7 @@ import {
 
 export function render(){
   const v=document.getElementById("view"); const p=vstate.page;
+  if(v) v.classList.toggle("content-feed", p === "feed");
   resetGridWindow();          // drop stale windowed-grid state before rebuilding #view
   const map={
     home:renderHome, watch:renderWatch, categories:renderCategories, subscriptions:renderSubs,

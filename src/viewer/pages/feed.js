@@ -5,16 +5,28 @@ import { jsq } from "../util.js";
 import { renderCommentList } from "../comments.js";
 import { likeVideo } from "../actions.js";
 
-// Global pointer to track the current active observer and feed players
+// Global pointers to track observer, active video, and audio mute state
 let feedObserver = null;
 let currentActiveVideo = null;
+let feedMuted = true;
 
-// Data-saver users on a metered connection: skip video autoplay in the feed
-// and show the poster only, so scrolling never silently burns their data cap.
 function isDataSaverMode(){
   const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
   if (!c) return false;
   return !!c.saveData || c.effectiveType === "slow-2g" || c.effectiveType === "2g";
+}
+
+export function toggleFeedMute(){
+  feedMuted = !feedMuted;
+  document.querySelectorAll(".feed-video").forEach(v => {
+    v.muted = feedMuted;
+  });
+  document.querySelectorAll(".feed-sound-btn").forEach(b => {
+    b.textContent = feedMuted ? "🔇" : "🔊";
+  });
+  document.querySelectorAll(".feed-sound-label").forEach(l => {
+    l.textContent = feedMuted ? "Muted" : "Sound";
+  });
 }
 
 export function renderFeed() {
@@ -34,9 +46,12 @@ export function renderFeed() {
 
     return `
       <div class="feed-item" data-index="${index}" data-video-id="${v.id}">
-        <!-- Video element (src is loaded dynamically by the observer for memory management) -->
-        <video class="feed-video" loop playsinline muted data-src="${mediaUrl(v.src)}" poster="${mediaUrl(v.thumb)}"></video>
+        <!-- Video element -->
+        <video class="feed-video" loop playsinline ${feedMuted ? 'muted' : ''} data-src="${mediaUrl(v.src)}" poster="${mediaUrl(v.thumb)}"></video>
         
+        <!-- Play / Pause / Playback State Toast Badge Overlay -->
+        <div class="feed-state-badge" aria-hidden="true"></div>
+
         <!-- Video Details Overlay (Bottom) -->
         <div class="feed-overlay">
           <div class="feed-creator-row">
@@ -51,6 +66,12 @@ export function renderFeed() {
         <div class="feed-sidebar">
           <!-- Creator Avatar -->
           <div class="feed-avatar" onclick="openCreator('${jsq(c.id)}')">${esc((c.name || "?")[0])}</div>
+
+          <!-- Sound / Mute Toggle -->
+          <div class="feed-action">
+            <button class="feed-btn feed-sound-btn" onclick="toggleFeedMute()" aria-label="Toggle sound">${feedMuted ? '🔇' : '🔊'}</button>
+            <span class="feed-label feed-sound-label">${feedMuted ? 'Muted' : 'Sound'}</span>
+          </div>
 
           <!-- Like Button -->
           <div class="feed-action">
@@ -94,13 +115,12 @@ export function renderFeed() {
   `;
 }
 
-/* IntersectionObserver to handle autoplay, lazy preloading, and tearing down offscreen videos */
+/* IntersectionObserver to handle autoplay, preloading, and pausing offscreen videos */
 export function attachFeedObserver() {
   const container = document.getElementById("feedContainer");
   if (!container) return;
 
   const items = Array.from(container.querySelectorAll(".feed-item"));
-  const videos = pubVerticalVideos();
 
   if (feedObserver) {
     feedObserver.disconnect();
@@ -117,39 +137,42 @@ export function attachFeedObserver() {
         currentActiveVideo = videoId;
         const dataSaver = isDataSaverMode();
 
-        // 1. Play active video (skipped on data-saver — poster stays put)
+        // Play active video
         if (videoEl && !dataSaver) {
           if (!videoEl.src) {
             videoEl.src = videoEl.dataset.src;
           }
-          // Attempt playback with audio, fallback to muted if blocked
-          videoEl.play().catch(() => {
-            videoEl.muted = true;
-            videoEl.play().catch(() => {});
-          });
+          videoEl.muted = feedMuted;
+          const p = videoEl.play();
+          if(p && p.catch) {
+            p.catch(() => {
+              // If un-muted playback is blocked by browser policy, fall back to muted
+              videoEl.muted = true;
+              videoEl.play().catch(() => {});
+            });
+          }
         }
 
-        // 2. Manage memory / preload adjacent (active-1 to active+2)
+        // Memory management: preload adjacent, tear down distant
         items.forEach((item, idx) => {
           const itemVid = item.querySelector(".feed-video");
           if (!itemVid) return;
 
-          const isNear = !dataSaver && idx >= index - 1 && idx <= index + 2;
+          const isNear = !dataSaver && idx >= index - 1 && idx <= index + 1;
           if (isNear) {
-            if (!itemVid.src) {
+            if (!itemVid.src && itemVid.dataset.src) {
               itemVid.src = itemVid.dataset.src;
-              itemVid.load();
+              try { itemVid.load(); } catch(_){}
             }
-          } else {
-            // Tear down player completely to free hardware decoders
+          } else if (idx < index - 2 || idx > index + 2) {
             if (itemVid.src) {
+              itemVid.pause();
               itemVid.removeAttribute("src");
-              itemVid.load();
+              try { itemVid.load(); } catch(_){}
             }
           }
         });
       } else {
-        // Pause offscreen videos
         if (videoEl) {
           videoEl.pause();
         }
@@ -164,22 +187,44 @@ export function attachFeedObserver() {
   attachFeedGestures(container);
 }
 
-/* Double-tap-to-like: a single delegated listener on the container (rebound
-   each render alongside the observer, same lifecycle) rather than one per
-   item. Ignores taps that land on the sidebar/overlay controls so it doesn't
-   fight their own onclick handlers. Fires a short haptic pulse on supported
-   devices as the like's tactile confirmation. */
+/* Double-tap-to-like & Tap-to-Pause Gestures */
 const DOUBLE_TAP_MS = 300;
 let _lastTapTime = 0;
 let _lastTapItem = null;
+let _singleTapTimer = null;
 
 function attachFeedGestures(container){
   container.removeEventListener("pointerup", onFeedPointerUp);
   container.addEventListener("pointerup", onFeedPointerUp);
 }
 
+function spawnHeartBurst(item, x, y){
+  const rect = item.getBoundingClientRect();
+  const relX = x - rect.left;
+  const relY = y - rect.top;
+  
+  const heart = document.createElement("div");
+  heart.className = "feed-heart-burst";
+  heart.textContent = "❤️";
+  heart.style.left = `${relX}px`;
+  heart.style.top = `${relY}px`;
+  
+  item.appendChild(heart);
+  setTimeout(() => heart.remove(), 800);
+}
+
+function showPlaybackBadge(item, text){
+  const badge = item.querySelector(".feed-state-badge");
+  if(!badge) return;
+  badge.textContent = text;
+  badge.classList.remove("show");
+  void badge.offsetWidth; // trigger reflow
+  badge.classList.add("show");
+  setTimeout(() => badge.classList.remove("show"), 650);
+}
+
 function onFeedPointerUp(e){
-  if (e.target.closest(".feed-sidebar, .feed-creator-row, .feed-category")) return;
+  if (e.target.closest(".feed-sidebar, .feed-creator-row, .feed-category, .feed-comments-drawer")) return;
   const item = e.target.closest(".feed-item");
   if (!item) return;
 
@@ -187,69 +232,84 @@ function onFeedPointerUp(e){
   const isDoubleTap = item === _lastTapItem && (now - _lastTapTime) < DOUBLE_TAP_MS;
   _lastTapTime = isDoubleTap ? 0 : now;
   _lastTapItem = isDoubleTap ? null : item;
-  if (!isDoubleTap) return;
 
-  const videoId = parseInt(item.dataset.videoId, 10);
-  if (!videoId) return;
-  likeVideo(videoId);
-  if (navigator.vibrate) navigator.vibrate(15);
+  if (isDoubleTap) {
+    clearTimeout(_singleTapTimer);
+    const videoId = parseInt(item.dataset.videoId, 10);
+    if (videoId) {
+      likeVideo(videoId);
+      spawnHeartBurst(item, e.clientX, e.clientY);
+      if (navigator.vibrate) navigator.vibrate(20);
+    }
+  } else {
+    // Single tap delay to distinguish from double-tap
+    _singleTapTimer = setTimeout(() => {
+      const videoEl = item.querySelector(".feed-video");
+      if(!videoEl) return;
+      if(videoEl.paused){
+        videoEl.play().then(() => showPlaybackBadge(item, "▶")).catch(()=>{});
+      } else {
+        videoEl.pause();
+        showPlaybackBadge(item, "⏸");
+      }
+    }, 220);
+  }
 }
 
-// Window actions for comments drawer in the feed. Guarded so importing this
-// module outside a browser (e.g. Node test runner) doesn't throw.
+// Window actions for comments drawer & sound toggle
 if (typeof window !== "undefined") {
-window.openFeedComments = function(videoId) {
-  const drawer = document.getElementById("feedCommentsDrawer");
-  const backdrop = document.getElementById("feedCommentsBackdrop");
-  const body = document.getElementById("feedCommentsBody");
-  const footer = document.getElementById("feedCommentsFooter");
-  if (!drawer || !body || !footer) return;
+  window.toggleFeedMute = toggleFeedMute;
 
-  const v = DATA.videos.find(x => x.id === videoId);
-  if (!v) return;
+  window.openFeedComments = function(videoId) {
+    const drawer = document.getElementById("feedCommentsDrawer");
+    const backdrop = document.getElementById("feedCommentsBackdrop");
+    const body = document.getElementById("feedCommentsBody");
+    const footer = document.getElementById("feedCommentsFooter");
+    if (!drawer || !body || !footer) return;
 
-  body.innerHTML = renderCommentList(v);
-  footer.innerHTML = `
-    <input class="fld" id="feedCbox" placeholder="Add a comment…" onkeydown="if(event.key==='Enter')submitFeedComment(${v.id})"/>
-    <button class="btn" onclick="submitFeedComment(${v.id})">Post</button>
-  `;
+    const v = DATA.videos.find(x => x.id === videoId);
+    if (!v) return;
 
-  drawer.classList.add("open");
-  if (backdrop) backdrop.classList.add("show");
-};
+    body.innerHTML = renderCommentList(v);
+    footer.innerHTML = `
+      <input class="fld" id="feedCbox" placeholder="Add a comment…" onkeydown="if(event.key==='Enter')submitFeedComment(${v.id})"/>
+      <button class="btn" onclick="submitFeedComment(${v.id})">Post</button>
+    `;
 
-window.closeFeedComments = function() {
-  const drawer = document.getElementById("feedCommentsDrawer");
-  const backdrop = document.getElementById("feedCommentsBackdrop");
-  if (drawer) drawer.classList.remove("open");
-  if (backdrop) backdrop.classList.remove("show");
-};
+    drawer.classList.add("open");
+    if (backdrop) backdrop.classList.add("show");
+  };
 
-window.submitFeedComment = async function(videoId) {
-  const box = document.getElementById("feedCbox");
-  if (!box || !box.value.trim()) return;
+  window.closeFeedComments = function() {
+    const drawer = document.getElementById("feedCommentsDrawer");
+    const backdrop = document.getElementById("feedCommentsBackdrop");
+    if (drawer) drawer.classList.remove("open");
+    if (backdrop) backdrop.classList.remove("show");
+  };
 
-  const bodyVal = box.value.trim();
-  box.value = "";
+  window.submitFeedComment = async function(videoId) {
+    const box = document.getElementById("feedCbox");
+    if (!box || !box.value.trim()) return;
 
-  try {
-    // Reuse shared addComment mechanism
-    if (window.addComment) {
-      await window.addComment(videoId, bodyVal);
-      // Refresh drawer
-      const v = DATA.videos.find(x => x.id === videoId);
-      if (v) {
-        const body = document.getElementById("feedCommentsBody");
-        if (body) body.innerHTML = renderCommentList(v);
-        // Update comments badge on the feed sidebar in-place
-        const commentLabel = document.getElementById(`feedComment_${videoId}`);
-        if (commentLabel) {
-          commentLabel.textContent = DATA.comments.filter(m => m.video === videoId).length;
+    const bodyVal = box.value.trim();
+    box.value = "";
+
+    try {
+      if (window.addComment) {
+        await window.addComment(videoId, bodyVal);
+        const v = DATA.videos.find(x => x.id === videoId);
+        if (v) {
+          const body = document.getElementById("feedCommentsBody");
+          if (body) body.innerHTML = renderCommentList(v);
+          const commentLabel = document.getElementById(`feedComment_${videoId}`);
+          if (commentLabel) {
+            commentLabel.textContent = DATA.comments.filter(m => m.video === videoId).length;
+          }
         }
       }
+    } catch (e) {
+      console.error("Failed to post comment", e);
     }
-  } catch (e) {
-    console.error("Failed to post comment", e);
-  }
-};
+  };
 }
+
