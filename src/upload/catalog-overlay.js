@@ -39,10 +39,12 @@ function rowToVideo(r) {
 export async function mergeLiveUploads() {
   if (!REST || !ANON) return;   // API not configured: leave seed catalog intact
   try {
-    const rows = await fetch(
+    const r = await fetch(
       `${REST}/uploads?status=eq.live&select=*&order=published_at.desc&limit=500`,
       { headers: { apikey: ANON, Authorization: `Bearer ${ANON}` } },
-    ).then((r) => r.json());
+    );
+    if (!r.ok) return;
+    const rows = await r.json();
     if (!Array.isArray(rows)) return;
     const have = new Set(DATA.videos.map((v) => v._bunnyPath).filter(Boolean));
     for (const r of rows) {
