@@ -586,7 +586,7 @@ iframe.player{object-fit:contain}
 .icon-btn:focus-visible,.cat-more-item:focus-visible,.ms-opt:focus-visible,
 .comment-list-more:focus-visible,.watch-desc-more:focus-visible,
 .creator-link:focus-visible,.feed-btn:focus-visible,.feed-avatar:focus-visible,
-.feed-creator:focus-visible{
+.feed-creator:focus-visible,.avatar:focus-visible{
   outline:2px solid var(--accent2);outline-offset:2px;
 }
 .player-status{
@@ -817,6 +817,25 @@ iframe.player{object-fit:contain}
   100% { transform: translate(-50%, -70px) scale(1) rotate(10deg); opacity: 0; }
 }
 
+/* Feed top progress indicator bar */
+.feed-progress-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  z-index: 28;
+  pointer-events: none;
+}
+.feed-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--accent, #E50914);
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px rgba(229, 9, 20, 0.8);
+}
+
 .feed-overlay {
   position: absolute;
   bottom: 0;
@@ -834,7 +853,7 @@ iframe.player{object-fit:contain}
 .feed-creator-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   pointer-events: auto;
 }
 .feed-creator {
@@ -845,6 +864,26 @@ iframe.player{object-fit:contain}
 }
 .feed-creator:hover {
   text-decoration: underline;
+}
+.feed-follow-badge {
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.15s ease;
+  margin-left: 4px;
+}
+.feed-follow-badge.subbed {
+  background: var(--accent);
+  border-color: transparent;
+}
+.feed-follow-badge:active {
+  transform: scale(0.92);
 }
 .verified-badge {
   background: var(--accent);
@@ -1056,14 +1095,16 @@ iframe.player{object-fit:contain}
   background: var(--accent);
 }
 
-/* Mobile-only element defaults (hidden on desktop >760px) */
-.topbar-drawer-toggle,
-.mobile-topbar-brand,
-.mobile-hero {
-  display: none !important;
-}
-
 /* ============================================================
+   MOBILE (≤760px) — single consolidated block, deliberately placed at the
+   very end of the file so it always wins any same-specificity cascade tie
+   against a base rule, regardless of that rule's position in the file.
+   (This exact bug — .mchrome-scroll{flex-wrap:nowrap} silently losing to a
+   later .pill-row{flex-wrap:wrap} base rule — is what motivated moving this
+   block here instead of leaving it near the top of the file.)
+
+   Previously scattered across 8 separate @media blocks added across many
+   sessions, which had produced two confirmed silent-override bugs (same
    MOBILE (≤760px) — single consolidated block
    ============================================================ */
 @media(max-width:760px){
@@ -1136,7 +1177,7 @@ iframe.player{object-fit:contain}
 
   /* ---- Mobile Featured Hero Banner ---- */
   .mobile-hero {
-    display: block !important;
+    display: block;
     position: relative;
     height: 210px;
     border-radius: 14px;
@@ -1290,122 +1331,41 @@ iframe.player{object-fit:contain}
   .chip-sep{display:none}
   .sort-select{min-height:40px;margin-bottom:12px;font-size:13px;border-radius:10px}
 
-  /* ---- Cards (2-Column Vertical Grid on Mobile) ---- */
-  .grid,
-  .row-scroll {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px 10px !important;
-    overflow-x: visible !important;
-    scroll-snap-type: none !important;
-    padding-bottom: 0 !important;
-    content-visibility: visible !important;
-    contain-intrinsic-size: none !important;
+  /* ---- Cards (Row vs 2-Up Grid) ---- */
+  .video-list{display:flex;flex-direction:column;gap:18px}
+  .video-list .card{
+    background:transparent;border:none;padding:0;border-radius:0;
+    box-shadow:none;cursor:pointer;
   }
-  .row-scroll::-webkit-scrollbar {
-    display: none;
-  }
+  .video-list .card:active{transform:scale(.985)}
+  .video-list .video-thumb{border-radius:12px}
+  .video-list .card--row .tag-chips{display:none}
 
-  .video-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .grid > .card{contain-intrinsic-size:auto 200px}
+  .grid .card{
+    padding:0;overflow:hidden;border-radius:10px;
+    box-shadow:none;border-color:transparent;background:var(--surface);
   }
+  .grid .video-thumb{
+    height:auto;aspect-ratio:16/9;border-radius:10px 10px 0 0;margin-bottom:0;
+  }
+  .grid .card > .video-thumb ~ *{
+    margin-left:8px;margin-right:8px;
+  }
+  .grid .card > .title{margin-top:8px}
+  .grid .card > .meta{margin-bottom:6px}
+  .grid .card > .tag-chips{margin-bottom:8px}
+  .grid .card > .meta:last-child{margin-bottom:8px}
+  .grid .title{font-size:12.5px;line-height:1.3;font-weight:700}
+  .grid .meta{font-size:11px}
 
-  /* Universal mobile card layout reset */
-  .card,
-  .row-scroll .card,
-  .grid .card,
-  .video-list .card {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    flex: none !important;
-    padding: 0 !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    overflow: hidden;
-    cursor: pointer;
-  }
+  /* Horizontal shelves */
+  .row-scroll .card{min-width:240px;box-shadow:none;border-color:transparent}
+  .row-scroll .video-thumb{border-radius:12px}
 
-  .video-thumb,
-  .row-scroll .video-thumb,
-  .grid .video-thumb,
-  .video-list .video-thumb {
-    width: 100% !important;
-    height: auto !important;
-    aspect-ratio: 16/9 !important;
-    border-radius: 10px !important;
-    margin-bottom: 4px !important;
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(135deg, var(--accent), #7A0008);
-  }
-
-  .thumb-video,
-  .thumb-preview,
-  img.thumb-video {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    display: block !important;
-  }
-
-  .card-identity {
-    display: flex !important;
-    gap: 6px !important;
-    margin-top: 4px !important;
-    align-items: flex-start !important;
-  }
-
-  .card-avatar {
-    display: none !important;
-  }
-
-  .card-text {
-    min-width: 0;
-    flex: 1;
-  }
-
-  .card-text .title,
-  .grid .title,
-  .title {
-    font-size: 12.5px !important;
-    line-height: 1.35 !important;
-    font-weight: 700 !important;
-    color: #fff !important;
-    margin-top: 4px !important;
-    display: -webkit-box !important;
-    -webkit-line-clamp: 2 !important;
-    line-clamp: 2 !important;
-    -webkit-box-orient: vertical !important;
-    overflow: hidden !important;
-  }
-
-  .card-text .meta,
-  .grid .meta,
-  .meta {
-    font-size: 11px !important;
-    color: var(--muted) !important;
-    margin-top: 2px !important;
-  }
-
-  .card .tag-chips,
-  .card-text .tag-chips {
-    display: none !important;
-  }
-
-  .card:active {
-    transform: scale(.97);
-  }
-  .card:hover {
-    transform: none;
-  }
+  .card:active{transform:scale(.97)}
+  .card:hover{transform:none}
 
   /* ---- Watch page ---- */
   .watch-side{display:none}

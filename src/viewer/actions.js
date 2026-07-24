@@ -17,6 +17,12 @@ import { pubVideos } from "./catalog-queries.js";
 export function go(p){ vstate.page=p; setHash(p==="home"?"":p); render(); scrollToTop(); }
 
 export function focusSearch(){
+  const topbar = document.querySelector(".topbar");
+  if(topbar){
+    topbar.classList.add("mchrome-search-open");
+    const toggleBtn = topbar.querySelector(".topbar-search-toggle");
+    if(toggleBtn) toggleBtn.setAttribute("aria-expanded", "true");
+  }
   const i=document.getElementById("searchInput");
   if(i){ i.scrollIntoView({block:"start",behavior:"smooth"}); i.focus(); }
 }
@@ -212,12 +218,7 @@ export function addComment(id){
     toast(`Comment too long (max ${COMMENT_MAX_LEN} characters)`);
     return;
   }
-  // Written into the vstate.live overlay, not DATA.comments — same discipline
-  // as vote()'s like/dislike deltas above. DATA is the seed catalog and gets
-  // swapped wholesale by loadFullCatalog()/mergeLiveUploads() in main.js;
-  // pushing directly into DATA.comments meant a comment posted in the window
-  // before one of those resolves could be silently dropped from the UI the
-  // next time render() ran. See comments.js's commentsFor() for the read side.
+  // vstate.live overlay, not DATA.comments — see comments.js's commentsFor()
   const comment = {id:"m"+Date.now(), video:id, user:DATA.user.name, text:t, time:"now", ts:Date.now()};
   const L = vstate.live[id] = vstate.live[id] || {like:0, dislike:0};
   L.comments = L.comments || [];

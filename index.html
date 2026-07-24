@@ -6,6 +6,7 @@
 <title>thebestpornai — AI Porn & Community Videos | Watch, Stroke, Repeat</title>
 <meta name="description" content="thebestpornai — Premium hybrid AI porn platform. Stream hottest AI-generated scenes, amateur uploads, full movies & clips. Browse categories, like, comment, favorite and cum harder."/>
 <meta name="theme-color" content="#E50914"/>
+<link rel="canonical" href="https://thebestpornai.com/"/>
 <link rel="icon" type="image/png" href="/src/shared/assets/favicon-32.png"/>
 <link rel="manifest" href="/site.webmanifest"/>
 <link rel="apple-touch-icon" href="/src/shared/assets/favicon-64.png"/>
@@ -13,11 +14,15 @@
 <meta property="og:site_name" content="thebestpornai"/>
 <meta property="og:title" content="thebestpornai — AI Porn & Community Videos"/>
 <meta property="og:description" content="Netflix meets YouTube for uncensored adult content. AI scenes, full movies, clips, live & more."/>
-<meta property="og:image" content="/src/shared/assets/logo.png"/>
+<meta property="og:url" content="https://thebestpornai.com/"/>
+<meta property="og:image" content="https://thebestpornai.com/logo.png"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="robots" content="index,follow"/>
 
-<!-- CSP - Updated for R2, Supabase, Google Fonts, and Vercel -->
+<!-- CSP - Updated for R2, Supabase, Google Fonts, and Vercel
+     TODO: img-src/media-src/connect-src still use the bare `https:` wildcard
+     instead of actual R2/Supabase origins — scope these down once domains are
+     finalized. Also audit whether 'unsafe-eval' in script-src is still needed. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://vercel.live https://*.vercel.app; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' https: wss:; frame-src 'self' https://www.youtube.com https://vercel.live;">
 
 <link rel="stylesheet" href="/src/shared/theme.css" />
@@ -108,7 +113,7 @@
           aria-label="Search"
         />
         <button class="icon-btn" onclick="go('later')" aria-label="Watch Later">🕒</button>
-        <div class="avatar" onclick="go('profile')" title="Your Profile" aria-label="Profile">A</div>
+        <div class="avatar" onclick="go('profile')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();go('profile')}" role="button" tabindex="0" title="Your Profile" aria-label="Profile">A</div>
       </div>
     </div>
     <div class="content" id="view"></div>

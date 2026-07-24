@@ -5,6 +5,9 @@ import { DATA, toast, creatorName, mediaUrl } from "../shared/catalog.js";
 // Plain public/ path (not a bundler import) — this file is also loaded by
 // the plain Node test runner (see manifest-sync.test.mjs's import chain),
 // which can't resolve a Vite-style asset import for a .png file.
+// TODO: verify /public/favicon-64.png actually exists at build output — the
+// only confirmed favicon path elsewhere is /src/shared/assets/favicon-64.png,
+// which Vite processes as a hashed asset and this path deliberately isn't.
 const defaultThumbUrl = "/favicon-64.png";
 import { vstate } from "./state.js";
 import { pubVideos, trending } from "./catalog-queries.js";
@@ -27,6 +30,7 @@ export function render(){
   const v=document.getElementById("view"); const p=vstate.page;
   if(v) v.classList.toggle("content-feed", p === "feed");
   resetGridWindow();          // drop stale windowed-grid state before rebuilding #view
+  if(_lazyObserver) _lazyObserver.disconnect();   // drop phantom targets from the page we're leaving
   const map={
     home:renderHome, watch:renderWatch, categories:renderCategories, subscriptions:renderSubs,
     profile:renderProfile, settings:renderSettings, live:renderLive, playlists:renderPlaylists,
@@ -48,8 +52,7 @@ export function render(){
   lazyLoadThumbs();
   observeSentinels();         // wire lazy-append for any windowed grids on this page
   refreshChipRows();          // recompute horizontal chip-row edge fades (mobile)
-  attachPlayerGestures();
-  attachPlayerStatus();
+  attachPlayer();
   attachPlayerControls();
   attachHoverPreview();
   if (p === "feed") {
@@ -82,12 +85,21 @@ function markToggleStates(){
   });
 }
 
+/* Single query pass for the player + status/gesture wiring — attachPlayerControls()
+   (a separate module) still does its own lookup, but the two handlers defined
+   in this file no longer each re-query .player-wrap/video.player independently. */
+function attachPlayer(){
+  const wrap = document.querySelector(".player-wrap");
+  const video = wrap && wrap.querySelector("video.player");
+  if(!wrap || !video) return;
+  attachPlayerGestures(video);
+  attachPlayerStatus(wrap, video);
+}
+
 /* Double-click on the player: left third rewinds 10s, right third skips 10s,
    middle toggles fullscreen. The player element is recreated on every render
    (innerHTML swap), so attaching here never stacks listeners. */
-function attachPlayerGestures(){
-  const activePlayer = document.querySelector("video.player");
-  if(!activePlayer) return;
+function attachPlayerGestures(activePlayer){
   activePlayer.addEventListener("dblclick", (e) => {
     e.preventDefault();
     const rect = activePlayer.getBoundingClientRect();
@@ -113,19 +125,34 @@ function attachPlayerGestures(){
   });
 }
 
-/* Loading/error feedback for the main player: shows a spinner while the video
-   is buffering (loadstart/waiting) and swaps in an inline error + retry button
-   if playback fails (error/prolonged stall). The player element is recreated
-   on every render, so this re-attaches cleanly each time like the gestures above. */
-function attachPlayerStatus(){
-  const wrap = document.querySelector(".player-wrap");
-  const activePlayer = wrap && wrap.querySelector("video.player");
-  if(!wrap || !activePlayer) return;
-  const loading = wrap.querySelector(".player-status-loading");
-  const errorBox = wrap.querySelector(".player-status-error");
-  const showLoading = () => { if(loading) loading.style.display = "flex"; if(errorBox) errorBox.style.display = "none"; };
-  const hideLoading = () => { if(loading) loading.style.display = "none"; };
-  const showError = () => { hideLoading(); if(errorBox) errorBox.style.display = "flex"; };
+/* Loading/error feedback for the main player: a single .player-status overlay
+   (see style.css) whose .player-status-error class toggles pointer-events so
+   the retry control becomes clickable only in the error state. Shows a spinner
+   while buffering (loadstart/waiting) and swaps to the error message on
+   playback failure or a stall lasting more than 4s.
+   TODO: querySelector targets (.player-status, .player-spinner,
+   .player-error-msg) are inferred from style.css's class names, not from the
+   actual watch-page template — verify against wherever .player-wrap's HTML is
+   generated (likely playerEmbed() in shared/ui.js) and adjust if it differs. */
+function attachPlayerStatus(wrap, activePlayer){
+  const status = wrap.querySelector(".player-status");
+  if(!status) return;
+  const spinner = status.querySelector(".player-spinner");
+  const errorMsg = status.querySelector(".player-error-msg");
+
+  const showLoading = () => {
+    status.style.display = "flex";
+    status.classList.remove("player-status-error");
+    if(spinner) spinner.style.display = "";
+    if(errorMsg) errorMsg.style.display = "none";
+  };
+  const hideLoading = () => { status.style.display = "none"; };
+  const showError = () => {
+    status.style.display = "flex";
+    status.classList.add("player-status-error");
+    if(spinner) spinner.style.display = "none";
+    if(errorMsg) errorMsg.style.display = "";
+  };
 
   activePlayer.addEventListener("loadstart", showLoading);
   activePlayer.addEventListener("waiting", showLoading);
@@ -272,7 +299,9 @@ function revealThumb(el){
   el.classList.remove("lazy");
   el.preload = "metadata";
 
+  let fallbackTimer = null;
   const seekFrame = () => {
+    clearTimeout(fallbackTimer);   // metadata/canplay already fired — the 2.5s fallback is now moot
     try {
       if(el.currentTime === 0) {
         el.currentTime = Math.min(1, (el.duration || 2) * 0.1);
@@ -285,7 +314,7 @@ function revealThumb(el){
   } else {
     el.addEventListener("loadedmetadata", seekFrame, { once: true });
     el.addEventListener("canplay", seekFrame, { once: true });
-    setTimeout(seekFrame, 2500);
+    fallbackTimer = setTimeout(seekFrame, 2500);
   }
 
   el.src = src;
@@ -338,4 +367,3 @@ setGridAppendHook((added) => {
     });
   }
 });
-

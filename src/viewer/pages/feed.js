@@ -3,16 +3,14 @@ import { pubVerticalVideos } from "../catalog-queries.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
 import { renderCommentList, commentsFor } from "../comments.js";
-import { likeVideo } from "../actions.js";
+import { likeVideo, subscribe } from "../actions.js";
 
 // Global pointers to track observer, active video, and audio mute state
 let feedObserver = null;
 let currentActiveVideo = null;
 let feedMuted = true;
+let activeProgressVideo = null;
 
-// O(1) creator lookup, built once at module load — same pattern as watch.js.
-// TODO: if watch.js and feed.js both need this, it belongs in shared/catalog.js
-// as a single exported map rather than two independently-built copies.
 const CREATOR_BY_ID = new Map(DATA.creators.map(c => [c.id, c]));
 
 function isDataSaverMode(){
@@ -43,17 +41,10 @@ export function renderFeed() {
     </div>`;
   }
 
-  // Precomputed once per render: O(comments) instead of re-scanning the full
-  // comments array for every single video below (was O(videos * comments) —
-  // on a feed with hundreds of videos and thousands of comments that's
-  // millions of comparisons per render).
   const commentCountByVideo = new Map();
   for (const cm of DATA.comments) {
     commentCountByVideo.set(cm.video, (commentCountByVideo.get(cm.video) || 0) + 1);
   }
-  // Fold in locally-added comments living in the vstate.live overlay (see
-  // comments.js's commentsFor()) so a comment posted from the feed drawer
-  // shows up in the sidebar count immediately, not just after a reload.
   for (const [vidKey, live] of Object.entries(vstate.live)) {
     if (live && live.comments && live.comments.length) {
       const id = Number(vidKey);
@@ -65,19 +56,17 @@ export function renderFeed() {
   const itemsHtml = videos.map((v, index) => {
     const c = CREATOR_BY_ID.get(v.creator) || { name: "Unknown", id: "", verified: false };
     const live = vstate.live[v.id] || { like: 0, dislike: 0 };
-    // No `isLiked` here on purpose: .liked is owned by vote()/likeVideo() in
-    // actions.js, which patches the DOM directly right after a click in the
-    // current session (see feedBtn.classList.add("liked") there). There's no
-    // durable per-user "already liked" flag anywhere in vstate to source an
-    // initial-render value from — likeVideo() is an uncapped counter, not a
-    // toggle. Previously this read vstate.favorites (a different feature,
-    // driven by toggleFav) which was simply wrong. If persisted liked-state
-    // across reloads is wanted, that's a new vstate.liked Set + a guard in
-    // vote() — a feature addition, not a fix, so not added here.
     const commentCount = commentCountByVideo.get(v.id) || 0;
+    const subbed = vstate.subs.includes(v.creator);
+    const hasCreator = !!c.id;
 
     return `
       <div class="feed-item" data-index="${index}" data-video-id="${v.id}">
+        <!-- Top Video Scrub / Playback Progress Bar -->
+        <div class="feed-progress-wrap" aria-hidden="true">
+          <div class="feed-progress-bar"></div>
+        </div>
+
         <!-- Video element -->
         <video class="feed-video" loop playsinline ${feedMuted ? 'muted' : ''} data-src="${mediaUrl(v.src)}" poster="${mediaUrl(v.thumb)}"></video>
         
@@ -89,6 +78,11 @@ export function renderFeed() {
           <div class="feed-creator-row">
             <span class="feed-creator" onclick="openCreator('${jsq(c.id)}')">@${esc(c.name)}</span>
             ${c.verified ? '<span class="verified-badge">✓</span>' : ''}
+            ${hasCreator ? `
+              <button class="feed-follow-badge ${subbed ? 'subbed' : ''}" onclick="event.stopPropagation();subscribe('${jsq(c.id)}')">
+                ${subbed ? 'Following' : '+ Follow'}
+              </button>
+            ` : ''}
           </div>
           <div class="feed-title">${esc(v.title)}</div>
           ${v.category ? `<div class="feed-category"><span class="vtag-cat">${esc(v.category)}</span></div>` : ''}
@@ -147,6 +141,25 @@ export function renderFeed() {
   `;
 }
 
+function bindVideoProgress(item, videoEl){
+  if(activeProgressVideo === videoEl) return;
+  if(activeProgressVideo){
+    activeProgressVideo.removeEventListener("timeupdate", onVideoTimeUpdate);
+  }
+  activeProgressVideo = videoEl;
+  videoEl.addEventListener("timeupdate", onVideoTimeUpdate);
+}
+
+function onVideoTimeUpdate(){
+  if(!activeProgressVideo) return;
+  const item = activeProgressVideo.closest(".feed-item");
+  if(!item) return;
+  const bar = item.querySelector(".feed-progress-bar");
+  if(!bar) return;
+  const pct = (activeProgressVideo.currentTime / (activeProgressVideo.duration || 1)) * 100;
+  bar.style.width = `${pct.toFixed(1)}%`;
+}
+
 /* IntersectionObserver to handle autoplay, preloading, and pausing offscreen videos */
 export function attachFeedObserver() {
   const container = document.getElementById("feedContainer");
@@ -175,10 +188,11 @@ export function attachFeedObserver() {
             videoEl.src = videoEl.dataset.src;
           }
           videoEl.muted = feedMuted;
+          bindVideoProgress(el, videoEl);
+
           const p = videoEl.play();
           if(p && p.catch) {
             p.catch(() => {
-              // If un-muted playback is blocked by browser policy, fall back to muted
               videoEl.muted = true;
               videoEl.play().catch(() => {});
             });
@@ -234,15 +248,25 @@ function spawnHeartBurst(item, x, y){
   const rect = item.getBoundingClientRect();
   const relX = x - rect.left;
   const relY = y - rect.top;
-  
-  const heart = document.createElement("div");
-  heart.className = "feed-heart-burst";
-  heart.textContent = "❤️";
-  heart.style.left = `${relX}px`;
-  heart.style.top = `${relY}px`;
-  
-  item.appendChild(heart);
-  setTimeout(() => heart.remove(), 800);
+
+  // Multi-particle heart explosion
+  const offsets = [
+    { dx: 0, dy: 0, delay: 0 },
+    { dx: -18, dy: -12, delay: 40 },
+    { dx: 18, dy: -24, delay: 80 }
+  ];
+
+  offsets.forEach(({ dx, dy, delay }) => {
+    setTimeout(() => {
+      const heart = document.createElement("div");
+      heart.className = "feed-heart-burst";
+      heart.textContent = "❤️";
+      heart.style.left = `${relX + dx}px`;
+      heart.style.top = `${relY + dy}px`;
+      item.appendChild(heart);
+      setTimeout(() => heart.remove(), 850);
+    }, delay);
+  });
 }
 
 function showPlaybackBadge(item, text){
@@ -276,12 +300,7 @@ function onFeedPointerUp(e){
   } else {
     _lastTapTime = now;
     _lastTapItem = item;
-    // Cancel any pending toggle from a prior, unrelated tap before scheduling this one.
     clearTimeout(_singleTapTimer);
-    // Delay must be >= DOUBLE_TAP_MS: firing earlier (the old 220ms) meant a
-    // legitimate double-tap landing in the 220–300ms gap would still register
-    // as a like, but only after the single-tap play/pause toggle had already
-    // fired — producing a spurious pause/play flicker on real double-taps.
     _singleTapTimer = setTimeout(() => {
       const videoEl = item.querySelector(".feed-video");
       if(!videoEl) return;
