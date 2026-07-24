@@ -2,6 +2,29 @@
 import { DATA, esc } from "../shared/catalog.js";
 import { vstate, COMMENTS_PER_PAGE } from "./state.js";
 
+/* Merges server-confirmed comments (DATA.comments — the seed catalog) with
+   locally-added-but-not-yet-reconciled comments (vstate.live[id].comments —
+   the ephemeral overlay, same pattern vote() uses for like/dislike deltas).
+   This is the ONLY place that should read comment data for a video; every
+   other file (watch.js, feed.js, actions.js) should call this instead of
+   filtering DATA.comments directly, so a DATA catalog swap (loadFullCatalog,
+   mergeLiveUploads) can never silently drop a comment the user just posted —
+   DATA.comments.push() used to be the write path, which meant any reassignment
+   of that array (rather than an in-place mutation) would wipe pending comments
+   from the UI the next time render() ran.
+
+   Known limitation: since ShAPI.addComment()'s response isn't currently
+   captured/reconciled against the local optimistic entry, if a later full
+   catalog fetch happens to include this same comment (now server-confirmed
+   in DATA.comments) before the overlay is cleared, it could briefly appear
+   twice. Fixing that properly needs the real comment ID round-tripped from
+   the server — flagging as a follow-up, not fixed here. */
+export function commentsFor(v){
+  const base = DATA.comments.filter(m=>m.video===v.id);
+  const overlay = (vstate.live[v.id] && vstate.live[v.id].comments) || [];
+  return overlay.length ? base.concat(overlay) : base;
+}
+
 /* Sort comments by real timestamp. DB comments carry `ts` parsed from
    created_at; locally-added comments stamp `ts` with Date.now() at creation.
    Legacy seeded comments have no ts at all — they sort as oldest (0).
@@ -14,7 +37,7 @@ export function sortComments(cms){
 }
 
 export function renderCommentList(v){
-  const cms = DATA.comments.filter(m=>m.video===v.id);
+  const cms = commentsFor(v);
   if(!cms.length) return `<div class="comments-empty"><div class="ce-icon">💬</div><div class="ce-title">No comments yet.</div><div class="small">Be the first to share your thoughts!</div></div>`;
   const sorted = sortComments(cms);
   const shown = sorted.slice(0, vstate.commentPage * COMMENTS_PER_PAGE);
@@ -30,5 +53,5 @@ export function patchComments(v){
   const cl = document.getElementById("commentList");
   if(cl) cl.innerHTML = renderCommentList(v);
   const cc = document.getElementById("cCount");
-  if(cc) cc.textContent = DATA.comments.filter(m=>m.video===v.id).length;
+  if(cc) cc.textContent = commentsFor(v).length;
 }

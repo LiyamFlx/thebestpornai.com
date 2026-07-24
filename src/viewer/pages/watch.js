@@ -4,14 +4,26 @@ import { playerEmbed, videoCard } from "../../shared/ui.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
 import { pubVideos, trending, relatedTo } from "../catalog-queries.js";
-import { renderCommentList } from "../comments.js";
+import { renderCommentList, commentsFor } from "../comments.js";
+
+// O(1) creator lookup, built once at module load — mirrors the VIDEO_BY_ID
+// pattern in home.js. Avoids a DATA.creators.find() linear scan on every
+// watch-page render (this page is a hot path — every video open hits it).
+const CREATOR_BY_ID = new Map(DATA.creators.map(c => [c.id, c]));
 
 export function renderWatch(){
   const v = vstate.current || pubVideos()[0];
   if(!v) return `<div class="empty">No video selected.</div>`;
-  const c = DATA.creators.find(x=>x.id===v.creator) || { name:"Unknown", id:"", verified:false, subs:0 };
+  const c = CREATOR_BY_ID.get(v.creator) || { name:"Unknown", id:"", verified:false, subs:0 };
+  const hasCreator = !!c.id; // fallback creator has no real id — don't wire up dead subscribe/open actions for it
   const subbed = vstate.subs.includes(v.creator);
-  const cms = DATA.comments.filter(m=>m.video===v.id);
+
+  // Merges DATA.comments (server-confirmed) with the vstate.live overlay
+  // (locally-added, not-yet-reconciled comments) — see comments.js. Keeps this
+  // count in permanent lockstep with renderCommentList(v) below, since both
+  // read through the same helper.
+  const cms = commentsFor(v);
+
   const live = vstate.live[v.id] || {like:0, dislike:0};
   // Single consolidated tag row: category chips + hashtags share one container,
   // and hashtags that merely repeat a category (e.g. "Big Tits") are dropped so
@@ -34,6 +46,10 @@ export function renderWatch(){
       </div>
       <div><div class="title">${esc(u.title)}</div><div class="meta">${esc(creatorName(u.creator))}</div><div class="small">${fmt(u.views)} views</div></div>
     </div>`;
+  // Rendered once, reused for both the mobile "Up Next" block and the desktop
+  // sidebar — was previously calling .map(suggestedCard) twice on the same
+  // array (double the string-building/escaping work for identical output).
+  const relatedHTML = related.map(suggestedCard).join("");
   return `
     <div class="watch">
       <div class="player-nav-wrap">
@@ -74,10 +90,12 @@ export function renderWatch(){
         <div class="creator-card">
           <div class="avatar avatar-lg">${esc((c.name||"?")[0])}</div>
           <div style="flex:1;min-width:0">
-            <div class="creator-name"><span class="creator-link" onclick="openCreator('${jsq(c.id)}')">${esc(c.name)}</span> ${c.verified?'<span class="verified" title="Verified">✓</span>':''}</div>
+            <div class="creator-name">${hasCreator ? `<span class="creator-link" onclick="openCreator('${jsq(c.id)}')">${esc(c.name)}</span>` : `<span>${esc(c.name)}</span>`} ${c.verified?'<span class="verified" title="Verified">✓</span>':''}</div>
             <div class="small">${fmt(c.subs)} subscribers</div>
           </div>
-          <button class="btn subscribe-btn ${subbed?'ghost':''}" onclick="subscribe('${jsq(c.id)}')" aria-label="${subbed?'Unsubscribe from '+esc(c.name):'Subscribe to '+esc(c.name)}">${subbed?'Subscribed':'＋ Subscribe'}</button>
+          ${hasCreator
+            ? `<button class="btn subscribe-btn ${subbed?'ghost':''}" onclick="subscribe('${jsq(c.id)}')" aria-label="${subbed?'Unsubscribe from '+esc(c.name):'Subscribe to '+esc(c.name)}">${subbed?'Subscribed':'＋ Subscribe'}</button>`
+            : `<button class="btn subscribe-btn" disabled aria-label="Creator unavailable">＋ Subscribe</button>`}
         </div>
 
         <div class="comments-card">
@@ -103,12 +121,12 @@ export function renderWatch(){
 
         <div class="related-below">
           <h3>Up Next</h3>
-          ${related.map(suggestedCard).join("")}
+          ${relatedHTML}
         </div>
       </div>
       <div class="watch-side">
         <h3 style="margin-top:0">Suggested Videos</h3>
-        ${related.map(suggestedCard).join("")}
+        ${relatedHTML}
       </div>
       </div>
     </div>`;

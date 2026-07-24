@@ -212,7 +212,16 @@ export function addComment(id){
     toast(`Comment too long (max ${COMMENT_MAX_LEN} characters)`);
     return;
   }
-  DATA.comments.push({id:"m"+Date.now(),video:id,user:DATA.user.name,text:t,time:"now",ts:Date.now()});
+  // Written into the vstate.live overlay, not DATA.comments — same discipline
+  // as vote()'s like/dislike deltas above. DATA is the seed catalog and gets
+  // swapped wholesale by loadFullCatalog()/mergeLiveUploads() in main.js;
+  // pushing directly into DATA.comments meant a comment posted in the window
+  // before one of those resolves could be silently dropped from the UI the
+  // next time render() ran. See comments.js's commentsFor() for the read side.
+  const comment = {id:"m"+Date.now(), video:id, user:DATA.user.name, text:t, time:"now", ts:Date.now()};
+  const L = vstate.live[id] = vstate.live[id] || {like:0, dislike:0};
+  L.comments = L.comments || [];
+  L.comments.push(comment);
   box.value = "";
   persist(()=> ShAPI.addComment(id, DATA.user.name, t));
   // Patch the comment region only — render() would tear down the player mid-playback.

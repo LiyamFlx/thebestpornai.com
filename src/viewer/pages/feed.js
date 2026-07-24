@@ -2,13 +2,18 @@ import { DATA, esc, creatorName, fmt, mediaUrl } from "../../shared/catalog.js";
 import { pubVerticalVideos } from "../catalog-queries.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
-import { renderCommentList } from "../comments.js";
+import { renderCommentList, commentsFor } from "../comments.js";
 import { likeVideo } from "../actions.js";
 
 // Global pointers to track observer, active video, and audio mute state
 let feedObserver = null;
 let currentActiveVideo = null;
 let feedMuted = true;
+
+// O(1) creator lookup, built once at module load — same pattern as watch.js.
+// TODO: if watch.js and feed.js both need this, it belongs in shared/catalog.js
+// as a single exported map rather than two independently-built copies.
+const CREATOR_BY_ID = new Map(DATA.creators.map(c => [c.id, c]));
 
 function isDataSaverMode(){
   const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
@@ -38,11 +43,38 @@ export function renderFeed() {
     </div>`;
   }
 
+  // Precomputed once per render: O(comments) instead of re-scanning the full
+  // comments array for every single video below (was O(videos * comments) —
+  // on a feed with hundreds of videos and thousands of comments that's
+  // millions of comparisons per render).
+  const commentCountByVideo = new Map();
+  for (const cm of DATA.comments) {
+    commentCountByVideo.set(cm.video, (commentCountByVideo.get(cm.video) || 0) + 1);
+  }
+  // Fold in locally-added comments living in the vstate.live overlay (see
+  // comments.js's commentsFor()) so a comment posted from the feed drawer
+  // shows up in the sidebar count immediately, not just after a reload.
+  for (const [vidKey, live] of Object.entries(vstate.live)) {
+    if (live && live.comments && live.comments.length) {
+      const id = Number(vidKey);
+      commentCountByVideo.set(id, (commentCountByVideo.get(id) || 0) + live.comments.length);
+    }
+  }
+
   // Generate scroll-snap viewport container
   const itemsHtml = videos.map((v, index) => {
-    const c = DATA.creators.find(x => x.id === v.creator) || { name: "Unknown", id: "", verified: false };
+    const c = CREATOR_BY_ID.get(v.creator) || { name: "Unknown", id: "", verified: false };
     const live = vstate.live[v.id] || { like: 0, dislike: 0 };
-    const isLiked = vstate.favorites.includes(v.id);
+    // No `isLiked` here on purpose: .liked is owned by vote()/likeVideo() in
+    // actions.js, which patches the DOM directly right after a click in the
+    // current session (see feedBtn.classList.add("liked") there). There's no
+    // durable per-user "already liked" flag anywhere in vstate to source an
+    // initial-render value from — likeVideo() is an uncapped counter, not a
+    // toggle. Previously this read vstate.favorites (a different feature,
+    // driven by toggleFav) which was simply wrong. If persisted liked-state
+    // across reloads is wanted, that's a new vstate.liked Set + a guard in
+    // vote() — a feature addition, not a fix, so not added here.
+    const commentCount = commentCountByVideo.get(v.id) || 0;
 
     return `
       <div class="feed-item" data-index="${index}" data-video-id="${v.id}">
@@ -75,14 +107,14 @@ export function renderFeed() {
 
           <!-- Like Button -->
           <div class="feed-action">
-            <button class="feed-btn ${isLiked ? 'liked' : ''}" onclick="likeVideo(${v.id})" aria-label="Like video">❤️</button>
+            <button class="feed-btn" onclick="likeVideo(${v.id})" aria-label="Like video">❤️</button>
             <span class="feed-label" id="feedLike_${v.id}">${fmt(v.likes + live.like)}</span>
           </div>
 
           <!-- Comments Button -->
           <div class="feed-action">
             <button class="feed-btn" onclick="openFeedComments(${v.id})" aria-label="View comments">💬</button>
-            <span class="feed-label" id="feedComment_${v.id}">${DATA.comments.filter(m => m.video === v.id).length}</span>
+            <span class="feed-label" id="feedComment_${v.id}">${commentCount}</span>
           </div>
 
           <!-- Share Button -->
@@ -230,19 +262,26 @@ function onFeedPointerUp(e){
 
   const now = Date.now();
   const isDoubleTap = item === _lastTapItem && (now - _lastTapTime) < DOUBLE_TAP_MS;
-  _lastTapTime = isDoubleTap ? 0 : now;
-  _lastTapItem = isDoubleTap ? null : item;
 
   if (isDoubleTap) {
     clearTimeout(_singleTapTimer);
+    _lastTapTime = 0;
+    _lastTapItem = null;
     const videoId = parseInt(item.dataset.videoId, 10);
-    if (videoId) {
+    if (Number.isFinite(videoId)) {
       likeVideo(videoId);
       spawnHeartBurst(item, e.clientX, e.clientY);
       if (navigator.vibrate) navigator.vibrate(20);
     }
   } else {
-    // Single tap delay to distinguish from double-tap
+    _lastTapTime = now;
+    _lastTapItem = item;
+    // Cancel any pending toggle from a prior, unrelated tap before scheduling this one.
+    clearTimeout(_singleTapTimer);
+    // Delay must be >= DOUBLE_TAP_MS: firing earlier (the old 220ms) meant a
+    // legitimate double-tap landing in the 220–300ms gap would still register
+    // as a like, but only after the single-tap play/pause toggle had already
+    // fired — producing a spurious pause/play flicker on real double-taps.
     _singleTapTimer = setTimeout(() => {
       const videoEl = item.querySelector(".feed-video");
       if(!videoEl) return;
@@ -252,7 +291,7 @@ function onFeedPointerUp(e){
         videoEl.pause();
         showPlaybackBadge(item, "⏸");
       }
-    }, 220);
+    }, DOUBLE_TAP_MS);
   }
 }
 
@@ -303,7 +342,7 @@ if (typeof window !== "undefined") {
           if (body) body.innerHTML = renderCommentList(v);
           const commentLabel = document.getElementById(`feedComment_${videoId}`);
           if (commentLabel) {
-            commentLabel.textContent = DATA.comments.filter(m => m.video === videoId).length;
+            commentLabel.textContent = commentsFor(v).length;
           }
         }
       }
@@ -312,4 +351,3 @@ if (typeof window !== "undefined") {
     }
   };
 }
-

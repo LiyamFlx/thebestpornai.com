@@ -17,6 +17,10 @@ const ROW_MAX = 24;
 const TOP_CATEGORIES = CATEGORIES.slice(0, 8);
 const MORE_CATEGORIES = CATEGORIES.slice(8);
 
+// Single lookup table built once per module load. Used to resolve
+// history/continue-watching IDs in O(1) instead of DATA.videos.find() per id.
+const VIDEO_BY_ID = new Map(DATA.videos.map(v => [v.id, v]));
+
 function homeFilterBar(){
   const filters = [["all","All"],["movies","Movies"],["scenes","Scenes"],["clips","Clips"]];
   const sorts = [["none","Default"],["latest","Latest"],["likes","Most Liked"],["views","Most Viewed"]];
@@ -52,6 +56,11 @@ function homeFilterBar(){
 
 const moviesRow = (allMovies) =>
   `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`, layout:'row'})).join("")}</div>`;
+// NOTE: this passes `m.poster` (not the movie object `m`) into videoCard, unlike every
+// other call site in this file which passes the full video object. If videoCard expects
+// a video-shaped object (id/title/thumb/etc.), this is likely broken — verify against
+// movies()'s return shape and videoCard's signature before shipping. Left unchanged
+// since I can't confirm the contract from this file alone.
 
 function viewToggleTabs(active) {
   return `<div class="view-toggle-tabs">
@@ -60,10 +69,16 @@ function viewToggleTabs(active) {
   </div>`;
 }
 
+// Returns { html, empty } instead of a bare string. Callers should check the
+// explicit `empty` flag rather than string-matching the rendered HTML for
+// 'class="empty"' — that approach false-positives whenever any nested
+// sub-row (e.g. an empty Highlights row) happens to render empty-state markup
+// inside an otherwise fully-populated homepage.
 function _renderHomeBody(){
-  const hero = pubVideos().find(v=>v.id===HERO_VIDEO_ID) || pubVideos().find(v=>v.type==="original") || pubVideos()[0];
-  if(!hero) return `<div class="empty">No videos available yet.</div>`;
-  const top = trending();   // compute once; reused by the two rows below
+  const pub = pubVideos(); // computed once, reused for every section below
+  const hero = pub.find(v=>v.id===HERO_VIDEO_ID) || pub.find(v=>v.type==="original") || pub[0];
+  if(!hero) return { html: `<div class="empty">No videos available yet.</div>`, empty: true };
+
   const filter = vstate.homeFilter;
   const sort = vstate.homeSort;
 
@@ -72,14 +87,18 @@ function _renderHomeBody(){
   if(vstate.homeCategory){
     const cat = vstate.homeCategory;
     let matches = byCategoryFilter(cat);
-    if(sort!=="none") matches = sortedVideos(sort).filter(v=>matches.includes(v));
+    if(sort!=="none"){
+      const matchSet = new Set(matches); // O(1) membership check instead of Array#includes in a loop
+      matches = sortedVideos(sort).filter(v=>matchSet.has(v));
+    }
     const shown = matches.slice(0, vstate.limit);
-    return `
+    const html = `
       ${homeFilterBar()}
       <h3>${esc(cat)} <span class="small">(${matches.length})</span></h3>
       ${shown.length ? `<div class="video-list">${shown.map(v=>videoCard(v,{layout:'row'})).join("")}</div>` : emptyState(`No ${cat} videos yet.`, POPULAR_TAGS.filter(t=>t!==cat).slice(0,8))}
       ${matches.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more</button>` : ''}
     `;
+    return { html, empty: !shown.length };
   }
 
   // A non-default sort takes priority over the Movies/Scenes/Clips filter and
@@ -87,37 +106,43 @@ function _renderHomeBody(){
   if(sort!=="none"){
     const label = sort==="latest" ? "Latest" : sort==="likes" ? "Most Liked" : "Most Viewed";
     const all = sortedVideos(sort).slice(0, vstate.limit);
-    return `
+    const html = `
       ${homeFilterBar()}
       ${all.length ? `<h3>${label}</h3><div class="video-list">${all.map(v=>videoCard(v,{layout:'row'})).join("")}</div>` : `<div class="empty">No videos yet.</div>`}
-      ${pubVideos().length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
+      ${pub.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
     `;
+    return { html, empty: !all.length };
   }
 
   // Movies/Scenes/Clips filters replace the usual row set with a focused view;
   // "all" (the default) keeps today's full homepage layout unchanged.
   if(filter==="movies"){
     const allMovies = movies();
-    return `
-      ${homeFilterBar()}
-      ${allMovies.length ? moviesRow(allMovies) : `<div class="empty">No movies yet.</div>`}
-    `;
+    const html = `${homeFilterBar()}${allMovies.length ? moviesRow(allMovies) : `<div class="empty">No movies yet.</div>`}`;
+    return { html, empty: !allMovies.length };
   }
   if(filter==="scenes"){
-    const allScenes = pubVideos().filter(v=>v.level==="scene");
-    return `${homeFilterBar()}${allScenes.length ? rowSection("Scenes", allScenes, {layout:'row'}) : `<div class="empty">No scenes yet.</div>`}`;
+    const allScenes = pub.filter(v=>v.level==="scene");
+    const html = `${homeFilterBar()}${allScenes.length ? rowSection("Scenes", allScenes, {layout:'row'}) : `<div class="empty">No scenes yet.</div>`}`;
+    return { html, empty: !allScenes.length };
   }
   if(filter==="clips"){
-    const allClips = pubVideos().filter(v=>v.level==="clip");
-    return `${homeFilterBar()}${allClips.length ? rowSection("Clips", allClips, {layout:'row'}) : `<div class="empty">No clips yet.</div>`}`;
+    const allClips = pub.filter(v=>v.level==="clip");
+    const html = `${homeFilterBar()}${allClips.length ? rowSection("Clips", allClips, {layout:'row'}) : `<div class="empty">No clips yet.</div>`}`;
+    return { html, empty: !allClips.length };
   }
 
+  const top = trending();
   const allMovies = movies();
-  return `
+  const heroIsVideo = hero.src && !ytId(hero.src); // computed once, reused by desktop + mobile hero
+  const historySet = new Set(vstate.history); // O(1) membership for the Recommended row filter
+  const continueWatching = vstate.history.map(id => VIDEO_BY_ID.get(id)).filter(Boolean);
+
+  const html = `
     ${homeFilterBar()}
     <!-- Desktop Hero -->
     <div class="hero">
-      ${hero.src && !ytId(hero.src) ? `<video src="${mediaUrl(hero.src)}" muted autoplay loop playsinline></video>` : ``}
+      ${heroIsVideo ? `<video src="${mediaUrl(hero.src)}" muted autoplay loop playsinline></video>` : ``}
       <div class="hero-body">
         <span class="tag">HOUSE ORIGINAL</span>
         <h1>${esc(hero.title)}</h1>
@@ -130,7 +155,7 @@ function _renderHomeBody(){
     <!-- Mobile Featured Hero Banner (Above-the-Fold Anchor) -->
     <div class="mobile-hero" onclick="openVideo(${hero.id})">
       <div class="mobile-hero-bg">
-        ${hero.thumb ? `<img src="${mediaUrl(hero.thumb)}" alt="" loading="eager"/>` : (hero.src && !ytId(hero.src) ? `<video src="${mediaUrl(hero.src)}#t=1" muted autoplay loop playsinline></video>` : ``)}
+        ${hero.thumb ? `<img src="${mediaUrl(hero.thumb)}" alt="" loading="eager"/>` : (heroIsVideo ? `<video src="${mediaUrl(hero.src)}#t=1" muted autoplay loop playsinline></video>` : ``)}
       </div>
       <div class="mobile-hero-overlay">
         <span class="mobile-hero-tag">⚡ FEATURED ORIGINAL</span>
@@ -142,22 +167,23 @@ function _renderHomeBody(){
       </div>
     </div>
 
-    ${vstate.history.length ? rowSection("Continue Watching", vstate.history.map(id=>DATA.videos.find(v=>v.id===id)).filter(Boolean), {layout:'row'}) : ""}
-    ${rowSection("🔥 Fresh Uploads", pubVideos().slice().sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0)).slice(0, vstate.limit), {layout:'row'})}
-    ${rowSection("Recommended For You", (()=>{ const nw=top.filter(v=>!vstate.history.includes(v.id)); return nw.length>=6?nw.slice(0, vstate.limit):top.slice(0, vstate.limit); })(), {layout:'row'})}
-    ${rowSection("Trending Now", pubVideos().slice().sort((a,b)=>b.views-a.views).slice(0, vstate.limit), {layout:'row'})}
-    ${rowSection("House Originals", pubVideos().filter(v=>v.type==="original").slice(0, vstate.limit), {layout:'row'})}
+    ${continueWatching.length ? rowSection("Continue Watching", continueWatching, {layout:'row'}) : ""}
+    ${rowSection("🔥 Fresh Uploads", pub.slice().sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0)).slice(0, vstate.limit), {layout:'row'})}
+    ${rowSection("Recommended For You", (()=>{ const nw=top.filter(v=>!historySet.has(v.id)); return nw.length>=6?nw.slice(0, vstate.limit):top.slice(0, vstate.limit); })(), {layout:'row'})}
+    ${rowSection("Trending Now", pub.slice().sort((a,b)=>b.views-a.views).slice(0, vstate.limit), {layout:'row'})}
+    ${rowSection("House Originals", pub.filter(v=>v.type==="original").slice(0, vstate.limit), {layout:'row'})}
     ${allMovies.length ? moviesRow(allMovies) : ""}
     ${rowSection("Highlights", highlights().slice(0, ROW_MAX), {layout:'row'})}
     ${actNames().map(a=>rowSection("Act: "+esc(a), clipsByAct(a).slice(0, ROW_MAX), {layout:'row'})).join("")}
     ${DATA.categories.map(c=>rowSection(c, byCat(c).slice(0, ROW_MAX), {layout:'row'})).join("")}
-    ${rowSection("Recently Uploaded", pubVideos().slice().sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0, vstate.limit), {layout:'row'})}
-    ${pubVideos().length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
+    ${rowSection("Recently Uploaded", pub.slice().sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0, vstate.limit), {layout:'row'})}
+    ${pub.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
   `;
+  return { html, empty: false };
 }
 
 export function renderHome() {
-  const res = _renderHomeBody();
-  if (res.includes('class="empty"') || res.includes('class="empty-msg"')) return res;
-  return viewToggleTabs('grid') + res;
+  const { html, empty } = _renderHomeBody();
+  if (empty) return html;
+  return viewToggleTabs('grid') + html;
 }

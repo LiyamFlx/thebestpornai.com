@@ -30,15 +30,42 @@ function updateRowFade(row){
   const max = row.scrollWidth - row.clientWidth;
   row.classList.toggle("at-end", max <= 2 || row.scrollLeft >= max - 2);
 }
+
+// rAF-batched so a fling-scroll doesn't force a layout read on every event.
+let scrollRaf = null;
+const pendingRows = new Set();
 function onScrollCapture(e){
   const row = e.target;
-  if(row && row.classList && row.classList.contains("mchrome-scroll")) updateRowFade(row);
+  if(!(row && row.classList && row.classList.contains("mchrome-scroll"))) return;
+  pendingRows.add(row);
+  if(scrollRaf) return;
+  scrollRaf = requestAnimationFrame(() => {
+    scrollRaf = null;
+    pendingRows.forEach(updateRowFade);
+    pendingRows.clear();
+  });
 }
 
 /* Recompute the fade state for every chip row (called after each render and on
    resize, since scrollWidth/clientWidth are only known once laid out). */
 export function refreshChipRows(){
   document.querySelectorAll(".mchrome-scroll").forEach(updateRowFade);
+}
+
+// rAF-debounced resize path only — direct refreshChipRows() calls (e.g. after
+// render()) stay synchronous so the fade state is correct immediately.
+let resizeRaf = null;
+function onResize(){
+  if(resizeRaf) return;
+  resizeRaf = requestAnimationFrame(() => {
+    resizeRaf = null;
+    refreshChipRows();
+  });
+}
+
+function onMediaChange(){
+  applyHeaderState();
+  refreshChipRows();
 }
 
 /* ---- Delegated clicks for the new mobile controls ---- */
@@ -94,6 +121,14 @@ function onClick(e){
     const wrap = trigger.closest(".comment-list-wrap");
     if(!wrap) return;
     const open = wrap.classList.toggle("expanded");
+    // Label carries a dynamic count ("View all 47 comments"), so stash the
+    // original text on first expand rather than hardcoding it.
+    if(open){
+      trigger.dataset.origLabel = trigger.dataset.origLabel || trigger.textContent;
+      trigger.textContent = "Show less";
+    } else if(trigger.dataset.origLabel){
+      trigger.textContent = trigger.dataset.origLabel;
+    }
     trigger.setAttribute("aria-expanded", open ? "true" : "false");
   }
   
@@ -107,16 +142,15 @@ function onClick(e){
 }
 
 export function initMobileChrome(){
-  document.addEventListener("scroll", onScrollCapture, true);   // capture: catches chip-row scroll
+  document.addEventListener("scroll", onScrollCapture, { capture: true, passive: true });
   document.addEventListener("click", onClick);
 
   if(window.matchMedia){
     const mq = window.matchMedia(MOBILE);
-    const onMq = () => { applyHeaderState(); refreshChipRows(); };
-    if(mq.addEventListener) mq.addEventListener("change", onMq);
-    else if(mq.addListener) mq.addListener(onMq);   // Safari < 14
+    if(mq.addEventListener) mq.addEventListener("change", onMediaChange);
+    else if(mq.addListener) mq.addListener(onMediaChange);   // Safari < 14
   }
-  window.addEventListener("resize", refreshChipRows, { passive: true });
+  window.addEventListener("resize", onResize, { passive: true });
 
   applyHeaderState();
 }
