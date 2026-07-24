@@ -1017,41 +1017,32 @@ iframe.player{object-fit:contain}
   .app{flex-direction:column;height:auto;min-height:100vh;max-width:100vw;overflow-x:hidden}
   .sidebar{display:none}
   .main{min-height:100vh;max-width:100vw;overflow-x:hidden}
-  .content{padding:12px;padding-top:8px;padding-bottom:84px;max-width:100vw;box-sizing:border-box}
-  /* Safety net: any flex/grid child anywhere on this page that refuses to
-     shrink below its own content width (a long title, an unbreakable button
-     row) used to push .main wider than the viewport — body{overflow-x:hidden}
-     then silently clipped everything downstream instead of wrapping it,
-     which is what made the header/cards/buttons look sliced off on real
-     phones. min-width:0 lets flex/grid items actually shrink to their
-     container instead of their content. */
+  .content{padding:12px;padding-top:8px;padding-bottom:90px;max-width:100vw;box-sizing:border-box}
   .content *{min-width:0}
-  h1{font-size:20px}h2{font-size:18px}
+  h1{font-size:20px;letter-spacing:-.2px}
+  h2{font-size:18px;letter-spacing:-.2px}
 
-  /* ---- Top bar ----
-     padding-top also clears the notch/status bar when installed as a
-     standalone PWA (site.webmanifest declares display:"standalone"); a
-     no-op in a regular mobile browser tab since the safe-area inset is 0
-     there. (Single declaration — this selector was previously set twice at
-     two different padding values ~600 lines apart in the old scattered
-     blocks; this is the one that's kept.) */
+  /* ---- Top bar ---- */
   .topbar{
-    padding:8px 14px;padding-top:calc(8px + env(safe-area-inset-top));
-    gap:8px;transition:min-height .2s ease, padding .2s ease;
+    padding:8px 14px;
+    padding-top:calc(8px + env(safe-area-inset-top));
+    padding-bottom:8px;
+    gap:10px;
+    background:rgba(12,12,12,0.92);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border);
+    transition:min-height .2s ease, padding .2s ease;
   }
-  .topbar .left{font-size:16px}
-  .topbar .video-count-badge{display:none}   /* noise on a phone-width header */
-  .topbar-actions{flex:1;justify-content:flex-end}
-  .search-input{width:100%;flex:1;min-width:0;font-size:16px} /* 16px avoids iOS zoom */
-  .topbar-actions .icon-btn{display:none}      /* declutter; Search/Later live in bottom nav */
-  /* Search is icon-only on mobile at all scroll positions — the full input
-     row was permanently reserving a line even at the very top of the page,
-     duplicating the bottom-nav's own Search tab. Tap-to-expand still works
-     via mchrome-search-open (wired in mobile-chrome.js), independent of the
-     scroll-collapse state below. */
+  .topbar .left{font-size:17px;font-weight:800;letter-spacing:-.3px}
+  .topbar .video-count-badge{display:none}
+  .topbar-actions{flex:1;justify-content:flex-end;gap:10px}
+  .search-input{width:100%;flex:1;min-width:0;font-size:16px;background:var(--surface3);border-color:rgba(255,255,255,.1)}
+  .topbar-actions .icon-btn{display:none}
   .topbar-actions .topbar-search-toggle{
     display:inline-flex;align-items:center;justify-content:center;
-    min-width:44px;min-height:44px;padding:0;
+    min-width:44px;min-height:44px;padding:0;font-size:16px;
+    border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
   }
   .search-input{display:none}
   .topbar.mchrome-search-open .search-input{
@@ -1062,112 +1053,97 @@ iframe.player{object-fit:contain}
   /* ---- Bottom tab bar ---- */
   .bottom-nav{
     display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;
-    background:rgba(15,15,15,0.97);backdrop-filter:blur(16px);
-    border-top:1px solid var(--border);
-    padding:8px 6px;padding-bottom:calc(8px + env(safe-area-inset-bottom));
-    box-shadow:0 -8px 24px rgba(0,0,0,.35);
+    background:rgba(10,10,12,0.95);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border-top:1px solid rgba(255,255,255,0.08);
+    padding:6px 6px;
+    padding-bottom:calc(8px + env(safe-area-inset-bottom));
+    box-shadow:0 -8px 32px rgba(0,0,0,.6);
   }
   .bottom-nav button{
     flex:1;background:none;border:none;color:var(--muted);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-    min-height:52px;padding:6px 4px;font-size:10.5px;font-weight:600;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    min-height:48px;padding:5px 2px;font-size:10px;font-weight:600;cursor:pointer;
     border-radius:12px;transition:color .15s,background .15s;
   }
-  .bottom-nav button .ico{width:22px;height:22px;flex:none;transition:transform .15s}
-  .bottom-nav button.active{color:#fff;background:rgba(229,9,20,.14)}
-  .bottom-nav button.active .ico{transform:scale(1.08)}
-  .bottom-nav button:active .ico{transform:scale(.92)}
+  .bottom-nav button .ico{width:20px;height:20px;flex:none;transition:transform .15s ease, color .15s ease}
+  .bottom-nav button.active{color:#fff;background:rgba(229,9,20,.18)}
+  .bottom-nav button.active .ico{transform:scale(1.12);color:var(--accent,#e50914)}
+  .bottom-nav button:active .ico{transform:scale(.90)}
 
-  /* ---- Home: lead with content, not chrome ---- */
-  /* The promo hero ("Welcome … · 0 views") pushed every real video below the
-     fold on first paint. Hidden on mobile so the first content row leads
-     instead. (Single declaration — a now-removed "shrink" rule for this same
-     selector was fully dead code once this hide rule was added; only the
-     hide is kept.) */
+  /* ---- Home layout ---- */
   .hero{display:none}
-  .view-toggle-tabs{justify-content:flex-start;gap:20px;margin-bottom:8px;padding-bottom:6px}
-  .toggle-tab{font-size:13px;padding:4px 0}
-  h3{margin:12px 0 8px}
+  .view-toggle-tabs{justify-content:flex-start;gap:16px;margin-bottom:10px;padding-bottom:4px}
+  .toggle-tab{font-size:13px;padding:6px 12px;border-radius:20px;background:var(--surface2)}
+  .toggle-tab.active{background:var(--accent);color:#fff}
+  h3{margin:14px 0 8px;font-size:16px;font-weight:700}
 
-  /* ---- Filter/category/sort chip rows: scroll horizontally, never wrap --- */
+  /* ---- Filter/category/sort chip rows ---- */
   .mchrome-scroll{
     flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
     scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
-    scrollbar-width:none;padding-bottom:4px;
-    -webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);
-    mask-image:linear-gradient(90deg,#000 88%,transparent);
+    scrollbar-width:none;padding-bottom:6px;gap:8px;
+    -webkit-mask-image:linear-gradient(90deg,#000 90%,transparent);
+    mask-image:linear-gradient(90deg,#000 90%,transparent);
   }
   .mchrome-scroll.at-end{-webkit-mask-image:none;mask-image:none}
   .mchrome-scroll::-webkit-scrollbar{display:none}
   .mchrome-scroll .filter-pill{
-    flex:0 0 auto;scroll-snap-align:start;min-height:44px;
-    display:inline-flex;align-items:center;
+    flex:0 0 auto;scroll-snap-align:start;min-height:36px;
+    display:inline-flex;align-items:center;padding:6px 14px;
+    font-size:12px;font-weight:600;border-radius:999px;
   }
-  .home-combined-bar .cat-more{display:none}   /* the dropdown gets clipped by the scroll container */
+  .home-combined-bar .cat-more{display:none}
   .home-combined-bar .cat-scroll-extra{display:inline-flex;align-items:center}
-  .chip-sep{display:none}   /* the type/category split isn't visually meaningful once it's one scroll strip */
-  .sort-select{min-height:36px;margin-bottom:12px}
+  .chip-sep{display:none}
+  .sort-select{min-height:40px;margin-bottom:12px;font-size:13px;border-radius:10px}
 
-  /* ---- Cards: two grammars, matching YouTube mobile's actual patterns ----
-     .video-list is a real grid of row cards on desktop (base rule, above the
-     mobile block); on mobile it collapses to a true single, full-bleed
-     column with the card's own chrome stripped (YouTube separates cards
-     with whitespace on mobile, not a background/border/shadow box).
-     .grid stays a 2-up dense grid as the explicit "Grid View" tab's
-     secondary mode, restyled to the same flatter/no-shadow token language. */
-  .video-list{display:flex;flex-direction:column;gap:20px}
+  /* ---- Cards (Row vs 2-Up Grid) ---- */
+  .video-list{display:flex;flex-direction:column;gap:18px}
   .video-list .card{
     background:transparent;border:none;padding:0;border-radius:0;
     box-shadow:none;cursor:pointer;
   }
-  .video-list .card:active{transform:scale(.99)}
-  .video-list .video-thumb{border-radius:10px}
-  .video-list .card--row .tag-chips{display:none}   /* YouTube's Home feed doesn't show hashtag chips per card */
+  .video-list .card:active{transform:scale(.985)}
+  .video-list .video-thumb{border-radius:12px}
+  .video-list .card--row .tag-chips{display:none}
 
-  .grid{grid-template-columns:repeat(2,1fr);gap:12px}
-  .grid > .card{contain-intrinsic-size:auto 210px}
+  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .grid > .card{contain-intrinsic-size:auto 200px}
   .grid .card{
     padding:0;overflow:hidden;border-radius:10px;
-    box-shadow:none;border-color:transparent;
+    box-shadow:none;border-color:transparent;background:var(--surface);
   }
   .grid .video-thumb{
-    height:auto;aspect-ratio:16/9;border-radius:0;margin-bottom:0;
+    height:auto;aspect-ratio:16/9;border-radius:10px 10px 0 0;margin-bottom:0;
   }
   .grid .card > .video-thumb ~ *{
-    margin-left:10px;margin-right:10px;
+    margin-left:8px;margin-right:8px;
   }
-  .grid .card > .title{margin-top:10px}
-  .grid .card > .meta{margin-bottom:0}
-  .grid .card > .tag-chips{margin-bottom:10px}
-  .grid .card > .meta:last-child{margin-bottom:10px}
-  .grid .title{font-size:13px;line-height:1.35;font-weight:700}
-  .grid .meta{font-size:11.5px}
+  .grid .card > .title{margin-top:8px}
+  .grid .card > .meta{margin-bottom:6px}
+  .grid .card > .tag-chips{margin-bottom:8px}
+  .grid .card > .meta:last-child{margin-bottom:8px}
+  .grid .title{font-size:12.5px;line-height:1.3;font-weight:700}
+  .grid .meta{font-size:11px}
 
-  /* Home's horizontal shelves ("Continue Watching", "Trending Now", etc.)
-     now render the same layout:'row' avatar+identity cards as .video-list
-     (category/search pages) — see home.js. They keep .row-scroll's
-     horizontal strip behavior but need a wider min-width than the old
-     dense .grid cards did, or the avatar+two-line text block wraps
-     awkwardly in a narrow shelf card. Sizing (title/meta font, avatar,
-     spacing) is inherited from the base .card-identity rules — same as
-     .video-list — not redeclared here. */
-  .row-scroll .card{min-width:220px;box-shadow:none;border-color:transparent}
-  .row-scroll .video-thumb{border-radius:10px}
+  /* Horizontal shelves */
+  .row-scroll .card{min-width:240px;box-shadow:none;border-color:transparent}
+  .row-scroll .video-thumb{border-radius:12px}
 
   .card:active{transform:scale(.97)}
-  .card:hover{transform:none}   /* no hover-lift on touch */
+  .card:hover{transform:none}
 
-  /* ---- Watch page ----
-     Always single-column stacked (never the desktop 2-col grid — that only
-     used to collapse at 900px, this makes phone-width unconditional). */
+  /* ---- Watch page ---- */
   .watch-side{display:none}
   .related-below{display:block}
-  .related-below .card{margin-bottom:10px}
-  .watch-title{font-size:20px;margin:12px 0 4px}
-  .watch-actions{gap:8px;flex-wrap:nowrap;align-items:stretch}
-  .watch-actions .vote-btn,.watch-actions .act-btn{min-height:44px;padding:0 14px}
+  .related-below .card{margin-bottom:12px}
+  .watch-title{font-size:18px;font-weight:700;margin:12px 0 6px;line-height:1.3}
+  .watch-actions{gap:8px;flex-wrap:nowrap;align-items:stretch;overflow-x:auto}
+  .watch-actions .vote-btn,.watch-actions .act-btn{min-height:44px;padding:0 14px;font-size:13px}
   .watch-actions .vote-pill{flex:0 0 auto}
-  #btnFav .act-label{display:none}   /* primary Favorite: icon + count only, no label */
+  #btnFav .act-label{display:none}
   #btnFav{padding:0 16px}
   .act-overflow{display:inline-flex;position:relative;flex:0 0 auto}
   .act-more{
@@ -1183,36 +1159,27 @@ iframe.player{object-fit:contain}
   .act-overflow.open .act-menu{display:flex}
   .act-menu .act-btn{width:100%;justify-content:flex-start;border-radius:8px;min-height:44px}
   .act-menu .act-label{display:inline}
-  /* The middle name/subs column and the Subscribe button were fighting for
-     space on narrow cards (avatar + button alone left ~15-20px for the
-     name) — shrink the button's padding on mobile instead of letting the
-     name column get crushed to near-zero width. */
-  .creator-card{padding:13px;gap:10px}
-  .creator-card .subscribe-btn{padding:9px 14px;font-size:13px}
+  .creator-card{padding:12px;gap:10px;border-radius:12px}
+  .creator-card .subscribe-btn{padding:8px 14px;font-size:13px}
 
-  /* Description: clamp to 2 lines with a "…more" disclosure (YouTube mobile
-     pattern) instead of always showing the full text inline. JS-driven via
-     mobile-chrome.js's toggle-desc action, toggling .expanded. */
+  /* Description */
   .watch-desc-wrap{position:relative}
   .watch-desc{
-    margin:12px 0 4px;overflow:hidden;
+    margin:10px 0 4px;overflow:hidden;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    font-size:13px;line-height:1.4;
   }
   .watch-desc-wrap.expanded .watch-desc{-webkit-line-clamp:unset}
   .watch-desc-more{
-    background:none;border:none;color:var(--muted);font-size:13px;font-weight:600;
-    padding:2px 0 8px;cursor:pointer;
+    background:none;border:none;color:var(--muted);font-size:12px;font-weight:600;
+    padding:2px 0 6px;cursor:pointer;
   }
 
-  .comments-card{padding:14px}
-  .comments-title{font-size:16px}
-  .comments-top{flex-wrap:wrap;gap:10px}
-  /* Comments preview: crop to ~2 comments with a "View all N" affordance
-     instead of the full list expanded inline (YouTube mobile pattern). Only
-     the wrapper's max-height is clamped — #commentList itself, the id
-     actions.js/comments.js patch, is untouched. */
+  .comments-card{padding:12px;border-radius:12px}
+  .comments-title{font-size:15px}
+  .comments-top{flex-wrap:wrap;gap:8px}
   .comment-list-wrap{position:relative}
-  .comment-list-wrap:not(.expanded) #commentList{max-height:220px;overflow:hidden}
+  .comment-list-wrap:not(.expanded) #commentList{max-height:200px;overflow:hidden}
   .comment-list-wrap:not(.expanded) #commentList::after{
     content:"";position:absolute;left:0;right:0;bottom:36px;height:48px;
     background:linear-gradient(to bottom,transparent,var(--surface));
@@ -1223,16 +1190,14 @@ iframe.player{object-fit:contain}
   }
 
   .player{height:auto;aspect-ratio:16/9}
-  .player-wrap{width:calc(100% + 28px);margin:-14px -14px 0;aspect-ratio:16/9;max-height:none;min-height:0}
+  .player-wrap{width:calc(100% + 24px);margin:-12px -12px 0;aspect-ratio:16/9;max-height:none;min-height:0}
   .player-nav{opacity:1;width:34px;height:34px;font-size:18px}
   .pc-row{gap:6px}
   .pc-volume{width:44px}
   .pc-time{font-size:11px}
   .modal{width:94vw;max-height:88vh}
 
-  /* ---- Creator page ----
-     Full-size 80px avatar + 160px banner used to eat the whole first screen;
-     the subscribe button sat awkwardly inline instead of stacking. */
+  /* ---- Creator page ---- */
   .creator-page-banner{height:100px;border-radius:12px}
   .creator-page-header{gap:12px;margin-top:-28px;margin-bottom:18px}
   .creator-page-avatar{width:64px;height:64px;font-size:22px;border-width:2px}
@@ -1247,30 +1212,22 @@ iframe.player{object-fit:contain}
   .profile-stats{gap:12px;flex-wrap:wrap}
 
   /* ---- Movie detail page ---- */
-  .movie-hero{height:280px}
-  .movie-title{font-size:24px}
-  .movie-hero-body{bottom:44px;padding:0 16px}
-  .movie-factstrip{margin:-30px 16px 0;padding:10px 14px}
-  .movie-detail > h3{margin:20px 16px 12px}
-  .movie-detail .row-scroll{margin:0 16px 8px}
+  .movie-hero{height:260px}
+  .movie-title{font-size:22px}
+  .movie-hero-body{bottom:36px;padding:0 14px}
+  .movie-factstrip{margin:-24px 14px 0;padding:10px 12px}
+  .movie-detail > h3{margin:18px 14px 10px}
+  .movie-detail .row-scroll{margin:0 14px 8px}
 
   /* ---- Shared: inputs, buttons, toast ---- */
-  /* Every text input on the site was 13px, which triggers iOS Safari's
-     auto-zoom-on-focus (the whole page jumps to ~150% and has to be manually
-     zoomed back out) — applied 16px everywhere, not just the search input. */
   input.fld,textarea.fld,select.fld,.feed-comments-footer input{font-size:16px}
 
-  /* The toast sat at a fixed 24px from the bottom on every screen size,
-     directly behind the bottom tab bar — every toast was invisible on
-     phones. Cleared the tab bar and centered it like a native app toast. */
   .toast{left:50%;right:auto;bottom:calc(78px + env(safe-area-inset-bottom));transform:translate(-50%,10px)}
   .toast.show{transform:translate(-50%,0)}
 
   /* Tap targets (44px min per Apple HIG / WCAG 2.5.5) */
-  .btn{padding:11px 18px;min-height:44px}
-  .chip{padding:7px 12px;font-size:12px;min-height:36px;display:inline-flex;align-items:center}
+  .btn{padding:10px 16px;min-height:44px;font-size:13px}
+  .chip{padding:6px 12px;font-size:12px;min-height:36px;display:inline-flex;align-items:center}
   .sort-select{min-height:44px;font-size:16px}
   .subscribe-btn{min-height:44px}
 }
-
-

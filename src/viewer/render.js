@@ -262,21 +262,35 @@ function addStructuredData(){
 }
 
 /* Lazy-load video thumbnails: only fetch a thumbnail's metadata once its card
-   scrolls near the viewport. Without this, ~180 <video> elements would all
-   request metadata from the CDN on load and crawl the page. */
+   scrolls near the viewport. Only targets .thumb-video (cards without a JPEG
+   poster) — hover preview videos (.thumb-preview) are loaded on hover. */
 function revealThumb(el){
-  if(el.dataset.src){
-    el.preload = "metadata";
-    el.src = el.dataset.src;            // src includes #t=1 → seeks to 1s for a frame
-    el.removeAttribute("data-src");
-    // Force the browser to actually decode a frame so the thumb isn't blank.
-    el.addEventListener("loadedmetadata", () => {
-      try { if(el.currentTime === 0) el.currentTime = Math.min(1, (el.duration||2) * 0.1); } catch(_){}
-    }, { once: true });
-    el.load();
-  }
+  if(!el || !el.dataset.src) return;
+  const src = el.dataset.src;
+  el.removeAttribute("data-src");
   el.classList.remove("lazy");
+  el.preload = "metadata";
+
+  const seekFrame = () => {
+    try {
+      if(el.currentTime === 0) {
+        el.currentTime = Math.min(1, (el.duration || 2) * 0.1);
+      }
+    } catch(_){}
+  };
+
+  if(el.readyState >= 1){
+    seekFrame();
+  } else {
+    el.addEventListener("loadedmetadata", seekFrame, { once: true });
+    el.addEventListener("canplay", seekFrame, { once: true });
+    setTimeout(seekFrame, 2500);
+  }
+
+  el.src = src;
+  try { el.load(); } catch(_){}
 }
+
 /* Asymmetric margin: generous vertical lookahead for the scrolling grid pages,
    tighter horizontal so off-screen cards in `.row-scroll` rows aren't all
    fetched at once on the home feed. */
@@ -289,15 +303,12 @@ const _lazyObserver = (typeof window !== "undefined" && "IntersectionObserver" i
       });
     }, { rootMargin: "250px 80px" })
   : null;
+
 function lazyLoadThumbs(){
-  const els = [...document.querySelectorAll("video.lazy[data-src]")];
+  // Targets ONLY .thumb-video.lazy (not .thumb-preview)
+  const els = [...document.querySelectorAll("video.thumb-video.lazy[data-src]")];
   // Eager-load the first screenful immediately so the grid is never blank; lazy
-  // the rest. A <video> thumb stays blank until its metadata loads AND it seeks
-  // to #t=1, so we force load+seek here rather than waiting on scroll.
-  // Eager-load only a first-screenful of thumbs; the observer streams the rest
-  // in as they approach the viewport. 24 concurrent <video> metadata fetches on
-  // load saturated the connection on mobile and stalled the initial paint —
-  // ~8 covers what's actually above the fold on a phone.
+  // the rest. ~8 covers what's actually above the fold on a phone.
   const eager = _lazyObserver ? 8 : els.length;
   els.forEach((el, i) => {
     if(i < eager){ revealThumb(el); }
@@ -313,7 +324,7 @@ setGridAppendHook((added) => {
   const later = new Set(vstate.later);
   for(const node of added){
     if(!node || node.nodeType !== 1) continue;
-    node.querySelectorAll("video.lazy[data-src]").forEach(el => {
+    node.querySelectorAll("video.thumb-video.lazy[data-src]").forEach(el => {
       if(_lazyObserver) _lazyObserver.observe(el); else revealThumb(el);
     });
     node.querySelectorAll("[data-fav-id]").forEach(b => {
@@ -326,3 +337,4 @@ setGridAppendHook((added) => {
     });
   }
 });
+

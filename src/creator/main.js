@@ -37,6 +37,35 @@ function saveCreator(c){ try{ localStorage.setItem("creatorProfile", JSON.string
 let creator = loadCreator();          // null until subscribed
 let onboard = { step:1, plan:"pro", name:"", handle:"", category:"POV", bio:"" };
 
+export function ensureFreeCreatorProfile(targetPage = "upload"){
+  if(!creator){
+    creator = {
+      name: "Guest Creator",
+      handle: "@guest",
+      category: "POV",
+      bio: "Creator channel",
+      plan: "starter",
+      joined: new Date().toISOString().slice(0,10),
+      subscribers: 0,
+      avatar: "G"
+    };
+    saveCreator(creator);
+    const me = DATA.creators.find(c=>c.id===MY);
+    if(me){ me.name = creator.name; me.handle = creator.handle; }
+    DATA.user.name = creator.name;
+  }
+  cstate.page = targetPage;
+  render();
+}
+
+// Auto-provision if ?page=upload query parameter is present
+if(typeof window !== "undefined"){
+  const params = new URLSearchParams(window.location.search);
+  if(params.get("page") === "upload"){
+    ensureFreeCreatorProfile("upload");
+  }
+}
+
 function startSubscribe(plan){ onboard.plan=plan; onboard.step=2; render(); }
 function finishSubscribe(){
   const name=(document.getElementById("cpName").value||"").trim();
@@ -828,7 +857,10 @@ function renderOnboarding(){
     return `
       <div class="onboard">
         <h1>Become a Creator</h1>
-        <p class="sub">Subscribe to a plan to open your Creator Studio and start uploading.</p>
+        <p class="sub">Subscribe to a plan to open your Creator Studio or upload for free as a guest.</p>
+        <button class="btn" style="width:100%;max-width:520px;margin:0 auto 20px;display:block;padding:12px;font-size:15px;background:var(--accent,#e50914)" onclick="ensureFreeCreatorProfile('upload')">
+          🚀 Instant Upload as Free Guest Creator
+        </button>
         <div class="plan-grid">
           ${CREATOR_PLANS.map(p=>`
             <div class="plan ${p.best?'best':''}">
@@ -837,7 +869,7 @@ function renderOnboarding(){
               <div class="plan-price">${p.price}</div>
               <p class="small">${p.note}</p>
               <ul class="plan-feats">${p.feats.map(f=>`<li>✓ ${f}</li>`).join("")}</ul>
-              <button class="btn ${p.best?'':'ghost'}" style="width:100%" onclick="startSubscribe('${p.id}')">
+              <button class="btn ${p.best?'':'ghost'}" style="width:100%" onclick="${p.price==='Free' ? "ensureFreeCreatorProfile('upload')" : `startSubscribe('${p.id}')`}">
                 ${p.price==='Free'?'Start free':'Subscribe'}
               </button>
             </div>`).join("")}
@@ -1015,6 +1047,7 @@ loadFullCatalog().then(render).catch(e=>console.error("Full catalog load failed 
 
 /* ---- Attach functions invoked from inline HTML event handler attributes ---- */
 window.go = go;
+window.ensureFreeCreatorProfile = ensureFreeCreatorProfile;
 window.onboardBack = onboardBack;
 window.finishSubscribe = finishSubscribe;
 window.pickKey = pickKey;
