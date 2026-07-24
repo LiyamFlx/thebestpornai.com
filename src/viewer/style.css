@@ -102,7 +102,7 @@ h3{font-size:15px;margin:18px 0 10px}
 .card-avatar{flex:none;margin-top:1px}
 .card-text{min-width:0;flex:1}
 .card-text .title{font-size:14px;line-height:1.3;font-weight:600;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .card-text .meta{display:flex;flex-direction:column;gap:1px;margin-top:3px;font-size:12.5px}
 /* Grid cards are windowed in JS (grid-window.js) so the DOM stays bounded;
    content-visibility additionally lets the browser skip painting cards in the
@@ -201,6 +201,7 @@ h3{font-size:15px;margin:18px 0 10px}
 .title{font-size:13px;font-weight:600}
 .meta{font-size:11px;color:var(--muted);margin-top:2px}
 
+/* Shares a class name with .video-thumb .card-actions above (different role) — TODO verify against shared/ui.js */
 .card-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .chip{
   background:var(--surface2);border:1px solid var(--border);color:var(--muted);
@@ -254,8 +255,8 @@ h3{font-size:15px;margin:18px 0 10px}
 .movie-hero-topnav{position:absolute;top:0;left:0;right:0;z-index:3;
   display:flex;justify-content:space-between;padding:16px 20px}
 .movie-hero-topnav .icon-btn{background:rgba(20,20,20,.6);backdrop-filter:blur(6px)}
-.movie-hero-body{position:relative;z-index:2;padding:0 32px;
-  position:absolute;left:0;right:0;bottom:64px}
+.movie-hero-body{position:absolute;z-index:2;padding:0 32px;
+  left:0;right:0;bottom:64px}
 .movie-title{font-size:36px;font-weight:800;margin:0 0 14px;max-width:640px;line-height:1.15}
 .movie-cta-row{display:flex;gap:10px;flex-wrap:wrap}
 .movie-factstrip{
@@ -578,6 +579,16 @@ iframe.player{object-fit:contain}
 .act-btn:focus-visible,.vote-btn:focus-visible,.subscribe-btn:focus-visible{
   outline:2px solid var(--accent2);outline-offset:2px;
 }
+/* Same focus ring, extended to the rest of the site's clickable controls */
+.filter-pill:focus-visible,.chip:focus-visible,.tag-chip:focus-visible,
+.card:focus-visible,.toggle-tab:focus-visible,.nav button:focus-visible,
+.nav-link-out:focus-visible,.bottom-nav button:focus-visible,
+.icon-btn:focus-visible,.cat-more-item:focus-visible,.ms-opt:focus-visible,
+.comment-list-more:focus-visible,.watch-desc-more:focus-visible,
+.creator-link:focus-visible,.feed-btn:focus-visible,.feed-avatar:focus-visible,
+.feed-creator:focus-visible{
+  outline:2px solid var(--accent2);outline-offset:2px;
+}
 .player-status{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   flex-direction:column;gap:12px;background:rgba(10,10,10,.55);pointer-events:none;
@@ -659,7 +670,8 @@ iframe.player{object-fit:contain}
 .home-combined-bar{flex-wrap:wrap;gap:4px;margin:4px 0;align-items:center}
 .home-combined-bar .filter-pill.active{background:var(--accent);color:#fff}
 .chip-sep{width:1px;align-self:stretch;min-height:18px;background:var(--border);margin:0 4px;flex:0 0 auto}
-.sort-select{
+/* Scoped to the select after the home filter bar — was a bare .sort-select colliding with the comments-sort dropdown above */
+.home-combined-bar + .sort-select{
   background:transparent;border:1px solid var(--border);color:var(--muted);
   font-size:12.5px;font-weight:500;padding:6px 28px 6px 12px;border-radius:999px;
   cursor:pointer;outline:none;margin-bottom:16px;
@@ -667,8 +679,8 @@ iframe.player{object-fit:contain}
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23A0A0A0' stroke-width='1.5'/></svg>");
   background-repeat:no-repeat;background-position:right 10px center;
 }
-.sort-select:hover{color:var(--text);border-color:var(--muted)}
-.sort-select:focus{border-color:var(--accent)}
+.home-combined-bar + .sort-select:hover{color:var(--text);border-color:var(--muted)}
+.home-combined-bar + .sort-select:focus{border-color:var(--accent)}
 .cat-more{position:relative;display:inline-block}
 .cat-more-menu{
   display:none;position:absolute;z-index:40;top:100%;left:0;margin-top:6px;
@@ -693,7 +705,7 @@ iframe.player{object-fit:contain}
   cursor:pointer;transition:.15s;line-height:1.2;
 }
 .tag-chips .tag-chip:hover{color:#fff;background:var(--accent);border-color:transparent}
-.related-tags{flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.related-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
 
 /* Thin custom scrollbars for interactive containers */
 .sidebar, .content, .row-scroll, .ms-list, .panel pre {
@@ -1177,6 +1189,7 @@ iframe.player{object-fit:contain}
     text-shadow: 0 2px 4px rgba(0,0,0,0.8);
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -1346,10 +1359,10 @@ iframe.player{object-fit:contain}
   .watch-desc-wrap{position:relative}
   .watch-desc{
     margin:10px 0 4px;overflow:hidden;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;
     font-size:13px;line-height:1.4;
   }
-  .watch-desc-wrap.expanded .watch-desc{-webkit-line-clamp:unset}
+  .watch-desc-wrap.expanded .watch-desc{-webkit-line-clamp:unset;line-clamp:unset}
   .watch-desc-more{
     background:none;border:none;color:var(--muted);font-size:12px;font-weight:600;
     padding:2px 0 6px;cursor:pointer;
