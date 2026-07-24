@@ -36,13 +36,16 @@ function shClientId(){
 
 /* Low-level fetch with a short timeout so a hung request can't freeze the UI. */
 async function _req(path, opts={}){
+  if(!_REST || !SUPABASE_KEY) return null;
   const ctrl = new AbortController();
   const t = setTimeout(()=>ctrl.abort(), 6000);
   try {
-    const r = await fetch(_REST + path, { ...opts, headers:{ ..._HEADERS, ...(opts.headers||{}) }, signal: ctrl.signal });
-    if(!r.ok) throw new Error("supabase " + r.status);
-    const txt = await r.text();
+    const r = await fetch(_REST + path, { ...opts, headers:{ ..._HEADERS, ...(opts.headers||{}) }, signal: ctrl.signal }).catch(()=>null);
+    if(!r || !r.ok) return null;
+    const txt = await r.text().catch(()=>null);
     return txt ? JSON.parse(txt) : null;
+  } catch(_) {
+    return null;
   } finally { clearTimeout(t); }
 }
 
