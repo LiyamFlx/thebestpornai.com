@@ -918,7 +918,6 @@ iframe.player{object-fit:contain}
   background: rgba(229, 9, 20, 0.9);
   border-color: transparent;
   color: #fff;
-}
   animation: feed-like-pop .3s ease;
 }
 @keyframes feed-like-pop {
