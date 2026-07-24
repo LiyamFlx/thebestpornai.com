@@ -1056,16 +1056,14 @@ iframe.player{object-fit:contain}
   background: var(--accent);
 }
 
-/* ============================================================
-   MOBILE (≤760px) — single consolidated block, deliberately placed at the
-   very end of the file so it always wins any same-specificity cascade tie
-   against a base rule, regardless of that rule's position in the file.
-   (This exact bug — .mchrome-scroll{flex-wrap:nowrap} silently losing to a
-   later .pill-row{flex-wrap:wrap} base rule — is what motivated moving this
-   block here instead of leaving it near the top of the file.)
+/* Mobile-only element defaults (hidden on desktop >760px) */
+.topbar-drawer-toggle,
+.mobile-topbar-brand,
+.mobile-hero {
+  display: none !important;
+}
 
-   Previously scattered across 8 separate @media blocks added across many
-   sessions, which had produced two confirmed silent-override bugs (same
+/* ============================================================
    MOBILE (≤760px) — single consolidated block
    ============================================================ */
 @media(max-width:760px){
@@ -1138,7 +1136,7 @@ iframe.player{object-fit:contain}
 
   /* ---- Mobile Featured Hero Banner ---- */
   .mobile-hero {
-    display: block;
+    display: block !important;
     position: relative;
     height: 210px;
     border-radius: 14px;
