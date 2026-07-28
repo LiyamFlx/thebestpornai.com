@@ -970,9 +970,9 @@ iframe.player{object-fit:contain}
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #fff;
+  border: 2px solid var(--accent);
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 0 14px rgba(229,9,20,0.5), 0 4px 12px rgba(0,0,0,0.4);
   font-size: 16px;
   transition: transform 0.15s ease;
 }
@@ -1013,6 +1013,7 @@ iframe.player{object-fit:contain}
   background: rgba(229, 9, 20, 0.9);
   border-color: transparent;
   color: #fff;
+  box-shadow: 0 0 16px rgba(229,9,20,0.6), 0 4px 12px rgba(0,0,0,0.3);
   animation: feed-like-pop .3s ease;
 }
 @keyframes feed-like-pop {
