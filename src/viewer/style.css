@@ -459,7 +459,8 @@ table.data tr:hover td{background:var(--surface2)}
 .creator-name span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .verified{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;
   background:var(--muted);color:var(--bg);font-size:10px;font-weight:900;flex:none}
-.subscribe-btn{display:flex;align-items:center;gap:7px;padding:11px 22px;border-radius:999px;font-size:14px;flex:none}
+.subscribe-btn{display:flex;align-items:center;gap:7px;padding:11px 22px;border-radius:999px;font-size:14px;flex:none;box-shadow:0 0 18px rgba(229,9,20,.35)}
+.subscribe-btn.ghost{box-shadow:none}   /* already-subscribed state is a quiet outline button, no glow */
 
 /* comments card */
 .comments-card{border:1px solid var(--border);border-radius:16px;padding:20px;background:var(--surface);margin-bottom:24px}
@@ -529,6 +530,51 @@ table.data tr:hover td{background:var(--surface2)}
 
 /* Mobile bottom tab bar — hidden on desktop, shown under 760px */
 .bottom-nav{display:none}
+
+/* Mobile nav drawer (hamburger menu) — off-canvas panel, hidden by default
+   on every viewport; only actually shown once .open is toggled AND we're
+   under the mobile breakpoint (the drawer's own trigger button is also
+   mobile-only, so it can't be opened on desktop in practice, but the panel
+   itself must never render inline in normal document flow regardless). */
+.mobile-drawer{
+  position:fixed;top:0;left:0;bottom:0;z-index:60;
+  width:280px;max-width:82vw;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  transform:translateX(-100%);transition:transform .25s ease;
+  overflow-y:auto;
+}
+.mobile-drawer.open{transform:translateX(0)}
+.mobile-drawer-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid var(--border);
+}
+.mobile-drawer-head .brand{padding:0}
+.mobile-drawer-nav{display:flex;flex-direction:column;gap:2px;padding:10px}
+.mobile-drawer-nav button,.mobile-drawer-nav .nav-link-out{
+  width:100%;background:transparent;border:none;color:var(--muted);
+  padding:11px 12px;border-radius:8px;text-align:left;cursor:pointer;
+  font-size:14px;font-weight:500;display:flex;align-items:center;gap:10px;
+  text-decoration:none;box-sizing:border-box;
+}
+.mobile-drawer-nav button:hover,.mobile-drawer-nav .nav-link-out:hover{background:var(--surface2);color:var(--text)}
+.mobile-drawer-nav button.active{background:rgba(229,9,20,0.15);color:#fff;font-weight:600}
+.mobile-drawer-nav button.nav-upload{background:var(--accent,#e50914);color:#fff;font-weight:700;margin-bottom:6px}
+.mobile-drawer-nav .ico{width:18px;text-align:center;opacity:.9}
+.mobile-drawer-foot{
+  margin-top:auto;padding:14px 16px;font-size:11px;color:var(--muted);line-height:1.7;
+  border-top:1px solid var(--border);
+}
+.mobile-drawer-foot a{color:var(--muted);text-decoration:none}
+.mobile-drawer-foot a:hover{color:var(--text)}
+.mobile-drawer-backdrop{
+  display:none;position:fixed;inset:0;z-index:55;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(2px);
+}
+.mobile-drawer-backdrop.show{display:block}
+@media(min-width:761px){
+  .mobile-drawer,.mobile-drawer-backdrop{display:none !important}   /* desktop uses the icon rail, never the drawer */
+}
 /* Big hero-style player: fills the full content width and a generous
    viewport-relative height, edge-to-edge like a Netflix hero. The box itself
    stays a fixed wide aspect ratio, but the video fits WITHIN it uncropped
