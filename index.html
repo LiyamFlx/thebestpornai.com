@@ -53,6 +53,15 @@
   <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 4v11M8 8l4-4 4 4"/><path d="M5 16v3a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3"/>
   </symbol>
+  <symbol id="icon-shorts" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z"/>
+  </symbol>
+  <symbol id="icon-subs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="6" width="18" height="13" rx="2"/><path d="M8 3h8"/>
+  </symbol>
+  <symbol id="icon-studio" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/>
+  </symbol>
 </svg>
 <div class="app">
   <!-- Sidebar: slim icon rail (desktop only — mobile uses the hamburger
@@ -63,15 +72,15 @@
 
     <div class="nav" id="nav">
       <button onclick="window.location.href='/creator/index.html?page=upload'" class="nav-upload" aria-label="Upload new video">
-        <span class="ico">⬆</span> Upload
+        <svg class="ico"><use href="#icon-upload"/></svg> Upload
       </button>
 
-      <button data-page="home"          onclick="go('home')" title="Home"><span class="ico">🏠</span> Home</button>
-      <button data-page="feed"          onclick="go('feed')" title="Vertical Feed"><span class="ico">📱</span> Shorts</button>
-      <button data-page="explore"       onclick="go('explore')" title="Explore"><span class="ico">🧭</span> Explore</button>
-      <button data-page="subscriptions" onclick="go('subscriptions')" title="Subscriptions"><span class="ico">📺</span> Subs</button>
+      <button data-page="home"          onclick="go('home')" title="Home"><svg class="ico"><use href="#icon-home"/></svg> Home</button>
+      <button data-page="feed"          onclick="go('feed')" title="Vertical Feed"><svg class="ico"><use href="#icon-shorts"/></svg> Shorts</button>
+      <button data-page="explore"       onclick="go('explore')" title="Explore"><svg class="ico"><use href="#icon-explore"/></svg> Explore</button>
+      <button data-page="subscriptions" onclick="go('subscriptions')" title="Subscriptions"><svg class="ico"><use href="#icon-subs"/></svg> Subs</button>
 
-      <a href="/choose.html" class="nav-link-out" title="Creator / Manager"><span class="ico">🛡</span> Studio</a>
+      <a href="/choose.html" class="nav-link-out" title="Creator / Manager"><svg class="ico"><use href="#icon-studio"/></svg> Studio</a>
     </div>
   </div>
 
