@@ -77,12 +77,19 @@ function closeOpenMenus(except){
       if(t) t.setAttribute("aria-expanded", "false");
     }
   });
+  document.querySelectorAll(".account-menu.open").forEach(o => {
+    if(!except || !o.contains(except)){
+      o.classList.remove("open");
+      const t = o.querySelector('[data-mobile-action="toggle-account-menu"]');
+      if(t) t.setAttribute("aria-expanded", "false");
+    }
+  });
 }
 
 function onClick(e){
   const trigger = e.target.closest("[data-mobile-action]");
-  // Any click that isn't the overflow trigger itself closes an open menu.
-  if(!trigger || trigger.dataset.mobileAction !== "toggle-actions-menu"){
+  // Any click that isn't a menu's own trigger closes open menus.
+  if(!trigger || (trigger.dataset.mobileAction !== "toggle-actions-menu" && trigger.dataset.mobileAction !== "toggle-account-menu")){
     closeOpenMenus(trigger);
   }
   if(!trigger) return;
@@ -108,6 +115,12 @@ function onClick(e){
   } else if(action === "toggle-actions-menu"){
     e.preventDefault();
     const wrap = trigger.closest(".act-overflow");
+    if(!wrap) return;
+    const open = wrap.classList.toggle("open");
+    trigger.setAttribute("aria-expanded", open ? "true" : "false");
+  } else if(action === "toggle-account-menu"){
+    e.preventDefault();
+    const wrap = trigger.closest(".account-menu");
     if(!wrap) return;
     const open = wrap.classList.toggle("open");
     trigger.setAttribute("aria-expanded", open ? "true" : "false");

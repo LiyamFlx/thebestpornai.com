@@ -55,41 +55,23 @@
   </symbol>
 </svg>
 <div class="app">
-  <!-- Sidebar -->
+  <!-- Sidebar: slim icon rail (desktop only — mobile uses the hamburger
+       drawer below instead). Only the 5 core destinations; everything else
+       moved into the topbar's horizontal nav or the avatar's account menu. -->
   <div class="sidebar">
     <a class="brand" href="/"><img src="/src/shared/assets/logo.png" alt="thebestpornai"/></a>
 
     <div class="nav" id="nav">
-      <!-- Quick Upload -->
       <button onclick="window.location.href='/creator/index.html?page=upload'" class="nav-upload" aria-label="Upload new video">
-        <span class="ico">⬆</span> Upload Video
+        <span class="ico">⬆</span> Upload
       </button>
 
-      <button data-page="home"        onclick="go('home')"><span class="ico">🏠</span> Home</button>
-      <button data-page="feed"        onclick="go('feed')"><span class="ico">📱</span> Vertical Feed</button>
-      <button data-page="explore"     onclick="go('explore')"><span class="ico">🧭</span> Explore</button>
-      <button data-page="categories"  onclick="go('categories')"><span class="ico">▦</span> Categories</button>
-      <button data-page="trending"    onclick="go('trending')"><span class="ico">🔥</span> Trending</button>
-      <button data-page="subscriptions" onclick="go('subscriptions')"><span class="ico">📺</span> Subscriptions</button>
-      <button data-page="later"       onclick="go('later')"><span class="ico">🕒</span> Watch Later</button>
-      <button data-page="favorites"   onclick="go('favorites')"><span class="ico">★</span> Favorites</button>
-      <button data-page="history"     onclick="go('history')"><span class="ico">↺</span> History</button>
-      <button data-page="downloads"   onclick="go('downloads')"><span class="ico">⤓</span> Downloads</button>
-      <button data-page="playlists"   onclick="go('playlists')"><span class="ico">≣</span> Playlists</button>
-      <button data-page="live"        onclick="go('live')"><span class="ico">🔴</span> Live</button>
-      <button data-page="originals"   onclick="go('originals')"><span class="ico">🎬</span> Originals</button>
-      <button data-page="settings"    onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
+      <button data-page="home"          onclick="go('home')" title="Home"><span class="ico">🏠</span> Home</button>
+      <button data-page="feed"          onclick="go('feed')" title="Vertical Feed"><span class="ico">📱</span> Shorts</button>
+      <button data-page="explore"       onclick="go('explore')" title="Explore"><span class="ico">🧭</span> Explore</button>
+      <button data-page="subscriptions" onclick="go('subscriptions')" title="Subscriptions"><span class="ico">📺</span> Subs</button>
 
-      <a href="/choose.html" class="nav-link-out"><span class="ico">🛡</span> Creator / Manager</a>
-    </div>
-
-    <div class="sidebar-foot">
-      18+ Adults Only — All performers are consenting adults 18+<br/>
-      <a href="/legal/terms.html">Terms</a> ·
-      <a href="/legal/privacy.html">Privacy</a><br/>
-      <a href="/legal/dmca.html">DMCA</a> ·
-      <a href="/legal/2257.html">2257</a><br/>
-      <a href="mailto:contact@thebestpornai.com">Contact</a>
+      <a href="/choose.html" class="nav-link-out" title="Creator / Manager"><span class="ico">🛡</span> Studio</a>
     </div>
   </div>
 
@@ -97,7 +79,13 @@
   <div class="main">
     <div class="topbar">
       <button class="icon-btn topbar-drawer-toggle" data-mobile-action="toggle-drawer" aria-label="Open navigation menu">☰</button>
-      <div class="left"><a href="/" class="mobile-topbar-brand"><img src="/src/shared/assets/logo.png" alt="thebestpornai"/></a><span class="topbar-brand-title">thebestpornai</span> <span class="video-count-badge" id="videoCountBadge"></span></div>
+      <div class="left"><a href="/" class="mobile-topbar-brand"><img src="/src/shared/assets/logo.png" alt="thebestpornai"/></a><span class="topbar-brand-title">thebestpornai</span></div>
+      <nav class="topbar-nav" aria-label="Primary">
+        <a data-page="home" onclick="event.preventDefault();go('home')" href="#">Home</a>
+        <a data-page="trending" onclick="event.preventDefault();go('trending')" href="#">Trending</a>
+        <a data-page="categories" onclick="event.preventDefault();go('categories')" href="#">Categories</a>
+        <a data-page="live" onclick="event.preventDefault();go('live')" href="#">Live</a>
+      </nav>
       <div class="topbar-actions">
         <button
           class="icon-btn topbar-search-toggle"
@@ -113,7 +101,27 @@
           aria-label="Search"
         />
         <button class="icon-btn" onclick="go('later')" aria-label="Watch Later">🕒</button>
-        <div class="avatar" onclick="go('profile')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();go('profile')}" role="button" tabindex="0" title="Your Profile" aria-label="Profile">A</div>
+        <div class="account-menu">
+          <div class="avatar" data-mobile-action="toggle-account-menu" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" role="button" tabindex="0" title="Your account" aria-haspopup="true" aria-expanded="false">A</div>
+          <div class="account-menu-panel">
+            <button onclick="go('profile')"><span class="ico">👤</span> Profile</button>
+            <button onclick="go('favorites')"><span class="ico">★</span> Favorites</button>
+            <button onclick="go('history')"><span class="ico">↺</span> History</button>
+            <button onclick="go('playlists')"><span class="ico">≣</span> Playlists</button>
+            <button onclick="go('downloads')"><span class="ico">⤓</span> Downloads</button>
+            <button onclick="go('originals')"><span class="ico">🎬</span> Originals</button>
+            <button onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
+            <div class="account-menu-sep"></div>
+            <div class="account-menu-legal">
+              18+ Adults Only — All performers are consenting adults 18+<br/>
+              <a href="/legal/terms.html">Terms</a> ·
+              <a href="/legal/privacy.html">Privacy</a> ·
+              <a href="/legal/dmca.html">DMCA</a> ·
+              <a href="/legal/2257.html">2257</a><br/>
+              <a href="mailto:contact@thebestpornai.com">Contact</a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="content" id="view"></div>

@@ -1,52 +1,56 @@
 /* Layout */
 .app{display:flex;height:100vh}
+/* Desktop shell: a slim 72px icon-only rail (5 core destinations, icon +
+   micro-label, matches the Home/Shorts/Explore/Subscriptions/Library rail
+   from the July 2026 design pass) instead of the old 240px text list — the
+   long alphabetical button stack pushed real navigation below the fold and
+   read as noisy. Everything that isn't one of these 5 lives in the top nav
+   or behind the avatar; nothing here routes anywhere that isn't already a
+   real page (`render.js`'s route map / `listPage()` fallback). */
 .sidebar{
-  width:240px;
+  width:72px;flex:none;
   background:var(--surface);
   border-right:1px solid var(--border);
-  padding:16px 12px;
+  padding:12px 8px;
   display:flex;
   flex-direction:column;
+  align-items:center;
   gap:4px;
   overflow:auto;
 }
 .brand{
-  padding:6px 10px 14px;
-  display:flex;align-items:center;gap:8px;
+  padding:4px 0 12px;
+  display:flex;align-items:center;justify-content:center;
 }
 .brand img{height:22px}
-.sidebar-foot{margin-top:auto;padding:10px;font-size:11px;color:var(--muted);line-height:1.7}
-.sidebar-foot a{color:var(--muted);text-decoration:none}
-.sidebar-foot a:hover{color:var(--text)}
-.nav-label{
-  font-size:10px;text-transform:uppercase;letter-spacing:1px;
-  color:var(--muted);margin:12px 10px 4px;
-}
+.sidebar-foot{display:none}   /* legal footer moved into the topbar avatar menu on this layout — see .account-menu */
+.nav{width:100%;display:flex;flex-direction:column;align-items:center;gap:4px}
 .nav button,.nav-link-out{
-  width:100%;
+  width:56px;
   background:transparent;border:none;
   color:var(--muted);
-  padding:9px 10px;border-radius:8px;
-  text-align:left;cursor:pointer;
-  font-size:13px;transition:.15s;
-  display:flex;align-items:center;gap:9px;
+  padding:9px 4px 7px;border-radius:12px;
+  text-align:center;cursor:pointer;
+  font-size:10px;font-weight:600;transition:.15s;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
   text-decoration:none;box-sizing:border-box;
 }
 .nav button:hover,.nav-link-out:hover{background:var(--surface2);color:var(--text)}
-.nav button.active{background:rgba(229,9,20,0.15);color:#fff;font-weight:600}
+.nav button.active{background:rgba(229,9,20,0.15);color:#fff}
+.nav button.active .ico{filter:drop-shadow(0 0 6px rgba(229,9,20,.55))}
 .nav button.nav-upload{
-  background:var(--accent,#e50914);color:#fff;font-weight:700;margin-bottom:8px;
+  background:var(--accent,#e50914);color:#fff;margin-bottom:6px;
 }
 .nav button.nav-upload:hover{background:#ff2634;color:#fff}
-.nav button .ico,.nav-link-out .ico{width:16px;text-align:center;opacity:.9}
-.nav-link-out{margin-top:8px;border-top:1px solid var(--border,rgba(255,255,255,.08));padding-top:12px}
+.nav button .ico,.nav-link-out .ico{font-size:20px;line-height:1}
+.nav-link-out{margin-top:auto;padding-top:12px}
 
 .main{flex:1;display:flex;flex-direction:column;min-width:0}
 .topbar{
   min-height:58px;display:flex;align-items:center;justify-content:space-between;
-  padding:10px 22px;border-bottom:1px solid var(--border);
-  background:rgba(20,20,20,0.7);backdrop-filter:blur(10px);
-  gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:20;
+  padding:10px 24px;border-bottom:1px solid var(--border);
+  background:rgba(20,20,20,0.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:20;
 }
 .topbar .left{display:flex;align-items:center;gap:14px;font-weight:600}
 .video-count-badge{
@@ -54,6 +58,18 @@
   background:var(--surface2,rgba(255,255,255,.06));border:1px solid var(--border);
   border-radius:20px;padding:3px 10px;letter-spacing:.2px;
 }
+/* Top nav links — the horizontal counterpart to the icon rail. Only real
+   pages: Home/Trending/Subscriptions/Live all route through the existing
+   render.js map or listPage() fallback (no new "Creators" link — there's no
+   creator directory page today, only per-creator profile pages reached via
+   an avatar click, so it isn't listed here). */
+.topbar-nav{display:flex;align-items:center;gap:4px;margin-right:auto}
+.topbar-nav a{
+  padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;
+  color:var(--muted);text-decoration:none;transition:.15s;
+}
+.topbar-nav a:hover{color:var(--text);background:var(--surface2)}
+.topbar-nav a.active{color:#fff}
 .topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .search-input{
   background:var(--surface2);border:1px solid var(--border);color:var(--text);
@@ -72,7 +88,32 @@
   width:34px;height:34px;border-radius:50%;
   background:linear-gradient(135deg,var(--accent),#7A0008);
   display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;
+  cursor:pointer;
 }
+
+/* Avatar dropdown: profile/library pages that moved out of the old long
+   sidebar list, plus the legal/18+ footer that used to live at the bottom
+   of the sidebar (now shown nowhere else, so it has to live here). */
+.account-menu{position:relative}
+.account-menu-panel{
+  display:none;position:absolute;right:0;top:calc(100% + 10px);z-index:40;
+  flex-direction:column;gap:2px;min-width:220px;padding:8px;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  box-shadow:0 12px 32px rgba(0,0,0,.5);
+}
+.account-menu.open .account-menu-panel{display:flex}
+.account-menu-panel button{
+  width:100%;background:transparent;border:none;color:var(--muted);
+  padding:9px 10px;border-radius:8px;text-align:left;cursor:pointer;
+  font-size:13px;font-weight:500;display:flex;align-items:center;gap:9px;
+  transition:.15s;
+}
+.account-menu-panel button:hover{background:var(--surface2);color:var(--text)}
+.account-menu-panel button .ico{width:16px;text-align:center;opacity:.9}
+.account-menu-sep{height:1px;background:var(--border);margin:6px 4px}
+.account-menu-legal{padding:4px 10px 2px;font-size:11px;color:var(--muted);line-height:1.7}
+.account-menu-legal a{color:var(--muted);text-decoration:none}
+.account-menu-legal a:hover{color:var(--text)}
 
 .content{padding:24px;overflow:auto;animation:fade .25s ease}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
@@ -658,6 +699,9 @@ iframe.player{object-fit:contain}
    These keep the new mobile-only controls out of the desktop layout. Each is
    re-enabled inside the max-width:760px block further down. */
 .topbar-search-toggle{display:none}   /* collapsed-header search icon (mobile only) */
+.topbar-drawer-toggle{display:none}   /* hamburger drawer trigger (mobile only — desktop uses the icon rail) */
+.mobile-topbar-brand{display:none}    /* duplicate logo next to the sidebar's own brand mark (mobile only, sidebar is hidden there) */
+.topbar .left{display:none}           /* plain-text wordmark, superseded by the icon-rail's <img> brand on desktop */
 .cat-scroll-extra{display:none}       /* overflow categories inline only when the row scrolls (mobile) */
 .act-more{display:none}               /* action overflow trigger (mobile only) */
 /* On desktop the overflow wrapper + menu dissolve so Favorite/Save/Share/Report
@@ -1119,6 +1163,7 @@ iframe.player{object-fit:contain}
   h2{font-size:18px;letter-spacing:-.2px}
 
   /* ---- Top bar & Hamburger button ---- */
+  .topbar-nav{display:none}   /* desktop-only horizontal nav; mobile uses the hamburger drawer instead */
   .topbar-drawer-toggle {
     display: inline-flex !important;
     align-items: center;
