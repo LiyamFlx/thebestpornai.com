@@ -6,7 +6,11 @@ import { vstate } from "../state.js";
 import { jsq } from "../util.js";
 import { pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies, actNames, clipsByAct, highlights } from "../catalog-queries.js";
 
-export const HERO_VIDEO_ID = 470; // pinned homepage hero — update this id to change it
+// Homepage hero rotates between a small pool, picked once per page load
+// (not per render — re-picking on every filter/sort change would make the
+// hero jump around while browsing). Add/remove ids here to change the pool.
+const HERO_VIDEO_POOL = [193, 270];
+export const HERO_VIDEO_ID = HERO_VIDEO_POOL[Math.floor(Math.random() * HERO_VIDEO_POOL.length)];
 
 // A horizontal scroll row only ever shows a handful of cards at once; capping
 // each row keeps the homepage DOM to hundreds of cards instead of thousands
