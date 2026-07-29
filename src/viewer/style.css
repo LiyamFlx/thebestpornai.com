@@ -800,18 +800,20 @@ iframe.player{object-fit:contain}
 .home-combined-bar{flex-wrap:wrap;gap:4px;margin:4px 0;align-items:center}
 .home-combined-bar .filter-pill.active{background:var(--accent);color:#fff}
 .chip-sep{width:1px;align-self:stretch;min-height:18px;background:var(--border);margin:0 4px;flex:0 0 auto}
-/* Scoped to the select after the home filter bar — was a bare .sort-select colliding with the comments-sort dropdown above */
-.home-combined-bar + .sort-select{
+.cat-more{position:relative;display:inline-block}
+/* Sort select, styled to match the filter-pill chips it sits alongside
+   (pushed to the row's end on desktop where the row wraps; on mobile the
+   row scrolls instead, so it just trails the last chip in scroll order). */
+.sort-select-inline{
   background:transparent;border:1px solid var(--border);color:var(--muted);
-  font-size:12.5px;font-weight:500;padding:6px 28px 6px 12px;border-radius:999px;
-  cursor:pointer;outline:none;margin-bottom:16px;
+  font-size:12.5px;font-weight:500;padding:6px 26px 6px 12px;border-radius:999px;
+  flex:0 0 auto;margin-left:auto;
   -webkit-appearance:none;appearance:none;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23A0A0A0' stroke-width='1.5'/></svg>");
   background-repeat:no-repeat;background-position:right 10px center;
 }
-.home-combined-bar + .sort-select:hover{color:var(--text);border-color:var(--muted)}
-.home-combined-bar + .sort-select:focus{border-color:var(--accent)}
-.cat-more{position:relative;display:inline-block}
+.sort-select-inline:hover{color:var(--text);border-color:var(--muted)}
+.sort-select-inline:focus{border-color:var(--accent)}
 .cat-more-menu{
   display:none;position:absolute;z-index:40;top:100%;left:0;margin-top:6px;
   min-width:200px;max-height:340px;overflow-y:auto;padding:6px;
@@ -1463,7 +1465,10 @@ iframe.player{object-fit:contain}
   .home-combined-bar .cat-more{display:none}
   .home-combined-bar .cat-scroll-extra{display:inline-flex;align-items:center}
   .chip-sep{display:none}
-  .sort-select{min-height:40px;margin-bottom:12px;font-size:13px;border-radius:10px}
+  /* Inside the scrolling row, not pushed right (no room to "end" a scroll
+     strip) — trails the last chip, min-height bumped to match touch target
+     sizing used by the pills around it. */
+  .sort-select-inline{min-height:36px;margin-left:0;flex:0 0 auto}
 
   /* ---- Cards (Row vs 2-Up Grid) ---- */
   .video-list{display:flex;flex-direction:column;gap:18px}

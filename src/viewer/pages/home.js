@@ -14,8 +14,11 @@ export const HERO_VIDEO_ID = 470; // pinned homepage hero — update this id to 
 const ROW_MAX = 24;
 
 // Top categories shown inline in the filter bar; the rest live under "More ▾".
-const TOP_CATEGORIES = CATEGORIES.slice(0, 8);
-const MORE_CATEGORIES = CATEGORIES.slice(8);
+// Capped at 5 (was 8) — combined with the 4 type filters (All/Movies/Scenes/
+// Clips), 8 categories pushed the row to ~12 visible chips before "More",
+// which is well past what a single scan-able filter row should hold.
+const TOP_CATEGORIES = CATEGORIES.slice(0, 5);
+const MORE_CATEGORIES = CATEGORIES.slice(5);
 
 // Single lookup table built once per module load. Used to resolve
 // history/continue-watching IDs in O(1) instead of DATA.videos.find() per id.
@@ -30,13 +33,14 @@ function homeFilterBar(){
   // On mobile the "More ▾" dropdown would be clipped by the scroll container, so
   // the overflow categories are also emitted inline as `.cat-scroll-extra` pills
   // (hidden on desktop, shown inline on mobile) — everything scrolls instead.
-  // Type filters (All/Movies/Scenes/Clips) and top categories now render as
-  // ONE combined scrollable chip row instead of two stacked rows — on mobile
-  // this was previously two full-width rows of chrome before any video
-  // appeared. "More" still opens the overflow-categories menu; the sort
-  // control is a single compact select (icon+label) rather than either a
-  // full pill row (desktop) or a full-width bar (mobile), so it never
-  // reserves its own full line.
+  // ONE row total: type filters + categories scroll inline, and sort is a
+  // native <select> styled as a pill button living at the row's end instead
+  // of its own full-width line below — previously this was two stacked rows
+  // (chip row, then a persistent "Sort: Default" bar) before a single video
+  // appeared. A native select (not a custom dropdown) is deliberate: the row
+  // is `overflow-x:auto` on mobile, which would clip a custom absolute-
+  // positioned menu the same way .cat-more's did — an OS-rendered <select>
+  // popup is never clipped by a scrolling ancestor's overflow.
   return `<div class="pill-row home-combined-bar mchrome-scroll">
     ${filters.map(([key,label])=>`<button class="filter-pill ${(vstate.homeFilter===key && !activeCat)?'active':''}" onclick="setHomeFilter('${key}')">${label}</button>`).join("")}
     <span class="chip-sep" aria-hidden="true"></span>
@@ -48,10 +52,10 @@ function homeFilterBar(){
       </div>
     </span>
     ${MORE_CATEGORIES.map(c=>`<button class="filter-pill cat-scroll-extra ${activeCat===c?'active':''}" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
-  </div>
-  <select class="sort-select" onchange="setHomeSort(this.value)" aria-label="Sort videos">
-    ${sorts.map(([key,label])=>`<option value="${key}" ${vstate.homeSort===key?'selected':''}>Sort: ${label}</option>`).join("")}
-  </select>`;
+    <select class="sort-select sort-select-inline" onchange="setHomeSort(this.value)" aria-label="Sort videos">
+      ${sorts.map(([key,label])=>`<option value="${key}" ${vstate.homeSort===key?'selected':''}>Sort: ${label}</option>`).join("")}
+    </select>
+  </div>`;
 }
 
 // `m.poster` is a video object (the full movie, or its lowest-numbered scene
