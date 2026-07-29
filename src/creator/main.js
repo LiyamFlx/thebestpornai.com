@@ -965,8 +965,6 @@ function syncChrome(){
   if(sidebar) sidebar.style.display = gated ? "none" : "";
   const topbarActions = document.querySelector(".topbar-actions");
   if(topbarActions) topbarActions.style.visibility = gated ? "hidden" : "";
-  const navStudio = document.getElementById("quickNavStudioLinks");
-  if(navStudio) navStudio.style.display = gated ? "none" : "block";
   if(creator){
     const nameEl = document.getElementById("creatorName");
     if(nameEl) nameEl.textContent = creator.name;

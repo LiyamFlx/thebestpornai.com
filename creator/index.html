@@ -70,18 +70,15 @@
         <button type="button" class="btn sm" data-page="upload">＋ Upload</button>
         <button type="button" class="avatar" data-page="settings" aria-label="Account settings" id="avatarBtn">A</button>
       </div>
+      <!-- Cross-app switcher only — every Studio page (Dashboard/Content/
+           Upload/etc.) already lives in the always-visible sidebar, so
+           duplicating them here just doubled up the same nav twice on
+           screen at once. This menu now holds only destinations that are
+           NOT in that sidebar. -->
       <div class="quick-nav-dropdown" id="quickNavDropdown">
         <a href="/"><span class="ico">📺</span> Viewer Home</a>
         <a href="/choose.html"><span class="ico">🛡</span> Choose Experience</a>
         <a href="/manager/index.html"><span class="ico">💼</span> Platform Manager</a>
-        <div id="quickNavStudioLinks" style="display:none">
-          <hr style="border:0;border-top:1px solid var(--border);margin:8px 0;"/>
-          <a href="#" data-page="dashboard"><span class="ico">▤</span> Dashboard</a>
-          <a href="#" data-page="content"><span class="ico">🎞</span> Content</a>
-          <a href="#" data-page="upload"><span class="ico">⤒</span> Upload</a>
-          <a href="#" data-page="analytics"><span class="ico">📈</span> Analytics</a>
-          <a href="#" data-page="revenue"><span class="ico">💰</span> Revenue</a>
-        </div>
       </div>
     </header>
     <main class="content" id="view" tabindex="-1"></main>
