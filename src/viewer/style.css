@@ -72,6 +72,17 @@
 }
 .topbar-nav a:hover{color:var(--text);background:var(--surface2)}
 .topbar-nav a.active{color:#fff}
+
+/* Watch page: maximize immersion by shrinking the global chrome down to just
+   navigation essentials (brand mark, the 5 core destinations with no upload
+   CTA to compete for attention, search, avatar). Nothing is removed from the
+   DOM — collapsed via CSS so leaving the watch page restores full chrome
+   instantly with no re-render. */
+.page-watch .sidebar{width:56px}
+.page-watch .nav button,.page-watch .nav-link-out{width:40px}
+.page-watch .nav button .nav-label,.page-watch .nav-link-out .nav-label{display:none}
+.page-watch .nav button.nav-upload,.page-watch .nav-link-out{display:none}
+.page-watch .topbar-nav{display:none}
 .topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .search-input{
   background:var(--surface2);border:1px solid var(--border);color:var(--text);

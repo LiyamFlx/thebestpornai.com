@@ -29,6 +29,7 @@ import {
 export function render(){
   const v=document.getElementById("view"); const p=vstate.page;
   if(v) v.classList.toggle("content-feed", p === "feed");
+  document.querySelector(".app")?.classList.toggle("page-watch", p === "watch");
   resetGridWindow();          // drop stale windowed-grid state before rebuilding #view
   if(_lazyObserver) _lazyObserver.disconnect();   // drop phantom targets from the page we're leaving
   const map={
