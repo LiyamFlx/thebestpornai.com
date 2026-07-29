@@ -4,7 +4,7 @@
 import { DATA, esc, fmt } from "../../shared/catalog.js";
 import { videoCard, emptyState } from "../../shared/ui.js";
 import { POPULAR_TAGS } from "../../shared/taxonomy.js";
-import { vstate } from "../state.js";
+import { vstate, persistState } from "../state.js";
 import { jsq } from "../util.js";
 import { pubVideos, byCat } from "../catalog-queries.js";
 import { pagedGrid } from "../grid-window.js";
@@ -76,15 +76,13 @@ export function renderProfile(){
 export function renderSettings(){
   return `<h2>Settings</h2>
     <div class="panel" style="max-width:520px">
-      <label class="lbl">Playback Quality</label>
-      <select class="fld"><option>Auto</option><option>1080p</option><option>720p</option><option>480p</option></select>
-      <label class="lbl">Autoplay next video</label>
-      <select class="fld"><option>On</option><option>Off</option></select>
-      <label class="lbl">Language</label>
-      <select class="fld"><option>English</option><option>Español</option><option>Français</option></select>
-      <label class="lbl">Theme</label>
-      <select class="fld"><option>Dark (Red)</option></select>
-      <br/><br/><button class="btn" onclick="toast('Settings saved')">Save Changes</button>
+      <label class="setting-row">
+        <span>
+          <span class="lbl" style="margin:0">Autoplay next video</span>
+          <span class="small" style="display:block;color:var(--muted)">Automatically play the next suggested video when one ends.</span>
+        </span>
+        <input type="checkbox" class="switch" ${vstate.settings.autoplay ? 'checked' : ''} onchange="toggleAutoplaySetting(this.checked)"/>
+      </label>
     </div>`;
 }
 

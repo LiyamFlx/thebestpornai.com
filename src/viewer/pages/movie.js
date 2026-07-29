@@ -40,8 +40,8 @@ export function renderMovieDetail(){
       <div class="movie-hero">
         ${movieEntry.src && !ytId(movieEntry.src) ? `<video src="${mediaUrl(movieEntry.src)}" muted autoplay loop playsinline></video>` : ``}
         <div class="movie-hero-topnav">
-          <button class="icon-btn movie-back" onclick="go('home')" aria-label="Back">←</button>
-          <button class="icon-btn movie-menu" onclick="go('categories')" aria-label="Menu">☰</button>
+          <button class="icon-btn movie-back" onclick="go('home')" aria-label="Back"><svg class="ico"><use href="#icon-back"/></svg></button>
+          <button class="icon-btn movie-menu" onclick="go('categories')" aria-label="Browse categories"><svg class="ico"><use href="#icon-grid"/></svg></button>
         </div>
         <div class="movie-hero-body">
           <h1 class="movie-title">${esc(title)}</h1>

@@ -312,6 +312,21 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
 /* Panels */
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
 .panel h3{margin-top:0}
+
+/* Settings toggle row + switch — real on/off prefs only (see renderSettings()) */
+.setting-row{display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer}
+.switch{
+  appearance:none;-webkit-appearance:none;flex:none;
+  width:42px;height:24px;border-radius:999px;
+  background:var(--surface3);border:1px solid var(--border);
+  position:relative;cursor:pointer;transition:background .15s,border-color .15s;
+}
+.switch::after{
+  content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+  background:#fff;transition:transform .15s ease;box-shadow:0 1px 3px rgba(0,0,0,.4);
+}
+.switch:checked{background:var(--accent);border-color:var(--accent)}
+.switch:checked::after{transform:translateX(18px)}
 .panel pre{
   background:var(--bg);border:1px solid var(--border);border-radius:10px;
   padding:12px;overflow:auto;font-size:12px;color:var(--muted);line-height:1.7;

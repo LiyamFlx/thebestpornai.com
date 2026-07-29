@@ -279,3 +279,14 @@ function _doSearchNow(){
   vstate.page = "search";
   render();
 }
+
+/* Settings: only real, checkable prefs are exposed here (see renderSettings())
+   — "Playback Quality"/"Language"/"Theme" were removed rather than left as
+   dead dropdowns, since there's no adaptive-bitrate, i18n, or alt-theme
+   system in the app for them to actually control. Autoplay wires straight
+   into player-controls.js's attachAutoAdvance(), which checks this flag. */
+export function toggleAutoplaySetting(on){
+  vstate.settings.autoplay = !!on;
+  persistState();
+  toast(on ? "Autoplay turned on" : "Autoplay turned off");
+}

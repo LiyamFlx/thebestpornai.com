@@ -30,6 +30,7 @@ import {
   reportVideo,
   doSearch,
   stepWatch,
+  toggleAutoplaySetting,
 } from "./actions.js";
 import { refreshManifest, syncManifestOnLoad } from "./manifest-sync.js";
 import { initMobileChrome } from "./mobile-chrome.js";
@@ -91,6 +92,7 @@ Object.assign(window, {
   loadMoreComments,
   refreshManifest,
   stepWatch,
+  toggleAutoplaySetting,
 });
 
 // Keyboard navigation (Watch page Arrow keys cycling public videos)

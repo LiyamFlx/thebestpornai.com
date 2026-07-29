@@ -5,13 +5,18 @@
 /* User collections persist across reloads via localStorage. Only these fields
    are stored (not transient UI state like page/search). */
 const PERSIST_KEY = "sh_viewer_state";
-const PERSIST_FIELDS = ["favorites", "later", "history", "downloads", "subs"];
+const PERSIST_FIELDS = ["favorites", "later", "history", "downloads", "subs", "settings"];
+const DEFAULT_SETTINGS = { quality: "auto", autoplay: true, language: "en" };
 function loadPersisted(){
   try {
     const saved = JSON.parse(localStorage.getItem(PERSIST_KEY) || "null");
     if(!saved || typeof saved !== "object") return {};
     const out = {};
-    for(const f of PERSIST_FIELDS){ if(Array.isArray(saved[f])) out[f] = saved[f]; }
+    for(const f of PERSIST_FIELDS){
+      if(f === "settings"){
+        if(saved.settings && typeof saved.settings === "object") out.settings = { ...DEFAULT_SETTINGS, ...saved.settings };
+      } else if(Array.isArray(saved[f])) out[f] = saved[f];
+    }
     return out;
   } catch(_){ return {}; }
 }
@@ -31,7 +36,8 @@ export const vstate = {
   limit: 36,          // simple grid pagination / load more
   flags: { globalUpload: true },  // feature flag: site-wide drag-drop upload
   pendingUploads: [], // uploader-only overlay of in-flight/own uploads
-  ...loadPersisted(),   // rehydrate favorites/later/history/downloads/subs
+  settings: { ...DEFAULT_SETTINGS },   // playback quality / autoplay / language — real prefs, persisted below
+  ...loadPersisted(),   // rehydrate favorites/later/history/downloads/subs/settings
 };
 
 /* Save the persisted collections. Call after any mutation to those fields.

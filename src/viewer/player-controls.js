@@ -6,6 +6,7 @@
    Re-attached on every render() since the player element is recreated on
    each innerHTML swap (see render.js). */
 import { stepWatch, openVideo } from "./actions.js";
+import { vstate } from "./state.js";
 
 function fmtTime(s){
   if(!isFinite(s) || s < 0) return "0:00";
@@ -137,6 +138,7 @@ export function attachPlayerControls(){
    modal — it doesn't block the final frame and needs no confirmation click,
    it just tells you it's about to happen and lets you tap to cancel. */
 function attachAutoAdvance(wrap, video){
+  if(!vstate.settings.autoplay) return;
   const nextCard = document.querySelector(".watch-side [data-video-id]");
   if(!nextCard) return;
   const nextId = +nextCard.dataset.videoId;
