@@ -40,10 +40,6 @@
 .nav button:hover,.nav-link-out:hover{background:var(--surface2);color:var(--text)}
 .nav button.active{background:rgba(229,9,20,0.15);color:#fff}
 .nav button.active .ico{filter:drop-shadow(0 0 6px rgba(229,9,20,.55))}
-.nav button.nav-upload{
-  background:var(--accent,#e50914);color:#fff;margin-bottom:6px;
-}
-.nav button.nav-upload:hover{background:#ff2634;color:#fff}
 .nav button .ico,.nav-link-out .ico{width:22px;height:22px;flex:none}
 .nav-link-out{margin-top:auto;padding-top:12px}
 
@@ -60,29 +56,14 @@
   background:var(--surface2,rgba(255,255,255,.06));border:1px solid var(--border);
   border-radius:20px;padding:3px 10px;letter-spacing:.2px;
 }
-/* Top nav links — the horizontal counterpart to the icon rail. Only real
-   pages: Home/Trending/Subscriptions/Live all route through the existing
-   render.js map or listPage() fallback (no new "Creators" link — there's no
-   creator directory page today, only per-creator profile pages reached via
-   an avatar click, so it isn't listed here). */
-.topbar-nav{display:flex;align-items:center;gap:4px;margin-right:auto}
-.topbar-nav a{
-  padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;
-  color:var(--muted);text-decoration:none;transition:.15s;
-}
-.topbar-nav a:hover{color:var(--text);background:var(--surface2)}
-.topbar-nav a.active{color:#fff}
-
 /* Watch page: maximize immersion by shrinking the global chrome down to just
-   navigation essentials (brand mark, the 5 core destinations with no upload
-   CTA to compete for attention, search, avatar). Nothing is removed from the
-   DOM — collapsed via CSS so leaving the watch page restores full chrome
-   instantly with no re-render. */
+   navigation essentials (brand mark, the 5 core destinations, search,
+   avatar). Nothing is removed from the DOM — collapsed via CSS so leaving
+   the watch page restores full chrome instantly with no re-render. */
 .page-watch .sidebar{width:56px}
 .page-watch .nav button,.page-watch .nav-link-out{width:40px}
 .page-watch .nav button .nav-label,.page-watch .nav-link-out .nav-label{display:none}
-.page-watch .nav button.nav-upload,.page-watch .nav-link-out{display:none}
-.page-watch .topbar-nav{display:none}
+.page-watch .nav-link-out{display:none}
 .topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .search-input{
   background:var(--surface2);border:1px solid var(--border);color:var(--text);
@@ -330,11 +311,15 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
   padding:12px 26px;font-size:14.5px;border-radius:999px;
   box-shadow:0 0 22px rgba(229,9,20,.45);
 }
-.hero .btn.ghost{
-  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);
-  backdrop-filter:blur(8px);box-shadow:none;
+.hero-later-btn{
+  width:44px;height:44px;border-radius:999px;
+  background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:background .15s,border-color .15s;vertical-align:middle;
 }
-.hero .btn.ghost:hover{background:rgba(255,255,255,.18)}
+.hero-later-btn .ico{width:18px;height:18px}
+.hero-later-btn:hover{background:rgba(255,255,255,.1)}
+.hero-later-btn.on{border-color:var(--accent2);color:var(--accent2)}
 
 /* Movie detail page */
 .movie-detail{margin:-14px;margin-bottom:0}
@@ -799,7 +784,6 @@ iframe.player{object-fit:contain}
 .mobile-topbar-brand{display:none}    /* duplicate logo next to the sidebar's own brand mark (mobile only, sidebar is hidden there) */
 .topbar .left{display:none}           /* plain-text wordmark, superseded by the icon-rail's <img> brand on desktop */
 .mobile-hero{display:none}            /* mobile-only featured banner — .hero (above) is its desktop equivalent; only .hero{display:none} was ever added for mobile, this element never had the matching desktop-side hide, so both heroes rendered stacked together on every viewport until now */
-.cat-scroll-extra{display:none}       /* overflow categories inline only when the row scrolls (mobile) */
 .act-more{display:none}               /* action overflow trigger (mobile only) */
 /* On desktop the overflow wrapper + menu dissolve so Favorite/Save/Share/Report
    flow inline in .watch-actions exactly as before this pass. */
@@ -810,7 +794,6 @@ iframe.player{object-fit:contain}
    (.mchrome-scroll, in the max-width:760px block below). */
 .home-combined-bar{flex-wrap:wrap;gap:4px;margin:4px 0;align-items:center}
 .home-combined-bar .filter-pill.active{background:var(--accent);color:#fff}
-.chip-sep{width:1px;align-self:stretch;min-height:18px;background:var(--border);margin:0 4px;flex:0 0 auto}
 .cat-more{position:relative;display:inline-block}
 /* Sort select, styled to match the filter-pill chips it sits alongside
    (pushed to the row's end on desktop where the row wraps; on mobile the
@@ -1233,7 +1216,6 @@ iframe.player{object-fit:contain}
   h2{font-size:18px;letter-spacing:-.2px}
 
   /* ---- Top bar & Hamburger button ---- */
-  .topbar-nav{display:none}   /* desktop-only horizontal nav; mobile uses the hamburger drawer instead */
   .topbar-drawer-toggle {
     display: inline-flex !important;
     align-items: center;
@@ -1438,9 +1420,14 @@ iframe.player{object-fit:contain}
     display:inline-flex;align-items:center;padding:6px 14px;
     font-size:12px;font-weight:600;border-radius:999px;
   }
-  .home-combined-bar .cat-more{display:none}
-  .home-combined-bar .cat-scroll-extra{display:inline-flex;align-items:center}
-  .chip-sep{display:none}
+  /* .cat-more stays visible on mobile (it's now the only way to reach
+     categories — the old inline-pill overflow escape hatch is gone). Its
+     menu switches to position:fixed here since .mchrome-scroll's
+     overflow-x:auto would otherwise clip an absolutely-positioned dropdown. */
+  .home-combined-bar .cat-more-menu{
+    position:fixed;left:16px;right:16px;top:112px;margin-top:0;
+    width:auto;min-width:0;max-height:60vh;
+  }
   /* Inside the scrolling row, not pushed right (no room to "end" a scroll
      strip) — trails the last chip, min-height bumped to match touch target
      sizing used by the pills around it. */

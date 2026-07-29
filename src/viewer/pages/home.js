@@ -13,13 +13,6 @@ export const HERO_VIDEO_ID = 470; // pinned homepage hero — update this id to 
 // (categories/acts were previously rendered in full — every match got a card).
 const ROW_MAX = 24;
 
-// Top categories shown inline in the filter bar; the rest live under "More ▾".
-// Capped at 5 (was 8) — combined with the 4 type filters (All/Movies/Scenes/
-// Clips), 8 categories pushed the row to ~12 visible chips before "More",
-// which is well past what a single scan-able filter row should hold.
-const TOP_CATEGORIES = CATEGORIES.slice(0, 5);
-const MORE_CATEGORIES = CATEGORIES.slice(5);
-
 // Single lookup table built once per module load. Used to resolve
 // history/continue-watching IDs in O(1) instead of DATA.videos.find() per id.
 const VIDEO_BY_ID = new Map(DATA.videos.map(v => [v.id, v]));
@@ -28,30 +21,21 @@ function homeFilterBar(){
   const filters = [["all","All"],["movies","Movies"],["scenes","Scenes"],["clips","Clips"]];
   const sorts = [["none","Default"],["latest","Latest"],["likes","Most Liked"],["views","Most Viewed"]];
   const activeCat = vstate.homeCategory;
-  // `.mchrome-scroll` turns the filter/category rows into a single horizontal
-  // scroll strip on mobile (never wraps); desktop keeps the wrapping pill rows.
-  // On mobile the "More ▾" dropdown would be clipped by the scroll container, so
-  // the overflow categories are also emitted inline as `.cat-scroll-extra` pills
-  // (hidden on desktop, shown inline on mobile) — everything scrolls instead.
-  // ONE row total: type filters + categories scroll inline, and sort is a
-  // native <select> styled as a pill button living at the row's end instead
-  // of its own full-width line below — previously this was two stacked rows
-  // (chip row, then a persistent "Sort: Default" bar) before a single video
-  // appeared. A native select (not a custom dropdown) is deliberate: the row
-  // is `overflow-x:auto` on mobile, which would clip a custom absolute-
-  // positioned menu the same way .cat-more's did — an OS-rendered <select>
-  // popup is never clipped by a scrolling ancestor's overflow.
+  // `.mchrome-scroll` turns the filter/category row into a single horizontal
+  // scroll strip on mobile (never wraps); desktop keeps the wrapping pill row.
+  // All categories live behind one "Filters ▾" dropdown (was previously a
+  // handful of always-visible category pills plus a "More" overflow) so the
+  // row only ever shows the 4 format tabs + Filters + Sort. On mobile the
+  // dropdown switches to position:fixed (see style.css) since the scroll
+  // strip's overflow-x:auto would otherwise clip an absolutely-positioned menu.
   return `<div class="pill-row home-combined-bar mchrome-scroll">
     ${filters.map(([key,label])=>`<button class="filter-pill ${(vstate.homeFilter===key && !activeCat)?'active':''}" onclick="setHomeFilter('${key}')">${label}</button>`).join("")}
-    <span class="chip-sep" aria-hidden="true"></span>
-    ${TOP_CATEGORIES.map(c=>`<button class="filter-pill ${activeCat===c?'active':''}" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
     <span class="cat-more">
-      <button class="filter-pill" onclick="this.parentNode.classList.toggle('open')">More ▾</button>
+      <button class="filter-pill ${activeCat?'active':''}" onclick="this.parentNode.classList.toggle('open')">${activeCat ? esc(activeCat) : 'Filters'} ▾</button>
       <div class="cat-more-menu">
-        ${MORE_CATEGORIES.map(c=>`<button class="cat-more-item ${activeCat===c?'active':''}" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
+        ${CATEGORIES.map(c=>`<button class="cat-more-item ${activeCat===c?'active':''}" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
       </div>
     </span>
-    ${MORE_CATEGORIES.map(c=>`<button class="filter-pill cat-scroll-extra ${activeCat===c?'active':''}" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
     <select class="sort-select sort-select-inline" onchange="setHomeSort(this.value)" aria-label="Sort videos">
       ${sorts.map(([key,label])=>`<option value="${key}" ${vstate.homeSort===key?'selected':''}>Sort: ${label}</option>`).join("")}
     </select>
@@ -160,7 +144,7 @@ function _renderHomeBody(){
         <h1>${esc(hero.title)}</h1>
         <p class="sub">${esc(creatorName(hero.creator))} • ${fmt(hero.views)} views</p>
         <button class="btn" onclick="openVideo(${hero.id})">▶ Play</button>
-        <button class="btn ghost" onclick="toggleLater(${hero.id})">+ Watch Later</button>
+        <button class="hero-later-btn ${vstate.later.includes(hero.id)?'on':''}" onclick="toggleLater(${hero.id})" aria-label="${vstate.later.includes(hero.id)?'Remove from Watch Later':'Add to Watch Later'}" title="Watch Later"><svg class="ico"><use href="#icon-later"/></svg></button>
       </div>
     </div>
 

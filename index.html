@@ -71,10 +71,6 @@
     <a class="brand" href="/"><img src="/src/shared/assets/favicon-64.png" alt="thebestpornai"/></a>
 
     <div class="nav" id="nav">
-      <button onclick="window.location.href='/creator/index.html?page=upload'" class="nav-upload" aria-label="Upload new video">
-        <svg class="ico"><use href="#icon-upload"/></svg> Upload
-      </button>
-
       <button data-page="home"          onclick="go('home')" title="Home"><svg class="ico"><use href="#icon-home"/></svg> <span class="nav-label">Home</span></button>
       <button data-page="feed"          onclick="go('feed')" title="Vertical Feed"><svg class="ico"><use href="#icon-shorts"/></svg> <span class="nav-label">Shorts</span></button>
       <button data-page="explore"       onclick="go('explore')" title="Explore"><svg class="ico"><use href="#icon-explore"/></svg> <span class="nav-label">Explore</span></button>
@@ -89,12 +85,6 @@
     <div class="topbar">
       <button class="icon-btn topbar-drawer-toggle" data-mobile-action="toggle-drawer" aria-label="Open navigation menu">☰</button>
       <div class="left"><a href="/" class="mobile-topbar-brand"><img src="/src/shared/assets/logo.png" alt="thebestpornai"/></a><span class="topbar-brand-title">thebestpornai</span></div>
-      <nav class="topbar-nav" aria-label="Primary">
-        <a data-page="home" onclick="event.preventDefault();go('home')" href="#">Home</a>
-        <a data-page="trending" onclick="event.preventDefault();go('trending')" href="#">Trending</a>
-        <a data-page="categories" onclick="event.preventDefault();go('categories')" href="#">Categories</a>
-        <a data-page="live" onclick="event.preventDefault();go('live')" href="#">Live</a>
-      </nav>
       <div class="topbar-actions">
         <button
           class="icon-btn topbar-search-toggle"
@@ -109,6 +99,7 @@
           oninput="doSearch()"
           aria-label="Search"
         />
+        <button class="icon-btn" onclick="window.location.href='/creator/index.html?page=upload'" aria-label="Upload new video" title="Upload">＋</button>
         <button class="icon-btn" onclick="go('later')" aria-label="Watch Later">🕒</button>
         <div class="account-menu">
           <div class="avatar" data-mobile-action="toggle-account-menu" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" role="button" tabindex="0" title="Your account" aria-haspopup="true" aria-expanded="false">A</div>
