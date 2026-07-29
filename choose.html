@@ -22,50 +22,98 @@
      TODO: if age-gate.js calls any external API, add its origin to connect-src. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self'; frame-src 'none'; object-src 'none';">
 <style>
-:root{--bg:#0A0A0A;--surface:#141414;--text:#FFF;--muted:#A0A0A0;--accent:#E50914;--accent2:#FF3B3B;--border:rgba(255,255,255,.1)}
+:root{--bg:#0A0A0A;--surface:#141414;--text:#FFF;--muted:#A1A1AA;--muted-strong:#D4D4D8;--accent:#E50914;--accent2:#FF3B3B;--border:rgba(255,255,255,.1)}
 *{box-sizing:border-box}
 body{margin:0;background:radial-gradient(900px 500px at 50% -10%,#2A0307,#0A0A0A);color:var(--text);
   font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;min-height:100vh;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px}
-.logo{height:32px;margin-bottom:16px}
-h1{font-size:34px;margin:6px 0 4px;text-align:center}
-.sub{color:var(--muted);margin:0 0 36px;text-align:center;max-width:520px}
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:920px;width:100%}
+  display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:48px 24px}
+.logo{height:40px;margin-bottom:20px;filter:drop-shadow(0 0 20px rgba(229,9,20,.35))}
+header{text-align:center}
+h1{font-size:36px;margin:6px 0 10px;text-align:center;font-weight:800;letter-spacing:-.5px}
+.sub{color:var(--muted-strong);margin:0 0 36px;text-align:center;max-width:560px;font-size:16px;line-height:1.6}
+main{width:100%;display:flex;flex-direction:column;align-items:center}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:960px;width:100%;margin:8px 0 40px}
 @media(max-width:780px){.cards{grid-template-columns:1fr}}
-.persona{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:26px;
-  cursor:pointer;transition:.25s;text-decoration:none;color:inherit;display:block}
-.persona:hover{transform:translateY(-6px);border-color:var(--accent);box-shadow:0 24px 60px rgba(229,9,20,.18)}
-.persona .ic{font-size:30px;margin-bottom:14px}
-.persona h2{margin:0 0 8px;font-size:19px}
-.persona p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
-.persona .go{margin-top:18px;display:inline-block;background:var(--accent);color:#fff;
-  padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600}
-.foot{margin-top:34px;color:var(--muted);font-size:12px;text-align:center;line-height:1.8}
-.foot a{color:var(--muted);text-decoration:underline}
-.foot a:hover{color:var(--text)}
+.persona{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px;
+  cursor:pointer;transition:transform .25s,border-color .25s,box-shadow .25s;text-decoration:none;color:inherit;
+  display:flex;flex-direction:column;justify-content:space-between}
+.persona:hover{transform:translateY(-6px) scale(1.02);border-color:var(--accent);box-shadow:0 24px 60px rgba(229,9,20,.18)}
+.persona.primary{border-color:rgba(229,9,20,.35)}
+.persona.primary:hover{border-color:var(--accent)}
+.persona .badge{position:absolute;top:-11px;left:28px;background:var(--accent);color:#fff;
+  font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+  padding:4px 10px;border-radius:999px;box-shadow:0 4px 12px rgba(229,9,20,.4)}
+.persona .ic{width:48px;height:48px;border-radius:12px;background:rgba(229,9,20,.1);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px}
+.persona .kicker{color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.persona h2{margin:2px 0 10px;font-size:20px;font-weight:700}
+.persona ul{margin:0;padding:0;list-style:none;color:var(--muted-strong);font-size:13px;line-height:1.9}
+.persona ul li{padding-left:16px;position:relative}
+.persona ul li::before{content:"•";position:absolute;left:0;color:var(--accent)}
+.persona .go{margin-top:22px;display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;font-weight:700;color:var(--accent);transition:transform .2s}
+.persona:hover .go{transform:translateX(4px)}
+.persona.primary .go{background:var(--accent);color:#fff;padding:9px 16px;border-radius:10px}
+.persona.primary:hover .go{transform:none}
+.persona.secondary{background:rgba(255,255,255,.02)}
+.persona.secondary .ic{background:var(--surface2,rgba(255,255,255,.06));color:var(--muted-strong)}
+.persona.secondary .go{color:var(--muted-strong);border:1px solid var(--border);padding:8px 15px;border-radius:10px}
+.persona.secondary:hover .go{border-color:var(--accent);color:var(--accent)}
+.foot{color:var(--muted);font-size:12px;text-align:center;line-height:2;padding:24px 0 0}
+.foot a{color:var(--muted-strong);text-decoration:none}
+.foot a:hover{color:var(--text);text-decoration:underline}
 </style>
 </head>
 <body>
-  <a href="/"><img class="logo" src="/src/shared/assets/logo.png" alt="thebestpornai"/></a>
-  <h1>One ecosystem. Three experiences.</h1>
-  <p class="sub">A premium hybrid video platform — choose how you want to enter. Each persona is its own full application sharing one design system and data model.</p>
-  <div class="cards">
-    <a class="persona" href="/">
-      <div class="ic">📺</div><h2>Viewer</h2>
-      <p>Stream originals and community videos. Browse, search, favorite, comment, build playlists.</p>
-      <span class="go">Enter →</span>
-    </a>
-    <a class="persona" href="creator/index.html">
-      <div class="ic">🎬</div><h2>Creator Studio</h2>
-      <p>Upload, manage content, analytics, revenue, subscribers, AI tools, and developer APIs.</p>
-      <span class="go">Open Studio →</span>
-    </a>
-    <a class="persona" href="manager/index.html">
-      <div class="ic">🛡</div><h2>Platform Manager</h2>
-      <p>The company OS — users, moderation, recommendations, homepage builder, infra & governance.</p>
-      <span class="go">Open Console →</span>
-    </a>
-  </div>
+  <header>
+    <a href="/"><img class="logo" src="/src/shared/assets/logo.png" alt="thebestpornai"/></a>
+    <h1>One ecosystem. Three experiences.</h1>
+    <p class="sub">A premium hybrid video platform — choose how you want to enter. Each persona is its own full application sharing one design system and data model.</p>
+  </header>
+  <main>
+    <div class="cards">
+      <a class="persona primary" href="/">
+        <div>
+          <span class="badge">Start Here</span>
+          <div class="ic">📺</div>
+          <span class="kicker">For Audiences</span>
+          <h2>Viewer</h2>
+          <ul>
+            <li>Stream originals & community videos</li>
+            <li>Custom playlists & favorites</li>
+            <li>Comments & interactivity</li>
+          </ul>
+        </div>
+        <span class="go">Enter Experience →</span>
+      </a>
+      <a class="persona secondary" href="creator/index.html">
+        <div>
+          <div class="ic">🎬</div>
+          <span class="kicker">For Creators & Developers</span>
+          <h2>Creator Studio</h2>
+          <ul>
+            <li>Upload & manage content</li>
+            <li>Analytics & revenue</li>
+            <li>AI tools & developer APIs</li>
+          </ul>
+        </div>
+        <span class="go">Open Studio →</span>
+      </a>
+      <a class="persona secondary" href="manager/index.html">
+        <div>
+          <div class="ic">🛡</div>
+          <span class="kicker">Internal / Admins Only</span>
+          <h2>Platform Manager</h2>
+          <ul>
+            <li>Users & moderation</li>
+            <li>Recommendations & homepage builder</li>
+            <li>Infrastructure & governance</li>
+          </ul>
+        </div>
+        <span class="go">Open Console →</span>
+      </a>
+    </div>
+  </main>
   <div class="foot">
     18+ Adults Only — All content depicts persons 18 years of age or older.<br/>
     <a href="/legal/terms.html">Terms</a> · <a href="/legal/privacy.html">Privacy</a> ·
