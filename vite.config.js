@@ -44,7 +44,15 @@ export default defineConfig({
           if (id.includes('/shared/streamhub-api.js')) {
             return 'streamhub-api';
           }
-          if (id.includes('/shared/')) {
+          // legal.css is its own standalone <link> entry point for the four
+          // legal/*.html pages only — it must NOT land in this bucket. Every
+          // other /shared/ module funneled into 'shared' gets its CSS merged
+          // into one shared-*.css file that index.html also loads (Vite merges
+          // CSS per JS chunk name), which was leaking legal.css's body{padding:
+          // 40px 20px} (meant to center the legal pages' narrow text column)
+          // into the main app's global <body>, pushing the whole sidebar/topbar
+          // down and right on every page.
+          if (id.includes('/shared/') && !id.endsWith('.css')) {
             return 'shared';
           }
         },
