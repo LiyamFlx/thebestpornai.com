@@ -120,7 +120,7 @@
 
 h1{font-size:24px;margin:0 0 4px}
 h2{font-size:20px;margin:0 0 4px}
-h3{font-size:15px;margin:18px 0 10px}
+h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
 .sub{color:var(--muted);font-size:13px;margin:0 0 18px}
 .small{font-size:11px;color:var(--muted)}
 
@@ -160,6 +160,25 @@ h3{font-size:15px;margin:18px 0 10px}
   content-visibility:auto;contain-intrinsic-size:auto 300px;
   overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
 .row-scroll .card{min-width:220px}
+
+/* Top Creators row: circular avatars with a gradient ring, matching the
+   Netflix/YouTube "creator carousel" pattern. */
+.creator-circle-row{gap:22px}
+.creator-circle{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  min-width:96px;cursor:pointer;flex:none;
+}
+.creator-circle-avatar{
+  width:88px;height:88px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#7A0008);
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;font-weight:700;color:#fff;
+  border:3px solid var(--bg);
+  box-shadow:0 0 0 2px var(--accent),0 0 20px rgba(229,9,20,.35);
+  transition:transform .2s ease;
+}
+.creator-circle:hover .creator-circle-avatar{transform:scale(1.06)}
+.creator-circle-name{font-size:13px;font-weight:600;color:var(--text)}
 
 .card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
@@ -273,18 +292,36 @@ h3{font-size:15px;margin:18px 0 10px}
 .metric .delta.down{color:var(--muted)}
 
 /* Hero */
+/* Netflix-style billboard hero: full-bleed background media, a bottom-up
+   gradient fade (not a hard-edged overlay box) so the title/CTA read
+   clearly over any source image without needing a solid backing panel. */
 .hero{
-  position:relative;height:300px;border-radius:18px;overflow:hidden;margin-bottom:24px;
+  position:relative;height:440px;border-radius:18px;overflow:hidden;margin-bottom:28px;
   display:flex;align-items:flex-end;
   background:linear-gradient(135deg,#2A0307,#0A0A0A);
   border:1px solid var(--border);
 }
-.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
-.hero .hero-body{position:relative;padding:28px;max-width:560px;
-  background:linear-gradient(90deg,rgba(10,10,10,.9),transparent)}
-.hero h1{font-size:30px}
+.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(0deg, rgba(10,10,10,.98) 0%, rgba(10,10,10,.5) 45%, transparent 75%),
+    linear-gradient(90deg, rgba(10,10,10,.75) 0%, transparent 55%);
+}
+.hero .hero-body{position:relative;z-index:1;padding:36px;max-width:600px}
+.hero h1{font-size:42px;font-weight:800;letter-spacing:-.5px;text-shadow:0 2px 12px rgba(0,0,0,.6)}
 .hero .tag{display:inline-block;background:var(--accent);color:#fff;font-size:10px;
-  padding:3px 8px;border-radius:6px;letter-spacing:1px;margin-bottom:10px}
+  font-weight:800;padding:4px 10px;border-radius:6px;letter-spacing:1px;margin-bottom:12px;
+  text-transform:uppercase;box-shadow:0 0 16px rgba(229,9,20,.5)}
+.hero .btn{
+  padding:12px 26px;font-size:14.5px;border-radius:999px;
+  box-shadow:0 0 22px rgba(229,9,20,.45);
+}
+.hero .btn.ghost{
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);
+  backdrop-filter:blur(8px);box-shadow:none;
+}
+.hero .btn.ghost:hover{background:rgba(255,255,255,.18)}
 
 /* Movie detail page */
 .movie-detail{margin:-14px;margin-bottom:0}

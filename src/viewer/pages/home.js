@@ -54,13 +54,28 @@ function homeFilterBar(){
   </select>`;
 }
 
+// `m.poster` is a video object (the full movie, or its lowest-numbered scene
+// as a fallback) per movies()'s return shape in catalog-queries.js — despite
+// the field name, this is NOT an image URL, so passing it straight into
+// videoCard() (which expects a video-shaped object) is correct as-is.
 const moviesRow = (allMovies) =>
   `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`, layout:'row'})).join("")}</div>`;
-// NOTE: this passes `m.poster` (not the movie object `m`) into videoCard, unlike every
-// other call site in this file which passes the full video object. If videoCard expects
-// a video-shaped object (id/title/thumb/etc.), this is likely broken — verify against
-// movies()'s return shape and videoCard's signature before shipping. Left unchanged
-// since I can't confirm the contract from this file alone.
+
+// Circular-avatar creator row (Netflix/YouTube "Top Creators" pattern).
+// Ranked by subscriber count; routes through the same openCreator() the
+// Vertical Feed's avatar click already uses — a real per-creator profile
+// page, not a placeholder link.
+function topCreatorsRow(){
+  const top = DATA.creators.slice().sort((a,b)=>(b.subs||0)-(a.subs||0)).slice(0, 8);
+  if(!top.length) return "";
+  return `<h3>Top Creators</h3><div class="row-scroll creator-circle-row">
+    ${top.map(c=>`
+      <div class="creator-circle" onclick="openCreator('${jsq(c.id)}')">
+        <div class="creator-circle-avatar">${esc((c.name||"?")[0])}</div>
+        <div class="creator-circle-name">${esc(c.name)}</div>
+      </div>`).join("")}
+  </div>`;
+}
 
 function viewToggleTabs(active) {
   return `<div class="view-toggle-tabs">
@@ -171,6 +186,7 @@ function _renderHomeBody(){
     ${rowSection("🔥 Fresh Uploads", pub.slice().sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0)).slice(0, vstate.limit), {layout:'row'})}
     ${rowSection("Recommended For You", (()=>{ const nw=top.filter(v=>!historySet.has(v.id)); return nw.length>=6?nw.slice(0, vstate.limit):top.slice(0, vstate.limit); })(), {layout:'row'})}
     ${rowSection("Trending Now", pub.slice().sort((a,b)=>b.views-a.views).slice(0, vstate.limit), {layout:'row'})}
+    ${topCreatorsRow()}
     ${rowSection("House Originals", pub.filter(v=>v.type==="original").slice(0, vstate.limit), {layout:'row'})}
     ${allMovies.length ? moviesRow(allMovies) : ""}
     ${rowSection("Highlights", highlights().slice(0, ROW_MAX), {layout:'row'})}
