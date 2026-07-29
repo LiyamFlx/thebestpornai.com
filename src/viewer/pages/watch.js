@@ -72,17 +72,17 @@ export function renderWatch(){
 
         <div class="watch-actions">
           <div class="vote-pill">
-            <button id="btnLike" class="vote-btn" onclick="likeVideo(${v.id})" aria-label="Like this video"><span class="ic">👍</span> <span id="likeNum">${fmt(v.likes + live.like)}</span></button>
+            <button id="btnLike" class="vote-btn" onclick="likeVideo(${v.id})" aria-label="Like this video"><svg class="ic ico"><use href="#icon-like"/></svg> <span id="likeNum">${fmt(v.likes + live.like)}</span></button>
             <span class="vote-div"></span>
-            <button id="btnDislike" class="vote-btn" onclick="dislikeVideo(${v.id})" aria-label="Dislike this video"><span class="ic">👎</span> <span id="disNum">${fmt(v.dislikes + live.dislike)}</span></button>
+            <button id="btnDislike" class="vote-btn" onclick="dislikeVideo(${v.id})" aria-label="Dislike this video"><svg class="ic ico"><use href="#icon-dislike"/></svg> <span id="disNum">${fmt(v.dislikes + live.dislike)}</span></button>
           </div>
-          <button id="btnFav" class="act-btn ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})" aria-label="${vstate.favorites.includes(v.id)?'Remove from favorites':'Add to favorites'}"><span class="ic">♥</span> <span class="act-label">Favorite</span><span id="favCount"></span></button>
+          <button id="btnFav" class="act-btn ${vstate.favorites.includes(v.id)?'on':''}" onclick="toggleFav(${v.id})" aria-label="${vstate.favorites.includes(v.id)?'Remove from favorites':'Add to favorites'}"><svg class="ic ico"><use href="#icon-heart"/></svg> <span class="act-label">Favorite</span><span id="favCount"></span></button>
           <div class="act-overflow">
-            <button class="act-btn act-more" data-mobile-action="toggle-actions-menu" aria-haspopup="true" aria-expanded="false" aria-label="More actions">⋯</button>
+            <button class="act-btn act-more" data-mobile-action="toggle-actions-menu" aria-haspopup="true" aria-expanded="false" aria-label="More actions"><svg class="ico"><use href="#icon-more"/></svg></button>
             <div class="act-menu">
-              <button id="btnLater" class="act-btn ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})" aria-label="${vstate.later.includes(v.id)?'Remove from saved':'Save for later'}"><span class="ic">🔖</span> <span class="act-label">Save</span></button>
-              <button class="act-btn" onclick="shareVideo(${v.id})" aria-label="Share this video"><span class="ic">↗</span> <span class="act-label">Share</span></button>
-              <button class="act-btn" onclick="reportVideo(${v.id})" title="Report" aria-label="Report"><span class="ic">⚑</span> <span class="act-label">Report</span></button>
+              <button id="btnLater" class="act-btn ${vstate.later.includes(v.id)?'on':''}" onclick="toggleLater(${v.id})" aria-label="${vstate.later.includes(v.id)?'Remove from saved':'Save for later'}"><svg class="ic ico"><use href="#icon-save"/></svg> <span class="act-label">Save</span></button>
+              <button class="act-btn" onclick="shareVideo(${v.id})" aria-label="Share this video"><svg class="ic ico"><use href="#icon-share"/></svg> <span class="act-label">Share</span></button>
+              <button class="act-btn" onclick="reportVideo(${v.id})" title="Report" aria-label="Report"><svg class="ic ico"><use href="#icon-flag"/></svg> <span class="act-label">Report</span></button>
             </div>
           </div>
         </div>

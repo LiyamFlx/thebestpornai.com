@@ -25,7 +25,7 @@ export function toggleFeedMute(){
     v.muted = feedMuted;
   });
   document.querySelectorAll(".feed-sound-btn").forEach(b => {
-    b.textContent = feedMuted ? "🔇" : "🔊";
+    b.innerHTML = `<svg class="ico"><use href="#icon-${feedMuted ? 'mute' : 'unmute'}"/></svg>`;
   });
   document.querySelectorAll(".feed-sound-label").forEach(l => {
     l.textContent = feedMuted ? "Muted" : "Sound";
@@ -95,25 +95,25 @@ export function renderFeed() {
 
           <!-- Sound / Mute Toggle -->
           <div class="feed-action">
-            <button class="feed-btn feed-sound-btn" onclick="toggleFeedMute()" aria-label="Toggle sound">${feedMuted ? '🔇' : '🔊'}</button>
+            <button class="feed-btn feed-sound-btn" onclick="toggleFeedMute()" aria-label="Toggle sound"><svg class="ico"><use href="#icon-${feedMuted ? 'mute' : 'unmute'}"/></svg></button>
             <span class="feed-label feed-sound-label">${feedMuted ? 'Muted' : 'Sound'}</span>
           </div>
 
           <!-- Like Button -->
           <div class="feed-action">
-            <button class="feed-btn" onclick="likeVideo(${v.id})" aria-label="Like video">❤️</button>
+            <button class="feed-btn" onclick="likeVideo(${v.id})" aria-label="Like video"><svg class="ico"><use href="#icon-heart"/></svg></button>
             <span class="feed-label" id="feedLike_${v.id}">${fmt(v.likes + live.like)}</span>
           </div>
 
           <!-- Comments Button -->
           <div class="feed-action">
-            <button class="feed-btn" onclick="openFeedComments(${v.id})" aria-label="View comments">💬</button>
+            <button class="feed-btn" onclick="openFeedComments(${v.id})" aria-label="View comments"><svg class="ico"><use href="#icon-comment"/></svg></button>
             <span class="feed-label" id="feedComment_${v.id}">${commentCount}</span>
           </div>
 
           <!-- Share Button -->
           <div class="feed-action">
-            <button class="feed-btn" onclick="shareVideo(${v.id})" aria-label="Share video">↗️</button>
+            <button class="feed-btn" onclick="shareVideo(${v.id})" aria-label="Share video"><svg class="ico"><use href="#icon-share"/></svg></button>
             <span class="feed-label">Share</span>
           </div>
         </div>

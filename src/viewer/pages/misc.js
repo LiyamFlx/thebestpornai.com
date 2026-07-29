@@ -25,7 +25,7 @@ export function renderCategories(){
 export function renderSubs(){
   const list = pubVideos().filter(v=>vstate.subs.includes(v.creator));
   return `<h2>Subscriptions</h2><p class="sub">Latest from creators you follow</p>
-    <div class="pill-row">${DATA.creators.filter(c=>vstate.subs.includes(c.id)).map(c=>`<span class="filter-pill active">${esc(c.name)}</span>`).join("")}</div>
+    <div class="pill-row">${DATA.creators.filter(c=>vstate.subs.includes(c.id)).map(c=>`<button class="filter-pill active" onclick="openCreator('${jsq(c.id)}')">${esc(c.name)}</button>`).join("")}</div>
     ${list.length?pagedGrid(list, v=>videoCard(v,{layout:'row'}), {cls:'video-list'}):`<div class="empty">Nothing from your subscriptions yet.</div>`}`;
 }
 

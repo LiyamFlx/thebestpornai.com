@@ -262,13 +262,15 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
 }
 .card:hover .video-thumb .card-actions{opacity:1;transform:none}
 .card-act{
-  width:32px;height:32px;border:none;border-radius:50%;cursor:pointer;
-  background:rgba(10,10,10,.68);color:#fff;font-size:14px;line-height:1;
+  width:var(--ctrl-size-sm);height:var(--ctrl-size-sm);border:none;
+  border-radius:calc(var(--ctrl-radius) - 2px);cursor:pointer;
+  background:rgba(10,10,10,.68);color:#fff;line-height:1;
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   box-shadow:0 2px 8px rgba(0,0,0,.35);
   display:flex;align-items:center;justify-content:center;
   transition:background .15s,transform .15s,box-shadow .15s;
 }
+.card-act .ico{width:15px;height:15px}
 .card-act:hover{background:var(--accent);transform:scale(1.12);box-shadow:0 4px 12px rgba(229,9,20,.4)}
 .card-act:active{transform:scale(.94)}
 /* Saved state (favorited / watch-later) — filled accent so a tap gives instant
@@ -353,11 +355,12 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
   box-shadow:0 0 22px rgba(229,9,20,.45);
 }
 .hero-later-btn{
-  width:44px;height:44px;border-radius:999px;
+  width:44px;height:44px;border-radius:calc(var(--ctrl-radius) + 2px);
   background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;
   display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
-  transition:background .15s,border-color .15s;vertical-align:middle;
+  transition:background .15s,border-color .15s,transform .15s;vertical-align:middle;
 }
+.hero-later-btn:active{transform:scale(.92)}
 .hero-later-btn .ico{width:18px;height:18px}
 .hero-later-btn:hover{background:rgba(255,255,255,.1)}
 .hero-later-btn.on{border-color:var(--accent2);color:var(--accent2)}
@@ -515,14 +518,15 @@ table.data tr:hover td{background:var(--surface2)}
   padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
 .vote-btn:hover{background:var(--surface3)}
 .vote-btn:active{transform:scale(.96)}
-.vote-btn .ic{filter:saturate(1.4)}
+.vote-btn .ic{width:16px;height:16px;flex:none}
 .vote-div{width:1px;align-self:stretch;background:var(--border)}
 .act-btn{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);
   color:var(--text);padding:9px 16px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;
   transition:background .15s,border-color .15s}
 .act-btn:hover{background:var(--surface3);border-color:var(--muted)}
 .act-btn.on{color:var(--accent2);border-color:var(--accent2)}
-.act-btn .ic{font-size:15px}
+.act-btn .ic{width:16px;height:16px;flex:none}
+.act-more .ico{width:16px;height:16px}
 .act-more{padding:10px 16px;letter-spacing:1px}
 
 /* creator card with subtle red glow */
@@ -1133,13 +1137,12 @@ iframe.player{object-fit:contain}
 .feed-btn {
   background: rgba(18, 18, 20, 0.65);
   border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 50%;
+  border-radius: calc(var(--ctrl-radius) + 2px);
   width: 44px;
   height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
   color: #fff;
   cursor: pointer;
   backdrop-filter: blur(10px);
@@ -1147,6 +1150,7 @@ iframe.player{object-fit:contain}
   transition: transform 0.15s ease, background 0.15s ease;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
+.feed-btn .ico{width:20px;height:20px}
 .feed-btn:active {
   transform: scale(0.9);
 }

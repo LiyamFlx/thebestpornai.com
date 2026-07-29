@@ -100,9 +100,9 @@ export function videoCard(v, opts={}){
   const badge = opts.badge ? opts.badge(v) : null;
   const quickActions = opts.hideActions ? `` : `
         <div class="card-actions">
-          <button class="card-act" title="Favorite" data-fav-id="${v.id}" aria-pressed="false" onclick="event.stopPropagation();toggleFav(${v.id})">❤</button>
-          <button class="card-act" title="Watch Later" data-later-id="${v.id}" aria-pressed="false" onclick="event.stopPropagation();toggleLater(${v.id})">＋</button>
-          <button class="card-act" title="Share" aria-label="Share this video" onclick="event.stopPropagation();shareVideo(${v.id})">↗</button>
+          <button class="card-act" title="Favorite" data-fav-id="${v.id}" aria-pressed="false" onclick="event.stopPropagation();toggleFav(${v.id})"><svg class="ico"><use href="#icon-heart"/></svg></button>
+          <button class="card-act" title="Watch Later" data-later-id="${v.id}" aria-pressed="false" onclick="event.stopPropagation();toggleLater(${v.id})"><svg class="ico"><use href="#icon-save"/></svg></button>
+          <button class="card-act" title="Share" aria-label="Share this video" onclick="event.stopPropagation();shareVideo(${v.id})"><svg class="ico"><use href="#icon-share"/></svg></button>
         </div>`;
   // 'row' is the YouTube-Home-style single-column card (thumb full-width on
   // top, a two-line identity block below, no avatar — a per-card avatar read
