@@ -81,13 +81,6 @@ function topCreatorsRow(){
   </div>`;
 }
 
-function viewToggleTabs(active) {
-  return `<div class="view-toggle-tabs">
-    <button class="toggle-tab ${active==='grid'?'active':''}" onclick="go('home')">Grid View</button>
-    <button class="toggle-tab ${active==='feed'?'active':''}" onclick="go('feed')">Vertical Feed</button>
-  </div>`;
-}
-
 // Returns { html, empty } instead of a bare string. Callers should check the
 // explicit `empty` flag rather than string-matching the rendered HTML for
 // 'class="empty"' — that approach false-positives whenever any nested
@@ -203,7 +196,5 @@ function _renderHomeBody(){
 }
 
 export function renderHome() {
-  const { html, empty } = _renderHomeBody();
-  if (empty) return html;
-  return viewToggleTabs('grid') + html;
+  return _renderHomeBody().html;
 }

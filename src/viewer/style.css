@@ -707,7 +707,7 @@ iframe.player{object-fit:contain}
 }
 /* Same focus ring, extended to the rest of the site's clickable controls */
 .filter-pill:focus-visible,.chip:focus-visible,.tag-chip:focus-visible,
-.card:focus-visible,.toggle-tab:focus-visible,.nav button:focus-visible,
+.card:focus-visible,.nav button:focus-visible,
 .nav-link-out:focus-visible,.bottom-nav button:focus-visible,
 .icon-btn:focus-visible,.cat-more-item:focus-visible,.ms-opt:focus-visible,
 .comment-list-more:focus-visible,.watch-desc-more:focus-visible,
@@ -1192,43 +1192,11 @@ iframe.player{object-fit:contain}
 }
 
 
-/* View Toggle Tabs (Grid vs Feed) */
-/* Left-aligned, no border of its own — sitting directly under the topbar and
-   directly above the filter chip row, a THIRD full-width bordered bar here
-   made the header read as three stacked navigation strips instead of one
-   coherent header block. Only the filter row below keeps a divider. */
-.view-toggle-tabs {
-  display: flex;
-  justify-content: flex-start;
-  gap: 20px;
-  margin:0 0 14px;
-}
-.toggle-tab {
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 6px 12px;
-  position: relative;
-  transition: color 0.15s ease;
-}
-.toggle-tab:hover {
-  color: var(--text);
-}
-.toggle-tab.active {
-  color: #fff;
-}
-.toggle-tab.active::after {
-  content: "";
-  position: absolute;
-  bottom: -13px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--accent);
-}
+/* .view-toggle-tabs / .toggle-tab (Grid View / Vertical Feed switch) removed
+   from Home — Vertical Feed already has its own permanent destination in
+   the sidebar ("Shorts"), so this in-page toggle was a second, redundant
+   way to reach the same page and one of the stacked rows contributing to
+   Home's header clutter. */
 
 /* ============================================================
    MOBILE (≤760px) — single consolidated block, deliberately placed at the
@@ -1442,9 +1410,6 @@ iframe.player{object-fit:contain}
 
   /* ---- Home layout ---- */
   .hero{display:none}
-  .view-toggle-tabs{justify-content:flex-start;gap:16px;margin-bottom:10px;padding-bottom:4px}
-  .toggle-tab{font-size:13px;padding:6px 12px;border-radius:20px;background:var(--surface2)}
-  .toggle-tab.active{background:var(--accent);color:#fff}
   h3{margin:14px 0 8px;font-size:16px;font-weight:700}
 
   /* ---- Filter/category/sort chip rows ---- */
