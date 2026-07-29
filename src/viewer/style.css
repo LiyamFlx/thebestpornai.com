@@ -990,26 +990,6 @@ iframe.player{object-fit:contain}
 .feed-creator:hover {
   text-decoration: underline;
 }
-.feed-follow-badge {
-  background: rgba(255,255,255,0.18);
-  border: 1px solid rgba(255,255,255,0.3);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 10px;
-  border-radius: 999px;
-  cursor: pointer;
-  backdrop-filter: blur(4px);
-  transition: all 0.15s ease;
-  margin-left: 4px;
-}
-.feed-follow-badge.subbed {
-  background: var(--accent);
-  border-color: transparent;
-}
-.feed-follow-badge:active {
-  transform: scale(0.92);
-}
 .verified-badge {
   background: var(--accent);
   color: #fff;
@@ -1041,6 +1021,9 @@ iframe.player{object-fit:contain}
   align-items: center;
   z-index: 15;
 }
+.feed-avatar-wrap {
+  position: relative;
+}
 .feed-avatar {
   width: 44px;
   height: 44px;
@@ -1059,6 +1042,37 @@ iframe.player{object-fit:contain}
 }
 .feed-avatar:active {
   transform: scale(0.92);
+}
+/* Follow toggle overlapping the avatar's bottom edge, matching the mockup —
+   replaces the old separate "+Follow" pill next to the creator name so
+   there's one follow control, not two. */
+.feed-follow-dot {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-base, #0A0A0A);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.4);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.feed-follow-dot:active {
+  transform: translateX(-50%) scale(0.85);
+}
+.feed-follow-dot.subbed {
+  background: rgba(255,255,255,0.15);
+  border-color: var(--accent);
 }
 .feed-action {
   display: flex;
@@ -1399,6 +1413,24 @@ iframe.player{object-fit:contain}
   .bottom-nav button.active{color:#fff;background:rgba(229,9,20,.18)}
   .bottom-nav button.active .ico{transform:scale(1.12);color:var(--accent,#e50914)}
   .bottom-nav button:active .ico{transform:scale(.90)}
+
+  /* ---- Shorts (vertical feed): full-bleed immersive chrome ----
+     The persistent solid topbar/bottom-nav eat vertical space a full-bleed
+     vertical video shouldn't lose. Both float on transparent gradients
+     directly over the video instead — same nav destinations, no blur/solid
+     backdrop, no reserved layout space. */
+  .page-feed .content{padding:0}
+  .page-feed .topbar{
+    position:fixed;top:0;left:0;right:0;z-index:40;
+    background:linear-gradient(180deg,rgba(0,0,0,.55),transparent);
+    backdrop-filter:none;-webkit-backdrop-filter:none;border-bottom:none;
+  }
+  .page-feed .bottom-nav{
+    background:linear-gradient(0deg,rgba(0,0,0,.6),transparent);
+    backdrop-filter:none;-webkit-backdrop-filter:none;
+    border-top:none;box-shadow:none;
+  }
+  .page-feed .content.content-feed{height:100vh}
 
   /* ---- Home layout ---- */
   .hero{display:none}

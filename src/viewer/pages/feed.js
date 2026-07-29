@@ -78,11 +78,6 @@ export function renderFeed() {
           <div class="feed-creator-row">
             <span class="feed-creator" onclick="openCreator('${jsq(c.id)}')">@${esc(c.name)}</span>
             ${c.verified ? '<span class="verified-badge">✓</span>' : ''}
-            ${hasCreator ? `
-              <button class="feed-follow-badge ${subbed ? 'subbed' : ''}" onclick="event.stopPropagation();subscribe('${jsq(c.id)}')">
-                ${subbed ? 'Following' : '+ Follow'}
-              </button>
-            ` : ''}
           </div>
           <div class="feed-title">${esc(v.title)}</div>
           ${v.category ? `<div class="feed-category"><span class="vtag-cat">${esc(v.category)}</span></div>` : ''}
@@ -90,8 +85,13 @@ export function renderFeed() {
 
         <!-- Engagement Action Sidebar (Right) -->
         <div class="feed-sidebar">
-          <!-- Creator Avatar -->
-          <div class="feed-avatar" onclick="openCreator('${jsq(c.id)}')">${esc((c.name || "?")[0])}</div>
+          <!-- Creator Avatar (+ overlapping follow badge) -->
+          <div class="feed-avatar-wrap">
+            <div class="feed-avatar" onclick="openCreator('${jsq(c.id)}')">${esc((c.name || "?")[0])}</div>
+            ${hasCreator ? `
+              <button class="feed-follow-dot ${subbed ? 'subbed' : ''}" onclick="event.stopPropagation();subscribe('${jsq(c.id)}')" aria-label="${subbed ? 'Following' : 'Follow'} ${esc(c.name)}">${subbed ? '✓' : '+'}</button>
+            ` : ''}
+          </div>
 
           <!-- Sound / Mute Toggle -->
           <div class="feed-action">
