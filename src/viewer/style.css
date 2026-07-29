@@ -129,13 +129,11 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
    own background/border/shadow to match YouTube's flatter mobile look. */
 .video-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
 .video-list .video-thumb{height:auto;aspect-ratio:16/9;margin-bottom:0}
-/* Row-layout card identity block (avatar + stacked title/creator/views) —
+/* Row-layout card identity block (stacked title/creator/views, no avatar —
    scoped to .card-text, not .video-list, so it applies to ANY layout:'row'
    card regardless of container (.video-list on Search/channel pages,
    .row-scroll on Home's shelves) instead of only the former. */
-.card-identity{display:flex;gap:10px;margin-top:10px;align-items:flex-start}
-.card-avatar{flex:none;margin-top:1px}
-.card-text{min-width:0;flex:1}
+.card-text{min-width:0;margin-top:10px}
 .card-text .title{font-size:14px;line-height:1.3;font-weight:600;
   display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .card-text .meta{display:flex;flex-direction:column;gap:1px;margin-top:3px;font-size:12.5px}

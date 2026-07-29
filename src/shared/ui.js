@@ -105,21 +105,18 @@ export function videoCard(v, opts={}){
           <button class="card-act" title="Share" aria-label="Share this video" onclick="event.stopPropagation();shareVideo(${v.id})">↗</button>
         </div>`;
   // 'row' is the YouTube-Home-style single-column card (thumb full-width on
-  // top, a small creator avatar + two-line identity block below); 'grid' is
-  // the existing default (2-up dense browse mode). Purely additive: the
-  // avatar is a new element, but .card/.video-thumb/.title/.meta/.tag-chips
-  // and the data-fav-id/data-later-id contract are unchanged either way, so
+  // top, a two-line identity block below, no avatar — a per-card avatar read
+  // as visual noise at this size); 'grid' is the existing default (2-up dense
+  // browse mode). .card/.video-thumb/.title/.meta/.tag-chips and the
+  // data-fav-id/data-later-id contract are unchanged either way, so
   // markToggleStates()/reflectSetToggle() and hover-preview wiring keep
   // working without modification.
   const isRow = opts.layout === 'row';
   const cName = creatorName(v.creator);
   const metaBlock = isRow
-    ? `<div class="card-identity">
-        <div class="avatar avatar-sm card-avatar">${esc((cName||"?")[0])}</div>
-        <div class="card-text">
-          <div class="title">${esc(v.title)}</div>
-          <div class="meta"><span class="meta-creator">${esc(cName)}</span><span class="meta-stats">${fmt(v.views)} views</span></div>
-        </div>
+    ? `<div class="card-text">
+        <div class="title">${esc(v.title)}</div>
+        <div class="meta"><span class="meta-creator">${esc(cName)}</span><span class="meta-stats">${fmt(v.views)} views</span></div>
       </div>`
     : `<div class="title">${esc(v.title)}</div>
       <div class="meta">${esc(cName)} • ${fmt(v.views)} views</div>`;
