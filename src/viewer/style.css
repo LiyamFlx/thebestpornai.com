@@ -785,6 +785,7 @@ iframe.player{object-fit:contain}
 .topbar-drawer-toggle{display:none}   /* hamburger drawer trigger (mobile only — desktop uses the icon rail) */
 .mobile-topbar-brand{display:none}    /* duplicate logo next to the sidebar's own brand mark (mobile only, sidebar is hidden there) */
 .topbar .left{display:none}           /* plain-text wordmark, superseded by the icon-rail's <img> brand on desktop */
+.mobile-hero{display:none}            /* mobile-only featured banner — .hero (above) is its desktop equivalent; only .hero{display:none} was ever added for mobile, this element never had the matching desktop-side hide, so both heroes rendered stacked together on every viewport until now */
 .cat-scroll-extra{display:none}       /* overflow categories inline only when the row scrolls (mobile) */
 .act-more{display:none}               /* action overflow trigger (mobile only) */
 /* On desktop the overflow wrapper + menu dissolve so Favorite/Save/Share/Report
