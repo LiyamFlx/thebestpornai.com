@@ -115,7 +115,7 @@ export function videoCard(v, opts={}){
   const cName = creatorName(v.creator);
   const metaBlock = isRow
     ? `<div class="card-identity">
-        <div class="avatar-sm card-avatar">${esc((cName||"?")[0])}</div>
+        <div class="avatar avatar-sm card-avatar">${esc((cName||"?")[0])}</div>
         <div class="card-text">
           <div class="title">${esc(v.title)}</div>
           <div class="meta"><span class="meta-creator">${esc(cName)}</span><span class="meta-stats">${fmt(v.views)} views</span></div>
@@ -124,7 +124,7 @@ export function videoCard(v, opts={}){
     : `<div class="title">${esc(v.title)}</div>
       <div class="meta">${esc(cName)} • ${fmt(v.views)} views</div>`;
   return `
-    <div class="card${isRow ? ' card--row' : ''}" onclick="${opts.onClick || `openVideo(${v.id})`}">
+    <article class="card${isRow ? ' card--row' : ''}" onclick="${opts.onClick || `openVideo(${v.id})`}">
       <div class="video-thumb ${v.type==='original'?'original':''}">
         ${badge?`<span class="corner-badge">${esc(badge)}</span>`:``}
         ${thumb}
@@ -136,7 +136,7 @@ export function videoCard(v, opts={}){
       ${metaBlock}
       ${opts.hideTags ? `` : tagChips(v.tags, { max: 3, stop: true })}
       ${opts.extra ? opts.extra(v) : ``}
-    </div>`;
+    </article>`;
 }
 
 /* Spicier empty state: instead of a bare message, suggest hot tags to click.
