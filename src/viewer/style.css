@@ -25,7 +25,7 @@
 }
 .sidebar .brand img{width:32px;height:32px;object-fit:contain}   /* square icon mark — the rail is only 72px wide, the full wordmark logo doesn't fit */
 .mobile-drawer .brand img{height:22px}   /* drawer is wide enough (280px) for the full wordmark */
-.sidebar-foot{display:none}   /* legal footer moved into the topbar avatar menu on this layout — see .account-menu */
+.sidebar-foot{display:none}   /* legal footer moved into the sidebar account menu on this layout — see .account-menu */
 .nav{width:100%;display:flex;flex-direction:column;align-items:center;gap:4px}
 .nav button,.nav-link-out{
   width:56px;
@@ -61,29 +61,64 @@
    avatar). Nothing is removed from the DOM — collapsed via CSS so leaving
    the watch page restores full chrome instantly with no re-render. */
 .page-watch .sidebar{width:56px}
-.page-watch .nav button,.page-watch .nav-link-out{width:40px}
-.page-watch .nav button .nav-label,.page-watch .nav-link-out .nav-label{display:none}
+.page-watch .nav button,.page-watch .nav-link-out,.page-watch .nav-account-btn{width:40px}
+.page-watch .nav button .nav-label,.page-watch .nav-link-out .nav-label,.page-watch .nav-account-btn .nav-label{display:none}
 .page-watch .nav-link-out{display:none}
 .topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* Uniform control shape system: every icon-affordance in the chrome (search
+   box, search-submit, upload, watch-later, account) is a rounded square at
+   one of two sizes, not a mix of pills/circles. Same radius ratio, same
+   hover/active motion everywhere — only the size token changes per slot. */
+:root{
+  --ctrl-radius: 10px;
+  --ctrl-size: 38px;
+  --ctrl-size-sm: 32px;
+}
+.search-wrap{position:relative;flex:1 1 auto;min-width:0;max-width:240px;display:flex}
 .search-input{
   background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  padding:8px 14px;border-radius:999px;font-size:13px;width:240px;flex:1 1 auto;
-  min-width:0;max-width:240px;outline:none;
+  padding:8px 40px 8px 14px;border-radius:var(--ctrl-radius);font-size:13px;
+  width:100%;min-width:0;outline:none;transition:border-color .15s,background .15s;
 }
 .search-input:focus{border-color:var(--accent)}
+.search-go{
+  position:absolute;right:3px;top:3px;bottom:3px;width:30px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  background:transparent;border:none;border-radius:calc(var(--ctrl-radius) - 3px);color:var(--muted);
+  cursor:pointer;transition:background .15s,color .15s,transform .15s;
+}
+.search-go:hover{background:var(--surface3);color:var(--text)}
+.search-go:active{transform:scale(.9)}
+.search-go .ico{width:16px;height:16px}
+
 .icon-btn{
+  width:var(--ctrl-size);height:var(--ctrl-size);flex:none;
+  display:flex;align-items:center;justify-content:center;
   background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  padding:6px 11px;border-radius:999px;cursor:pointer;font-size:12px;font-weight:500;
-  transition:border-color .15s,background .15s;
+  padding:0;border-radius:var(--ctrl-radius);cursor:pointer;font-size:14px;font-weight:500;
+  transition:border-color .15s,background .15s,transform .15s;
 }
+.icon-btn .ico{width:18px;height:18px}
 .icon-btn:hover{border-color:var(--muted);background:var(--surface3)}
+.icon-btn:active{transform:scale(.92)}
 .icon-btn.on{border-color:var(--accent2);color:var(--accent2);background:rgba(255,59,59,0.1)}
-.avatar{
-  width:34px;height:34px;border-radius:50%;
-  background:linear-gradient(135deg,var(--accent),#7A0008);
-  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;
-  cursor:pointer;
+
+/* Sidebar account trigger — same rounded-square language as .icon-btn, sized
+   to sit naturally among the nav rail's icon+label buttons above it. */
+.sidebar-account{width:100%;margin-top:auto;display:flex;justify-content:center}
+.nav-account-btn{
+  width:56px;height:auto;
+  background:transparent;border:none;color:var(--muted);
+  padding:9px 4px 7px;border-radius:12px;
+  text-align:center;cursor:pointer;font-size:10px;font-weight:600;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  transition:.15s;box-sizing:border-box;
 }
+.nav-account-btn:hover{background:var(--surface2);color:var(--text)}
+.nav-account-btn:active{transform:scale(.94)}
+.nav-account-btn .ico{width:22px;height:22px;flex:none}
+.nav-account-btn[aria-expanded="true"]{background:rgba(229,9,20,0.15);color:#fff}
 
 /* Avatar dropdown: profile/library pages that moved out of the old long
    sidebar list, plus the legal/18+ footer that used to live at the bottom
@@ -94,6 +129,13 @@
   flex-direction:column;gap:2px;min-width:220px;padding:8px;
   background:var(--surface);border:1px solid var(--border);border-radius:12px;
   box-shadow:0 12px 32px rgba(0,0,0,.5);
+}
+/* Sidebar placement: the trigger sits bottom-left of the rail. The sidebar
+   itself is overflow:auto (for the nav rail's own scroll), which clips any
+   absolutely-positioned child that escapes its box — position:fixed instead,
+   anchored to the same visual spot, so the panel actually renders. */
+.sidebar-account .account-menu-panel{
+  position:fixed;left:84px;right:auto;top:auto;bottom:12px;
 }
 .account-menu.open .account-menu-panel{display:flex}
 .account-menu-panel button{
@@ -1284,12 +1326,12 @@ iframe.player{object-fit:contain}
   .topbar-actions .icon-btn{display:none}
   .topbar-actions .topbar-search-toggle{
     display:inline-flex;align-items:center;justify-content:center;
-    min-width:40px;min-height:40px;padding:0;font-size:15px;
-    border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+    width:38px;height:38px;min-width:38px;min-height:38px;padding:0;
+    border-radius:var(--ctrl-radius);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
   }
-  .search-input{display:none}
-  .topbar.mchrome-search-open .search-input{
-    display:block;flex:1 0 100%;width:100%;margin-top:8px;order:5;
+  .search-wrap{display:none}
+  .topbar.mchrome-search-open .search-wrap{
+    display:flex;flex:1 0 100%;width:100%;max-width:none;margin-top:8px;order:5;
   }
   .topbar{min-height:0;padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px}
 

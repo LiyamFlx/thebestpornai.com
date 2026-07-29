@@ -62,6 +62,15 @@
   <symbol id="icon-studio" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/>
   </symbol>
+  <symbol id="icon-save" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.5a1 1 0 0 1 1-1Z"/>
+  </symbol>
+  <symbol id="icon-account" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 18.2c1-2.3 3.1-3.7 5.5-3.7s4.5 1.4 5.5 3.7"/>
+  </symbol>
+  <symbol id="icon-search-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+  </symbol>
 </svg>
 <div class="app">
   <!-- Sidebar: slim icon rail (desktop only — mobile uses the hamburger
@@ -78,6 +87,30 @@
 
       <a href="/choose.html" class="nav-link-out" title="Creator / Manager"><svg class="ico"><use href="#icon-studio"/></svg> Studio</a>
     </div>
+
+    <div class="account-menu sidebar-account">
+      <button class="nav-account-btn" data-mobile-action="toggle-account-menu" title="Your account" aria-haspopup="true" aria-expanded="false">
+        <svg class="ico"><use href="#icon-account"/></svg> <span class="nav-label">Account</span>
+      </button>
+      <div class="account-menu-panel">
+        <button onclick="go('profile')"><span class="ico">👤</span> Profile</button>
+        <button onclick="go('favorites')"><span class="ico">★</span> Favorites</button>
+        <button onclick="go('history')"><span class="ico">↺</span> History</button>
+        <button onclick="go('playlists')"><span class="ico">≣</span> Playlists</button>
+        <button onclick="go('downloads')"><span class="ico">⤓</span> Downloads</button>
+        <button onclick="go('originals')"><span class="ico">🎬</span> Originals</button>
+        <button onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
+        <div class="account-menu-sep"></div>
+        <div class="account-menu-legal">
+          18+ Adults Only — All performers are consenting adults 18+<br/>
+          <a href="/legal/terms.html">Terms</a> ·
+          <a href="/legal/privacy.html">Privacy</a> ·
+          <a href="/legal/dmca.html">DMCA</a> ·
+          <a href="/legal/2257.html">2257</a><br/>
+          <a href="mailto:contact@thebestpornai.com">Contact</a>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Main Content -->
@@ -91,37 +124,23 @@
           data-mobile-action="toggle-search"
           aria-label="Search"
           aria-expanded="false"
-        >🔍</button>
-        <input
-          class="search-input"
-          id="searchInput"
-          placeholder="Search videos, creators, tags…"
-          oninput="doSearch()"
-          aria-label="Search"
-        />
-        <button class="icon-btn" onclick="window.location.href='/creator/index.html?page=upload'" aria-label="Upload new video" title="Upload">＋</button>
-        <button class="icon-btn" onclick="go('later')" aria-label="Watch Later">🕒</button>
-        <div class="account-menu">
-          <div class="avatar" data-mobile-action="toggle-account-menu" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" role="button" tabindex="0" title="Your account" aria-haspopup="true" aria-expanded="false">A</div>
-          <div class="account-menu-panel">
-            <button onclick="go('profile')"><span class="ico">👤</span> Profile</button>
-            <button onclick="go('favorites')"><span class="ico">★</span> Favorites</button>
-            <button onclick="go('history')"><span class="ico">↺</span> History</button>
-            <button onclick="go('playlists')"><span class="ico">≣</span> Playlists</button>
-            <button onclick="go('downloads')"><span class="ico">⤓</span> Downloads</button>
-            <button onclick="go('originals')"><span class="ico">🎬</span> Originals</button>
-            <button onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
-            <div class="account-menu-sep"></div>
-            <div class="account-menu-legal">
-              18+ Adults Only — All performers are consenting adults 18+<br/>
-              <a href="/legal/terms.html">Terms</a> ·
-              <a href="/legal/privacy.html">Privacy</a> ·
-              <a href="/legal/dmca.html">DMCA</a> ·
-              <a href="/legal/2257.html">2257</a><br/>
-              <a href="mailto:contact@thebestpornai.com">Contact</a>
-            </div>
-          </div>
+        ><svg class="ico"><use href="#icon-search"/></svg></button>
+        <div class="search-wrap">
+          <input
+            class="search-input"
+            id="searchInput"
+            placeholder="Search videos, creators, tags…"
+            oninput="doSearch()"
+            aria-label="Search"
+          />
+          <button class="search-go" onclick="doSearch()" aria-label="Search">
+            <svg class="ico"><use href="#icon-search-go"/></svg>
+          </button>
         </div>
+        <button class="icon-btn" onclick="window.location.href='/creator/index.html?page=upload'" aria-label="Upload new video" title="Upload">＋</button>
+        <button class="icon-btn" onclick="go('later')" aria-label="Watch Later" title="Watch Later">
+          <svg class="ico"><use href="#icon-save"/></svg>
+        </button>
       </div>
     </div>
     <div class="content" id="view"></div>
@@ -132,7 +151,7 @@
     <button data-page="home"    onclick="go('home')"><svg class="ico"><use href="#icon-home"/></svg><span>Home</span></button>
     <button data-page="explore" onclick="go('explore')"><svg class="ico"><use href="#icon-explore"/></svg><span>Explore</span></button>
     <button data-page="_search" onclick="focusSearch()"><svg class="ico"><use href="#icon-search"/></svg><span>Search</span></button>
-    <button data-page="later"   onclick="go('later')"><svg class="ico"><use href="#icon-later"/></svg><span>Later</span></button>
+    <button data-page="later"   onclick="go('later')"><svg class="ico"><use href="#icon-save"/></svg><span>Later</span></button>
     <button data-page="profile" onclick="go('profile')"><svg class="ico"><use href="#icon-you"/></svg><span>You</span></button>
     <button onclick="window.location.href='/creator/index.html?page=upload'" aria-label="Upload"><svg class="ico"><use href="#icon-upload"/></svg><span>Upload</span></button>
   </nav>
