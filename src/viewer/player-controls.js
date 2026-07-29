@@ -24,7 +24,8 @@ let advanceOverlay = null;
 
 function clearAutoHide(){ clearTimeout(hideTimer); hideTimer = null; }
 function clearAutoAdvance(){
-  clearInterval(advanceTimer); advanceTimer = null;
+  if(advanceTimer) cancelAnimationFrame(advanceTimer);
+  advanceTimer = null;
   if(advanceOverlay){ advanceOverlay.remove(); advanceOverlay = null; }
 }
 
@@ -129,40 +130,51 @@ export function attachPlayerControls(){
   attachAutoAdvance(wrap, video);
 }
 
-/* "Up next" overlay: on video end, auto-advance to the first suggested video
-   after a 5s countdown (cancelable), mirroring the YouTube/Netflix pattern —
-   without this, every watch session dead-ends and requires a manual click. */
+/* "Up next" indicator: on video end, auto-advance to the first suggested
+   video after a 5s countdown, mirroring the YouTube/Netflix pattern —
+   without this, every watch session dead-ends and requires a manual click.
+   A small corner pill with a filling progress ring instead of a full-screen
+   modal — it doesn't block the final frame and needs no confirmation click,
+   it just tells you it's about to happen and lets you tap to cancel. */
 function attachAutoAdvance(wrap, video){
   const nextCard = document.querySelector(".watch-side [data-video-id]");
   if(!nextCard) return;
   const nextId = +nextCard.dataset.videoId;
-  const nextTitle = nextCard.querySelector(".title")?.textContent || "next video";
+  if(!Number.isFinite(nextId)) return;
+
+  const DURATION_MS = 5000;
+  const RADIUS = 15;
+  const CIRC = 2 * Math.PI * RADIUS;
 
   video.addEventListener("ended", () => {
-    if(advanceOverlay || !Number.isFinite(nextId)) return;
+    if(advanceOverlay) return;
     advanceOverlay = document.createElement("div");
     advanceOverlay.className = "pc-upnext";
+    advanceOverlay.setAttribute("role", "button");
+    advanceOverlay.setAttribute("aria-label", "Cancel autoplay of next video");
     advanceOverlay.innerHTML = `
-      <div class="pc-upnext-box">
-        <div class="pc-upnext-label">Up next</div>
-        <div class="pc-upnext-title"></div>
-        <div class="pc-upnext-row">
-          <button class="btn sm ghost pc-upnext-cancel">Cancel</button>
-          <button class="btn sm pc-upnext-play">Play now (<span class="pc-upnext-count">5</span>)</button>
-        </div>
-      </div>`;
-    advanceOverlay.querySelector(".pc-upnext-title").textContent = nextTitle;   // textContent: no HTML injection risk
+      <svg class="pc-upnext-ring" viewBox="0 0 36 36" aria-hidden="true">
+        <circle class="pc-upnext-ring-track" cx="18" cy="18" r="${RADIUS}"/>
+        <circle class="pc-upnext-ring-fill" cx="18" cy="18" r="${RADIUS}"
+          stroke-dasharray="${CIRC}" stroke-dashoffset="0"/>
+      </svg>
+      <span class="pc-upnext-text">Next video in <span class="pc-upnext-count">5</span>s</span>`;
     wrap.appendChild(advanceOverlay);
-    wrap.classList.add("pc-visible");
 
-    let n = 5;
+    const ringFill = advanceOverlay.querySelector(".pc-upnext-ring-fill");
     const countEl = advanceOverlay.querySelector(".pc-upnext-count");
-    advanceTimer = setInterval(() => {
-      n--;
-      if(countEl) countEl.textContent = String(n);
-      if(n <= 0){ clearInterval(advanceTimer); advanceTimer = null; openVideo(nextId); }
-    }, 1000);
-    advanceOverlay.querySelector(".pc-upnext-cancel").addEventListener("click", clearAutoAdvance);
-    advanceOverlay.querySelector(".pc-upnext-play").addEventListener("click", () => { clearInterval(advanceTimer); advanceTimer = null; openVideo(nextId); });
+    const start = performance.now();
+
+    const tick = (now) => {
+      const elapsed = now - start;
+      const remaining = Math.max(0, DURATION_MS - elapsed);
+      if(ringFill) ringFill.style.strokeDashoffset = String(CIRC * (1 - elapsed / DURATION_MS));
+      if(countEl) countEl.textContent = String(Math.ceil(remaining / 1000));
+      if(elapsed >= DURATION_MS){ advanceTimer = null; openVideo(nextId); return; }
+      advanceTimer = requestAnimationFrame(tick);
+    };
+    advanceTimer = requestAnimationFrame(tick);
+
+    advanceOverlay.addEventListener("click", clearAutoAdvance);
   });
 }

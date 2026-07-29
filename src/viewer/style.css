@@ -685,14 +685,22 @@ iframe.player{object-fit:contain}
 @media (prefers-reduced-motion: reduce){
   .pc-bar{transition:none}
 }
+/* Small corner pill instead of a full-screen modal: doesn't cover the final
+   frame, needs no confirm click to proceed — tap it once to cancel instead. */
 .pc-upnext{
-  position:absolute;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.72);
+  position:absolute;right:16px;bottom:16px;z-index:7;
+  display:flex;align-items:center;gap:10px;
+  background:rgba(20,20,20,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--border);border-radius:999px;padding:8px 16px 8px 8px;
+  cursor:pointer;animation:pc-upnext-in .25s ease;
 }
-.pc-upnext-box{background:var(--surface2,#1E1E1E);border:1px solid var(--border);border-radius:12px;padding:18px 22px;max-width:320px;text-align:center}
-.pc-upnext-label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
-.pc-upnext-title{color:#fff;font-weight:700;font-size:15px;margin-bottom:14px}
-.pc-upnext-row{display:flex;gap:10px;justify-content:center}
+@keyframes pc-upnext-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.pc-upnext-ring{width:32px;height:32px;flex:none;transform:rotate(-90deg)}
+.pc-upnext-ring-track{fill:none;stroke:rgba(255,255,255,.18);stroke-width:3}
+.pc-upnext-ring-fill{fill:none;stroke:var(--accent,#E50914);stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset .1s linear}
+.pc-upnext-text{color:#fff;font-size:13px;font-weight:600;white-space:nowrap}
+.pc-upnext-count{color:var(--accent2,#FF3B3B);font-weight:800}
+@media (prefers-reduced-motion: reduce){.pc-upnext{animation:none}}
 /* Keyboard focus ring — matches the accent color used across the site;
    nothing previously styled :focus-visible for player/action controls. */
 .pc-btn:focus-visible,.player-nav:focus-visible,.pc-seek:focus-visible,
