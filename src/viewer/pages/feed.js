@@ -68,7 +68,7 @@ export function renderFeed() {
         </div>
 
         <!-- Video element -->
-        <video class="feed-video" loop playsinline ${feedMuted ? 'muted' : ''} data-src="${mediaUrl(v.src)}" poster="${mediaUrl(v.thumb)}"></video>
+        <video class="feed-video" playsinline ${feedMuted ? 'muted' : ''} data-src="${mediaUrl(v.src)}" poster="${mediaUrl(v.thumb)}"></video>
         
         <!-- Play / Pause / Playback State Toast Badge Overlay -->
         <div class="feed-state-badge" aria-hidden="true"></div>
@@ -229,8 +229,32 @@ export function attachFeedObserver() {
     root: container
   });
 
-  items.forEach(item => feedObserver.observe(item));
+  items.forEach(item => {
+    feedObserver.observe(item);
+    bindAutoAdvance(item, items);
+  });
   attachFeedGestures(container);
+}
+
+/* Auto-advance: when a clip finishes, scroll to the next item in the feed
+   (wrapping to the first after the last) instead of looping in place —
+   .feed-video no longer has the `loop` attribute, so "ended" actually fires. */
+function bindAutoAdvance(item, items){
+  const videoEl = item.querySelector(".feed-video");
+  if(!videoEl || videoEl.dataset.autoAdvanceBound) return;
+  videoEl.dataset.autoAdvanceBound = "1";
+  videoEl.addEventListener("ended", () => {
+    const index = parseInt(item.dataset.index, 10);
+    const next = items[index + 1] || items[0];
+    if(!next) return;
+    // Set scrollTop directly rather than next.scrollIntoView({behavior:"smooth"}):
+    // .feed-container has scroll-snap-type:y mandatory, and a smooth
+    // programmatic scroll fights the browser's own snap-scroll — it was
+    // observed getting stuck a few px into the animation and never
+    // completing. offsetTop respects snap points without that conflict.
+    const container = item.closest(".feed-container");
+    if(container) container.scrollTop = next.offsetTop;
+  });
 }
 
 /* Double-tap-to-like & Tap-to-Pause Gestures */
