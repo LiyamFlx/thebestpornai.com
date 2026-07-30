@@ -132,9 +132,20 @@ export function attachPlayerControlsV2(){
     }
   }
 
+  // iOS Safari has never implemented the standard Fullscreen API on
+  // arbitrary elements (Element.requestFullscreen is undefined there) —
+  // only the <video> element itself supports native fullscreen, via the
+  // non-standard webkitEnterFullscreen()/webkitDisplayingFullscreen. The
+  // previous version called target.requestFullscreen?.() on a wrapper <div>
+  // and swallowed the failure with .catch(()=>{}), so the fullscreen button
+  // silently did nothing on iOS — no error, no fallback, just no fullscreen.
   window.toggleFullscreenV2 = () => {
     const target = wrap.closest(".player-container-v2") || wrap;
-    if(!document.fullscreenElement) target.requestFullscreen?.().catch(()=>{});
+    if(typeof target.requestFullscreen !== "function"){
+      if(typeof video.webkitEnterFullscreen === "function") video.webkitEnterFullscreen();
+      return;
+    }
+    if(!document.fullscreenElement) target.requestFullscreen().catch(()=>{});
     else document.exitFullscreen?.().catch(()=>{});
   };
 

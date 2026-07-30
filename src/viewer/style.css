@@ -1262,11 +1262,6 @@ iframe.player{object-fit:contain}
   .mobile-topbar-brand img {
     height: 18px;
   }
-  .topbar-brand-title {
-    font-size: 15px;
-    font-weight: 800;
-    letter-spacing: -0.3px;
-  }
 
   .topbar{
     padding:8px 12px;
@@ -1472,7 +1467,11 @@ iframe.player{object-fit:contain}
   /* Inside the scrolling row, not pushed right (no room to "end" a scroll
      strip) — trails the last chip, min-height bumped to match touch target
      sizing used by the pills around it. */
-  .sort-select-inline{min-height:36px;margin-left:0;flex:0 0 auto}
+  .home-combined-bar .sort-select-inline{
+    min-height:36px !important;margin-left:0 !important;
+    flex:0 0 auto !important;position:static !important;
+    max-width:130px;white-space:nowrap;
+  }
 
   /* ---- Cards (Row vs 2-Up Grid) ---- */
   .video-list{display:flex;flex-direction:column;gap:18px}
