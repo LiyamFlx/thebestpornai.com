@@ -49,6 +49,33 @@ async function _req(path, opts={}){
   } finally { clearTimeout(t); }
 }
 
+/* Exact row count via PostgREST's Prefer: count=exact + a HEAD request —
+   returns just the count from the Content-Range response header, never the
+   matching rows themselves. Used instead of `select=id` + rows.length so
+   like/view counts stay O(1) response size as engagement grows; a plain
+   select can silently undercount once a video's row count exceeds
+   PostgREST's/Supabase's default row cap. */
+async function _count(path){
+  if(!_REST || !SUPABASE_KEY) return 0;
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), 6000);
+  try {
+    const r = await fetch(_REST + path, {
+      method: "HEAD",
+      headers: { ..._HEADERS, "Prefer": "count=exact" },
+      signal: ctrl.signal,
+    }).catch(()=>null);
+    if(!r || !r.ok) return 0;
+    // Content-Range: "0-24/137" (or "*/137" for a HEAD with no range) — total
+    // is always the part after the slash.
+    const range = r.headers.get("content-range") || "";
+    const total = Number(range.split("/")[1]);
+    return Number.isFinite(total) ? total : 0;
+  } catch(_) {
+    return 0;
+  } finally { clearTimeout(t); }
+}
+
 /* Same as _req, but sends the signed-in user's own access token instead of the
    anon key, so RLS policies scoped `to authenticated` (moderation, uploads
    inserts) accept the request. Throws if no session is present. */
@@ -193,9 +220,10 @@ const ShAPI = {
 
   /* ---- LIKES (count rows; concurrency-safe) ---- */
   async likeCounts(videoId){
-    const rows = await _req(`/likes?video_id=eq.${videoId}&select=kind`);
-    let like=0, dislike=0;
-    for(const r of rows||[]){ r.kind==="dislike" ? dislike++ : like++; }
+    const [like, dislike] = await Promise.all([
+      _count(`/likes?video_id=eq.${videoId}&kind=eq.like&select=id`),
+      _count(`/likes?video_id=eq.${videoId}&kind=eq.dislike&select=id`),
+    ]);
     return { like, dislike };
   },
   async addLike(videoId, kind="like"){
@@ -220,9 +248,7 @@ const ShAPI = {
     await _req(`/views`, { method:"POST", body: JSON.stringify({ video_id: videoId, client_id: shClientId() }) });
   },
   async viewCount(videoId){
-    // HEAD with count header is cheapest, but keep it simple: count ids.
-    const rows = await _req(`/views?video_id=eq.${videoId}&select=id`);
-    return (rows||[]).length;
+    return _count(`/views?video_id=eq.${videoId}&select=id`);
   },
 
   /* ---- MODERATION (real moderator decisions; requires sign-in — RLS
@@ -245,8 +271,7 @@ const ShAPI = {
 
   /* ---- FAVORITE COUNT (how many people favorited a video) ---- */
   async favoriteCount(videoId){
-    const rows = await _req(`/favorites?video_id=eq.${videoId}&select=id`);
-    return (rows||[]).length;
+    return _count(`/favorites?video_id=eq.${videoId}&select=id`);
   },
 
   /* ---- VIDEO UPLOAD (direct-to-R2 via presigned PUT) ----

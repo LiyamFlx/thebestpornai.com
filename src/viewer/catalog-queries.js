@@ -14,9 +14,25 @@ export const visible = v => v && v.status !== "private" && v.status !== "pending
    ~4k-entry catalog. That work is identical within a render and only changes
    when the catalog itself does (manifest sync / live-upload merge push new
    entries). We memoize on DATA.videos.length so the common case — many calls,
-   unchanged catalog — collapses to a single pass. invalidateCatalogCache() is
-   exported for the (rare) case where entries are mutated in place. */
-let _cacheRef = null, _cacheLen = -1;
+   unchanged catalog — collapses to a single pass.
+
+   Length/identity alone only catch array replacement or push/unshift — an
+   in-place field mutation (e.g. a moderation action flipping vid.status
+   after the catalog is already loaded) keeps the same array and length, so
+   it would silently miss invalidation. bumpCatalogGeneration() is the
+   contract for that case: any code that mutates an existing video object's
+   cache-relevant fields (status, category, tags, orientation, level, ...)
+   in place must call it. No such mutation exists in the viewer today, but
+   the counter makes the invalidation correct the moment one is added,
+   instead of depending on every future writer remembering to special-case
+   this module. */
+let _cacheRef = null, _cacheLen = -1, _cacheGen = -1;
+let _generation = 0;
+export function bumpCatalogGeneration(){ _generation++; }
+/* @deprecated kept as an alias of bumpCatalogGeneration() for any external
+   caller — invalidation is generation-counter-driven now, not a manual reset. */
+export function invalidateCatalogCache(){ bumpCatalogGeneration(); }
+
 let _pub = null, _pubVert = null, _trending = null;
 let _movies = null, _actNames = null, _highlights = null, _originals = null;
 let _byIdDesc = null, _byViewsDesc = null, _byUploadedDesc = null;
@@ -24,18 +40,18 @@ let _videoById = null;
 const _byCat = new Map();
 const _clipsByAct = new Map();
 function _ensure(){
-  // Invalidate when the array is replaced wholesale (tests, hot reload) OR when
-  // entries are added in place (manifest sync / live uploads use unshift/push,
-  // which keep the reference but change length).
-  if(DATA.videos !== _cacheRef || DATA.videos.length !== _cacheLen){
-    _cacheRef = DATA.videos; _cacheLen = DATA.videos.length;
+  // Invalidate when: the array is replaced wholesale (tests, hot reload), OR
+  // entries are added in place (manifest sync / live uploads use
+  // unshift/push, changing length), OR a writer explicitly bumped the
+  // generation counter after an in-place field mutation.
+  if(DATA.videos !== _cacheRef || DATA.videos.length !== _cacheLen || _generation !== _cacheGen){
+    _cacheRef = DATA.videos; _cacheLen = DATA.videos.length; _cacheGen = _generation;
     _pub = null; _pubVert = null; _trending = null; _byCat.clear();
     _movies = null; _actNames = null; _highlights = null; _originals = null; _clipsByAct.clear();
     _byIdDesc = null; _byViewsDesc = null; _byUploadedDesc = null;
     _videoById = null;
   }
 }
-export function invalidateCatalogCache(){ _cacheRef = null; _cacheLen = -1; }
 
 /* O(1) id -> video lookup over the FULL catalog (not just pubVideos()) —
    history/watch-later/favorites can reference a video the viewer themself
@@ -46,6 +62,15 @@ export function invalidateCatalogCache(){ _cacheRef = null; _cacheLen = -1; }
    video outside the seed. */
 export const videoById = (id) => { _ensure(); if(!_videoById) _videoById = new Map(DATA.videos.map(v => [v.id, v])); return _videoById.get(id); };
 
+/* Orientation split is deliberate, not incidental: pubVideos() (horizontal
+   16:9 catalog — home rows, trending, related, category filters, keyboard
+   prev/next via stepWatch()) and pubVerticalVideos() (the Shorts-style
+   vertical feed, feed.js) are two disjoint discovery surfaces by design.
+   A vertical upload ONLY appears in the vertical feed; it will never surface
+   in home/trending/related/category/search. If that's ever meant to change
+   (e.g. vertical videos should also be searchable, or appear in "related"),
+   it's a product decision, not a bug — update both call sites deliberately
+   rather than silently merging the two lists here. */
 export const pubVideos = () => { _ensure(); return _pub || (_pub = DATA.videos.filter(v => visible(v) && v.orientation !== "vertical")); };
 export const pubVerticalVideos = () => { _ensure(); return _pubVert || (_pubVert = DATA.videos.filter(v => visible(v) && v.orientation === "vertical")); };
 

@@ -15,10 +15,10 @@ test("taxonomy - categories and tags are non-empty and de-duplicated", () => {
 test("byCategoryFilter - matches category, categories[], and tags (case-insensitive)", () => {
   const orig = DATA.videos;
   DATA.videos = [
-    { id: 1, status: "public", category: "Big Ass", categories: [], tags: [] },
-    { id: 2, status: "public", category: "POV", categories: ["Big Ass"], tags: [] },
-    { id: 3, status: "public", category: "POV", categories: [], tags: ["big ass"] },
-    { id: 4, status: "public", category: "Anal", categories: [], tags: ["MILF"] },
+    { id: 1, status: "published", category: "Big Ass", categories: [], tags: [] },
+    { id: 2, status: "published", category: "POV", categories: ["Big Ass"], tags: [] },
+    { id: 3, status: "published", category: "POV", categories: [], tags: ["big ass"] },
+    { id: 4, status: "published", category: "Anal", categories: [], tags: ["MILF"] },
   ];
   try {
     const ids = byCategoryFilter("Big Ass").map(v => v.id).sort();
@@ -29,10 +29,10 @@ test("byCategoryFilter - matches category, categories[], and tags (case-insensit
 test("relatedTo - ranks by shared tag/category overlap, excludes self", () => {
   const orig = DATA.videos;
   DATA.videos = [
-    { id: 1, status: "public", category: "Anal", categories: [], tags: ["MILF", "POV"], views: 0, likes: 0 },
-    { id: 2, status: "public", category: "Anal", categories: [], tags: ["MILF", "POV"], views: 0, likes: 0 }, // 3 overlap
-    { id: 3, status: "public", category: "POV", categories: [], tags: ["MILF"], views: 0, likes: 0 },          // 1 overlap
-    { id: 4, status: "public", category: "Latina", categories: [], tags: ["Ebony"], views: 0, likes: 0 },      // 0 overlap
+    { id: 1, status: "published", category: "Anal", categories: [], tags: ["MILF", "POV"], views: 0, likes: 0 },
+    { id: 2, status: "published", category: "Anal", categories: [], tags: ["MILF", "POV"], views: 0, likes: 0 }, // 3 overlap
+    { id: 3, status: "published", category: "POV", categories: [], tags: ["MILF"], views: 0, likes: 0 },          // 1 overlap
+    { id: 4, status: "published", category: "Latina", categories: [], tags: ["Ebony"], views: 0, likes: 0 },      // 0 overlap
   ];
   try {
     const rel = relatedTo(DATA.videos[0]).map(v => v.id);
