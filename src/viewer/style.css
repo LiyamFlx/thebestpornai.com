@@ -214,16 +214,23 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
 .creator-circle:hover .creator-circle-avatar{transform:scale(1.06)}
 .creator-circle-name{font-size:13px;font-weight:600;color:var(--text)}
 
+/* Flex column so every card in a row (row-scroll's flex row, .grid's CSS
+   grid — both default to stretching siblings to equal height) lays its
+   title/meta/tags out identically: a card with 1 tag and a card whose tags
+   wrap to 2 lines both anchor their tag row to the same bottom offset via
+   .tag-chips' margin-top:auto below, instead of leaving mismatched
+   leftover whitespace under the shorter card's content. */
 .card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
   padding:12px;cursor:pointer;transition:all .22s ease;
+  display:flex;flex-direction:column;
 }
 .card:hover{transform:translateY(-4px);border-color:var(--accent)}
 .card:active{transform:scale(.985)}
 
 .video-thumb{
   position:relative;height:auto;aspect-ratio:16/9;border-radius:10px;overflow:hidden;margin-bottom:10px;
-  background:linear-gradient(135deg,var(--accent),#7A0008);
+  background:linear-gradient(135deg,var(--accent),#7A0008);flex-shrink:0;
 }
 .video-thumb.original{background:linear-gradient(135deg,#7A0008,#E50914)}
 .thumb-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -832,8 +839,10 @@ iframe.player{object-fit:contain}
 .cat-more-item:hover{background:var(--surface2)}
 .cat-more-item.active{background:var(--accent);color:#fff;font-weight:600}
 
-/* Clickable tag chips under video cards */
-.tag-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+/* Clickable tag chips under video cards. margin-top:auto anchors this row
+   to the card's bottom edge regardless of how many tag lines precede it —
+   see the .card comment above for why that keeps sibling cards uniform. */
+.tag-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:auto;padding-top:6px}
 .tag-chips .tag-chip{
   background:var(--surface2);border:1px solid transparent;color:var(--muted);
   font-size:10.5px;font-weight:500;padding:3px 8px;border-radius:999px;
