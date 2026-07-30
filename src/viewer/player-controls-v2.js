@@ -46,6 +46,8 @@ export function attachPlayerControlsV2(){
   const volumeSlider = document.getElementById("ovVolume");
 
   video.playbackRate = vstate.settings.playbackRate || 1;
+  video.volume = vstate.settings.volume ?? 0.5;
+  video.muted = !!vstate.settings.muted;
   if(volumeSlider) volumeSlider.value = video.muted ? 0 : video.volume;
 
   const setPlayIcon = () => {
@@ -74,9 +76,12 @@ export function attachPlayerControlsV2(){
   };
   window.toggleMuteV2 = () => {
     video.muted = !video.muted;
-    if(!video.muted && video.volume===0) video.volume = 1;
+    if(!video.muted && video.volume===0) video.volume = 0.5;
     if(volumeSlider) volumeSlider.value = video.muted ? 0 : video.volume;
     setMuteIcon();
+    vstate.settings.muted = video.muted;
+    vstate.settings.volume = video.volume;
+    persistState();
   };
 
   let seeking = false;
@@ -93,6 +98,9 @@ export function attachPlayerControlsV2(){
       video.volume = +volumeSlider.value;
       video.muted = +volumeSlider.value === 0;
       setMuteIcon();
+      vstate.settings.muted = video.muted;
+      vstate.settings.volume = video.volume;
+      persistState();
     });
   }
 
