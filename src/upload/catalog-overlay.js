@@ -15,15 +15,38 @@ if (!REST || !ANON) {
 // favorites/watch-later dataset attrs, manifest merge) coerces or compares
 // with `+id`/`Number(id)`, and onclick="openVideo(${v.id})" template strings
 // require a bare numeric literal — a string id ("u_"+r.id) breaks all of
-// them (ReferenceError on click, NaN lookups, dead deep-links). Supabase's
-// uploads.id is itself a numeric bigint (see schema-upload-ratelimit.sql),
-// so it's offset into a fixed namespace above the seed catalog's max id
-// (~4131) instead of being turned into a string.
+// them (ReferenceError on click, NaN lookups, dead deep-links).
+//
+// uploads.id is a uuid (schema-global-upload.sql), NOT the numeric bigint an
+// earlier fix here mistakenly assumed (that bigint belongs to the unrelated
+// upload_attempts table in schema-upload-ratelimit.sql). Number(uuidString)
+// is NaN, so `LIVE_UPLOAD_ID_OFFSET + Number(r.id)` silently reintroduced
+// the exact "id breaks every downstream numeric comparison" bug it was
+// meant to fix. uuidToStableInt() below hashes the uuid to a deterministic
+// 31-bit integer instead — same uuid always maps to the same numeric id
+// (stable across sessions, since history/favorites/watch-later persist ids
+// in localStorage), offset into a fixed namespace above the seed catalog's
+// max id (~4131) so it can never collide with a real catalog entry.
 const LIVE_UPLOAD_ID_OFFSET = 1_000_000_000;
 
-function rowToVideo(r) {
+// FNV-1a over the uuid string, folded into a positive 31-bit int (fits
+// safely in a JS double / Number.isFinite check with room to spare after
+// adding the offset). Collisions are astronomically unlikely for the
+// realistic scale here (hundreds to low thousands of live uploads against a
+// ~2^31 space) and are not security-sensitive — worst case two different
+// uploads render as the same catalog id, not a privilege or data leak.
+export function uuidToStableInt(uuid) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < uuid.length; i++) {
+    h ^= uuid.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 1; // drop the sign bit -> non-negative
+}
+
+export function rowToVideo(r) {
   return {
-    id: LIVE_UPLOAD_ID_OFFSET + Number(r.id),
+    id: LIVE_UPLOAD_ID_OFFSET + uuidToStableInt(String(r.id)),
     title: r.title || "Untitled",
     creator: r.user_id,           // UUID; creatorName() -> "Unknown" until real creator profiles exist
     type: "ugc",
