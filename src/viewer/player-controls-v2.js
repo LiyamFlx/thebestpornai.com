@@ -47,8 +47,7 @@ export function attachPlayerControlsV2(){
 
   video.playbackRate = vstate.settings.playbackRate || 1;
   video.volume = vstate.settings.volume ?? 0.5;
-  video.muted = !!vstate.settings.muted;
-  if(volumeSlider) volumeSlider.value = video.muted ? 0 : video.volume;
+  if(volumeSlider) volumeSlider.value = vstate.settings.muted ? 0 : video.volume;
 
   const setPlayIcon = () => {
     const use = video.paused ? '<use href="#icon-play"/>' : '<use href="#icon-pause"/>';
@@ -61,6 +60,18 @@ export function attachPlayerControlsV2(){
     volumeIcon.innerHTML = (video.muted || video.volume===0) ? '<use href="#icon-mute"/>' : '<use href="#icon-unmute"/>';
     if(muteBtn) muteBtn.setAttribute("aria-label", video.muted ? "Unmute" : "Mute");
   };
+
+  // Autoplay (both on opening a video and on switching to the next/prev one)
+  // only works if the video is muted at the moment the browser's autoplay
+  // policy evaluates it — setting muted=false here synchronously, before
+  // playback has actually started, silently blocks autoplay entirely with
+  // no error. Stay muted for the autoplay attempt, then restore the user's
+  // real mute preference once playback has actually begun.
+  const wantsUnmuted = !vstate.settings.muted;
+  video.muted = true;
+  if(wantsUnmuted) video.addEventListener("playing", () => { video.muted = false; setMuteIcon(); }, { once:true });
+  video.play?.().catch(()=>{});
+
   setPlayIcon(); setMuteIcon();
 
   video.addEventListener("play", setPlayIcon);
