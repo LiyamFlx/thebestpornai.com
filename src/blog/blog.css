@@ -70,6 +70,35 @@ body.blog-body{
   transition: color 200ms ease;
 }
 .blog-icon-btn:hover{ color: var(--red); }
+
+/* Expandable search — collapsed to an icon button by default; clicking it
+   morphs into a real text input inline in the topbar instead of navigating
+   away, so the feature is actually discoverable/usable from the blog itself. */
+.blog-search-wrap{
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  max-width: 0;
+  opacity: 0;
+  transition: max-width 260ms ease, opacity 200ms ease;
+}
+.blog-search-wrap.open{
+  max-width: 240px;
+  opacity: 1;
+  margin-right: 4px;
+}
+.blog-search-input{
+  width: 100%;
+  background: var(--black-card);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #FFFFFF;
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  font-family: inherit;
+}
+.blog-search-input:focus{ border-color: var(--red); }
+.blog-search-input::placeholder{ color: var(--white-dim); }
 .blog-back{
   color: var(--white-muted);
   text-decoration: none;
@@ -97,23 +126,25 @@ body.blog-body{
 .blog-pillnav::-webkit-scrollbar{ display: none; }
 .blog-pill{
   white-space: nowrap;
-  padding: 8px 16px;
-  font-size: 12px;
+  padding: 9px 18px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--white-muted);
-  background: transparent;
-  border: 1px solid transparent;
+  background: var(--black-card);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
   cursor: pointer;
   transition: all 200ms ease;
 }
-.blog-pill:hover{ background: var(--black-card); color: #FFFFFF; }
+.blog-pill:hover{ background: var(--black-elev); color: #FFFFFF; border-color: rgba(255,255,255,0.16); }
 .blog-pill.active{
-  color: var(--red);
+  color: #FFFFFF;
   font-weight: 700;
-  background: var(--black-elev);
-  border-color: rgba(255,40,0,0.2);
+  background: var(--red);
+  border-color: transparent;
+  box-shadow: 0 0 16px rgba(255,40,0,0.35);
 }
 
 /* Hero (feed page featured post) */
@@ -138,7 +169,11 @@ body.blog-body{
 .blog-hero-overlay{
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 60%);
+  /* Heavier, closer-in stop right behind the title/CTA block so light
+     backgrounds in the source image never wash out the text — previously
+     the gradient reached full transparency at 60% (well above the title),
+     leaving light hero images with poor contrast right where it mattered. */
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.75) 35%, rgba(0,0,0,0.25) 65%, rgba(0,0,0,0) 100%);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -159,22 +194,50 @@ body.blog-body{
   line-height: 1.2;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.85);
 }
+.blog-hero-footer{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.blog-hero-meta{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #d6d6d6;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+}
+.blog-hero-meta .dot{
+  width: 4px; height: 4px; border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+}
+.blog-hero-meta .icon{ width: 13px; height: 13px; vertical-align: -2px; margin-right: 4px; }
 .blog-cta{
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
   background: var(--red);
   color: #FFFFFF;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  padding: 16px 48px;
+  padding: 14px 28px;
   border: none;
   cursor: pointer;
   text-decoration: none;
   box-shadow: 0 0 15px rgba(255,40,0,0.2);
   transition: all 200ms ease;
+  flex: none;
 }
 .blog-cta:hover{ background: var(--red-hover); box-shadow: var(--red-glow); }
 
@@ -275,13 +338,16 @@ body.blog-body{
   color: #c6c6c7;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   padding-top: 8px;
 }
+.blog-card-meta span{ display: inline-flex; align-items: center; gap: 6px; }
+.blog-card-meta .icon{ width: 13px; height: 13px; opacity: 0.8; flex: none; }
 .blog-card-meta .dot{
   width: 4px; height: 4px; border-radius: 50%;
   background: #5f3f38;
+  flex: none;
 }
 .blog-card-read{
   display: inline-block;
@@ -294,6 +360,14 @@ body.blog-body{
   transition: transform 200ms ease;
 }
 .blog-card:hover .blog-card-read{ transform: translateX(8px); }
+
+.blog-empty-state{
+  padding: 64px 24px;
+  text-align: center;
+  color: var(--white-muted);
+  font-size: 14px;
+  border: 1px dashed rgba(255,255,255,0.12);
+}
 
 /* Load more */
 .blog-loadmore-wrap{ display: flex; justify-content: center; margin-bottom: 80px; }
@@ -312,6 +386,25 @@ body.blog-body{
 }
 .blog-loadmore:hover{ border-color: var(--red); color: #FFFFFF; }
 .blog-loadmore[hidden]{ display: none; }
+.blog-loadmore:disabled{ opacity: 0.5; cursor: default; }
+
+/* Skeleton loader cards — shown briefly in place of the next page of real
+   cards after "Load more fantasies" so new content doesn't just pop in
+   abruptly (per design feedback). */
+.blog-card-skeleton{ display: block; }
+.blog-card-skeleton .blog-card-media{
+  background: var(--black-card);
+  box-shadow: none;
+}
+.sk-shimmer{
+  background: linear-gradient(90deg, var(--black-card) 25%, var(--black-elev) 37%, var(--black-card) 63%);
+  background-size: 400% 100%;
+  animation: blog-sk-shimmer 1.4s ease infinite;
+}
+.blog-card-skeleton .sk-line{ height: 14px; margin-top: 12px; max-width: 90%; }
+.blog-card-skeleton .sk-line.sk-line-title{ height: 22px; max-width: 70%; }
+.blog-card-skeleton .sk-line.sk-line-short{ max-width: 40%; }
+@keyframes blog-sk-shimmer{ 0%{ background-position: 100% 0; } 100%{ background-position: -100% 0; } }
 
 /* Single post hero */
 .blog-post-hero{
@@ -351,14 +444,16 @@ body.blog-body{
   margin: 0 0 24px;
 }
 .blog-article-meta{
-  display: flex; gap: 16px;
+  display: flex; align-items: center; gap: 16px;
   color: var(--white-muted);
-  font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
   padding-bottom: 32px;
   border-bottom: 1px solid #1A1A1A;
   margin-bottom: 32px;
 }
-.blog-article-meta .dot{ width: 4px; height: 4px; border-radius: 50%; background: #5f3f38; }
+.blog-article-meta span{ display: inline-flex; align-items: center; gap: 6px; }
+.blog-article-meta .icon{ width: 14px; height: 14px; opacity: 0.85; flex: none; }
+.blog-article-meta .dot{ width: 4px; height: 4px; border-radius: 50%; background: #5f3f38; flex: none; }
 .blog-article-body{
   font-size: 18px;
   line-height: 1.7;
