@@ -33,6 +33,7 @@ import { fileURLToPath, pathToFileURL } from "url";
 import "dotenv/config";
 import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { posterPaths, generatePoster, hasFfmpeg } from "./lib/posters.js";
+import { parseStructure } from "./lib/parse-structure.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
@@ -93,20 +94,6 @@ function getDuration(fp) {
 }
 function titleFromFile(f) {
   return path.basename(f, path.extname(f)).replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim().replace(/\b\w/g, c => c.toUpperCase());
-}
-function parseStructure(filename) {
-  const parts = path.basename(filename, path.extname(filename)).split("__");
-  if (parts.length < 2) return { movieTitle: null, level: null, sceneNumber: null, clipNumber: null, actName: null };
-  const movieTitle = parts[0].replace(/[-_]/g, " ").trim() || null;
-  let level = "clip", sceneNumber = null, clipNumber = null, actName = null;
-  for (const p of parts.slice(1)) {
-    if (p.startsWith("Scene-")) { level = "scene"; sceneNumber = parseInt(p.replace("Scene-", "")); }
-    if (p.startsWith("Clip-")) clipNumber = parseInt(p.replace("Clip-", ""));
-    if (p.startsWith("Act-")) { level = "act"; actName = p.replace("Act-", ""); }
-    if (p.includes("Full-Movie") || p.includes("Movie")) level = "movie";
-    if (p.includes("Highlight")) level = "highlight";
-  }
-  return { movieTitle, level, sceneNumber, clipNumber, actName };
 }
 // Deterministic per-file seed so a given filename always yields the same
 // "random" variety (re-runs are stable; no Math.random noise in the catalog).

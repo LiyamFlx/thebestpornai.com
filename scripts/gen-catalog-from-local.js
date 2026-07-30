@@ -8,6 +8,7 @@
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
+import { parseStructure } from "./lib/parse-structure.js";
 
 const args = process.argv.slice(2);
 const folder = args.find(a => !a.startsWith("--"));
@@ -58,35 +59,6 @@ function getDuration(filePath) {
   } catch (_) {
     return "0:00";
   }
-}
-
-function parseStructure(filename) {
-  const base = path.basename(filename, path.extname(filename));
-  const parts = base.split("__");
-
-  // A plain clip has NO "__" structure markers. Only populate movieTitle/level/
-  // scene/clip/act when the filename actually uses the structured convention
-  // (e.g. "My Movie__Scene-1__Movie"). Otherwise leave everything null so plain
-  // clips don't pollute the Movies/Scenes grouping on the homepage.
-  if (parts.length < 2) {
-    return { movieTitle: null, level: null, sceneNumber: null, clipNumber: null, actName: null };
-  }
-
-  const movieTitle = parts[0].replace(/[-_]/g, " ").trim() || null;
-  let level = "clip";
-  let sceneNumber = null;
-  let clipNumber = null;
-  let actName = null;
-
-  for (let p of parts.slice(1)) {
-    if (p.startsWith("Scene-")) { level = "scene"; sceneNumber = parseInt(p.replace("Scene-", "")); }
-    if (p.startsWith("Clip-")) clipNumber = parseInt(p.replace("Clip-", ""));
-    if (p.startsWith("Act-")) { level = "act"; actName = p.replace("Act-", ""); }
-    if (p.includes("Full-Movie") || p.includes("Movie")) level = "movie";
-    if (p.includes("Highlight")) level = "highlight";
-  }
-
-  return { movieTitle, level, sceneNumber, clipNumber, actName };
 }
 
 function generateTags(title, category, extra) {

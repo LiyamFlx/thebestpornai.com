@@ -121,6 +121,40 @@ Flags: `--category`, `--tags "a,b"`, `--creator c1`, `--concurrency 8`,
 first). Re-running is safe: already-published files are skipped. IDs auto-
 increment past the current max, so no collisions.
 
+#### Movie/Scene/Clip grouping (organizing a multi-part upload)
+
+The homepage's Movies row and a video's Scenes/Clips grouping (`movies()`,
+`scenesFor()`, `clipsFor()` in `src/viewer/catalog-queries.js`) only work for
+uploads whose **filenames** use this double-underscore convention — a flat
+filename with no `__` gets a plain, ungrouped catalog entry (the normal case
+for most uploads):
+
+```
+MovieTitle__Full-Movie.mp4              -> the whole movie, one file
+MovieTitle__Scene-1.mp4                 -> scene 1's own combined video
+MovieTitle__Scene-1__Clip-1.mp4         -> clip 1 within scene 1
+MovieTitle__Scene-1__Clip-2.mp4         -> clip 2 within scene 1
+MovieTitle__Scene-2__Clip-1.mp4         -> clip 1 within scene 2
+MovieTitle__Act-Foreplay__Clip-1.mp4    -> a cross-scene "Act" compilation
+MovieTitle__Highlight.mp4               -> a highlight reel
+```
+
+- The first `__`-separated segment becomes `movieTitle` (underscores/hyphens
+  become spaces).
+- `Scene-N` sets `sceneNumber`; a **Clip-N segment alongside it always makes
+  the entry a clip** (`level:"clip"`), not a scene — a scene segment with no
+  clip segment is the scene's own video (`level:"scene"`). Getting this
+  backwards means `clipsFor()` (which filters strictly on `level==="clip"`)
+  silently never finds the clip.
+- Rename files to this convention **before** running `publish-folder.js` —
+  it parses the convention from the filename at publish time
+  (`parseStructure()`, duplicated in `scripts/publish-folder.js` and
+  `scripts/gen-catalog-from-local.js` — keep both in sync if you touch it).
+  There is no supported way to retroactively group already-published, flatly
+  named catalog entries into a movie after the fact — the existing ~857
+  flat entries in the catalog predate this convention and were left as-is
+  rather than guessed at.
+
 ### Manual path (single video / precise control)
 
 1. Move the `.mp4` into a `media/` subfolder.
