@@ -4,7 +4,7 @@ import { videoCard, rowSection, emptyState } from "../../shared/ui.js";
 import { CATEGORIES, POPULAR_TAGS } from "../../shared/taxonomy.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
-import { pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies, actNames, clipsByAct, highlights } from "../catalog-queries.js";
+import { pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies, actNames, clipsByAct, highlights, originals, byIdDesc, byViewsDesc, byUploadedDesc } from "../catalog-queries.js";
 
 // Homepage hero rotates between a small pool, picked once per page load
 // (not per render — re-picking on every filter/sort change would make the
@@ -168,16 +168,16 @@ function _renderHomeBody(){
     </div>
 
     ${continueWatching.length ? rowSection("Continue Watching", continueWatching, {layout:'row'}) : ""}
-    ${rowSection("🔥 Fresh Uploads", pub.slice().sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0)).slice(0, vstate.limit), {layout:'row'})}
+    ${rowSection("🔥 Fresh Uploads", byIdDesc().slice(0, vstate.limit), {layout:'row'})}
     ${rowSection("Recommended For You", (()=>{ const nw=top.filter(v=>!historySet.has(v.id)); return nw.length>=6?nw.slice(0, vstate.limit):top.slice(0, vstate.limit); })(), {layout:'row'})}
-    ${rowSection("Trending Now", pub.slice().sort((a,b)=>b.views-a.views).slice(0, vstate.limit), {layout:'row'})}
+    ${rowSection("Trending Now", byViewsDesc().slice(0, vstate.limit), {layout:'row'})}
     ${topCreatorsRow()}
-    ${rowSection("House Originals", pub.filter(v=>v.type==="original").slice(0, vstate.limit), {layout:'row'})}
+    ${rowSection("House Originals", originals().slice(0, vstate.limit), {layout:'row'})}
     ${allMovies.length ? moviesRow(allMovies) : ""}
     ${rowSection("Highlights", highlights().slice(0, ROW_MAX), {layout:'row'})}
     ${actNames().map(a=>rowSection("Act: "+esc(a), clipsByAct(a).slice(0, ROW_MAX), {layout:'row'})).join("")}
     ${DATA.categories.map(c=>rowSection(c, byCat(c).slice(0, ROW_MAX), {layout:'row'})).join("")}
-    ${rowSection("Recently Uploaded", pub.slice().sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0, vstate.limit), {layout:'row'})}
+    ${rowSection("Recently Uploaded", byUploadedDesc().slice(0, vstate.limit), {layout:'row'})}
     ${pub.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
   `;
   return { html, empty: false };

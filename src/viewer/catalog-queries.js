@@ -18,7 +18,10 @@ export const visible = v => v && v.status !== "private" && v.status !== "pending
    exported for the (rare) case where entries are mutated in place. */
 let _cacheRef = null, _cacheLen = -1;
 let _pub = null, _pubVert = null, _trending = null;
+let _movies = null, _actNames = null, _highlights = null, _originals = null;
+let _byIdDesc = null, _byViewsDesc = null, _byUploadedDesc = null;
 const _byCat = new Map();
+const _clipsByAct = new Map();
 function _ensure(){
   // Invalidate when the array is replaced wholesale (tests, hot reload) OR when
   // entries are added in place (manifest sync / live uploads use unshift/push,
@@ -26,6 +29,8 @@ function _ensure(){
   if(DATA.videos !== _cacheRef || DATA.videos.length !== _cacheLen){
     _cacheRef = DATA.videos; _cacheLen = DATA.videos.length;
     _pub = null; _pubVert = null; _trending = null; _byCat.clear();
+    _movies = null; _actNames = null; _highlights = null; _originals = null; _clipsByAct.clear();
+    _byIdDesc = null; _byViewsDesc = null; _byUploadedDesc = null;
   }
 }
 export function invalidateCatalogCache(){ _cacheRef = null; _cacheLen = -1; }
@@ -38,6 +43,15 @@ export const pubVerticalVideos = () => { _ensure(); return _pubVert || (_pubVert
    .slice() before sorting. */
 export const trending = ()=> { _ensure(); return _trending || (_trending = pubVideos().slice().sort((a,b)=> (b.likes*1.2+b.views*0.01) - (a.likes*1.2+a.views*0.01))); };
 export const byCat = (c)=> { _ensure(); let r = _byCat.get(c); if(!r){ r = pubVideos().filter(v=>v.category===c); _byCat.set(c, r); } return r; };
+
+// byId-desc / byViews-desc / byUploaded-desc: same memoization pattern as
+// trending() — full O(n log n) sort once per catalog version instead of once
+// per home render (these three back the homepage's Fresh/Trending/Recently
+// Uploaded rows, which previously re-sorted the whole public catalog on
+// every render() call, including every nav-bar click).
+export const byIdDesc = ()=> { _ensure(); return _byIdDesc || (_byIdDesc = pubVideos().slice().sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0))); };
+export const byViewsDesc = ()=> { _ensure(); return _byViewsDesc || (_byViewsDesc = pubVideos().slice().sort((a,b)=>b.views-a.views)); };
+export const byUploadedDesc = ()=> { _ensure(); return _byUploadedDesc || (_byUploadedDesc = pubVideos().slice().sort((a,b)=>b.uploaded.localeCompare(a.uploaded))); };
 
 /* Broader category match for the filter bar: a video matches a category if its
    primary category, its categories[] list, OR its tags contain the term
@@ -84,8 +98,10 @@ export function sortedVideos(sort){
    clips that make up the rest of the catalog. See CLAUDE.md for the
    filename convention these fields are derived from. */
 export const movies = () => {
+  _ensure();
+  if(_movies) return _movies;
   const titles = [...new Set(pubVideos().filter(v=>v.movieTitle).map(v=>v.movieTitle))];
-  return titles.map(t => {
+  return _movies = titles.map(t => {
     const scenes = pubVideos().filter(v=>v.movieTitle===t && v.level==="scene")
               .sort((a,b)=>a.sceneNumber-b.sceneNumber);
     return {
@@ -106,6 +122,8 @@ export const clipsFor = (movieTitle, sceneNumber) => pubVideos().filter(v=>v.mov
    shared by 2+ clips of the same movie (a lone tag on one clip is just
    descriptive metadata, not a cross-cutting grouping worth its own row). */
 export const actNames = () => {
+  _ensure();
+  if(_actNames) return _actNames;
   const names = new Set(pubVideos().filter(v=>v.level==="act" && v.actName).map(v=>v.actName));
   const byMovie = {};
   for(const v of pubVideos()){
@@ -118,8 +136,9 @@ export const actNames = () => {
       if(byMovie[movieTitle][tag] >= 2) names.add(tag);
     }
   }
-  return [...names];
+  return _actNames = [...names];
 };
 
-export const clipsByAct = (actName) => pubVideos().filter(v=>v.level==="clip" && (v.tags||[]).includes(actName));
-export const highlights = () => pubVideos().filter(v=>v.level==="highlight");
+export const clipsByAct = (actName)=> { _ensure(); let r = _clipsByAct.get(actName); if(!r){ r = pubVideos().filter(v=>v.level==="clip" && (v.tags||[]).includes(actName)); _clipsByAct.set(actName, r); } return r; };
+export const highlights = () => { _ensure(); return _highlights || (_highlights = pubVideos().filter(v=>v.level==="highlight")); };
+export const originals = () => { _ensure(); return _originals || (_originals = pubVideos().filter(v=>v.type==="original")); };
