@@ -1587,12 +1587,13 @@ iframe.player{object-fit:contain}
 .player-overlay-v2{
   position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;justify-content:space-between;
   padding:14px;pointer-events:none;
-  /* Darken only enough at the very top/bottom edges to keep the icon row and
-     seek bar legible over any footage — the middle of the frame (where the
-     video itself lives) stays fully clear. Previously the gradient direction
-     put its heaviest opacity at the TOP of the frame instead of the bottom,
-     reading as a stray dark band across the video with no purpose. */
-  background:linear-gradient(to bottom, rgba(0,0,0,.45) 0%, transparent 18%, transparent 72%, rgba(0,0,0,.65) 100%);
+  /* Darken ONLY the bottom strip behind the seek bar/time/volume row — the
+     rest of the frame, including the top icon row, stays fully clear so
+     nothing reads as a stray dark band across the video. The top icons
+     (PiP/settings/theater) sit on their own small rgba(0,0,0,.6) circular
+     backgrounds (.ov-icon-btn) which is already enough contrast without a
+     page-wide gradient behind them. */
+  background:linear-gradient(to bottom, transparent 0%, transparent 62%, rgba(0,0,0,.7) 100%);
   opacity:0;transition:opacity .25s ease;
 }
 .player-overlay-v2.visible{opacity:1;pointer-events:auto}
@@ -1642,7 +1643,8 @@ iframe.player{object-fit:contain}
 .ov-badge-row{display:flex;align-items:center;gap:10px;min-width:0}
 .ov-quality-badge{background:rgba(229,9,20,.9);color:#fff;font-size:10px;font-weight:800;letter-spacing:.05em;
   text-transform:uppercase;padding:3px 8px;border-radius:5px;flex:none}
-.ov-title-inline{font-size:13px;font-weight:600;color:#e6e6e6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ov-title-inline{font-size:13px;font-weight:600;color:#e6e6e6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  text-shadow:0 1px 4px rgba(0,0,0,.9)}
 .player-overlay-v2.desktop .ov-top{justify-content:space-between}
 .ov-top-actions{display:flex;align-items:center;gap:8px}
 
