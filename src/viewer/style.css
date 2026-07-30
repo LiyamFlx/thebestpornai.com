@@ -1566,15 +1566,16 @@ iframe.player{object-fit:contain}
 .watch-tab-panel{display:block}
 .comments-panel{display:flex;flex-direction:column;gap:14px}
 
-.player-container-v2{position:relative}
+.player-container-v2{position:relative;background:#000}
 .player-container-v2 .player-wrap{
   width:100%;margin:0;aspect-ratio:16/9;max-height:calc(100vh - 120px);min-height:0;border-radius:0;
+  background:#000;
 }
-/* Fill the box edge-to-edge with no letterboxing — matches thumbnail/card
-   framing elsewhere on the site. object-fit:contain (the base .player rule,
-   meant for the old wide 21:9 hero box) left ugly black bars whenever a
-   video's native ratio didn't match the 16:9 player box. */
-.player-container-v2 video.player{object-fit:cover}
+/* Show the video at its real aspect ratio (letterboxed on a black backdrop
+   when it doesn't match the 16:9 box) instead of cropping to fill —
+   object-fit:cover was cutting off the edges/top/bottom of the original
+   frame to force it into the box. */
+.player-container-v2 video.player{object-fit:contain}
 
 /* Native Fullscreen API: browsers only apply user-agent stylesheet fullscreen
    sizing to the exact element passed to requestFullscreen() (here,
