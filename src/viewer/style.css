@@ -519,6 +519,9 @@ table.data tr:hover td{background:var(--surface2)}
 
 /* Shared avatar/creator/comment primitives — used by watch-v2, creator.js,
    misc.js (profile page), and comments.js. */
+.avatar{width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#7A0008);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none}
 .avatar-lg{width:50px;height:50px;font-size:19px;flex:none}
 .avatar-sm{width:34px;height:34px;font-size:13px;flex:none}
 .verified{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;
