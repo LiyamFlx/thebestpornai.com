@@ -363,14 +363,6 @@ export function renderWatch(){
       <main class="watch-main-v2">
         ${titleBlockMobile(v, catList, tagList)}
         ${actionBar(v, live, hasCreator)}
-        ${creatorRow(c, hasCreator, subbed)}
-        ${watchTabsNav(cms.length)}
-        <div class="watch-tab-panel" id="tabPanelUpNext" ${vstate.watchTab!=='upnext'?'hidden':''}>
-          ${upNextPanel(related, true)}
-        </div>
-        <div class="watch-tab-panel" id="tabPanelComments" ${vstate.watchTab!=='comments'?'hidden':''}>
-          ${commentsPanel(v)}
-        </div>
       </main>
     </div>`;
 
