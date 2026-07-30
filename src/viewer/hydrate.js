@@ -1,6 +1,6 @@
 /* Supabase overlay: best-effort persistence + hydration of the watch page.
    Any failure leaves the seeded catalog values in place. */
-import { DATA, esc, fmt } from "../shared/catalog.js";
+import { DATA, fmt } from "../shared/catalog.js";
 import { ShAPI } from "../shared/streamhub-api.js";
 import { vstate, onWatch } from "./state.js";
 import { patchComments } from "./comments.js";
@@ -31,8 +31,8 @@ export async function hydrateWatch(id){
   if(typeof ShAPI==="undefined" || !ShAPI.enabled) return;
   if(!_viewed.has(id)){ _viewed.add(id); persist(()=> ShAPI.addView(id)); }
   try {
-    const [counts, comments, views, favCount] = await Promise.all([
-      ShAPI.likeCounts(id), ShAPI.listComments(id), ShAPI.viewCount(id), ShAPI.favoriteCount(id)
+    const [counts, comments, views] = await Promise.all([
+      ShAPI.likeCounts(id), ShAPI.listComments(id), ShAPI.viewCount(id)
     ]);
     if(vstate.current && vstate.current.id===id && onWatch()){
       const v = vstate.current;
@@ -40,15 +40,13 @@ export async function hydrateWatch(id){
       // any votes we persisted earlier, so we never mutate the seed values
       // (previously v.likes++ plus counts.like double-counted own likes).
       vstate.live[id] = { like: counts.like||0, dislike: counts.dislike||0 };
-      const likeNum=document.getElementById("likeNum"), disNum=document.getElementById("disNum");
+      const likeNum=document.getElementById("likeNum");
       if(likeNum) likeNum.textContent = fmt(v.likes + vstate.live[id].like);
-      if(disNum)  disNum.textContent  = fmt(v.dislikes + vstate.live[id].dislike);
-      // Views (seed + real) in the sub line.
-      const subEl=document.getElementById("watchSub");
-      if(subEl) subEl.innerHTML = "👁 " + fmt(v.views + (views||0)) + " views <span class='dot-sep'>•</span> " + esc(v.uploaded);
-      // Favorites count chip.
-      const favCountEl=document.getElementById("favCount");
-      if(favCountEl) favCountEl.textContent = favCount ? (" ("+fmt(favCount)+")") : "";
+      // Views (seed + real) — the watch-v2 layout has no visible dislike count
+      // or favorites chip (matches the approved reference design), so only
+      // the views figure is patched here.
+      const viewsEl=document.getElementById("watchViewsCount");
+      if(viewsEl) viewsEl.textContent = fmt(v.views + (views||0)) + " views";
       if(comments && comments.length){
         // Merge persisted comments into DATA.comments (avoid dupes) and re-render the list region.
         for(const c of comments){

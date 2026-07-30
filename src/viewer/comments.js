@@ -36,13 +36,40 @@ export function sortComments(cms){
   return vstate.commentSort==="old" ? sorted.reverse() : sorted;
 }
 
+/* A comment's displayed like count = its seed count (m.likes, 0 if absent)
+   plus a local session delta (vstate.commentLikeCounts), matching the same
+   seed+overlay pattern used for video like/dislike counts in actions.js.
+   Only whether THIS browser has liked a given comment persists across
+   reloads (vstate.likedComments) — the delta itself is session-only, since
+   there's no backend table for comment likes to reconcile against yet. */
+export function commentLikeCount(m){
+  const base = m.likes || 0;
+  const delta = vstate.commentLikeCounts[m.id] || 0;
+  return base + delta;
+}
+
 export function renderCommentList(v){
   const cms = commentsFor(v);
   if(!cms.length) return `<div class="comments-empty"><div class="ce-icon">💬</div><div class="ce-title">No comments yet.</div><div class="small">Be the first to share your thoughts!</div></div>`;
   const sorted = sortComments(cms);
   const shown = sorted.slice(0, vstate.commentPage * COMMENTS_PER_PAGE);
   const hasMore = sorted.length > shown.length;
-  return shown.map(m=>`<div class="comment"><div class="avatar avatar-sm">${esc((m.user||'?')[0])}</div><div style="flex:1;min-width:0"><div><b>${esc(m.user)}</b> <span class="small">${esc(m.time)}</span></div><div class="comment-text">${esc(m.text)}</div></div></div>`).join("")
+  return shown.map(m=>{
+    const liked = vstate.likedComments.includes(m.id);
+    return `<div class="comment">
+      <div class="avatar avatar-sm">${esc((m.user||'?')[0])}</div>
+      <div style="flex:1;min-width:0">
+        <div><b>${esc(m.user)}</b> <span class="small">${esc(m.time)}</span></div>
+        <div class="comment-text">${esc(m.text)}</div>
+        <div class="comment-actions">
+          <button class="comment-like-btn ${liked?'on':''}" onclick="likeComment('${esc(m.id)}')" aria-pressed="${liked?'true':'false'}" aria-label="Like this comment">
+            <svg class="ico"><use href="#icon-like"/></svg> <span>${commentLikeCount(m)}</span>
+          </button>
+          <button class="comment-reply-btn" onclick="toast('Replies coming soon')">Reply</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("")
     + (hasMore ? `<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="loadMoreComments()">Load more comments (${sorted.length - shown.length} remaining)</button>` : '');
 }
 

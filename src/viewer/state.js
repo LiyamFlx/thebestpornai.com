@@ -5,8 +5,8 @@
 /* User collections persist across reloads via localStorage. Only these fields
    are stored (not transient UI state like page/search). */
 const PERSIST_KEY = "sh_viewer_state";
-const PERSIST_FIELDS = ["favorites", "later", "history", "downloads", "subs", "settings"];
-const DEFAULT_SETTINGS = { quality: "auto", autoplay: true, language: "en" };
+const PERSIST_FIELDS = ["favorites", "later", "history", "downloads", "subs", "settings", "likedComments"];
+const DEFAULT_SETTINGS = { quality: "auto", autoplay: true, language: "en", playbackRate: 1 };
 function loadPersisted(){
   try {
     const saved = JSON.parse(localStorage.getItem(PERSIST_KEY) || "null");
@@ -15,6 +15,8 @@ function loadPersisted(){
     for(const f of PERSIST_FIELDS){
       if(f === "settings"){
         if(saved.settings && typeof saved.settings === "object") out.settings = { ...DEFAULT_SETTINGS, ...saved.settings };
+      } else if(f === "likedComments"){
+        if(Array.isArray(saved.likedComments)) out.likedComments = saved.likedComments;
       } else if(Array.isArray(saved[f])) out[f] = saved[f];
     }
     return out;
@@ -36,8 +38,12 @@ export const vstate = {
   limit: 36,          // simple grid pagination / load more
   flags: { globalUpload: true },  // feature flag: site-wide drag-drop upload
   pendingUploads: [], // uploader-only overlay of in-flight/own uploads
-  settings: { ...DEFAULT_SETTINGS },   // playback quality / autoplay / language — real prefs, persisted below
-  ...loadPersisted(),   // rehydrate favorites/later/history/downloads/subs/settings
+  settings: { ...DEFAULT_SETTINGS },   // playback quality / autoplay / language / playbackRate — real prefs, persisted below
+  likedComments: [],  // comment ids ("db"+n or "m"+timestamp) this browser has liked — persisted
+  commentLikeCounts: {}, // comment id -> local like-count delta (session overlay, not persisted — only likedComments membership is)
+  watchTab: "upnext", // "upnext" | "comments" — mobile watch-page tab selection (transient, resets each video)
+  theaterMode: false, // desktop-only widened player layout (transient)
+  ...loadPersisted(),   // rehydrate favorites/later/history/downloads/subs/settings/likedComments
 };
 
 /* Save the persisted collections. Call after any mutation to those fields.

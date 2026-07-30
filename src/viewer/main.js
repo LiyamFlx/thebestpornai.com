@@ -24,6 +24,7 @@ import {
   dislikeVideo,
   subscribe,
   addComment,
+  likeComment,
   setCommentSort,
   loadMoreComments,
   shareVideo,
@@ -34,6 +35,20 @@ import {
 } from "./actions.js";
 import { refreshManifest, syncManifestOnLoad } from "./manifest-sync.js";
 import { initMobileChrome } from "./mobile-chrome.js";
+import {
+  switchWatchTab,
+  filterUpNext,
+  openShareSheet,
+  openSettingsSheet,
+  openSaveSheet,
+  closeSheet,
+  changeSpeedV2,
+  copyVideoLinkV2,
+  copyEmbedCodeV2,
+  downloadWithFeedback,
+  toggleDescSheetMobile,
+  toggleDescExpandDesktop,
+} from "./player-controls-v2.js";
 
 // Keep the session alive on load (refresh the token if near expiry)
 if (typeof ShAuth !== "undefined") ShAuth.ensureFresh();
@@ -76,6 +91,7 @@ Object.assign(window, {
   dislikeVideo,
   subscribe,
   addComment,
+  likeComment,
   shareVideo,
   reportVideo,
   doSearch,
@@ -93,6 +109,18 @@ Object.assign(window, {
   refreshManifest,
   stepWatch,
   toggleAutoplaySetting,
+  switchWatchTab,
+  filterUpNext,
+  openShareSheet,
+  openSettingsSheet,
+  openSaveSheet,
+  closeSheet,
+  changeSpeedV2,
+  copyVideoLinkV2,
+  copyEmbedCodeV2,
+  downloadWithFeedback,
+  toggleDescSheetMobile,
+  toggleDescExpandDesktop,
 });
 
 // Keyboard navigation (Watch page Arrow keys cycling public videos)
@@ -127,6 +155,18 @@ document.addEventListener("keydown", (e) => {
     e.preventDefault();
   }
 });
+
+// The watch page renders two genuinely different layouts (mobile tabs vs.
+// desktop full stack — see pages/watch.js), decided once per render() call
+// via a matchMedia check. Without this listener, dragging a desktop window
+// narrow (or rotating a tablet) across the 760px breakpoint would leave the
+// wrong layout on screen until the user navigated away and back.
+if (window.matchMedia) {
+  const watchBreakpoint = window.matchMedia("(max-width:760px)");
+  const onWatchBreakpointChange = () => { if (vstate.page === "watch") render(); };
+  if (watchBreakpoint.addEventListener) watchBreakpoint.addEventListener("change", onWatchBreakpointChange);
+  else if (watchBreakpoint.addListener) watchBreakpoint.addListener(onWatchBreakpointChange); // Safari < 14
+}
 
 // Register /sw.js — currently a KILL SWITCH that unregisters any old service
 // worker and wipes its caches (the old SW was serving stale content). Once

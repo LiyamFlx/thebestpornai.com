@@ -13,7 +13,7 @@ import { vstate } from "./state.js";
 import { pubVideos, trending } from "./catalog-queries.js";
 import { takePendingHydrate } from "./router.js";
 import { hydrateWatch } from "./hydrate.js";
-import { attachPlayerControls } from "./player-controls.js";
+import { attachPlayerControlsV2 } from "./player-controls-v2.js";
 import { renderHome } from "./pages/home.js";
 import { renderWatch } from "./pages/watch.js";
 import { renderMovieDetail } from "./pages/movie.js";
@@ -55,7 +55,7 @@ export function render(){
   observeSentinels();         // wire lazy-append for any windowed grids on this page
   refreshChipRows();          // recompute horizontal chip-row edge fades (mobile)
   attachPlayer();
-  attachPlayerControls();
+  attachPlayerControlsV2();
   attachHoverPreview();
   if (p === "feed") {
     attachFeedObserver();
@@ -87,7 +87,7 @@ function markToggleStates(){
   });
 }
 
-/* Single query pass for the player + status/gesture wiring — attachPlayerControls()
+/* Single query pass for the player + status/gesture wiring — attachPlayerControlsV2()
    (a separate module) still does its own lookup, but the two handlers defined
    in this file no longer each re-query .player-wrap/video.player independently. */
 function attachPlayer(){

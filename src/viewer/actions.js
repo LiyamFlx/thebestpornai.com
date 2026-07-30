@@ -203,10 +203,13 @@ export function subscribe(cid){
   persistState();
   const subbed = !on;
   // On the watch page patch the button in place — full render restarts the player.
-  const btn = onWatch() ? document.querySelector(".subscribe-btn") : null;
+  const btn = onWatch() ? document.getElementById("subscribeBtnV2") : null;
   if(btn){
-    btn.classList.toggle("ghost", subbed);
-    btn.textContent = subbed ? "Subscribed" : "＋ Subscribe";
+    btn.classList.toggle("subscribed", subbed);
+    const label = document.getElementById("subscribeTextV2");
+    const bell = btn.querySelector(".bell-ico");
+    if(label) label.textContent = subbed ? "Subscribed" : "Subscribe";
+    if(bell) bell.style.display = subbed ? "" : "none";
   } else render();
 }
 
@@ -228,6 +231,24 @@ export function addComment(id){
   // Patch the comment region only — render() would tear down the player mid-playback.
   if(onWatch() && vstate.current && vstate.current.id===id) patchComments(vstate.current);
   else render();
+}
+
+/* Comment-level like toggle (distinct from video like/dislike). Persists only
+   membership in vstate.likedComments (so "did I like this" survives reload);
+   the displayed count itself is a session-only delta — see comments.js's
+   commentLikeCount(). No backend table for comment likes exists yet, so
+   there's nothing to persist() against; toggling is purely local/optimistic. */
+export function likeComment(id){
+  const liked = vstate.likedComments.includes(id);
+  if(liked){
+    vstate.likedComments = vstate.likedComments.filter(x=>x!==id);
+    vstate.commentLikeCounts[id] = (vstate.commentLikeCounts[id]||0) - 1;
+  } else {
+    vstate.likedComments.push(id);
+    vstate.commentLikeCounts[id] = (vstate.commentLikeCounts[id]||0) + 1;
+  }
+  persistState();
+  if(vstate.current) patchComments(vstate.current);
 }
 
 export function setCommentSort(val){
@@ -284,7 +305,7 @@ function _doSearchNow(){
    — "Playback Quality"/"Language"/"Theme" were removed rather than left as
    dead dropdowns, since there's no adaptive-bitrate, i18n, or alt-theme
    system in the app for them to actually control. Autoplay wires straight
-   into player-controls.js's attachAutoAdvance(), which checks this flag. */
+   into player-controls-v2.js's attachAutoAdvance(), which checks this flag. */
 export function toggleAutoplaySetting(on){
   vstate.settings.autoplay = !!on;
   persistState();
