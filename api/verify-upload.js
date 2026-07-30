@@ -28,6 +28,7 @@ import { applyCors } from "../lib/cors.js";
 import { serviceRequest } from "../lib/supabase-service.js";
 import { verifyAttestToken } from "../lib/attest-token.js";
 import { csamCheck } from "../lib/csam.js";
+import { deriveOrientation } from "../lib/orientation.js";
 
 // Streaming a full video back from R2 to hash it can take a while for large
 // real files — presign.js allows up to 2GB, and hashR2Object below retries
@@ -202,6 +203,9 @@ export default async function handler(req, res) {
         duration_s: Number.isFinite(durationS) ? durationS : null,
         width: Number.isFinite(width) ? width : null,
         height: Number.isFinite(height) ? height : null,
+        // Omit the field (not a guessed default) when either dimension is
+        // missing — the column's own default ('horizontal') applies then.
+        ...(deriveOrientation(width, height) ? { orientation: deriveOrientation(width, height) } : {}),
         reject_reason: status === "held" ? "csam_flagged" : null,
         published_at: status === "live" ? new Date().toISOString() : null,
       },
