@@ -117,9 +117,14 @@ function attachPlayerGestures(activePlayer){
         : activePlayer.currentTime + 10;
       toast("⏭ +10s");
     } else {
-      const wrap = activePlayer.closest(".player-wrap") || activePlayer;
+      // Fullscreen the .player-container-v2 wrapper, not the bare .player-wrap —
+      // it's the element player-controls-v2.js's toggleFullscreenV2 also
+      // targets, and the one style.css has explicit :fullscreen sizing rules
+      // for (so the custom overlay controls stay usable and correctly laid
+      // out in fullscreen regardless of which control triggered it).
+      const target = activePlayer.closest(".player-container-v2") || activePlayer.closest(".player-wrap") || activePlayer;
       if(!document.fullscreenElement){
-        wrap.requestFullscreen?.().catch(()=>{});
+        target.requestFullscreen?.().catch(()=>{});
       } else {
         document.exitFullscreen?.().catch(()=>{});
       }
