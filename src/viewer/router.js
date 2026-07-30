@@ -4,6 +4,7 @@
 import { DATA } from "../shared/catalog.js";
 import { vstate, pushHistory } from "./state.js";
 import { jsdec } from "./util.js";
+import { visible } from "./catalog-queries.js";
 
 let _suppressHash = false;
 let _pendingHydrate = null;   // video id to hydrate after the next render
@@ -28,7 +29,10 @@ export function applyHash(){
   const m=h.match(/^video\/(\d+)$/);
   if(m){
     const vid=DATA.videos.find(v=>v.id===+m[1]);
-    if(vid){ vstate.current=vid; pushHistory(vid.id); vstate.page="watch"; _pendingHydrate=vid.id; return; }
+    // Same visible() gate as openVideo() (actions.js) — a #video/N hash to a
+    // known private/pending id must not be directly openable just because
+    // the numeric id leaked (e.g. shared before moderation, or guessed).
+    if(vid && visible(vid)){ vstate.current=vid; pushHistory(vid.id); vstate.page="watch"; _pendingHydrate=vid.id; return; }
   }
   const mm=h.match(/^movie\/(.+)$/);
   if(mm){ vstate.currentMovieTitle=jsdec(mm[1]); vstate.page="movie"; return; }

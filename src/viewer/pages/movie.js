@@ -33,7 +33,7 @@ export function renderMovieDetail(){
   const related = trending().filter(v=>v.movieTitle!==title).slice(0,8);
   const primaryCategory = movieEntry.category;
   const similar = primaryCategory ? byCat(primaryCategory).filter(v=>v.movieTitle!==title).slice(0,8) : [];
-  const more = pub.filter(v=>v.movieTitle!==title).sort((a,b)=>b.uploaded.localeCompare(a.uploaded)).slice(0,10);
+  const more = pub.filter(v=>v.movieTitle!==title).sort((a,b)=>(b.uploaded||"").localeCompare(a.uploaded||"")).slice(0,10);
 
   return `
     <div class="movie-detail">

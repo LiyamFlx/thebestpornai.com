@@ -11,9 +11,19 @@ if (!REST || !ANON) {
   console.warn("Supabase environment variables missing in catalog-overlay.js; live upload overlay disabled (seed catalog still works).");
 }
 
+// Numeric IDs only: every UI action (openVideo, vote, addComment, router,
+// favorites/watch-later dataset attrs, manifest merge) coerces or compares
+// with `+id`/`Number(id)`, and onclick="openVideo(${v.id})" template strings
+// require a bare numeric literal — a string id ("u_"+r.id) breaks all of
+// them (ReferenceError on click, NaN lookups, dead deep-links). Supabase's
+// uploads.id is itself a numeric bigint (see schema-upload-ratelimit.sql),
+// so it's offset into a fixed namespace above the seed catalog's max id
+// (~4131) instead of being turned into a string.
+const LIVE_UPLOAD_ID_OFFSET = 1_000_000_000;
+
 function rowToVideo(r) {
   return {
-    id: "u_" + r.id,
+    id: LIVE_UPLOAD_ID_OFFSET + Number(r.id),
     title: r.title || "Untitled",
     creator: r.user_id,           // UUID; creatorName() -> "Unknown" until real creator profiles exist
     type: "ugc",

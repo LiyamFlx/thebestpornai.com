@@ -12,7 +12,7 @@ import { setHash, scrollToTop } from "./router.js";
 import { render } from "./render.js";
 import { hydrateWatch, persist } from "./hydrate.js";
 import { patchComments } from "./comments.js";
-import { pubVideos } from "./catalog-queries.js";
+import { pubVideos, visible } from "./catalog-queries.js";
 
 export function go(p){ vstate.page=p; setHash(p==="home"?"":p); render(); scrollToTop(); }
 
@@ -29,7 +29,12 @@ export function focusSearch(){
 
 export function openVideo(id){
   id = +id;
-  vstate.current = DATA.videos.find(v=>v.id===id);
+  const video = DATA.videos.find(v=>v.id===id);
+  // Private/pending uploads must never be directly openable via a known id
+  // or #video/N hash — the visible() gate everywhere else (feeds, search,
+  // trending, suggestions) was purely cosmetic if this entry point skipped it.
+  if(!visible(video)) return;
+  vstate.current = video;
   if(!vstate.current) return;
   pushHistory(id);
   vstate.commentPage = 1;
@@ -142,7 +147,7 @@ export function toggleLater(id){
 export async function download(id){
   id = +id;
   const v = DATA.videos.find(x=>x.id===id);
-  if(!v || !v.src){ toast("No file to download"); return; }
+  if(!v || !visible(v) || !v.src){ toast("No file to download"); return; }
   if(!vstate.downloads.includes(id)){ vstate.downloads.push(id); persistState(); }
   const url = mediaUrl(v.src);
   const name = (v.title || "video").replace(/[^\w.-]+/g,"_") + (v.src.match(/\.\w+$/)?.[0] || ".mp4");

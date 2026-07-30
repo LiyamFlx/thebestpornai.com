@@ -4,7 +4,7 @@ import { videoCard, rowSection, emptyState } from "../../shared/ui.js";
 import { CATEGORIES, POPULAR_TAGS } from "../../shared/taxonomy.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
-import { pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies, actNames, clipsByAct, highlights, originals, byIdDesc, byViewsDesc, byUploadedDesc } from "../catalog-queries.js";
+import { pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies, actNames, clipsByAct, highlights, originals, byIdDesc, byViewsDesc, byUploadedDesc, videoById } from "../catalog-queries.js";
 
 // Homepage hero rotates between a small pool, picked once per page load
 // (not per render — re-picking on every filter/sort change would make the
@@ -16,10 +16,6 @@ export const HERO_VIDEO_ID = HERO_VIDEO_POOL[Math.floor(Math.random() * HERO_VID
 // each row keeps the homepage DOM to hundreds of cards instead of thousands
 // (categories/acts were previously rendered in full — every match got a card).
 const ROW_MAX = 24;
-
-// Single lookup table built once per module load. Used to resolve
-// history/continue-watching IDs in O(1) instead of DATA.videos.find() per id.
-const VIDEO_BY_ID = new Map(DATA.videos.map(v => [v.id, v]));
 
 function homeFilterBar(){
   const filters = [["all","All"],["movies","Movies"],["scenes","Scenes"],["clips","Clips"]];
@@ -136,7 +132,7 @@ function _renderHomeBody(){
   const allMovies = movies();
   const heroIsVideo = hero.src && !ytId(hero.src); // computed once, reused by desktop + mobile hero
   const historySet = new Set(vstate.history); // O(1) membership for the Recommended row filter
-  const continueWatching = vstate.history.map(id => VIDEO_BY_ID.get(id)).filter(Boolean);
+  const continueWatching = vstate.history.map(id => videoById(id)).filter(Boolean);
 
   const html = `
     ${homeFilterBar()}

@@ -20,6 +20,7 @@ let _cacheRef = null, _cacheLen = -1;
 let _pub = null, _pubVert = null, _trending = null;
 let _movies = null, _actNames = null, _highlights = null, _originals = null;
 let _byIdDesc = null, _byViewsDesc = null, _byUploadedDesc = null;
+let _videoById = null;
 const _byCat = new Map();
 const _clipsByAct = new Map();
 function _ensure(){
@@ -31,9 +32,19 @@ function _ensure(){
     _pub = null; _pubVert = null; _trending = null; _byCat.clear();
     _movies = null; _actNames = null; _highlights = null; _originals = null; _clipsByAct.clear();
     _byIdDesc = null; _byViewsDesc = null; _byUploadedDesc = null;
+    _videoById = null;
   }
 }
 export function invalidateCatalogCache(){ _cacheRef = null; _cacheLen = -1; }
+
+/* O(1) id -> video lookup over the FULL catalog (not just pubVideos()) —
+   history/watch-later/favorites can reference a video the viewer themself
+   uploaded that isn't publicly listed. Rebuilt whenever DATA.videos changes
+   (manifest sync, live-upload merge), unlike a module-load-time Map built
+   once against the ~72-entry seed before loadFullCatalog()/mergeLiveUploads()
+   ever run — that stale-map bug silently broke "Continue Watching" for any
+   video outside the seed. */
+export const videoById = (id) => { _ensure(); if(!_videoById) _videoById = new Map(DATA.videos.map(v => [v.id, v])); return _videoById.get(id); };
 
 export const pubVideos = () => { _ensure(); return _pub || (_pub = DATA.videos.filter(v => visible(v) && v.orientation !== "vertical")); };
 export const pubVerticalVideos = () => { _ensure(); return _pubVert || (_pubVert = DATA.videos.filter(v => visible(v) && v.orientation === "vertical")); };
@@ -51,7 +62,7 @@ export const byCat = (c)=> { _ensure(); let r = _byCat.get(c); if(!r){ r = pubVi
 // every render() call, including every nav-bar click).
 export const byIdDesc = ()=> { _ensure(); return _byIdDesc || (_byIdDesc = pubVideos().slice().sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0))); };
 export const byViewsDesc = ()=> { _ensure(); return _byViewsDesc || (_byViewsDesc = pubVideos().slice().sort((a,b)=>b.views-a.views)); };
-export const byUploadedDesc = ()=> { _ensure(); return _byUploadedDesc || (_byUploadedDesc = pubVideos().slice().sort((a,b)=>b.uploaded.localeCompare(a.uploaded))); };
+export const byUploadedDesc = ()=> { _ensure(); return _byUploadedDesc || (_byUploadedDesc = pubVideos().slice().sort((a,b)=>(b.uploaded||"").localeCompare(a.uploaded||""))); };
 
 /* Broader category match for the filter bar: a video matches a category if its
    primary category, its categories[] list, OR its tags contain the term
@@ -86,7 +97,7 @@ export function relatedTo(video, limit=12){
 
 export function sortedVideos(sort){
   const vids = pubVideos().slice();
-  if(sort==="latest") return vids.sort((a,b)=>b.uploaded.localeCompare(a.uploaded));
+  if(sort==="latest") return vids.sort((a,b)=>(b.uploaded||"").localeCompare(a.uploaded||""));
   if(sort==="likes") return vids.sort((a,b)=>b.likes-a.likes);
   if(sort==="views") return vids.sort((a,b)=>b.views-a.views);
   return vids;
