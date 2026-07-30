@@ -63,7 +63,7 @@ function autoplayToggle(){
   return `
     <div class="upnext-autoplay-row">
       <span class="label">Autoplay next video</span>
-      <label class="switch">
+      <label class="switch-wrap">
         <input type="checkbox" ${vstate.settings.autoplay?'checked':''} onchange="toggleAutoplaySetting(this.checked)"/>
         <div class="switch-track"></div>
       </label>
