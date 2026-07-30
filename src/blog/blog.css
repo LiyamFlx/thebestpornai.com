@@ -118,6 +118,7 @@ body.blog-body{
 
 /* Hero (feed page featured post) */
 .blog-hero{
+  display: block;
   position: relative;
   aspect-ratio: 16 / 9;
   width: 100%;
