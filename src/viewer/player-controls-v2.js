@@ -169,32 +169,43 @@ export function attachPlayerControlsV2(){
 
 /* "Up next" indicator: on video end, auto-advance to the first Up Next card
    after a 5s countdown (YouTube/Netflix pattern) — without this, every
-   watch session dead-ends and needs a manual click. A small corner pill with
-   a filling progress ring, not a blocking full-screen modal. */
+   watch session dead-ends and needs a manual click. Centered card over the
+   final frame (thumbnail + title + countdown ring), with an explicit Cancel
+   action rather than "tap anywhere to dismiss". */
 function attachAutoAdvance(overlay, video){
   if(!vstate.settings.autoplay) return;
   const nextCard = document.querySelector(".upnext-card[data-video-id]");
   if(!nextCard) return;
   const nextId = +nextCard.dataset.videoId;
   if(!Number.isFinite(nextId)) return;
+  const { title = "", creator = "", thumb = "" } = nextCard.dataset;
 
   const DURATION_MS = 5000;
-  const RADIUS = 15;
+  const RADIUS = 20;
   const CIRC = 2 * Math.PI * RADIUS;
 
   video.addEventListener("ended", () => {
     if(advanceOverlay) return;
     advanceOverlay = document.createElement("div");
     advanceOverlay.className = "pc-upnext";
-    advanceOverlay.setAttribute("role", "button");
-    advanceOverlay.setAttribute("aria-label", "Cancel autoplay of next video");
     advanceOverlay.innerHTML = `
-      <svg class="pc-upnext-ring" viewBox="0 0 36 36" aria-hidden="true">
-        <circle class="pc-upnext-ring-track" cx="18" cy="18" r="${RADIUS}"/>
-        <circle class="pc-upnext-ring-fill" cx="18" cy="18" r="${RADIUS}"
-          stroke-dasharray="${CIRC}" stroke-dashoffset="0"/>
-      </svg>
-      <span class="pc-upnext-text">Next video in <span class="pc-upnext-count">5</span>s</span>`;
+      <div class="pc-upnext-card">
+        <div class="pc-upnext-thumb">
+          ${thumb ? `<img src="${thumb}" alt="" loading="eager"/>` : ``}
+          <svg class="pc-upnext-ring" viewBox="0 0 48 48" aria-hidden="true">
+            <circle class="pc-upnext-ring-track" cx="24" cy="24" r="${RADIUS}"/>
+            <circle class="pc-upnext-ring-fill" cx="24" cy="24" r="${RADIUS}"
+              stroke-dasharray="${CIRC}" stroke-dashoffset="0"/>
+          </svg>
+          <svg class="pc-upnext-play ico" aria-hidden="true"><use href="#icon-play"/></svg>
+        </div>
+        <div class="pc-upnext-info">
+          <p class="pc-upnext-label">Up next <span class="pc-upnext-count">5</span>s</p>
+          <h3 class="pc-upnext-title">${title}</h3>
+          ${creator ? `<p class="pc-upnext-creator">${creator}</p>` : ``}
+        </div>
+        <button type="button" class="pc-upnext-cancel" aria-label="Cancel autoplay of next video">Cancel</button>
+      </div>`;
     overlay.appendChild(advanceOverlay);
 
     const ringFill = advanceOverlay.querySelector(".pc-upnext-ring-fill");
@@ -211,7 +222,14 @@ function attachAutoAdvance(overlay, video){
     };
     advanceTimer = requestAnimationFrame(tick);
 
-    advanceOverlay.addEventListener("click", clearAutoAdvance);
+    advanceOverlay.querySelector(".pc-upnext-cancel").addEventListener("click", (e) => {
+      e.stopPropagation();
+      clearAutoAdvance();
+    });
+    advanceOverlay.querySelector(".pc-upnext-card").addEventListener("click", () => {
+      clearAutoAdvance();
+      openVideo(nextId);
+    });
   });
 }
 

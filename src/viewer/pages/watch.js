@@ -32,7 +32,7 @@ function upNextCard(u){
     ? `<img src="${mediaUrl(u.thumb)}" alt="" loading="lazy" decoding="async"/>`
     : (isPreviewable ? `<video class="thumb-video lazy" data-src="${mediaUrl(u.src)}#t=1" muted preload="none" playsinline loop></video>` : ``);
   return `
-    <div class="upnext-card" data-video-id="${u.id}" data-category="${esc(u.category||'')}" onclick="openVideo(${u.id})">
+    <div class="upnext-card" data-video-id="${u.id}" data-category="${esc(u.category||'')}" data-title="${esc(u.title)}" data-creator="${esc(creatorName(u.creator))}" data-thumb="${u.thumb ? esc(mediaUrl(u.thumb)) : ''}" onclick="openVideo(${u.id})">
       <div class="upnext-thumb">
         ${thumb}
         ${fmtDuration(u) ? `<span class="upnext-duration">${esc(fmtDuration(u))}</span>` : ''}
