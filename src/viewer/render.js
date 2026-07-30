@@ -53,7 +53,6 @@ export function render(){
   markToggleStates();
   lazyLoadThumbs();
   observeSentinels();         // wire lazy-append for any windowed grids on this page
-  refreshChipRows();          // recompute horizontal chip-row edge fades (mobile)
   attachPlayer();
   attachPlayerControlsV2();
   attachHoverPreview();
@@ -64,8 +63,15 @@ export function render(){
   const pending = takePendingHydrate();
   if(pending!=null) hydrateWatch(pending);
 
-  // Structured data for search engines and AI (called after DOM update)
-  addStructuredData();
+  // Deferred to next frame: both force synchronous layout reads
+  // (scrollWidth/clientWidth, structured-data DOM churn) that aren't needed
+  // for first paint, so keeping them out of the click-handling task lets the
+  // browser paint the new page before doing this bookkeeping — avoids a long
+  // blocking task on nav taps (INP).
+  requestAnimationFrame(() => {
+    refreshChipRows();          // recompute horizontal chip-row edge fades (mobile)
+    addStructuredData();        // structured data for search engines and AI
+  });
 }
 
 /* Reflect the current Favorites / Watch-Later membership on every card
