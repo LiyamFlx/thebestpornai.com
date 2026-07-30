@@ -1535,14 +1535,8 @@ iframe.player{object-fit:contain}
 
 .watch-v2{display:block}
 .watch-v2-mobile,.watch-v2-desktop{display:block}
-.watch-mobile-header{
-  display:none; /* shown only under the mobile breakpoint below */
-}
 .watch-tab-panel{display:block}
 .comments-panel{display:flex;flex-direction:column;gap:14px}
-.watch-mobile-logo{display:flex;align-items:center;gap:8px;color:var(--text);text-decoration:none}
-.watch-mobile-logo img{width:28px;height:28px;object-fit:contain}
-.watch-mobile-logo span{font-weight:800;font-size:15px;letter-spacing:-.2px}
 
 .player-container-v2{position:relative}
 .player-container-v2 .player-wrap{
@@ -1861,14 +1855,6 @@ iframe.player{object-fit:contain}
    tabs, single-column stack) visible only below the breakpoint.
    ============================================================ */
 @media(max-width:760px){
-  .watch-mobile-header{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:10px 14px;position:sticky;top:0;z-index:30;
-    background:rgba(0,0,0,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);
-  }
-  .watch-mobile-header .icon-btn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;
-    background:var(--surface2);border-radius:50%;color:var(--muted);border:none;cursor:pointer}
-  .watch-mobile-header .icon-btn .ico{width:15px;height:15px}
   .watch-main-v2{padding:14px}
   .ov-center{gap:18px}
   .ov-playpause{width:52px;height:52px}

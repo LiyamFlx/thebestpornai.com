@@ -116,21 +116,6 @@ function upNextPanel(related, showAutoplay){
     </div>`;
 }
 
-/* Mobile top mini-header: logo + search icon. Distinct from the app shell's
-   own topbar (which stays mounted around every page) — this is the reference
-   design's dedicated in-content watch header, so it renders inside #view
-   above the player rather than replacing the shell. */
-function mobileWatchHeader(){
-  return `
-    <header class="watch-mobile-header">
-      <a class="watch-mobile-logo" href="/" onclick="event.preventDefault();go('home')">
-        <img src="/src/shared/assets/favicon-64.png" alt=""/>
-        <span>thebestpornai</span>
-      </a>
-      <button class="icon-btn" onclick="focusSearch()" aria-label="Search"><svg class="ico"><use href="#icon-search"/></svg></button>
-    </header>`;
-}
-
 function playerOverlayMobile(v){
   return `
     <div class="player-overlay-v2" id="playerOverlayV2">
@@ -369,7 +354,6 @@ export function renderWatch(){
 
   const mobileLayout = `
     <div class="watch-v2 watch-v2-mobile">
-      ${mobileWatchHeader()}
       <section class="player-container-v2">
         <div class="player-nav-wrap">
           ${playerEmbed(v)}
