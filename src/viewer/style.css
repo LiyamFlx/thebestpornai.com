@@ -1546,7 +1546,7 @@ iframe.player{object-fit:contain}
 
 .player-container-v2{position:relative}
 .player-container-v2 .player-wrap{
-  width:100%;margin:0;aspect-ratio:16/9;max-height:none;min-height:0;border-radius:0;
+  width:100%;margin:0;aspect-ratio:16/9;max-height:calc(100vh - 120px);min-height:0;border-radius:0;
 }
 /* Fill the box edge-to-edge with no letterboxing — matches thumbnail/card
    framing elsewhere on the site. object-fit:contain (the base .player rule,
