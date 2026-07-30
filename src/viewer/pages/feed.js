@@ -1,5 +1,5 @@
 import { DATA, esc, creatorName, fmt, mediaUrl } from "../../shared/catalog.js";
-import { pubVerticalVideos } from "../catalog-queries.js";
+import { pubVerticalVideos, creatorById } from "../catalog-queries.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
 import { renderCommentList, commentsFor } from "../comments.js";
@@ -10,8 +10,6 @@ let feedObserver = null;
 let currentActiveVideo = null;
 let feedMuted = true;
 let activeProgressVideo = null;
-
-const CREATOR_BY_ID = new Map(DATA.creators.map(c => [c.id, c]));
 
 function isDataSaverMode(){
   const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
@@ -54,7 +52,7 @@ export function renderFeed() {
 
   // Generate scroll-snap viewport container
   const itemsHtml = videos.map((v, index) => {
-    const c = CREATOR_BY_ID.get(v.creator) || { name: "Unknown", id: "", verified: false };
+    const c = creatorById(v.creator) || { name: "Unknown", id: "", verified: false };
     const live = vstate.live[v.id] || { like: 0, dislike: 0 };
     const commentCount = commentCountByVideo.get(v.id) || 0;
     const subbed = vstate.subs.includes(v.creator);

@@ -10,10 +10,8 @@ import { DATA, esc, creatorName, fmt, mediaUrl, ytId } from "../../shared/catalo
 import { playerEmbed } from "../../shared/ui.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
-import { pubVideos, trending, relatedTo } from "../catalog-queries.js";
+import { pubVideos, trending, relatedTo, creatorById } from "../catalog-queries.js";
 import { renderCommentList, commentsFor } from "../comments.js";
-
-const CREATOR_BY_ID = new Map(DATA.creators.map(c => [c.id, c]));
 
 const MOBILE = "(max-width:760px)";
 const isMobile = () => !!(window.matchMedia && window.matchMedia(MOBILE).matches);
@@ -336,7 +334,7 @@ function sheetsAndModals(v, c){
 export function renderWatch(){
   const v = vstate.current || pubVideos()[0];
   if(!v) return `<div class="empty">No video selected.</div>`;
-  const c = CREATOR_BY_ID.get(v.creator) || { name:"Unknown", id:"", verified:false, subs:0 };
+  const c = creatorById(v.creator) || { name:"Unknown", id:"", verified:false, subs:0 };
   const hasCreator = !!c.id;
   const subbed = vstate.subs.includes(v.creator);
 

@@ -62,6 +62,14 @@ function _ensure(){
    video outside the seed. */
 export const videoById = (id) => { _ensure(); if(!_videoById) _videoById = new Map(DATA.videos.map(v => [v.id, v])); return _videoById.get(id); };
 
+/* O(1) id -> creator lookup. DATA.creators is static (unlike DATA.videos,
+   it isn't grown at runtime by manifest sync / live-upload merge), so this
+   doesn't need _ensure()'s invalidation — built once, lazily, on first use.
+   Was duplicated as an identical module-level CREATOR_BY_ID in both watch.js
+   and feed.js; consolidated here so there's one map instead of two. */
+let _creatorById = null;
+export const creatorById = (id) => { if(!_creatorById) _creatorById = new Map(DATA.creators.map(c => [c.id, c])); return _creatorById.get(id); };
+
 /* Orientation split is deliberate, not incidental: pubVideos() (horizontal
    16:9 catalog — home rows, trending, related, category filters, keyboard
    prev/next via stepWatch()) and pubVerticalVideos() (the Shorts-style

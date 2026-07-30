@@ -8,23 +8,33 @@
 <meta name="theme-color" content="#E50914"/>
 <meta name="robots" content="noindex, nofollow"/>
 
-<!-- CSP: uncomment before shipping. Studio pages expose API keys + revenue —
-     inline handlers are gone below, so a strict policy is now possible.
+<!-- CSP: real protection even though script-src/style-src need 'unsafe-inline' —
+     main.js renders 22+ onclick="..." handlers via innerHTML (same pattern as
+     the viewer app), so a strict no-unsafe-inline policy would silently break
+     every button in Studio. The previous version of this comment claimed
+     inline handlers were "gone below" — that was true only for this static
+     HTML shell, not main.js, and would have shipped a broken Studio if
+     uncommented as-written. Moving off inline onclick (addEventListener +
+     data-action delegation, like mobile-chrome.js already does in the
+     viewer) is the real fix for script-src; until then, this still locks
+     default-src/connect-src/img-src/media-src/frame-src down to exactly the
+     hosts Studio talks to (R2, Supabase, self), which blocks the highest-
+     value attack (exfiltrating API keys/session data to an attacker's
+     origin) even without tightening script-src further.
      Prefer sending this as an HTTP header instead of a meta tag if possible.
      connect-src MUST include the R2 S3-style endpoint (api/presign.js issues
      PUT URLs directly against it, not the pub-...r2.dev public dev host) or
-     the upload's direct-to-R2 PUT will be silently blocked by the browser.
+     the upload's direct-to-R2 PUT will be silently blocked by the browser. -->
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
-  script-src 'self';
-  style-src 'self';
+  script-src 'self' 'unsafe-inline';
+  style-src 'self' 'unsafe-inline';
   img-src 'self' https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev data:;
   media-src 'self' https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev blob:;
   connect-src 'self' https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev https://f0094d08f5ce974044087c377652c2ad.r2.cloudflarestorage.com https://dabfxysxcngijcxxekzc.supabase.co;
   frame-src https://www.youtube.com;
   base-uri 'self'; form-action 'self'; frame-ancestors 'none';
 "/>
--->
 
 <link rel="preconnect" href="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev" crossorigin/>
 <!-- <link rel="preconnect" href="https://YOUR-PROJECT.supabase.co" crossorigin/> -->
