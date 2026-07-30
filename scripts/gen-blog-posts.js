@@ -87,6 +87,8 @@ function postCardHtml(post) {
   `;
 }
 
+const ICON_PLAY = `<svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.92)" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.4)"/><path d="M9.5 8v8l7-4-7-4Z"/></svg>`;
+
 function videoCardHtml(videoId) {
   const v = findVideo(videoId);
   if (!v) return "";
@@ -94,6 +96,8 @@ function videoCardHtml(videoId) {
     <a class="blog-video-card" href="/viewer/index.html?video=${v.id}">
       <div class="blog-video-card-media">
         <img src="${mediaUrl(v.thumb)}" alt="${esc(v.title)}" loading="lazy" />
+        <div class="blog-video-card-play">${ICON_PLAY}</div>
+        ${v.duration ? `<span class="blog-video-card-duration">${esc(v.duration)}</span>` : ""}
       </div>
       <div class="blog-video-card-title">${esc(v.title)}</div>
     </a>
@@ -177,7 +181,7 @@ ${JSON.stringify(jsonLd, null, 2)}
       ${post.body}
     </div>
     <div class="blog-article-cta-wrap">
-      <a class="blog-cta" href="/viewer/index.html?video=${related[0] || post.coverVideoId}">Watch this exact fantasy →</a>
+      <a class="blog-cta blog-cta-primary" href="/viewer/index.html?video=${related[0] || post.coverVideoId}">Watch this exact fantasy →</a>
     </div>
   </article>
 
@@ -203,8 +207,11 @@ ${JSON.stringify(jsonLd, null, 2)}
     <h3>Anonymous Confession</h3>
     <p>Tell us what you can't tell anyone else. It stays that way.</p>
     <form id="blog-confession-form">
-      <textarea placeholder="Type your confession…" maxlength="1000"></textarea>
-      <button type="submit" class="blog-cta">Confess</button>
+      <div class="blog-confession-field">
+        <span class="blog-confession-label">Your confession</span>
+        <textarea id="blog-confession-input" placeholder="Type your confession…" maxlength="1000" required></textarea>
+      </div>
+      <button type="submit" class="blog-cta blog-confession-submit" id="blog-confession-submit">Confess</button>
     </form>
   </section>
 </main>

@@ -82,7 +82,7 @@
     
     </div>
     <div class="blog-article-cta-wrap">
-      <a class="blog-cta" href="/viewer/index.html?video=181">Watch this exact fantasy →</a>
+      <a class="blog-cta blog-cta-primary" href="/viewer/index.html?video=181">Watch this exact fantasy →</a>
     </div>
   </article>
 
@@ -94,6 +94,8 @@
     <a class="blog-video-card" href="/viewer/index.html?video=181">
       <div class="blog-video-card-media">
         <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Amazing%20Demure%20Desires%20BDSM%20girls1.jpg" alt="Amazing Demure Desires BDSM Girls #1" loading="lazy" />
+        <div class="blog-video-card-play"><svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.92)" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.4)"/><path d="M9.5 8v8l7-4-7-4Z"/></svg></div>
+        <span class="blog-video-card-duration">0:10</span>
       </div>
       <div class="blog-video-card-title">Amazing Demure Desires BDSM Girls #1</div>
     </a>
@@ -101,6 +103,8 @@
     <a class="blog-video-card" href="/viewer/index.html?video=182">
       <div class="blog-video-card-media">
         <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Amazing%20Demure%20Desires%20BDSM%20girls2.jpg" alt="Amazing Demure Desires BDSM Girls #2" loading="lazy" />
+        <div class="blog-video-card-play"><svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.92)" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.4)"/><path d="M9.5 8v8l7-4-7-4Z"/></svg></div>
+        <span class="blog-video-card-duration">0:06</span>
       </div>
       <div class="blog-video-card-title">Amazing Demure Desires BDSM Girls #2</div>
     </a>
@@ -108,6 +112,8 @@
     <a class="blog-video-card" href="/viewer/index.html?video=183">
       <div class="blog-video-card-media">
         <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Amazing%20Demure%20Desires%20BDSM%20girls3.jpg" alt="Amazing Demure Desires BDSM Girls #3" loading="lazy" />
+        <div class="blog-video-card-play"><svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.92)" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.4)"/><path d="M9.5 8v8l7-4-7-4Z"/></svg></div>
+        <span class="blog-video-card-duration">0:06</span>
       </div>
       <div class="blog-video-card-title">Amazing Demure Desires BDSM Girls #3</div>
     </a>
@@ -115,6 +121,8 @@
     <a class="blog-video-card" href="/viewer/index.html?video=184">
       <div class="blog-video-card-media">
         <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Amazing%20Demure%20Desires%20BDSM%20girls4.jpg" alt="Amazing Demure Desires BDSM Girls #4" loading="lazy" />
+        <div class="blog-video-card-play"><svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.92)" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.4)"/><path d="M9.5 8v8l7-4-7-4Z"/></svg></div>
+        <span class="blog-video-card-duration">0:06</span>
       </div>
       <div class="blog-video-card-title">Amazing Demure Desires BDSM Girls #4</div>
     </a>
@@ -153,8 +161,11 @@
     <h3>Anonymous Confession</h3>
     <p>Tell us what you can't tell anyone else. It stays that way.</p>
     <form id="blog-confession-form">
-      <textarea placeholder="Type your confession…" maxlength="1000"></textarea>
-      <button type="submit" class="blog-cta">Confess</button>
+      <div class="blog-confession-field">
+        <span class="blog-confession-label">Your confession</span>
+        <textarea id="blog-confession-input" placeholder="Type your confession…" maxlength="1000" required></textarea>
+      </div>
+      <button type="submit" class="blog-cta blog-confession-submit" id="blog-confession-submit">Confess</button>
     </form>
   </section>
 </main>

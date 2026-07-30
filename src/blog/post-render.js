@@ -16,12 +16,31 @@ document.querySelectorAll(".blog-video-card, .blog-card").forEach((el) => {
 
 const confessionForm = document.getElementById("blog-confession-form");
 if (confessionForm) {
+  const submitBtn = document.getElementById("blog-confession-submit");
+  const textarea = document.getElementById("blog-confession-input");
+
   confessionForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const textarea = confessionForm.querySelector("textarea");
-    if (textarea && textarea.value.trim()) {
+    if (!textarea || !textarea.value.trim() || !submitBtn || submitBtn.disabled) return;
+
+    const originalLabel = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="icon-spinner" aria-hidden="true"></span>Sending…`;
+
+    // No backend endpoint for confessions exists yet — this simulates the
+    // round-trip (spinner -> checkmark) the same way "Downloaded" feedback
+    // does elsewhere on the site, without pretending it's stored anywhere.
+    setTimeout(() => {
+      submitBtn.classList.add("is-success");
+      submitBtn.textContent = "✓ Sent";
       textarea.value = "";
       textarea.placeholder = "Confession received. We'll be in touch (or we won't).";
-    }
+
+      setTimeout(() => {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove("is-success");
+        submitBtn.textContent = originalLabel;
+      }, 2200);
+    }, 700);
   });
 }

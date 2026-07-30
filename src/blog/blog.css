@@ -35,7 +35,9 @@ body.blog-body{
   position: sticky;
   top: 0;
   z-index: 50;
-  background: var(--black);
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid #1A1A1A;
 }
 .blog-topbar-inner{
@@ -241,6 +243,16 @@ body.blog-body{
 }
 .blog-cta:hover{ background: var(--red-hover); box-shadow: var(--red-glow); }
 
+/* Primary conversion CTA ("Watch this exact fantasy") — bigger, with a
+   scale-up micro-animation on hover so it reads as the standout action on
+   the page instead of a plain styled link. */
+.blog-cta-primary{
+  padding: 18px 40px;
+  font-size: 13px;
+}
+.blog-cta-primary:hover{ transform: scale(1.03); }
+.blog-cta-primary:active{ transform: scale(0.98); }
+
 /* Section title */
 .blog-section-title{
   display: flex;
@@ -438,22 +450,30 @@ body.blog-body{
   margin: 0 0 16px;
 }
 .blog-article-microcopy{
-  color: var(--red);
+  /* Muted gray instead of dark red on a dark background — the red read as
+     near-invisible right at the fold where it needed to be legible most. */
+  color: #A1A1AA;
   font-size: 18px;
   font-style: italic;
   margin: 0 0 24px;
 }
 .blog-article-meta{
-  display: flex; align-items: center; gap: 16px;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
   color: var(--white-muted);
-  font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
   padding-bottom: 32px;
   border-bottom: 1px solid #1A1A1A;
   margin-bottom: 32px;
 }
-.blog-article-meta span{ display: inline-flex; align-items: center; gap: 6px; }
-.blog-article-meta .icon{ width: 14px; height: 14px; opacity: 0.85; flex: none; }
-.blog-article-meta .dot{ width: 4px; height: 4px; border-radius: 50%; background: #5f3f38; flex: none; }
+.blog-article-meta span{
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--black-card);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  padding: 6px 12px;
+}
+.blog-article-meta .icon{ width: 13px; height: 13px; opacity: 0.85; flex: none; color: var(--red); }
+.blog-article-meta .dot{ display: none; }
 .blog-article-body{
   font-size: 18px;
   line-height: 1.7;
@@ -498,12 +518,35 @@ body.blog-body{
   aspect-ratio: 16 / 9;
   overflow: hidden;
   margin-bottom: 8px;
+  background: var(--black-card);
 }
 .blog-video-card-media img{
   width: 100%; height: 100%; object-fit: cover;
   transition: transform 300ms ease;
 }
 .blog-video-card:hover .blog-video-card-media img{ transform: scale(1.05); }
+/* Play indicator + duration badge — without these, thumbnails read as
+   static photos rather than clickable video assets. */
+.blog-video-card-play{
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 45%, rgba(0,0,0,0.35) 100%);
+  pointer-events: none;
+}
+.blog-video-card-play svg{
+  width: 44px; height: 44px;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6));
+  transition: transform 200ms ease;
+}
+.blog-video-card:hover .blog-video-card-play svg{ transform: scale(1.12); }
+.blog-video-card-duration{
+  position: absolute; bottom: 8px; right: 8px;
+  background: rgba(0,0,0,0.75);
+  color: #FFFFFF;
+  font-size: 11px; font-weight: 700;
+  padding: 3px 7px;
+  letter-spacing: 0.02em;
+}
 .blog-video-card-title{
   font-size: 14px; font-weight: 700;
   color: #FFFFFF;
@@ -516,9 +559,11 @@ body.blog-body{
 /* Confession box */
 .blog-confession{
   margin: 80px 0 0;
-  padding: 48px 24px;
+  padding: 40px 32px;
   background: var(--black-card);
+  border: 1px solid rgba(255,255,255,0.06);
   border-left: 3px solid var(--red);
+  border-radius: 16px;
   text-align: center;
 }
 .blog-confession h3{
@@ -526,23 +571,57 @@ body.blog-body{
   margin: 0 0 8px;
 }
 .blog-confession p{ color: var(--white-muted); margin: 0 0 24px; }
+.blog-confession-field{
+  position: relative;
+  text-align: left;
+  margin-bottom: 16px;
+}
 .blog-confession textarea{
   width: 100%;
   background: var(--black);
   border: 1px solid #333;
+  border-radius: 10px;
   color: #FFFFFF;
-  padding: 16px;
+  padding: 20px 16px 12px;
   font-family: inherit;
   font-size: 14px;
   resize: vertical;
   min-height: 96px;
-  margin-bottom: 16px;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
 }
 .blog-confession textarea:focus{
   outline: none;
   border-color: var(--red);
-  box-shadow: 0 0 8px rgba(255,40,0,0.3);
+  box-shadow: 0 0 0 3px rgba(255,40,0,0.25);
 }
+.blog-confession-label{
+  position: absolute;
+  top: 8px; left: 16px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--white-dim);
+  pointer-events: none;
+  transition: color 200ms ease;
+}
+.blog-confession textarea:focus ~ .blog-confession-label{ color: var(--red); }
+.blog-confession-submit{
+  position: relative;
+  min-width: 140px;
+}
+.blog-confession-submit .icon-spinner{
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #FFFFFF;
+  border-radius: 50%;
+  animation: blog-confession-spin 0.7s linear infinite;
+  vertical-align: -2px;
+  margin-right: 8px;
+}
+@keyframes blog-confession-spin{ to{ transform: rotate(360deg); } }
+.blog-confession-submit.is-success{ background: #1e8e3e; box-shadow: none; }
 
 /* Footer */
 .blog-footer{
