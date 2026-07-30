@@ -55,8 +55,8 @@ export function playerEmbed(v){
     // + load-status affordances, no inline control bar of its own.
     return `<div class="player-wrap">
       <video class="player" src="${mediaUrl(v.src)}" autoplay muted playsinline${poster} aria-label="${esc(v.title)}"></video>
-      <div class="player-status player-status-loading" aria-hidden="true"><div class="player-spinner"></div></div>
-      <div class="player-status player-status-error" style="display:none" role="alert">
+      <div class="player-status-loading" aria-hidden="true"><div class="player-spinner"></div></div>
+      <div class="player-status-error" style="display:none" role="alert">
         <div class="player-error-msg">This video couldn't be loaded.</div>
         <button class="btn sm" onclick="event.stopPropagation();this.closest('.player-wrap').querySelector('video.player').load()">Retry</button>
       </div>

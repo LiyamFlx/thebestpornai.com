@@ -4,10 +4,12 @@
 import { DATA, toast, creatorName, mediaUrl } from "../shared/catalog.js";
 // Plain public/ path (not a bundler import) — this file is also loaded by
 // the plain Node test runner (see manifest-sync.test.mjs's import chain),
-// which can't resolve a Vite-style asset import for a .png file.
-// TODO: verify /public/favicon-64.png actually exists at build output — the
-// only confirmed favicon path elsewhere is /src/shared/assets/favicon-64.png,
-// which Vite processes as a hashed asset and this path deliberately isn't.
+// which can't resolve a Vite-style asset import for a .png file. Verified
+// present at public/favicon-64.png and copied through to dist/favicon-64.png
+// unhashed by Vite's static public/ passthrough (separate from
+// src/shared/assets/favicon-64.png, which IS a bundler import elsewhere and
+// gets a hashed asset filename — the two are intentionally different files
+// serving different call sites, not duplication to clean up).
 const defaultThumbUrl = "/favicon-64.png";
 import { vstate } from "./state.js";
 import { pubVideos, trending } from "./catalog-queries.js";
@@ -138,33 +140,30 @@ function attachPlayerGestures(activePlayer){
   });
 }
 
-/* Loading/error feedback for the main player: a single .player-status overlay
-   (see style.css) whose .player-status-error class toggles pointer-events so
-   the retry control becomes clickable only in the error state. Shows a spinner
-   while buffering (loadstart/waiting) and swaps to the error message on
-   playback failure or a stall lasting more than 4s.
-   TODO: querySelector targets (.player-status, .player-spinner,
-   .player-error-msg) are inferred from style.css's class names, not from the
-   actual watch-page template — verify against wherever .player-wrap's HTML is
-   generated (likely playerEmbed() in shared/ui.js) and adjust if it differs. */
+/* Loading/error feedback for the main player: two separate overlay elements
+   in playerEmbed()'s template (shared/ui.js) — .player-status-loading (the
+   spinner) and .player-status-error (message + Retry button), not one
+   shared node with a toggled class. querySelector(".player-status") used to
+   match only the FIRST of these (the loading div, since it comes first in
+   the template) — showError() then toggled classes/display on the loading
+   div while the real error div (and its .player-error-msg/Retry button,
+   which querySelector never found since they're a sibling, not a
+   descendant) stayed hidden. Net effect: a genuine playback error/stalled
+   load never actually showed "This video couldn't be loaded" or a working
+   Retry button. Selecting both elements explicitly fixes it. */
 function attachPlayerStatus(wrap, activePlayer){
-  const status = wrap.querySelector(".player-status");
-  if(!status) return;
-  const spinner = status.querySelector(".player-spinner");
-  const errorMsg = status.querySelector(".player-error-msg");
+  const loading = wrap.querySelector(".player-status-loading");
+  const error = wrap.querySelector(".player-status-error");
+  if(!loading && !error) return;
 
   const showLoading = () => {
-    status.style.display = "flex";
-    status.classList.remove("player-status-error");
-    if(spinner) spinner.style.display = "";
-    if(errorMsg) errorMsg.style.display = "none";
+    if(loading) loading.style.display = "flex";
+    if(error) error.style.display = "none";
   };
-  const hideLoading = () => { status.style.display = "none"; };
+  const hideLoading = () => { if(loading) loading.style.display = "none"; };
   const showError = () => {
-    status.style.display = "flex";
-    status.classList.add("player-status-error");
-    if(spinner) spinner.style.display = "none";
-    if(errorMsg) errorMsg.style.display = "";
+    if(loading) loading.style.display = "none";
+    if(error) error.style.display = "flex";
   };
 
   activePlayer.addEventListener("loadstart", showLoading);

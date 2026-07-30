@@ -256,7 +256,7 @@ function renderAudit(){
 }
 
 function renderHealth(){
-  const svc=[["API Gateway","operational"],["Auth Service","operational"],["Firestore","operational"],["Video Pipeline (Mux)","operational"],["CDN","degraded"],["Search","operational"]];
+  const svc=[["Vercel (Hosting/API)","operational"],["Supabase (Auth/DB)","operational"],["Cloudflare R2 (Media)","operational"],["Upload Pipeline","operational"],["CDN","degraded"],["Search","operational"]];
   return `<h1>System Health</h1><p class="sub">Service status</p>
     <div class="grid">${svc.map(([n,st])=>`<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center">
       <b>${n}</b><span class="tag-pill ${st==='operational'?'green':'warn'}">${st}</span></div></div>`).join("")}</div>
@@ -293,7 +293,7 @@ function render(){
   else if(p==="analytics")     v.innerHTML=simplePage("Analytics","Deep platform metrics",["Engagement","Funnels","Cohorts","Retention","Geo"]);
   else if(p==="processing")    v.innerHTML=simplePage("Processing","Transcoding pipeline",["Queue","Workers","Failed Jobs","Renditions","Throughput"]);
   else if(p==="notifications") v.innerHTML=simplePage("Notifications","Messaging system",["Push","Email","In-App","Templates","Delivery"]);
-  else if(p==="integrations")  v.innerHTML=simplePage("Integrations","Connected services",["Stripe","Mux","Firebase","Segment","Slack","PagerDuty"]);
+  else if(p==="integrations")  v.innerHTML=simplePage("Integrations","Connected services",["Stripe","Cloudflare R2","Supabase","Segment","Slack","PagerDuty"]);
   else if(p==="security")      v.innerHTML=simplePage("Security","Platform protection",["Access Control","API Tokens","Rate Limits","Threats","Compliance"]);
   else if(p==="roles")         v.innerHTML=simplePage("Roles","Team permissions",["Admin","Moderator","Support","Analyst","Read-only"]);
   else if(p==="settings")      v.innerHTML=simplePage("Settings","Platform configuration",["General","Branding","Regions","Limits","Danger Zone"]);

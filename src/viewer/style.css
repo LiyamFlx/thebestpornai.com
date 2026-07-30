@@ -720,7 +720,7 @@ iframe.player{object-fit:contain}
 .feed-creator:focus-visible,.avatar:focus-visible{
   outline:2px solid var(--accent2);outline-offset:2px;
 }
-.player-status{
+.player-status-loading,.player-status-error{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   flex-direction:column;gap:12px;background:rgba(10,10,10,.55);pointer-events:none;
 }
