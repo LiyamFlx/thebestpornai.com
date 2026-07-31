@@ -123,7 +123,9 @@ Object.assign(window, {
   toggleDescExpandDesktop,
 });
 
-// Keyboard navigation (Watch page Arrow keys cycling public videos)
+// Keyboard navigation (Watch page): Left/Right cycle public videos,
+// Up/Down step volume, M mutes, F toggles fullscreen, Esc closes an open
+// sheet or exits fullscreen.
 document.addEventListener("keydown", (e) => {
   if (
     document.activeElement &&
@@ -131,11 +133,28 @@ document.addEventListener("keydown", (e) => {
   ) {
     return;
   }
+
+  // Esc needs to work even off the watch page (e.g. closing a sheet left
+  // open), everything else below is watch-page-only.
+  if (e.key === "Escape") {
+    const openSheet = document.querySelector(".sheet-backdrop:not([hidden])");
+    if (openSheet) { window.closeSheet(openSheet.id); return; }
+    if (document.fullscreenElement) { document.exitFullscreen?.().catch(()=>{}); return; }
+    return;
+  }
+
   if (vstate.page !== "watch") return;
 
   if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
     e.preventDefault();
     stepWatch(e.key === "ArrowRight" ? 1 : -1);
+  } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+    e.preventDefault();
+    window.adjustVolumeV2?.(e.key === "ArrowUp" ? 0.05 : -0.05);
+  } else if (e.key.toLowerCase() === "m") {
+    window.toggleMuteV2?.();
+  } else if (e.key.toLowerCase() === "f") {
+    window.toggleFullscreenV2?.();
   }
 });
 

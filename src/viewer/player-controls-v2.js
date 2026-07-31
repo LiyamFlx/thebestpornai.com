@@ -94,6 +94,18 @@ export function attachPlayerControlsV2(){
     vstate.settings.volume = video.volume;
     persistState();
   };
+  // Keyboard Up/Down arrows (main.js) — step by 5%. Reaching exactly 0 mutes
+  // (matches dragging the slider to the bottom); stepping up from there
+  // un-mutes the same way, whether muted via the slider or the M key.
+  window.adjustVolumeV2 = (delta) => {
+    video.volume = Math.min(1, Math.max(0, video.volume + delta));
+    video.muted = video.volume === 0;
+    if(volumeSlider) volumeSlider.value = video.muted ? 0 : video.volume;
+    setMuteIcon();
+    vstate.settings.muted = video.muted;
+    vstate.settings.volume = video.volume;
+    persistState();
+  };
 
   let seeking = false;
   const SEEK_MAX = 1000;
