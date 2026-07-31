@@ -172,18 +172,22 @@ export function attachPlayerControlsV2(){
     if(container) container.classList.toggle("theater", vstate.theaterMode);
   }
 
-  // Auto-hide overlay after idle, only while playing (mirrors player-controls.js).
+  // Auto-hide the play/pause/±10s overlay after 1s, and immediately on
+  // playback starting or on a tap — it's a brief control reveal, not a
+  // persistent chrome bar.
+  const hide = () => overlay.classList.remove("visible");
   const show = () => {
     overlay.classList.add("visible");
     clearAutoHide();
-    if(!video.paused) hideTimer = setTimeout(() => overlay.classList.remove("visible"), 3000);
+    hideTimer = setTimeout(hide, 1000);
   };
   wrap.addEventListener("mousemove", show);
   wrap.addEventListener("touchstart", show, { passive:true });
   overlay.addEventListener("mouseenter", () => clearAutoHide());
   overlay.addEventListener("mouseleave", show);
-  video.addEventListener("pause", () => overlay.classList.add("visible"));
-  video.addEventListener("click", () => window.togglePlayPauseV2());
+  video.addEventListener("play", hide);
+  video.addEventListener("pause", show);
+  video.addEventListener("click", () => { window.togglePlayPauseV2(); hide(); });
   show();
 
   attachAutoAdvance(overlay, video);
@@ -200,7 +204,6 @@ function attachAutoAdvance(overlay, video){
   if(!nextCard) return;
   const nextId = +nextCard.dataset.videoId;
   if(!Number.isFinite(nextId)) return;
-  const { title = "", creator = "", thumb = "" } = nextCard.dataset;
 
   const DURATION_MS = 5000;
   const RADIUS = 20;
@@ -210,48 +213,25 @@ function attachAutoAdvance(overlay, video){
     if(advanceOverlay) return;
     advanceOverlay = document.createElement("div");
     advanceOverlay.className = "pc-upnext";
+    // Just the countdown ring — no thumbnail/title/creator/Cancel button.
     advanceOverlay.innerHTML = `
-      <div class="pc-upnext-card">
-        <div class="pc-upnext-thumb">
-          ${thumb ? `<img src="${thumb}" alt="" loading="eager"/>` : ``}
-          <svg class="pc-upnext-ring" viewBox="0 0 48 48" aria-hidden="true">
-            <circle class="pc-upnext-ring-track" cx="24" cy="24" r="${RADIUS}"/>
-            <circle class="pc-upnext-ring-fill" cx="24" cy="24" r="${RADIUS}"
-              stroke-dasharray="${CIRC}" stroke-dashoffset="0"/>
-          </svg>
-          <svg class="pc-upnext-play ico" aria-hidden="true"><use href="#icon-play"/></svg>
-        </div>
-        <div class="pc-upnext-info">
-          <p class="pc-upnext-label">Up next <span class="pc-upnext-count">5</span>s</p>
-          <h3 class="pc-upnext-title">${title}</h3>
-          ${creator ? `<p class="pc-upnext-creator">${creator}</p>` : ``}
-        </div>
-        <button type="button" class="pc-upnext-cancel" aria-label="Cancel autoplay of next video">Cancel</button>
-      </div>`;
+      <svg class="pc-upnext-ring" viewBox="0 0 48 48" aria-hidden="true">
+        <circle class="pc-upnext-ring-track" cx="24" cy="24" r="${RADIUS}"/>
+        <circle class="pc-upnext-ring-fill" cx="24" cy="24" r="${RADIUS}"
+          stroke-dasharray="${CIRC}" stroke-dashoffset="0"/>
+      </svg>`;
     overlay.appendChild(advanceOverlay);
 
     const ringFill = advanceOverlay.querySelector(".pc-upnext-ring-fill");
-    const countEl = advanceOverlay.querySelector(".pc-upnext-count");
     const start = performance.now();
 
     const tick = (now) => {
       const elapsed = now - start;
-      const remaining = Math.max(0, DURATION_MS - elapsed);
       if(ringFill) ringFill.style.strokeDashoffset = String(CIRC * (1 - elapsed / DURATION_MS));
-      if(countEl) countEl.textContent = String(Math.ceil(remaining / 1000));
       if(elapsed >= DURATION_MS){ advanceTimer = null; openVideo(nextId); return; }
       advanceTimer = requestAnimationFrame(tick);
     };
     advanceTimer = requestAnimationFrame(tick);
-
-    advanceOverlay.querySelector(".pc-upnext-cancel").addEventListener("click", (e) => {
-      e.stopPropagation();
-      clearAutoAdvance();
-    });
-    advanceOverlay.querySelector(".pc-upnext-card").addEventListener("click", () => {
-      clearAutoAdvance();
-      openVideo(nextId);
-    });
   });
 }
 
