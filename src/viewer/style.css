@@ -614,10 +614,16 @@ table.data tr:hover td{background:var(--surface2)}
   width:280px;max-width:82vw;
   background:var(--surface);border-right:1px solid var(--border);
   display:flex;flex-direction:column;
-  transform:translateX(-100%);transition:transform .25s ease;
-  overflow-y:auto;
+  transform:translateX(-100%);
+  transition:transform .25s ease, visibility .25s ease;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  /* Fully removed from the layout/hit-test surface while closed so the
+     off-canvas panel can never be reached by a sideways scroll or a stray
+     tap — it only becomes visible/interactive once .open is set. */
+  visibility:hidden;
+  overscroll-behavior:contain;
 }
-.mobile-drawer.open{transform:translateX(0)}
+.mobile-drawer.open{transform:translateX(0);visibility:visible}
 .mobile-drawer-head{
   display:flex;align-items:center;justify-content:space-between;
   padding:14px 16px;border-bottom:1px solid var(--border);
@@ -906,10 +912,6 @@ iframe.player{object-fit:contain}
 .feed-container::-webkit-scrollbar {
   display: none;
 }
-/* Windowing sentinel (see attachFeedWindowObserver() in feed.js) — same
-   role as .grid-sentinel on list pages, kept out of the scroll-snap stops
-   so it doesn't insert a stray non-video snap stop into the feed. */
-.feed-sentinel{height:1px;width:100%;flex-shrink:0;scroll-snap-align:none}
 .feed-item {
   position: relative;
   width: 100%;

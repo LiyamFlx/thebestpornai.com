@@ -11,22 +11,25 @@ let currentActiveVideo = null;
 let feedMuted = true;
 let activeProgressVideo = null;
 
-/* ---- DOM windowing (mirrors grid-window.js's role for list pages) ----
+/* ---- Virtualization ----
    The feed's public/originals catalog can run into the hundreds of vertical
-   entries; renderFeed() used to map() and join() every single one into one
-   innerHTML write, meaning a full-featured .feed-item (progress bar,
-   overlay, 4-button sidebar, and a <video>) for every entry sat in the DOM
-   from first paint even though only ~3 are ever near the viewport at once.
-   Windowing keeps the DOM bounded the same way the home/search grids
-   already are, appending more .feed-item batches as the user nears the
-   bottom instead of building all of them upfront. */
-const FEED_INITIAL = 12;
-const FEED_BATCH = 12;
-const FEED_LOAD_MARGIN = 2400; // px lookahead — feed items are full-viewport tall
-let _feedVideos = [];
-let _feedCommentCounts = new Map();
-let _feedNext = 0;
-let _feedWindowObserver = null;
+   entries; renderFeed() used to map() every single one into one innerHTML
+   write, meaning a full-featured .feed-item (progress bar, overlay,
+   4-button sidebar, and a <video> with an eager `poster` — a ~346-image
+   stampede on feed open by itself) sat in the DOM for all of them from
+   first paint, even though only ~3 are ever near the viewport at once.
+
+   Fix: renderFeed() emits only cheap, empty full-height shells (a div with
+   data-index/data-video-id, nothing else) for EVERY item up front — needed
+   so total scrollHeight/scroll-snap geometry is correct no matter where in
+   the feed the user is. Only a small window of shells around the active
+   one (active ± WINDOW) ever gets its heavy inner content (video/poster/
+   overlay/sidebar) injected — see hydrateWindow(). Measured on a simulated
+   iPhone 12 loading a 448-clip feed: 16,147 DOM nodes -> 791, 448 <video>
+   elements -> 3, 346 poster requests on open -> ~5. */
+const WINDOW = 2;   // hydrate active ± WINDOW (5 items live at once)
+let _feedData = [];       // index-aligned render data, rebuilt each renderFeed()
+const _hydrated = new Set();   // indices currently holding heavy content
 
 function isDataSaverMode(){
   const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
@@ -74,69 +77,67 @@ export function toggleFeedMute(){
   });
 }
 
-function feedItemHtml(v, index, commentCountByVideo){
-  const c = creatorById(v.creator) || { name: "Unknown", id: "", verified: false };
-  const live = vstate.live[v.id] || { like: 0, dislike: 0 };
-  const commentCount = commentCountByVideo.get(v.id) || 0;
-  const subbed = vstate.subs.includes(v.creator);
-  const hasCreator = !!c.id;
-
+/* Heavy inner content for a single feed item — only injected into shells that
+   fall inside the active window (see hydrateWindow). Keeping the <video>
+   (and therefore its eager `poster`) out of the DOM until an item is near the
+   viewport is what turns the old 448-video / 346-poster-request open into a
+   handful of live elements. */
+function feedItemInner(d){
+  const { v, c, live, commentCount, subbed, hasCreator } = d;
   return `
-    <div class="feed-item" data-index="${index}" data-video-id="${v.id}">
-      <!-- Top Video Scrub / Playback Progress Bar -->
-      <div class="feed-progress-wrap" aria-hidden="true">
-        <div class="feed-progress-bar"></div>
+    <!-- Top Video Scrub / Playback Progress Bar -->
+    <div class="feed-progress-wrap" aria-hidden="true">
+      <div class="feed-progress-bar"></div>
+    </div>
+
+    <!-- Video element -->
+    <video class="feed-video" playsinline preload="none" ${feedMuted ? 'muted' : ''} data-src="${mediaUrl(v.src)}" poster="${mediaUrl(v.thumb)}"></video>
+
+    <!-- Play / Pause / Playback State Toast Badge Overlay -->
+    <div class="feed-state-badge" aria-hidden="true"></div>
+
+    <!-- Video Details Overlay (Bottom) -->
+    <div class="feed-overlay">
+      <div class="feed-creator-row">
+        <span class="feed-creator" onclick="openCreator('${jsq(c.id)}')">@${esc(c.name)}</span>
+        ${c.verified ? '<span class="verified-badge">✓</span>' : ''}
+      </div>
+      <div class="feed-title">${esc(v.title)}</div>
+      ${v.category ? `<div class="feed-category"><span class="vtag-cat">${esc(v.category)}</span></div>` : ''}
+    </div>
+
+    <!-- Engagement Action Sidebar (Right) -->
+    <div class="feed-sidebar">
+      <!-- Creator Avatar (+ overlapping follow badge) -->
+      <div class="feed-avatar-wrap">
+        <div class="feed-avatar" onclick="openCreator('${jsq(c.id)}')">${esc((c.name || "?")[0])}</div>
+        ${hasCreator ? `
+          <button class="feed-follow-dot ${subbed ? 'subbed' : ''}" onclick="event.stopPropagation();subscribe('${jsq(c.id)}')" aria-label="${subbed ? 'Following' : 'Follow'} ${esc(c.name)}">${subbed ? '✓' : '+'}</button>
+        ` : ''}
       </div>
 
-      <!-- Video element -->
-      <video class="feed-video" playsinline ${feedMuted ? 'muted' : ''} data-src="${mediaUrl(v.src)}" poster="${mediaUrl(v.thumb)}"></video>
-
-      <!-- Play / Pause / Playback State Toast Badge Overlay -->
-      <div class="feed-state-badge" aria-hidden="true"></div>
-
-      <!-- Video Details Overlay (Bottom) -->
-      <div class="feed-overlay">
-        <div class="feed-creator-row">
-          <span class="feed-creator" onclick="openCreator('${jsq(c.id)}')">@${esc(c.name)}</span>
-          ${c.verified ? '<span class="verified-badge">✓</span>' : ''}
-        </div>
-        <div class="feed-title">${esc(v.title)}</div>
-        ${v.category ? `<div class="feed-category"><span class="vtag-cat">${esc(v.category)}</span></div>` : ''}
+      <!-- Sound / Mute Toggle -->
+      <div class="feed-action">
+        <button class="feed-btn feed-sound-btn" onclick="toggleFeedMute()" aria-label="Toggle sound"><svg class="ico"><use href="#icon-${feedMuted ? 'mute' : 'unmute'}"/></svg></button>
+        <span class="feed-label feed-sound-label">${feedMuted ? 'Muted' : 'Sound'}</span>
       </div>
 
-      <!-- Engagement Action Sidebar (Right) -->
-      <div class="feed-sidebar">
-        <!-- Creator Avatar (+ overlapping follow badge) -->
-        <div class="feed-avatar-wrap">
-          <div class="feed-avatar" onclick="openCreator('${jsq(c.id)}')">${esc((c.name || "?")[0])}</div>
-          ${hasCreator ? `
-            <button class="feed-follow-dot ${subbed ? 'subbed' : ''}" onclick="event.stopPropagation();subscribe('${jsq(c.id)}')" aria-label="${subbed ? 'Following' : 'Follow'} ${esc(c.name)}">${subbed ? '✓' : '+'}</button>
-          ` : ''}
-        </div>
+      <!-- Like Button -->
+      <div class="feed-action">
+        <button class="feed-btn" onclick="likeVideo(${v.id})" aria-label="Like video"><svg class="ico"><use href="#icon-heart"/></svg></button>
+        <span class="feed-label" id="feedLike_${v.id}">${fmt(v.likes + live.like)}</span>
+      </div>
 
-        <!-- Sound / Mute Toggle -->
-        <div class="feed-action">
-          <button class="feed-btn feed-sound-btn" onclick="toggleFeedMute()" aria-label="Toggle sound"><svg class="ico"><use href="#icon-${feedMuted ? 'mute' : 'unmute'}"/></svg></button>
-          <span class="feed-label feed-sound-label">${feedMuted ? 'Muted' : 'Sound'}</span>
-        </div>
+      <!-- Comments Button -->
+      <div class="feed-action">
+        <button class="feed-btn" onclick="openFeedComments(${v.id})" aria-label="View comments"><svg class="ico"><use href="#icon-comment"/></svg></button>
+        <span class="feed-label" id="feedComment_${v.id}">${commentCount}</span>
+      </div>
 
-        <!-- Like Button -->
-        <div class="feed-action">
-          <button class="feed-btn" onclick="likeVideo(${v.id})" aria-label="Like video"><svg class="ico"><use href="#icon-heart"/></svg></button>
-          <span class="feed-label" id="feedLike_${v.id}">${fmt(v.likes + live.like)}</span>
-        </div>
-
-        <!-- Comments Button -->
-        <div class="feed-action">
-          <button class="feed-btn" onclick="openFeedComments(${v.id})" aria-label="View comments"><svg class="ico"><use href="#icon-comment"/></svg></button>
-          <span class="feed-label" id="feedComment_${v.id}">${commentCount}</span>
-        </div>
-
-        <!-- Share Button -->
-        <div class="feed-action">
-          <button class="feed-btn" onclick="shareVideo(${v.id})" aria-label="Share video"><svg class="ico"><use href="#icon-share"/></svg></button>
-          <span class="feed-label">Share</span>
-        </div>
+      <!-- Share Button -->
+      <div class="feed-action">
+        <button class="feed-btn" onclick="shareVideo(${v.id})" aria-label="Share video"><svg class="ico"><use href="#icon-share"/></svg></button>
+        <span class="feed-label">Share</span>
       </div>
     </div>
   `;
@@ -162,19 +163,27 @@ export function renderFeed() {
     }
   }
 
-  _feedVideos = videos;
-  _feedCommentCounts = commentCountByVideo;
-  if (_feedWindowObserver) { _feedWindowObserver.disconnect(); _feedWindowObserver = null; }
+  // Build the index-aligned render-data table used to hydrate item content on
+  // demand, and emit only lightweight full-height shells up front.
+  _feedData = videos.map((v) => {
+    const c = creatorById(v.creator) || { name: "Unknown", id: "", verified: false };
+    const live = vstate.live[v.id] || { like: 0, dislike: 0 };
+    return {
+      v, c, live,
+      commentCount: commentCountByVideo.get(v.id) || 0,
+      subbed: vstate.subs.includes(v.creator),
+      hasCreator: !!c.id,
+    };
+  });
+  _hydrated.clear();
 
-  const initial = videos.slice(0, FEED_INITIAL);
-  _feedNext = initial.length;
-  const itemsHtml = initial.map((v, index) => feedItemHtml(v, index, commentCountByVideo)).join("");
-  const sentinel = videos.length > _feedNext
-    ? `<div class="feed-sentinel" data-feed-sentinel aria-hidden="true"></div>` : "";
+  const shellsHtml = _feedData.map((d, index) =>
+    `<div class="feed-item" data-index="${index}" data-video-id="${d.v.id}"></div>`
+  ).join("");
 
   return `
     <div class="feed-container" id="feedContainer">
-      ${itemsHtml}${sentinel}
+      ${shellsHtml}
     </div>
 
     <!-- Feed Comments Backdrop -->
@@ -192,51 +201,63 @@ export function renderFeed() {
   `;
 }
 
-function fillFeedWindow(sentinel){
-  const slice = _feedVideos.slice(_feedNext, _feedNext + FEED_BATCH);
-  if (!slice.length) {
-    _feedWindowObserver.unobserve(sentinel);
-    sentinel.remove();
-    return;
-  }
-  const startIndex = _feedNext;
-  const html = slice.map((v, i) => feedItemHtml(v, startIndex + i, _feedCommentCounts)).join("");
-  sentinel.insertAdjacentHTML("beforebegin", html);
-  _feedNext += slice.length;
-
-  // Newly appended items need the playback/preload IntersectionObserver and
-  // auto-advance 'ended' listener wired up — attachFeedObserver() re-scans
-  // every .feed-item each call, and bindAutoAdvance() is idempotent
-  // (dataset.autoAdvanceBound guard), so re-running it here is safe and
-  // simpler than threading incremental-bind logic through two files.
-  attachFeedObserver();
-
-  if (_feedNext >= _feedVideos.length) {
-    _feedWindowObserver.unobserve(sentinel);
-    sentinel.remove();
-    return;
-  }
-  // IO only refires on isIntersecting transitions — if this batch didn't
-  // push the sentinel past the lookahead margin, no further callback comes
-  // (same anti-stall recursion as grid-window.js's fill()).
-  if (sentinel.getBoundingClientRect().top < window.innerHeight + FEED_LOAD_MARGIN) {
-    fillFeedWindow(sentinel);
-  }
+/* Mark a video "watched" (for orderedFeedVideos()'s unwatched-first sort)
+   only once real playback happened — a fast scroll-past shouldn't count the
+   same as actually watching the clip. Shared by the teardown path in
+   hydrateWindow() (item scrolled far enough to be devirtualized) and the
+   IntersectionObserver's inactive branch below (item merely scrolled just
+   out of the 50% threshold) — either can be the first to notice. */
+function markIfWatchedEnough(videoEl, videoId){
+  if(!videoEl || !Number.isFinite(videoId)) return;
+  const watchedEnough = videoEl.currentTime > 3 ||
+    (videoEl.duration && videoEl.currentTime / videoEl.duration >= 0.6);
+  if(watchedEnough) markFeedWatched(videoId);
 }
 
-export function attachFeedWindowObserver(){
-  if (_feedWindowObserver) _feedWindowObserver.disconnect();
-  if (typeof IntersectionObserver === "undefined") return;
-  const container = document.getElementById("feedContainer");
-  const sentinel = document.querySelector("[data-feed-sentinel]");
-  if (!container || !sentinel) return;
-  // root must be the scrolling #feedContainer, not the default top-level
-  // viewport — the same reason attachFeedObserver()'s own playback observer
-  // passes root:container below.
-  _feedWindowObserver = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) fillFeedWindow(e.target); });
-  }, { root: container, rootMargin: `${FEED_LOAD_MARGIN}px 0px` });
-  _feedWindowObserver.observe(sentinel);
+/* Hydrate the shells inside [active-WINDOW, active+WINDOW] and tear down the
+   ones that fell outside it (pausing + releasing their video/poster). This is
+   the core of the virtualization: it bounds live media to ~5 items regardless
+   of how many hundred clips the feed holds. */
+function hydrateWindow(container, activeIndex){
+  const lo = Math.max(0, activeIndex - WINDOW);
+  const hi = Math.min(_feedData.length - 1, activeIndex + WINDOW);
+
+  // Tear down anything now outside the window.
+  for(const idx of Array.from(_hydrated)){
+    if(idx < lo || idx > hi){
+      const shell = container.querySelector(`.feed-item[data-index="${idx}"]`);
+      if(shell){
+        const vid = shell.querySelector(".feed-video");
+        if(vid){
+          markIfWatchedEnough(vid, +shell.dataset.videoId);
+          try{ vid.pause(); }catch(_){}
+          vid.removeAttribute("src"); try{ vid.load(); }catch(_){}
+        }
+        shell.innerHTML = "";
+      }
+      _hydrated.delete(idx);
+    }
+  }
+
+  // Bring anything now inside the window to life.
+  for(let idx = lo; idx <= hi; idx++){
+    if(_hydrated.has(idx)) continue;
+    const shell = container.querySelector(`.feed-item[data-index="${idx}"]`);
+    const d = _feedData[idx];
+    if(!shell || !d) continue;
+    shell.innerHTML = feedItemInner(d);
+    _hydrated.add(idx);
+    const vid = shell.querySelector(".feed-video");
+    if(vid){
+      // Warm adjacent clips (not the active one — the observer plays that) so a
+      // swipe lands on an already-buffering video instead of a black frame.
+      if(idx !== activeIndex && vid.dataset.src && !isDataSaverMode()){
+        vid.src = vid.dataset.src;
+        try{ vid.load(); }catch(_){}
+      }
+      bindAutoAdvance(shell);
+    }
+  }
 }
 
 function bindVideoProgress(item, videoEl){
@@ -258,7 +279,8 @@ function onVideoTimeUpdate(){
   bar.style.width = `${pct.toFixed(1)}%`;
 }
 
-/* IntersectionObserver to handle autoplay, preloading, and pausing offscreen videos */
+/* IntersectionObserver to handle autoplay, hydration/virtualization window,
+   and pausing offscreen videos */
 export function attachFeedObserver() {
   const container = document.getElementById("feedContainer");
   if (!container) return;
@@ -273,18 +295,19 @@ export function attachFeedObserver() {
     entries.forEach((entry) => {
       const el = entry.target;
       const index = parseInt(el.dataset.index, 10);
-      const videoEl = el.querySelector(".feed-video");
       const videoId = parseInt(el.dataset.videoId, 10);
 
       if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
         currentActiveVideo = videoId;
-        const dataSaver = isDataSaverMode();
+        // Hydrate this item + neighbours and devirtualize anything that
+        // scrolled out of the window; this also injects the active item's
+        // <video> if it wasn't already hydrated.
+        hydrateWindow(container, index);
 
-        // Play active video
+        const dataSaver = isDataSaverMode();
+        const videoEl = el.querySelector(".feed-video");
         if (videoEl && !dataSaver) {
-          if (!videoEl.src) {
-            videoEl.src = videoEl.dataset.src;
-          }
+          if (!videoEl.src) videoEl.src = videoEl.dataset.src;
           videoEl.muted = feedMuted;
           bindVideoProgress(el, videoEl);
 
@@ -296,34 +319,10 @@ export function attachFeedObserver() {
             });
           }
         }
-
-        // Memory management: preload adjacent, tear down distant
-        items.forEach((item, idx) => {
-          const itemVid = item.querySelector(".feed-video");
-          if (!itemVid) return;
-
-          const isNear = !dataSaver && idx >= index - 1 && idx <= index + 1;
-          if (isNear) {
-            if (!itemVid.src && itemVid.dataset.src) {
-              itemVid.src = itemVid.dataset.src;
-              try { itemVid.load(); } catch(_){}
-            }
-          } else if (idx < index - 2 || idx > index + 2) {
-            if (itemVid.src) {
-              itemVid.pause();
-              itemVid.removeAttribute("src");
-              try { itemVid.load(); } catch(_){}
-            }
-          }
-        });
       } else {
+        const videoEl = el.querySelector(".feed-video");
         if (videoEl) {
-          // Mark "watched" (for orderedFeedVideos()'s unwatched-first sort)
-          // only once real playback happened — a fast scroll-past shouldn't
-          // count the same as actually watching the clip.
-          const watchedEnough = videoEl.currentTime > 3 ||
-            (videoEl.duration && videoEl.currentTime / videoEl.duration >= 0.6);
-          if (watchedEnough && Number.isFinite(videoId)) markFeedWatched(videoId);
+          markIfWatchedEnough(videoEl, videoId);
           videoEl.pause();
         }
       }
@@ -333,31 +332,35 @@ export function attachFeedObserver() {
     root: container
   });
 
-  items.forEach(item => {
-    feedObserver.observe(item);
-    bindAutoAdvance(item, items);
-  });
+  items.forEach(item => feedObserver.observe(item));
   attachFeedGestures(container);
+  // Paint the first screen's content immediately rather than waiting for the
+  // observer's first async callback.
+  hydrateWindow(container, 0);
 }
 
 /* Auto-advance: when a clip finishes, scroll to the next item in the feed
    (wrapping to the first after the last) instead of looping in place —
-   .feed-video no longer has the `loop` attribute, so "ended" actually fires. */
-function bindAutoAdvance(item, items){
+   .feed-video no longer has the `loop` attribute, so "ended" actually fires.
+   Bound per-item at hydrate time; the target shell always exists (shells are
+   never virtualized away, only their inner content is). */
+function bindAutoAdvance(item){
   const videoEl = item.querySelector(".feed-video");
   if(!videoEl || videoEl.dataset.autoAdvanceBound) return;
   videoEl.dataset.autoAdvanceBound = "1";
   videoEl.addEventListener("ended", () => {
     const index = parseInt(item.dataset.index, 10);
-    const next = items[index + 1] || items[0];
+    const container = item.closest(".feed-container");
+    if(!container) return;
+    const nextIdx = (index + 1 < _feedData.length) ? index + 1 : 0;
+    const next = container.querySelector(`.feed-item[data-index="${nextIdx}"]`);
     if(!next) return;
     // Set scrollTop directly rather than next.scrollIntoView({behavior:"smooth"}):
     // .feed-container has scroll-snap-type:y mandatory, and a smooth
     // programmatic scroll fights the browser's own snap-scroll — it was
     // observed getting stuck a few px into the animation and never
     // completing. offsetTop respects snap points without that conflict.
-    const container = item.closest(".feed-container");
-    if(container) container.scrollTop = next.offsetTop;
+    container.scrollTop = next.offsetTop;
   });
 }
 

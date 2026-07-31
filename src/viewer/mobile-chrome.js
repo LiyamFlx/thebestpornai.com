@@ -98,13 +98,15 @@ function onClick(e){
   if(action === "toggle-drawer"){
     const drawer = document.getElementById("mobileDrawer");
     const backdrop = document.getElementById("drawerBackdrop");
-    if(drawer) drawer.classList.toggle("open");
-    if(backdrop) backdrop.classList.toggle("show");
+    const open = drawer ? drawer.classList.toggle("open") : false;
+    if(backdrop) backdrop.classList.toggle("show", open);
+    document.body.classList.toggle("drawer-open", open);
   } else if(action === "close-drawer"){
     const drawer = document.getElementById("mobileDrawer");
     const backdrop = document.getElementById("drawerBackdrop");
     if(drawer) drawer.classList.remove("open");
     if(backdrop) backdrop.classList.remove("show");
+    document.body.classList.remove("drawer-open");
   } else if(action === "toggle-search"){
     const topbar = trigger.closest(".topbar");
     if(!topbar) return;
@@ -132,6 +134,7 @@ function onClick(e){
     const backdrop = document.getElementById("drawerBackdrop");
     if(drawer) drawer.classList.remove("open");
     if(backdrop) backdrop.classList.remove("show");
+    document.body.classList.remove("drawer-open");
   }
 }
 

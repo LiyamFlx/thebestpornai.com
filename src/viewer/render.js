@@ -20,7 +20,7 @@ import { renderHome } from "./pages/home.js";
 import { renderWatch } from "./pages/watch.js";
 import { renderMovieDetail } from "./pages/movie.js";
 import { renderCreatorPage } from "./pages/creator.js";
-import { renderFeed, attachFeedObserver, attachFeedWindowObserver } from "./pages/feed.js";
+import { renderFeed, attachFeedObserver } from "./pages/feed.js";
 import { refreshChipRows } from "./mobile-chrome.js";
 import { resetGridWindow, observeSentinels, setGridAppendHook } from "./grid-window.js";
 import {
@@ -60,7 +60,6 @@ export function render(){
   attachHoverPreview();
   if (p === "feed") {
     attachFeedObserver();
-    attachFeedWindowObserver();
   }
 
   const pending = takePendingHydrate();
