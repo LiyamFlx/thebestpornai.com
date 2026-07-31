@@ -581,23 +581,46 @@ table.data tr:hover td{background:var(--surface2)}
 .creator-link{cursor:pointer;transition:.15s}
 .creator-link:hover{color:var(--accent2);text-decoration:underline}
 
-/* Creator profile page */
+/* Creator profile page.
+   .creator-page-top wraps banner + avatar so the avatar can overlap the
+   banner's bottom edge via absolute positioning (both live in the same
+   stacking context, avatar always on top). The old approach pulled a
+   separate, transparent-background .creator-page-header up over the banner
+   with a negative margin — since the avatar's own bounding box is a square
+   with a circular *visual*, its transparent corners let the banner glow show
+   through as a small stray red smudge next to the avatar. Absolute
+   positioning inside one wrapper has no such gap: the avatar is real DOM
+   painted directly over the banner, corners included. */
 .creator-page{padding-bottom:32px}
+.creator-page-top{position:relative;margin-bottom:40px}
 .creator-page-banner{
-  height:160px;border-radius:16px;margin-bottom:0;position:relative;overflow:hidden;
-  background:
+  height:160px;border-radius:16px;overflow:hidden;
+  background-size:cover;background-position:center;
+  background-color:#1a0a0a;
+  background-image:
     radial-gradient(120% 180% at 15% 0%, rgba(229,9,20,0.35), transparent 60%),
     linear-gradient(135deg,#2A0307,#1a0a0a,#0A0A0A);
 }
-.creator-page-header{display:flex;align-items:flex-end;gap:20px;padding:0 20px;margin-top:-40px;margin-bottom:24px;flex-wrap:wrap}
+/* When a real thumb is used as channel art, the two gradients above layer on
+   top of it (radial glow + a soft dark base) so the avatar/edges stay legible
+   over any source image, and it also fades toward the bottom-left corner
+   where the avatar sits. */
+.creator-page-banner.has-img{
+  background-image:
+    linear-gradient(100deg, rgba(10,10,10,.55) 0%, rgba(10,10,10,.15) 45%, rgba(10,10,10,.4) 100%),
+    linear-gradient(0deg, rgba(10,10,10,.75) 0%, transparent 55%),
+    var(--creator-banner-img, none);
+}
 .creator-page-avatar{
+  position:absolute;left:20px;bottom:-32px;z-index:2;
   width:80px;height:80px;border-radius:50%;flex:none;
   background:linear-gradient(135deg,var(--accent),#7A0008);
   display:flex;align-items:center;justify-content:center;
-  font-weight:800;font-size:28px;border:3px solid var(--bg);
-  box-shadow:0 2px 12px rgba(0,0,0,0.5);
+  font-weight:800;font-size:28px;border:4px solid var(--bg);
+  box-shadow:0 4px 16px rgba(0,0,0,0.5);
 }
-.creator-page-info{flex:1;min-width:0;padding-top:44px}
+.creator-page-header{display:flex;align-items:center;gap:16px;padding:0 20px 0 120px;margin-bottom:24px;flex-wrap:wrap}
+.creator-page-info{flex:1;min-width:0}
 .creator-page-name{margin:0 0 4px;font-size:22px;font-weight:800}
 .creator-bio{font-size:13px;color:var(--muted);margin:8px 0 0;line-height:1.6;max-width:500px}
 
@@ -1556,10 +1579,10 @@ iframe.player{object-fit:contain}
   .card:hover{transform:none}
 
   /* ---- Creator page ---- */
+  .creator-page-top{margin-bottom:32px}
   .creator-page-banner{height:100px;border-radius:12px}
-  .creator-page-header{gap:12px;margin-top:-28px;margin-bottom:18px}
-  .creator-page-avatar{width:64px;height:64px;font-size:22px;border-width:2px}
-  .creator-page-info{padding-top:28px}
+  .creator-page-avatar{width:64px;height:64px;font-size:22px;border-width:3px;left:16px;bottom:-24px}
+  .creator-page-header{gap:10px;margin-bottom:18px;padding:0 20px 0 96px}
   .creator-page-name{font-size:18px}
   .creator-bio{font-size:12.5px;max-width:100%}
   .creator-page-header .subscribe-btn{flex:1 1 100%;justify-content:center}
