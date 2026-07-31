@@ -498,11 +498,16 @@ function jsonLdForIndex(sorted) {
 
 function renderIndex() {
   const sorted = [...POSTS].sort((a, b) => new Date(b.date) - new Date(a.date));
-  const featured = sorted[0];
-  const rest = sorted.slice(1);
+  // Featured hero prefers the newest narrative/erotica post over the newest
+  // Guides post — Guides are dry comparison/SEO content, a tone mismatch for
+  // the homepage's single hero slot. Falls back to the newest post overall
+  // if every post happens to be a Guide (shouldn't happen in practice, but
+  // the hero must never be empty).
+  const featured = sorted.find((p) => p.category !== "Guides") || sorted[0];
+  const rest = sorted.filter((p) => p !== featured);
   const cover = postCoverUrl(featured);
   const jsonLd = jsonLdForIndex(sorted);
-  const categories = ["All", "Stories", "Fantasies", "Confessions", "Kink Lab"];
+  const categories = ["All", "Stories", "Fantasies", "Confessions", "Kink Lab", "Guides"];
 
   const staticCards = rest.map((p, i) => postCardHtml(p, { eager: i < 3 })).join("");
   const allLinks = sorted
