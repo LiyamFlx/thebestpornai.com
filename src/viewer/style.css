@@ -160,8 +160,11 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
 .sub{color:var(--muted);font-size:13px;margin:0 0 18px}
 .small{font-size:11px;color:var(--muted)}
 
-/* Cards / grid */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+/* Cards / grid. align-items:start overrides CSS Grid's default stretch —
+   same reasoning as .row-scroll below: without it every card in a grid row
+   is forced to match its tallest sibling, showing as blank space under a
+   shorter card's tags instead of each card sizing to its own content. */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;align-items:start}
 /* .video-list: single-purpose row cards (thumb full-width on top, a small
    creator avatar + two-line identity block below) — used by Home's default
    feed, Search results, Subscriptions, and a channel's "All Videos" list on
@@ -172,7 +175,7 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
 /* gap matches .grid above — both are a plain multi-column grid of the same
    videoCard() component on desktop (only the minmax breakpoint differs);
    a 20px/16px split here had drifted apart with no design reason for it. */
-.video-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.video-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;align-items:start}
 .video-list .video-thumb{height:auto;aspect-ratio:16/9;margin-bottom:0}
 /* Row-layout card identity block (top-row + title, no avatar — scoped to
    .card-text, not .video-list, so it applies to ANY layout:'row' card
@@ -195,7 +198,13 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
      which is the main cause of scroll jank / "stuck scrolling" on mobile. The
      intrinsic-size hint keeps the scrollbar stable while rows are collapsed. */
   content-visibility:auto;contain-intrinsic-size:auto 300px;
-  overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+  overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
+  /* Flex's default align-items:stretch forces every card in the row to match
+     the tallest one — including cards further along the horizontal scroll
+     that aren't even visible yet. That's what produced a big blank gap under
+     the tags on short-content cards. align-items:flex-start lets each card
+     size to its own content instead. */
+  align-items:flex-start}
 .row-scroll .card{min-width:220px}
 
 /* Top Creators row: circular avatars with a gradient ring, matching the
@@ -829,7 +838,11 @@ iframe.player{object-fit:contain}
 /* Clickable tag chips under video cards — tight under the title, not pushed
    to the card's bottom edge; a stretched grid row just leaves blank space
    below the whole card instead of a gap between visible content. */
-.tag-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+/* nowrap+overflow:hidden guarantees one line every time instead of an
+   uneven wrap to a second row — any tag that doesn't fit is clipped rather
+   than pushing the card taller. Paired with the wider mobile row-scroll
+   card below, this fits the usual 2-3 short tags with room to spare. */
+.tag-chips{display:flex;flex-wrap:nowrap;overflow:hidden;gap:6px;margin-top:8px}
 /* padding:3px 8px (≈18px tall) was well under any touch-target guideline on
    the single most commonly-rendered interactive element on the site's
    mobile surfaces (every video card, every list). Bumped to a still-compact
@@ -1398,8 +1411,10 @@ iframe.player{object-fit:contain}
     display: none;
   }
   .row-scroll .card {
-    width: calc(85vw - 20px);
-    max-width: 310px;
+    /* Widened from 85vw/310px so 2-3 short tag chips reliably fit on one
+       line at the tag-chips padding needed for a real touch target. */
+    width: calc(90vw - 20px);
+    max-width: 340px;
     flex: 0 0 auto;
     scroll-snap-align: start;
     scroll-snap-stop: always;
