@@ -164,7 +164,12 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
    same reasoning as .row-scroll below: without it every card in a grid row
    is forced to match its tallest sibling, showing as blank space under a
    shorter card's tags instead of each card sizing to its own content. */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;align-items:start}
+/* minmax bumped 220->250: at 220px a card only has ~60px per tag column
+   after padding/gaps, so most real tags (avg 7-9 chars) needed the ellipsis
+   fallback below even on desktop. 250px gives each of the 3 tag columns
+   enough room to show typical tags in full, with ellipsis remaining as the
+   fallback for genuinely long ones instead of the common case. */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;align-items:start}
 /* .video-list: single-purpose row cards (thumb full-width on top, a small
    creator avatar + two-line identity block below) — used by Home's default
    feed, Search results, Subscriptions, and a channel's "All Videos" list on
@@ -205,7 +210,7 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
      the tags on short-content cards. align-items:flex-start lets each card
      size to its own content instead. */
   align-items:flex-start}
-.row-scroll .card{min-width:220px}
+.row-scroll .card{min-width:250px}
 
 /* Top Creators row: circular avatars with a gradient ring, matching the
    Netflix/YouTube "creator carousel" pattern. */
@@ -838,19 +843,23 @@ iframe.player{object-fit:contain}
 /* Clickable tag chips under video cards — tight under the title, not pushed
    to the card's bottom edge; a stretched grid row just leaves blank space
    below the whole card instead of a gap between visible content. */
-/* nowrap+overflow:hidden guarantees one line every time instead of an
-   uneven wrap to a second row — any tag that doesn't fit is clipped rather
-   than pushing the card taller. Paired with the wider mobile row-scroll
-   card below, this fits the usual 2-3 short tags with room to spare. */
-.tag-chips{display:flex;flex-wrap:nowrap;overflow:hidden;gap:6px;margin-top:8px}
+/* 3 equal-width columns instead of a nowrap flex row: with flex+overflow:hidden,
+   a tag that didn't quite fit the card was hard-clipped mid-character at the
+   container edge (e.g. "#Amate…" cut off with no rounded end) — it looked
+   broken, not "truncated". A grid gives each of the up-to-3 chips a fixed
+   1/3-width slot every time regardless of card width, and each chip truncates
+   its own text with an ellipsis instead of the row being clipped from outside. */
+.tag-chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:8px}
 /* padding:3px 8px (≈18px tall) was well under any touch-target guideline on
    the single most commonly-rendered interactive element on the site's
    mobile surfaces (every video card, every list). Bumped to a still-compact
-   but real ~28px tap height. */
+   but real ~28px tap height. Horizontal padding trimmed to 6px (was 8px) to
+   give each 1/3-width column more room for the tag text itself. */
 .tag-chips .tag-chip{
   background:var(--surface2);border:1px solid transparent;color:var(--muted);
-  font-size:10.5px;font-weight:500;padding:7px 10px;border-radius:999px;
+  font-size:10px;font-weight:500;padding:7px 6px;border-radius:999px;
   cursor:pointer;transition:.15s;line-height:1.2;
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;
 }
 .tag-chips .tag-chip:hover{color:#fff;background:var(--accent);border-color:transparent}
 .related-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
