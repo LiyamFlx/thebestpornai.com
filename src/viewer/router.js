@@ -24,6 +24,24 @@ export function setHash(h){
   setTimeout(()=>_suppressHash=false, 0);
 }
 
+/* Accept legacy / external links that use ?video=N (blog CTAs used this before
+   hash routing was the only path). Promote to #video/N so the rest of the
+   router + share URLs stay consistent. */
+export function promoteVideoQuery(){
+  try {
+    const q = new URLSearchParams(location.search).get("video");
+    if(!q) return;
+    const id = Number(q);
+    if(!Number.isFinite(id)) return;
+    // Only rewrite when there's no explicit hash yet (don't clobber deep links).
+    if(location.hash && location.hash !== "#") return;
+    const url = new URL(location.href);
+    url.searchParams.delete("video");
+    url.hash = "video/" + id;
+    history.replaceState(null, "", url.pathname + url.search + url.hash);
+  } catch(_){}
+}
+
 export function applyHash(){
   const h=(location.hash||"").replace(/^#/,"");
   const m=h.match(/^video\/(\d+)$/);

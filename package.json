@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/gen-blog-posts.js && vite build",
+    "build": "node scripts/gen-blog-posts.js && node scripts/gen-sitemap.js && vite build",
     "gen-blog": "node scripts/gen-blog-posts.js",
+    "gen-all": "node scripts/gen-blog-posts.js && node scripts/gen-sitemap.js",
     "preview": "vite preview",
     "sync-media": "node scripts/upload-catalog-to-r2.js",
     "posters": "node scripts/gen-posters.js",
