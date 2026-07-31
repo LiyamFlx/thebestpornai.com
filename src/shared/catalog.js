@@ -28,6 +28,9 @@ function esc(s){
 /* Look up a creator's display name by id. */
 function creatorName(id){ const c = DATA.creators.find(x=>x.id===id); return c?c.name:"Unknown"; }
 
+/* Whether a creator has the verified badge. */
+function creatorVerified(id){ const c = DATA.creators.find(x=>x.id===id); return !!(c && c.verified); }
+
 /* Format a number compactly: 1.2M / 3.4K / 567. */
 function fmt(n){ return n>=1000000 ? (n/1000000).toFixed(1)+"M" : n>=1000 ? (n/1000).toFixed(1)+"K" : ""+n; }
 
@@ -229,4 +232,4 @@ function loadFullCatalog(){
   return _fullCatalogPromise;
 }
 
-export { MEDIA_BASE, DATA, esc, creatorName, fmt, toast, mediaUrl, ytId, loadFullCatalog };
+export { MEDIA_BASE, DATA, esc, creatorName, creatorVerified, fmt, toast, mediaUrl, ytId, loadFullCatalog };
