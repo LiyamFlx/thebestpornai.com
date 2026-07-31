@@ -56,11 +56,78 @@ function videoWatchUrl(id) {
 function formatDate(iso) {
   const d = new Date(iso + "T00:00:00Z");
   return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+function formatDateLong(iso) {
+  const d = new Date(iso + "T00:00:00Z");
+  return d.toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",
     timeZone: "UTC",
   });
+}
+
+function fmtViews(n) {
+  n = Number(n) || 0;
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+  if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
+  return String(n);
+}
+
+function siteHeader({ mode = "index" } = {}) {
+  const search =
+    mode === "index"
+      ? `
+      <div class="blog-search-wrap" id="blog-search-wrap">
+        <input class="blog-search-input" id="blog-search-input" type="search" placeholder="Search stories…" aria-label="Search posts"/>
+      </div>
+      <button class="blog-icon-btn" id="blog-search-toggle" aria-label="Search" aria-expanded="false" type="button">⌕</button>`
+      : "";
+  return `
+<header class="blog-topbar">
+  <div class="blog-topbar-inner">
+    <a class="blog-logo" href="/">
+      <img src="/src/shared/assets/favicon-64.png" width="28" height="28" alt=""/>
+      <span>thebestpornai</span>
+    </a>
+    <nav class="blog-topnav" aria-label="Primary">
+      <a href="/blog/" class="${mode === "index" ? "is-active" : ""}">Blog</a>
+      <a href="/">Watch</a>
+      <a href="/blog/rss.xml">RSS</a>
+    </nav>
+    <div class="blog-topbar-actions">
+      ${search}
+      <a class="blog-cta-watch" href="/">Watch Now</a>
+    </div>
+  </div>
+</header>`;
+}
+
+function siteFooter() {
+  return `
+<footer class="blog-footer">
+  <div class="blog-shell">
+    <div class="blog-footer-brand">thebestpornai</div>
+    <div class="blog-footer-links">
+      <a href="/blog/">Blog</a>
+      <a href="/blog/rss.xml">RSS</a>
+      <a href="/">Watch</a>
+      <a href="/legal/terms.html">Terms</a>
+      <a href="/legal/privacy.html">Privacy</a>
+      <a href="/legal/2257.html">2257</a>
+      <a href="/legal/dmca.html">DMCA</a>
+      <a href="mailto:contact@thebestpornai.com">Contact</a>
+    </div>
+    <p class="blog-footer-copy">© 2026 THEBESTPORNAI. Read the fantasy. Watch the real thing.</p>
+    <p class="blog-footer-age">18+ ONLY · Adult content · By entering you confirm you are of legal age</p>
+  </div>
+</footer>`;
 }
 
 function plainText(html) {
@@ -92,8 +159,7 @@ function postUrl(post) {
 
 const ICON_CLOCK = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
 const ICON_CALENDAR = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="1.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>`;
-const ICON_TAG = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12 12 4H4v8l8 8 8-8Z"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/></svg>`;
-const ICON_PLAY = `<svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.92)" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.4)"/><path d="M9.5 8v8l7-4-7-4Z"/></svg>`;
+const ICON_PLAY = `<svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.92)" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.45)"/><path d="M9.5 8v8l7-4-7-4Z"/></svg>`;
 
 function postCardHtml(post, { eager = false } = {}) {
   const cover = postCoverUrl(post);
@@ -101,19 +167,18 @@ function postCardHtml(post, { eager = false } = {}) {
   return `
     <a class="blog-card" href="/blog/${esc(post.slug)}.html" data-category="${esc(post.category)}" data-slug="${esc(post.slug)}">
       <div class="blog-card-media">
-        <img src="${esc(cover)}" alt="${esc(post.title)}" loading="${loading}" width="780" height="440"/>
+        <img src="${esc(cover)}" alt="${esc(post.title)}" loading="${loading}" width="640" height="400" decoding="async"/>
         <span class="blog-card-pill">${esc(post.category)}</span>
       </div>
-      <h3 class="blog-card-title">${esc(post.title)}</h3>
-      <p class="blog-card-excerpt">${esc(post.excerpt)}</p>
-      <div class="blog-card-meta">
-        <span>${ICON_CLOCK}${post.readMins} min read</span>
-        <span class="dot"></span>
-        <span>${ICON_TAG}${esc(post.category)}</span>
-        <span class="dot"></span>
-        <span>${ICON_CALENDAR}${esc(formatDate(post.date))}</span>
+      <div class="blog-card-body">
+        <h3 class="blog-card-title">${esc(post.title)}</h3>
+        <p class="blog-card-excerpt">${esc(post.excerpt)}</p>
+        <div class="blog-card-meta">
+          <span>${ICON_CALENDAR}${esc(formatDate(post.date))}</span>
+          <span class="dot"></span>
+          <span>${ICON_CLOCK}${post.readMins} min</span>
+        </div>
       </div>
-      <span class="blog-card-read">Read the fantasy →</span>
     </a>
   `;
 }
@@ -122,14 +187,19 @@ function videoCardHtml(videoId) {
   const v = findVideo(videoId);
   if (!v) return "";
   const thumb = v.thumb ? mediaUrl(v.thumb) : "";
+  const views = typeof v.views === "number" ? fmtViews(v.views) + " views" : "";
   return `
     <a class="blog-video-card" href="${videoWatchUrl(v.id)}">
       <div class="blog-video-card-media">
-        ${thumb ? `<img src="${esc(thumb)}" alt="${esc(v.title)}" loading="lazy" />` : `<div class="blog-video-card-ph"></div>`}
+        ${thumb ? `<img src="${esc(thumb)}" alt="${esc(v.title)}" loading="lazy" width="640" height="360" decoding="async"/>` : `<div class="blog-video-card-ph"></div>`}
         <div class="blog-video-card-play">${ICON_PLAY}</div>
         ${v.duration ? `<span class="blog-video-card-duration">${esc(v.duration)}</span>` : ""}
       </div>
-      <div class="blog-video-card-title">${esc(v.title)}</div>
+      <div class="blog-video-card-body">
+        <span class="blog-video-card-label">Watch on thebestpornai</span>
+        <div class="blog-video-card-title">${esc(v.title)}</div>
+        <div class="blog-video-card-meta">${[views, v.duration].filter(Boolean).join(" · ")}</div>
+      </div>
     </a>
   `;
 }
@@ -282,113 +352,97 @@ function renderPost(post) {
 ${JSON.stringify(jsonLd, null, 2)}
 </script>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' https:; frame-src 'none';">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/src/shared/theme.css"/>
 </head>
 <body class="blog-body">
-<header class="blog-topbar">
-  <div class="blog-topbar-inner">
-    <a class="blog-back" href="/blog/">← Back to Blog</a>
-    <a class="blog-logo" href="/blog/"><span>thebestpornai</span></a>
+${siteHeader({ mode: "post" })}
+
+<main>
+  <div class="blog-read">
+    <nav class="blog-breadcrumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a><span aria-hidden="true">/</span>
+      <a href="/blog/">Blog</a><span aria-hidden="true">/</span>
+      <span aria-current="page">${esc(post.category)}</span>
+    </nav>
   </div>
-</header>
 
-<nav class="blog-breadcrumbs blog-container" aria-label="Breadcrumb">
-  <a href="/">Home</a><span aria-hidden="true">/</span>
-  <a href="/blog/">Blog</a><span aria-hidden="true">/</span>
-  <span aria-current="page">${esc(post.category)}</span>
-</nav>
-
-<section class="blog-post-hero">
-  <div class="blog-post-hero-img" style="background-image:url('${esc(cover)}')" role="img" aria-label="${esc(post.title)}"></div>
-  <div class="blog-post-hero-overlay">
-    <div class="blog-post-hero-inner">
-      <span class="blog-article-eyebrow">${esc(post.category)}</span>
-      <h1 class="blog-article-title">${esc(post.title)}</h1>
+  <header class="blog-post-hero">
+    <div class="blog-post-hero-frame">
+      <div class="blog-post-hero-img" style="background-image:url('${esc(cover)}')" role="img" aria-label="${esc(post.title)}"></div>
+      <div class="blog-post-hero-shade" aria-hidden="true"></div>
     </div>
-  </div>
-</section>
+  </header>
 
-<main class="blog-container">
-  <article class="blog-article" itemscope itemtype="https://schema.org/BlogPosting">
-    <p class="blog-article-microcopy">${esc(post.microcopy)}</p>
-    <div class="blog-article-meta">
-      <span>${ICON_CLOCK}${post.readMins} min read · ${words} words</span>
-      <span class="dot"></span>
-      <span>By <a href="${esc(BLOG_AUTHOR.url)}">${esc(BLOG_AUTHOR.name)}</a></span>
-      <span class="dot"></span>
-      <span>${ICON_CALENDAR}<time datetime="${esc(post.date)}">${esc(formatDate(post.date))}</time></span>
-    </div>
-    ${shareHtml(post)}
-    <div class="blog-article-body" itemprop="articleBody">
-      ${post.body}
-    </div>
-    <div class="blog-article-cta-wrap">
-      <a class="blog-cta blog-cta-primary" href="${videoWatchUrl(primaryVideo)}">Watch this exact fantasy →</a>
-      <a class="blog-cta blog-cta-ghost" href="/blog/">More stories</a>
-    </div>
-  </article>
-
-  ${faqHtml(post.faqs)}
-
-  ${
-    related.length
-      ? `
-  <section class="blog-related">
-    <h2>Ready to watch the real thing?</h2>
-    <p class="blog-related-sub">Companion clips from the thebestpornai catalog — opens the main player.</p>
-    <div class="blog-related-grid">
-      ${related.map(videoCardHtml).join("")}
-    </div>
-  </section>
-  `
-      : ""
-  }
-
-  ${
-    relatedPosts.length
-      ? `
-  <section class="blog-related">
-    <h2>Related stories</h2>
-    <div class="blog-related-posts">
-      ${relatedPosts.map((p) => postCardHtml(p)).join("")}
-    </div>
-  </section>
-  `
-      : ""
-  }
-
-  ${prevNextHtml(post)}
-
-  <section class="blog-confession">
-    <h3>Anonymous confession</h3>
-    <p>Tell us what you can't tell anyone else. Submissions are sent privately to our editorial inbox — no account required. Don't name real people without consent.</p>
-    <form id="blog-confession-form" action="mailto:contact@thebestpornai.com?subject=Blog%20confession" method="post" enctype="text/plain">
-      <div class="blog-confession-field">
-        <label class="blog-confession-label" for="blog-confession-input">Your confession</label>
-        <textarea id="blog-confession-input" name="body" placeholder="Type your confession…" maxlength="2000" required></textarea>
+  <div class="blog-read">
+    <article class="blog-article" itemscope itemtype="https://schema.org/BlogPosting">
+      <span class="blog-article-pill">${esc(post.category)}</span>
+      <h1 class="blog-article-title" itemprop="headline">${esc(post.title)}</h1>
+      <p class="blog-article-microcopy">${esc(post.microcopy)}</p>
+      <div class="blog-article-meta">
+        <span>By <a href="${esc(BLOG_AUTHOR.url)}" rel="author">${esc(BLOG_AUTHOR.name)}</a></span>
+        <span class="dot"></span>
+        <span>${ICON_CLOCK}${post.readMins} min read</span>
+        <span class="dot"></span>
+        <span>${ICON_CALENDAR}<time datetime="${esc(post.date)}" itemprop="datePublished">${esc(formatDateLong(post.date))}</time></span>
       </div>
-      <button type="submit" class="blog-cta blog-confession-submit" id="blog-confession-submit">Send confession</button>
-      <p class="blog-confession-note">Opens your email client with the message ready. Nothing is stored in the browser beyond what you type.</p>
-    </form>
-  </section>
+      ${shareHtml(post)}
+      <div class="blog-article-body" itemprop="articleBody">
+        ${post.body}
+      </div>
+      <div class="blog-article-cta-wrap">
+        <a class="blog-cta blog-cta-primary" href="${videoWatchUrl(primaryVideo)}">Watch this fantasy →</a>
+        <a class="blog-cta blog-cta-ghost" href="/blog/">More stories</a>
+      </div>
+    </article>
+
+    ${faqHtml(post.faqs)}
+
+    ${
+      related.length
+        ? `
+    <section class="blog-related" aria-labelledby="watch-heading">
+      <h2 id="watch-heading">Ready to watch the real thing?</h2>
+      <p class="blog-related-sub">Companion clips from the thebestpornai catalog — opens the main player.</p>
+      <div class="blog-related-grid">
+        ${related.map(videoCardHtml).join("")}
+      </div>
+    </section>
+    `
+        : ""
+    }
+
+    ${
+      relatedPosts.length
+        ? `
+    <section class="blog-related" aria-labelledby="related-heading">
+      <h2 id="related-heading">Related stories</h2>
+      <div class="blog-related-posts">
+        ${relatedPosts.map((p) => postCardHtml(p)).join("")}
+      </div>
+    </section>
+    `
+        : ""
+    }
+
+    ${prevNextHtml(post)}
+
+    <section class="blog-confession">
+      <h3>Anonymous confession</h3>
+      <p>Tell us what you can't tell anyone else. Opens your email client — no account required. Don't name real people without consent.</p>
+      <form id="blog-confession-form" action="mailto:contact@thebestpornai.com?subject=Blog%20confession" method="post" enctype="text/plain">
+        <div class="blog-confession-field">
+          <label class="blog-confession-label" for="blog-confession-input">Your confession</label>
+          <textarea id="blog-confession-input" name="body" placeholder="Type your confession…" maxlength="2000" required></textarea>
+        </div>
+        <button type="submit" class="blog-cta blog-cta-primary blog-confession-submit" id="blog-confession-submit">Send confession</button>
+        <p class="blog-confession-note">Nothing is stored in the browser beyond what you type.</p>
+      </form>
+    </section>
+  </div>
 </main>
 
-<footer class="blog-footer">
-  <div class="blog-container">
-    <div class="blog-footer-brand">thebestpornai</div>
-    <div class="blog-footer-links">
-      <a href="/blog/">Blog</a>
-      <a href="/blog/rss.xml">RSS</a>
-      <a href="/">Watch</a>
-      <a href="/legal/terms.html">Terms</a>
-      <a href="/legal/privacy.html">Privacy</a>
-      <a href="/legal/2257.html">2257</a>
-      <a href="mailto:contact@thebestpornai.com">Contact</a>
-    </div>
-    <p class="blog-footer-copy">© 2026 THEBESTPORNAI. UNAPOLOGETIC PERFORMANCE.</p>
-  </div>
-</footer>
+${siteFooter()}
 
 <script type="module" src="/src/blog/post-render.js"></script>
 </body>
@@ -448,12 +502,14 @@ function renderIndex() {
   const rest = sorted.slice(1);
   const cover = postCoverUrl(featured);
   const jsonLd = jsonLdForIndex(sorted);
-  const categories = ["Stories", "Fantasies", "Confessions", "Kink Lab"];
+  const categories = ["All", "Stories", "Fantasies", "Confessions", "Kink Lab"];
 
-  // Static crawler list (also used as no-JS fallback); feed.js enhances.
-  const staticCards = rest.map((p, i) => postCardHtml(p, { eager: i < 2 })).join("");
+  const staticCards = rest.map((p, i) => postCardHtml(p, { eager: i < 3 })).join("");
   const allLinks = sorted
-    .map((p) => `<li><a href="/blog/${esc(p.slug)}.html">${esc(p.title)}</a> — ${esc(p.category)} · ${esc(p.date)}</li>`)
+    .map(
+      (p) =>
+        `<li><a href="/blog/${esc(p.slug)}.html">${esc(p.title)}</a> — ${esc(p.category)} · ${esc(formatDate(p.date))}</li>`
+    )
     .join("\n");
 
   return `<!DOCTYPE html>
@@ -483,34 +539,25 @@ function renderIndex() {
 ${JSON.stringify(jsonLd, null, 2)}
 </script>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' https:; frame-src 'none';">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/src/shared/theme.css"/>
 </head>
 <body class="blog-body">
-<header class="blog-topbar">
-  <div class="blog-topbar-inner">
-    <a class="blog-logo" href="/blog/">
-      <img src="/src/shared/assets/favicon-64.png" alt="thebestpornai"/>
-      <span>thebestpornai</span>
-    </a>
-    <div class="blog-topbar-actions">
-      <div class="blog-search-wrap" id="blog-search-wrap">
-        <input class="blog-search-input" id="blog-search-input" type="search" placeholder="Search fantasies…" aria-label="Search posts"/>
-      </div>
-      <button class="blog-icon-btn" id="blog-search-toggle" aria-label="Search" aria-expanded="false" type="button">⌕</button>
-      <a href="/blog/rss.xml" class="blog-icon-btn" aria-label="RSS feed" title="RSS">RSS</a>
-      <a href="/" class="blog-icon-btn" aria-label="Back to site">⟵ Site</a>
-    </div>
-  </div>
-</header>
+${siteHeader({ mode: "index" })}
 
-<main class="blog-container">
+<main class="blog-shell">
+  <header class="blog-masthead">
+    <h1>Editorial</h1>
+    <p>Cinematic adult stories, AI fantasies, confessions &amp; kink craft — then stream the matching scenes on thebestpornai.</p>
+  </header>
+
   <nav class="blog-pillnav" id="blog-pillnav" aria-label="Blog categories">
     ${categories
-      .map(
-        (cat) =>
-          `<button type="button" class="blog-pill" data-category="${esc(cat)}">${esc(cat.toUpperCase())}</button>`
-      )
+      .map((cat) => {
+        const active = cat === "All" ? " active" : "";
+        const data = cat === "All" ? "all" : cat;
+        return `<button type="button" class="blog-pill${active}" data-category="${esc(data)}">${esc(cat)}</button>`;
+      })
       .join("")}
   </nav>
 
@@ -518,13 +565,13 @@ ${JSON.stringify(jsonLd, null, 2)}
     <a href="/blog/${esc(featured.slug)}.html" class="blog-hero">
       <div class="blog-hero-img" style="background-image:url('${esc(cover)}')"></div>
       <div class="blog-hero-overlay">
-        <span class="blog-hero-eyebrow">Featured · ${esc(featured.category)}</span>
-        <h1 class="blog-hero-title">${esc(featured.title)}</h1>
+        <span class="blog-hero-eyebrow">${esc(featured.category)}</span>
+        <h2 class="blog-hero-title">${esc(featured.title)}</h2>
         <p class="blog-hero-excerpt">${esc(featured.excerpt)}</p>
         <div class="blog-hero-footer">
-          <span class="blog-cta">Read the fantasy</span>
+          <span class="blog-cta blog-cta-primary">Read story</span>
           <div class="blog-hero-meta">
-            <span>${ICON_CLOCK}${featured.readMins} min read</span>
+            <span>${ICON_CLOCK}${featured.readMins} min</span>
             <span class="dot"></span>
             <span>${ICON_CALENDAR}${esc(formatDate(featured.date))}</span>
           </div>
@@ -533,9 +580,9 @@ ${JSON.stringify(jsonLd, null, 2)}
     </a>
   </div>
 
-  <div class="blog-section-title">
+  <div class="blog-section-head">
     <h2>Latest desires</h2>
-    <div class="blog-section-rule"></div>
+    <div class="blog-section-rule" aria-hidden="true"></div>
   </div>
 
   <div class="blog-cards" id="blog-cards">
@@ -543,12 +590,9 @@ ${JSON.stringify(jsonLd, null, 2)}
   </div>
 
   <div class="blog-loadmore-wrap">
-    <button class="blog-loadmore" id="blog-loadmore" type="button" hidden>
-      Load more fantasies
-    </button>
+    <button class="blog-loadmore" id="blog-loadmore" type="button" hidden>Load more</button>
   </div>
 
-  <!-- Always in the document for crawlers / no-JS: full post index -->
   <section class="blog-crawl-index" aria-label="All blog posts">
     <h2>All posts</h2>
     <ol>
@@ -557,21 +601,7 @@ ${JSON.stringify(jsonLd, null, 2)}
   </section>
 </main>
 
-<footer class="blog-footer">
-  <div class="blog-container">
-    <div class="blog-footer-brand">thebestpornai</div>
-    <div class="blog-footer-links">
-      <a href="/blog/">Blog</a>
-      <a href="/blog/rss.xml">RSS</a>
-      <a href="/">Watch</a>
-      <a href="/legal/terms.html">Terms of Service</a>
-      <a href="/legal/privacy.html">Privacy Policy</a>
-      <a href="/legal/2257.html">2257 Compliance</a>
-      <a href="mailto:contact@thebestpornai.com">Contact</a>
-    </div>
-    <p class="blog-footer-copy">© 2026 THEBESTPORNAI. UNAPOLOGETIC PERFORMANCE.</p>
-  </div>
-</footer>
+${siteFooter()}
 
 <script type="module" src="/src/blog/feed.js"></script>
 </body>
