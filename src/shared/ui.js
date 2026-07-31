@@ -31,7 +31,7 @@ export function distRows(arr) {
    These depend on catalog helpers (esc, mediaUrl, ytId, creatorName, fmt).
    ============================================================ */
 
-import { esc, mediaUrl, ytId, creatorName, fmt } from './catalog.js';
+import { esc, mediaUrl, ytId, creatorName, creatorVerified, fmt } from './catalog.js';
 import { jsq } from '../viewer/util.js';
 
 /* Clickable tag chips. `stop` guards the parent card's onclick so tapping a tag
@@ -95,13 +95,22 @@ export function videoCard(v, opts={}){
   // working without modification.
   const isRow = opts.layout === 'row';
   const cName = creatorName(v.creator);
+  const isVerified = creatorVerified(v.creator);
+  // Creator (+ verified badge) on the left, views (+ eye icon) on the right,
+  // one row — then the title directly underneath. Same shape for every card
+  // regardless of row/grid layout, so cards read consistently site-wide
+  // instead of two different creator/views treatments.
+  const topRow = `<div class="card-top-row">
+      <span class="card-creator">${esc(cName)}${isVerified ? `<span class="card-verified" title="Verified"><svg class="ico"><use href="#icon-verified-check"/></svg></span>` : ''}</span>
+      <span class="card-views"><svg class="ico"><use href="#icon-eye"/></svg>${fmt(v.views)}</span>
+    </div>`;
   const metaBlock = isRow
     ? `<div class="card-text">
+        ${topRow}
         <div class="title">${esc(v.title)}</div>
-        <div class="meta"><span class="meta-creator">${esc(cName)}</span><span class="meta-stats">${fmt(v.views)} views</span></div>
       </div>`
-    : `<div class="title">${esc(v.title)}</div>
-      <div class="meta">${esc(cName)} • ${fmt(v.views)} views</div>`;
+    : `${topRow}
+      <div class="title">${esc(v.title)}</div>`;
   return `
     <article class="card${isRow ? ' card--row' : ''}" onclick="${opts.onClick || `openVideo(${v.id})`}">
       <div class="video-thumb ${v.type==='original'?'original':''}">
