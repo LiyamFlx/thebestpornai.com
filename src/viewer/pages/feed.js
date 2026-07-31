@@ -1,6 +1,6 @@
 import { DATA, esc, creatorName, fmt, mediaUrl } from "../../shared/catalog.js";
 import { pubVerticalVideos, creatorById } from "../catalog-queries.js";
-import { vstate } from "../state.js";
+import { vstate, markFeedWatched } from "../state.js";
 import { jsq } from "../util.js";
 import { renderCommentList, commentsFor } from "../comments.js";
 import { likeVideo, subscribe } from "../actions.js";
@@ -17,6 +17,33 @@ function isDataSaverMode(){
   return !!c.saveData || c.effectiveType === "slow-2g" || c.effectiveType === "2g";
 }
 
+function shuffle(list){
+  const a = list.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* pubVerticalVideos() itself is memoized on the catalog (same array/order
+   every call — deliberately, other callers may rely on that stability). The
+   feed's own presentation order is a separate concern: recomputed fresh
+   every time renderFeed() runs (i.e. every time the viewer navigates to the
+   Shorts tab), it shuffles so repeat visits aren't the same fixed order,
+   and puts videos the viewer hasn't actually watched yet (see
+   markFeedWatched()) ahead of ones they have — so new/unseen clips surface
+   first, with already-seen ones as shuffled filler at the end rather than
+   disappearing (the feed still needs enough content to keep scrolling once
+   everything's been seen once). */
+function orderedFeedVideos(){
+  const all = pubVerticalVideos();
+  const seen = new Set(vstate.feedWatched);
+  const unwatched = [], watched = [];
+  for(const v of all) (seen.has(v.id) ? watched : unwatched).push(v);
+  return shuffle(unwatched).concat(shuffle(watched));
+}
+
 export function toggleFeedMute(){
   feedMuted = !feedMuted;
   document.querySelectorAll(".feed-video").forEach(v => {
@@ -31,7 +58,7 @@ export function toggleFeedMute(){
 }
 
 export function renderFeed() {
-  const videos = pubVerticalVideos();
+  const videos = orderedFeedVideos();
   if (!videos.length) {
     return `<div class="empty">
       <div class="empty-emoji">📱</div>
@@ -218,6 +245,12 @@ export function attachFeedObserver() {
         });
       } else {
         if (videoEl) {
+          // Mark "watched" (for orderedFeedVideos()'s unwatched-first sort)
+          // only once real playback happened — a fast scroll-past shouldn't
+          // count the same as actually watching the clip.
+          const watchedEnough = videoEl.currentTime > 3 ||
+            (videoEl.duration && videoEl.currentTime / videoEl.duration >= 0.6);
+          if (watchedEnough && Number.isFinite(videoId)) markFeedWatched(videoId);
           videoEl.pause();
         }
       }
