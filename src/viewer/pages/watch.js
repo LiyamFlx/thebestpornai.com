@@ -12,6 +12,7 @@ import { vstate } from "../state.js";
 import { jsq } from "../util.js";
 import { pubVideos, trending, relatedTo, creatorById } from "../catalog-queries.js";
 import { renderCommentList, commentsFor } from "../comments.js";
+import { postsForVideoId } from "../../blog/posts.js";
 
 const MOBILE = "(max-width:760px)";
 const isMobile = () => !!(window.matchMedia && window.matchMedia(MOBILE).matches);
@@ -217,6 +218,13 @@ function creatorRow(c, hasCreator, subbed){
     </div>`;
 }
 
+function blogStoryChip(v){
+  const posts = postsForVideoId(v.id);
+  if(!posts.length) return "";
+  const p = posts[0];
+  return `<a class="watch-blog-chip" href="/blog/${esc(p.slug)}.html">📖 Story behind this scene</a>`;
+}
+
 function titleBlockMobile(v, catList, tagList){
   return `
     <div class="watch-title-block">
@@ -228,6 +236,7 @@ function titleBlockMobile(v, catList, tagList){
         <div class="stats-left"><span class="views-count" id="watchViewsCount">${fmt(v.views)} views</span><span class="dot-sep">•</span><span>${esc(v.uploaded)}</span></div>
         ${tagList.length ? `<div class="stats-tags">${tagList.slice(0,2).map(t=>`<span onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}</div>` : ''}
       </div>
+      ${blogStoryChip(v)}
       ${(catList.length || tagList.length || v.desc) ? `
       <div class="quick-desc-box" id="quickDescBox" hidden>
         ${v.desc ? `<p>${esc(v.desc)}</p>` : ''}
@@ -250,6 +259,7 @@ function metadataBlockDesktop(v, catList, tagList, live, hasCreator){
         </div>
         ${actionBar(v, live, hasCreator)}
       </div>
+      ${blogStoryChip(v)}
     </div>`;
 }
 

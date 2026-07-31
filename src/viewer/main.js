@@ -4,7 +4,7 @@ import { ageGate } from "../shared/age-gate.js";
 import { mergeLiveUploads } from "../upload/catalog-overlay.js";
 
 import { vstate } from "./state.js";
-import { applyHash, initRouter } from "./router.js";
+import { applyHash, initRouter, promoteVideoQuery } from "./router.js";
 import { render } from "./render.js";
 import {
   go,
@@ -54,7 +54,8 @@ import {
 if (typeof ShAuth !== "undefined") ShAuth.ensureFresh();
 ageGate();
 
-// Parse initial URL route on load
+// Parse initial URL route on load (?video=N from blog CTAs → #video/N first)
+promoteVideoQuery();
 applyHash();
 
 // Initialize router change listener
