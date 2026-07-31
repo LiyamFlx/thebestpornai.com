@@ -41,3 +41,5 @@ media/**/*.mkv
 missing-videos.json
 manifest.json
 src/shared/catalog.js.bak
+src/shared/catalog-videos.js.bak
+broken-videos.json
