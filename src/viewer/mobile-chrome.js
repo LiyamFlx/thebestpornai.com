@@ -124,25 +124,6 @@ function onClick(e){
     if(!wrap) return;
     const open = wrap.classList.toggle("open");
     trigger.setAttribute("aria-expanded", open ? "true" : "false");
-  } else if(action === "toggle-desc"){
-    const wrap = trigger.closest(".watch-desc-wrap");
-    if(!wrap) return;
-    const open = wrap.classList.toggle("expanded");
-    trigger.textContent = open ? "…less" : "…more";
-    trigger.setAttribute("aria-expanded", open ? "true" : "false");
-  } else if(action === "toggle-comments"){
-    const wrap = trigger.closest(".comment-list-wrap");
-    if(!wrap) return;
-    const open = wrap.classList.toggle("expanded");
-    // Label carries a dynamic count ("View all 47 comments"), so stash the
-    // original text on first expand rather than hardcoding it.
-    if(open){
-      trigger.dataset.origLabel = trigger.dataset.origLabel || trigger.textContent;
-      trigger.textContent = "Show less";
-    } else if(trigger.dataset.origLabel){
-      trigger.textContent = trigger.dataset.origLabel;
-    }
-    trigger.setAttribute("aria-expanded", open ? "true" : "false");
   }
   
   // Close drawer if clicking any navigation link inside mobile-drawer
