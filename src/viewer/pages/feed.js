@@ -124,7 +124,7 @@ function feedItemInner(d){
 
       <!-- Like Button -->
       <div class="feed-action">
-        <button class="feed-btn" onclick="likeVideo(${v.id})" aria-label="Like video"><svg class="ico"><use href="#icon-heart"/></svg></button>
+        <button class="feed-btn feed-like-btn" onclick="likeVideo(${v.id})" aria-label="Like video"><svg class="ico"><use href="#icon-heart"/></svg></button>
         <span class="feed-label" id="feedLike_${v.id}">${fmt(v.likes + live.like)}</span>
       </div>
 

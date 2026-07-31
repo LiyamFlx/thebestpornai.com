@@ -194,7 +194,10 @@ function vote(id, kind){
   if(kind==="like"){
     const feedLabel = document.getElementById("feedLike_"+id);
     if(feedLabel) feedLabel.textContent = val;
-    const feedBtn = document.querySelector(`.feed-item[data-video-id="${id}"] .feed-btn.liked, .feed-item[data-video-id="${id}"] button[onclick*="likeVideo(${id})"]`);
+    // A plain class selector here (not the onclick-attribute substring match
+    // this used to do) — that scanned every <button> in the DOM comparing
+    // attribute text, real avoidable work on a page with hundreds of cards.
+    const feedBtn = document.querySelector(`.feed-item[data-video-id="${id}"] .feed-like-btn`);
     if(feedBtn) feedBtn.classList.add("liked");
   }
 }
