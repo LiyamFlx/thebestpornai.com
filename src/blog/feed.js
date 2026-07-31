@@ -22,23 +22,23 @@ const rest = sorted.slice(1);
 function renderHero() {
   const el = document.getElementById("blog-hero");
   if (!el || !featured) return;
-  // Hub is prerendered with a static hero; only rebuild when filtering would
-  // hide the featured story's category (keep featured always visible).
+  // Hub is prerendered with a static featured post; only rebuild if needed
+  // (keep featured always visible regardless of active filter).
   el.innerHTML = `
-    <a href="/blog/${esc(featured.slug)}.html" class="blog-hero">
-      <div class="blog-hero-img" style="background-image:url('${postCoverUrl(featured)}')"></div>
-      <div class="blog-hero-overlay">
-        <span class="blog-hero-eyebrow">Featured · ${esc(featured.category)}</span>
-        <h1 class="blog-hero-title">${esc(featured.title)}</h1>
-        <p class="blog-hero-excerpt">${esc(featured.excerpt)}</p>
-        <div class="blog-hero-footer">
-          <span class="blog-cta">Read the fantasy</span>
-          <div class="blog-hero-meta">
-            <span>${ICON_CLOCK}${featured.readMins} min read</span>
-            <span class="dot"></span>
-            <span>${ICON_CALENDAR}${esc(formatDate(featured.date))}</span>
-          </div>
+    <a href="/blog/${esc(featured.slug)}.html" class="blog-featured">
+      <div class="blog-featured-media">
+        <img src="${postCoverUrl(featured)}" alt="${esc(featured.title)}" loading="eager" width="900" height="560"/>
+        <span class="blog-card-pill">${esc(featured.category)}</span>
+      </div>
+      <div class="blog-featured-body">
+        <h2 class="blog-featured-title">${esc(featured.title)}</h2>
+        <p class="blog-featured-excerpt">${esc(featured.excerpt)}</p>
+        <div class="blog-meta-row">
+          <span>${ICON_CLOCK}${featured.readMins} min read</span>
+          <span class="dot"></span>
+          <span>${ICON_CALENDAR}${esc(formatDate(featured.date))}</span>
         </div>
+        <span class="blog-card-read">Read the fantasy →</span>
       </div>
     </a>
   `;

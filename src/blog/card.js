@@ -18,7 +18,6 @@ export function postCoverUrl(post) {
 
 const ICON_CLOCK = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
 const ICON_CALENDAR = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="1.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>`;
-const ICON_TAG = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12 12 4H4v8l8 8 8-8Z"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/></svg>`;
 const ICON_PLAY = `<svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.92)" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.4)"/><path d="M9.5 8v8l7-4-7-4Z"/></svg>`;
 
 /* Renders a post card for the feed / related-posts sections. */
@@ -30,16 +29,16 @@ export function postCardHtml(post) {
         <img src="${esc(cover)}" alt="${esc(post.title)}" loading="lazy" />
         <span class="blog-card-pill">${esc(post.category)}</span>
       </div>
-      <h3 class="blog-card-title">${esc(post.title)}</h3>
-      <p class="blog-card-excerpt">${esc(post.excerpt)}</p>
-      <div class="blog-card-meta">
-        <span>${ICON_CLOCK}${post.readMins} min read</span>
-        <span class="dot"></span>
-        <span>${ICON_TAG}${esc(post.category)}</span>
-        <span class="dot"></span>
-        <span>${ICON_CALENDAR}${esc(formatDate(post.date))}</span>
+      <div class="blog-card-body">
+        <h3 class="blog-card-title">${esc(post.title)}</h3>
+        <p class="blog-card-excerpt">${esc(post.excerpt)}</p>
+        <div class="blog-card-meta">
+          <span>${ICON_CLOCK}${post.readMins} min read</span>
+          <span class="dot"></span>
+          <span>${ICON_CALENDAR}${esc(formatDate(post.date))}</span>
+        </div>
+        <span class="blog-card-read">Read the fantasy →</span>
       </div>
-      <span class="blog-card-read">Read the fantasy →</span>
     </a>
   `;
 }
