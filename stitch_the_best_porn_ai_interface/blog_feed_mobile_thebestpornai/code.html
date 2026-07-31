@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #000000;
+            color: #ffdad3;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom Ferrari Red Glow */
+        .ferrari-glow {
+            box-shadow: 0 0 15px rgba(255, 40, 0, 0.2);
+        }
+        .btn-ferrari-glow:hover {
+            box-shadow: 0 0 25px rgba(255, 40, 0, 0.5);
+        }
+        /* Hide scrollbar for clean horizontal nav */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Tonal Layering for cards */
+        .card-surface {
+            background-color: #111111;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary": "#2f3131",
+                      "secondary-container": "#454747",
+                      "surface-container-low": "#2a1613",
+                      "surface-container-high": "#3a2520",
+                      "primary-container": "#ff5638",
+                      "surface-container-highest": "#462f2b",
+                      "error": "#ffb4ab",
+                      "tertiary-fixed": "#d7e2ff",
+                      "inverse-surface": "#ffdad3",
+                      "surface-dim": "#200e0b",
+                      "primary-fixed": "#ffdad3",
+                      "on-error": "#690005",
+                      "surface": "#200e0b",
+                      "inverse-primary": "#ba1b00",
+                      "surface-variant": "#462f2b",
+                      "tertiary-container": "#448fff",
+                      "secondary": "#c6c6c7",
+                      "primary": "#ffb4a5",
+                      "on-primary-fixed": "#3f0400",
+                      "on-primary-container": "#590700",
+                      "on-surface": "#ffdad3",
+                      "on-secondary-fixed": "#1a1c1c",
+                      "surface-tint": "#ffb4a5",
+                      "on-error-container": "#ffdad6",
+                      "primary-fixed-dim": "#ffb4a5",
+                      "tertiary-fixed-dim": "#abc7ff",
+                      "on-tertiary-fixed": "#001b3f",
+                      "error-container": "#93000a",
+                      "on-tertiary": "#002f66",
+                      "on-secondary-fixed-variant": "#454747",
+                      "outline": "#b0877f",
+                      "on-primary": "#650a00",
+                      "secondary-fixed": "#e2e2e2",
+                      "secondary-fixed-dim": "#c6c6c7",
+                      "outline-variant": "#5f3f38",
+                      "on-primary-fixed-variant": "#8f1200",
+                      "on-background": "#ffdad3",
+                      "tertiary": "#abc7ff",
+                      "on-tertiary-fixed-variant": "#00458f",
+                      "on-secondary-container": "#b4b5b5",
+                      "on-surface-variant": "#e9bcb3",
+                      "surface-container-lowest": "#1a0906",
+                      "surface-bright": "#4b332f",
+                      "on-tertiary-container": "#002859",
+                      "background": "#200e0b",
+                      "inverse-on-surface": "#412b26",
+                      "surface-container": "#2e1a16",
+                      "ferrari-red": "#FF2800"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0px",
+                      "lg": "0px",
+                      "xl": "0px",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "lg": "24px",
+                      "md": "16px",
+                      "xl": "48px",
+                      "xs": "4px",
+                      "sm": "8px",
+                      "xxl": "80px"
+              },
+              "fontFamily": {
+                      "display": ["Inter"],
+                      "label-caps": ["Inter"],
+                      "headline-lg-mobile": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "body-md": ["Inter"]
+              },
+              "fontSize": {
+                      "display": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                      "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.2em", "fontWeight": "700"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                      "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-black text-on-surface selection:bg-ferrari-red selection:text-white">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md border-b border-outline-variant shadow-[0_0_15px_rgba(255,40,0,0.2)]">
+<div class="flex items-center justify-between px-lg h-16 w-full max-w-[780px] mx-auto">
+<button class="active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-primary-container">menu</span>
+</button>
+<h1 class="font-display text-headline-lg-mobile tracking-tighter text-primary-container">THEBESTPORNAI</h1>
+<button class="active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-primary-container">account_circle</span>
+</button>
+</div>
+</header>
+<main class="pt-16 pb-xxl max-w-[780px] mx-auto">
+<!-- Horizontal Scroll Pill Navigation -->
+<nav class="flex overflow-x-auto no-scrollbar py-md px-lg gap-sm border-b border-outline-variant bg-black sticky top-16 z-40">
+<button class="whitespace-nowrap px-md py-xs border border-ferrari-red text-primary-container font-label-caps text-label-caps rounded-full bg-surface-container-low">STORIES</button>
+<button class="whitespace-nowrap px-md py-xs border border-outline-variant text-secondary font-label-caps text-label-caps rounded-full hover:border-ferrari-red transition-colors">FANTASIES</button>
+<button class="whitespace-nowrap px-md py-xs border border-outline-variant text-secondary font-label-caps text-label-caps rounded-full hover:border-ferrari-red transition-colors">CONFESSIONS</button>
+<button class="whitespace-nowrap px-md py-xs border border-outline-variant text-secondary font-label-caps text-label-caps rounded-full hover:border-ferrari-red transition-colors">KINK LAB</button>
+</nav>
+<!-- Hero Section -->
+<section class="relative w-full aspect-[4/5] md:aspect-video flex flex-col justify-end">
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-cover bg-center" data-alt="A cinematic, low-angle shot of a matte-black Ferrari 812 Superfast parked in a dark, narrow alleyway at night. The scene is illuminated by flicking neon red signs reflecting off the car's sleek carbon fiber body and the wet cobblestones. Thick mist swirls around the glowing red taillights, creating an atmosphere of dangerous high-end luxury and nocturnal mystery. The mood is intense, moody, and unapologetically premium." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBcPD6N1MTAV-K9I7KelQRJaeUen3qMpt9ZJr-wQDMXR4STkvbE6Yto2ryX-jTvjoQ6P_aKesQ_fd3oXSOm-WIfYKoaQWWMBmlv0ZqOh-OkYt-WOrGgjlNM6mPQpJBnvtwy4i9fhTlMMRCUcJ7NvfCr2kPBd5MEb4xUozecpvelg_QT-hGyMKG7zbsIMYYZdtfh4f36hXkmNtimOEIfld0yWMy4jZTkwZIWl53J0-_RCSVZz_SuDciVXg')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+</div>
+<div class="relative z-10 px-lg pb-xl space-y-md">
+<span class="font-label-caps text-label-caps text-ferrari-red tracking-widest block">NEW HIGH-VELOCITY FANTASY</span>
+<h2 class="font-display text-display text-white uppercase leading-none">THE NIGHT SHIFT'S SECRET</h2>
+<button class="bg-ferrari-red text-white font-label-caps text-label-caps py-md px-xl w-full active:scale-95 transition-all btn-ferrari-glow">
+                    READ THE FANTASY
+                </button>
+</div>
+</section>
+<!-- Section Title -->
+<div class="px-lg py-xl">
+<h3 class="font-display text-headline-lg-mobile text-white border-l-4 border-ferrari-red pl-md">LATEST DESIRES</h3>
+</div>
+<!-- Vertical Feed -->
+<div class="flex flex-col gap-xxl px-lg">
+<!-- Feed Item 1 -->
+<article class="group">
+<div class="aspect-video w-full overflow-hidden mb-md">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="A cinematic, high-contrast close-up shot of a sophisticated humanoid female android sitting in a darkened, high-tech industrial lounge. Her eyes glow with a soft, synthetic amber light, and her skin has a polished obsidian sheen. Crimson laser lines cross the dark room, catching particles of digital smoke. The aesthetic is ultra-modern, sensual, and technologically precise, following a matte-black and Ferrari red color palette." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA4s14RhbFmeEh3yYRPb6ChgrSo-Oi_C6JKUPQP45XNJjEpSP583c7RRdJqAQzrSU4ZZ1L9UJPULWlvAUWCe-Cfns8Gd4HUSnfBREtPNbAc3KE_9dLhdg04uW1L29P7QsO561F7voTsQZ7FvBRXX5co9ChXF9DFqWCcjxKnTmoLvVmjD7wCWd2BOLbo8xalHKDopSHWXX1cswvT6xMFu_5FZsFg_2lfx15hTkh_6uorwLVZPoA-DJWzuQ')"></div>
+</div>
+<div class="flex flex-col gap-sm">
+<span class="inline-block self-start border border-ferrari-red text-ferrari-red font-label-caps text-[10px] px-sm py-[2px]">AI FANTASY</span>
+<h4 class="font-display text-headline-lg-mobile text-white leading-tight uppercase">SYNTHETIC LUST: THE ALGORITHM OF HER ECSTASY</h4>
+<p class="font-label-caps text-[11px] text-secondary tracking-wider uppercase opacity-70">4 MIN READ · 2.1K STROKES · JULY 28</p>
+<button class="mt-sm flex items-center gap-sm text-ferrari-red font-label-caps text-label-caps hover:translate-x-2 transition-transform">
+                        READ & GET WET <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</article>
+<!-- Feed Item 2 -->
+<article class="group">
+<div class="aspect-video w-full overflow-hidden mb-md">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="An atmospheric, noir-inspired interior of a high-rise executive office overlooking a rain-blurred city skyline at midnight. In the foreground, a crystal glass of whiskey sits on a polished black marble desk, reflecting the glowing red city lights. The scene is heavy with shadows and tension, evoking a mood of forbidden professional secrets and power dynamics. Deep blacks dominate the frame with piercing red accents from the city outside." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD4VeqDPugSwX69iwow49XNo-2cw7tmnR1pvSc1m3eQ7R49vZGVl9cIXJqkAHwjs07YsKN1iPx9liTOe4rv6B22rb_4v1R7BTx9IZdxWdCp0TIpxLQy5UhzqxCZe-NGdmAGOXKXPMvI6KTYIsk2kIa3bPZmBh0U36_xBm30wzRx3FPM1dK7dfUK9qR6PW-49wvgMgxkvRTgGlcWRsOxEh0rj2b4SB3OlJqBAxukibm5vY-geXMHkPoBcg')"></div>
+</div>
+<div class="flex flex-col gap-sm">
+<span class="inline-block self-start border border-ferrari-red text-ferrari-red font-label-caps text-[10px] px-sm py-[2px]">CONFESSION</span>
+<h4 class="font-display text-headline-lg-mobile text-white leading-tight uppercase">THE BOARDROOM PROTOCOL: BREAKING SILENCE</h4>
+<p class="font-label-caps text-[11px] text-secondary tracking-wider uppercase opacity-70">7 MIN READ · 5.4K STROKES · JULY 26</p>
+<button class="mt-sm flex items-center gap-sm text-ferrari-red font-label-caps text-label-caps hover:translate-x-2 transition-transform">
+                        READ & GET WET <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</article>
+<!-- Feed Item 3 -->
+<article class="group">
+<div class="aspect-video w-full overflow-hidden mb-md">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="A provocative, close-up abstract shot of red silk sheets rippling like liquid waves under a single, sharp spotlight. The shadows are deep and cavernous, creating a landscape of intense texture and mystery. High-speed shutter effects capture the motion of the fabric. The aesthetic is minimalist yet powerful, emphasizing the high-contrast relationship between pure black and Ferrari red, evoking raw sensory desire." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuALxlPC6Uun4O51PnMN6d4jB3BLKpJFibI2WwN8mJfNOVADH5oDYY5n1LTi7ZPfSRg64C7mOIzlTFpLlr-v8__EDvCD77XVIoSp1Wj2T9mZ9fWA0OxJ4Sb3bYiP7IfFu6DyPAPsouoYKSLGvBVGfb32O5XrlK4NLVA-XmcgUqCApnUKpO3fv09BBdfvVIfEkAoVTdwkLClIKVmSZ69neo60t5JLJK_5ZTJQVXkn5P-vWOGlwHn_iHAMDA')"></div>
+</div>
+<div class="flex flex-col gap-sm">
+<span class="inline-block self-start border border-ferrari-red text-ferrari-red font-label-caps text-[10px] px-sm py-[2px]">FANTASY</span>
+<h4 class="font-display text-headline-lg-mobile text-white leading-tight uppercase">VELVET FRICTION: VELOCITY IN THE DARK</h4>
+<p class="font-label-caps text-[11px] text-secondary tracking-wider uppercase opacity-70">5 MIN READ · 3.8K STROKES · JULY 25</p>
+<button class="mt-sm flex items-center gap-sm text-ferrari-red font-label-caps text-label-caps hover:translate-x-2 transition-transform">
+                        READ & GET WET <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</article>
+</div>
+<!-- Load More Section -->
+<div class="mt-xxl px-lg flex justify-center">
+<button class="group flex flex-col items-center gap-sm font-label-caps text-label-caps text-secondary hover:text-white transition-colors">
+                LOAD MORE FANTASIES
+                <span class="material-symbols-outlined animate-bounce text-ferrari-red">keyboard_double_arrow_down</span>
+</button>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-black border-t border-outline-variant py-xxl">
+<div class="flex flex-col items-center gap-md w-full max-w-[780px] mx-auto px-lg">
+<div class="font-display text-body-md text-primary-container tracking-widest mb-sm">THEBESTPORNAI</div>
+<div class="flex flex-wrap justify-center gap-xl">
+<a class="font-label-caps text-label-caps text-on-secondary-container hover:text-primary-container transition-colors" href="#">TERMS</a>
+<a class="font-label-caps text-label-caps text-on-secondary-container hover:text-primary-container transition-colors" href="#">PRIVACY</a>
+<a class="font-label-caps text-label-caps text-on-secondary-container hover:text-primary-container transition-colors" href="#">2257</a>
+<a class="font-label-caps text-label-caps text-on-secondary-container hover:text-primary-container transition-colors" href="#">SUPPORT</a>
+</div>
+<p class="font-label-caps text-[10px] text-secondary mt-xl opacity-50">© 2024 THEBESTPORNAI. ALL RIGHTS RESERVED.</p>
+</div>
+</footer>
+<!-- Interactive Layer for Active State Logic -->
+<script>
+        document.querySelectorAll('nav button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('nav button').forEach(b => {
+                    b.classList.remove('border-ferrari-red', 'text-primary-container', 'bg-surface-container-low');
+                    b.classList.add('border-outline-variant', 'text-secondary');
+                });
+                this.classList.add('border-ferrari-red', 'text-primary-container', 'bg-surface-container-low');
+                this.classList.remove('border-outline-variant', 'text-secondary');
+            });
+        });
+
+        // Atmospheric Micro-interaction for scroll
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.classList.add('bg-black');
+            } else {
+                header.classList.remove('bg-black');
+            }
+        });
+    </script>
+</body></html>

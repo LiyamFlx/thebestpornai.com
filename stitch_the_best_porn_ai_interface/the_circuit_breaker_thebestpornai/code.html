@@ -1,0 +1,347 @@
+<!DOCTYPE html><html class="dark" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>The Circuit Breaker | thebestpornai</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary": "#abc7ff",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "surface-container": "#2e1a16",
+                    "on-primary-fixed": "#3f0400",
+                    "inverse-primary": "#ba1b00",
+                    "primary": "#ffb4a5",
+                    "inverse-surface": "#ffdad3",
+                    "secondary-fixed": "#e2e2e2",
+                    "tertiary-container": "#448fff",
+                    "on-error-container": "#ffdad6",
+                    "primary-fixed-dim": "#ffb4a5",
+                    "error-container": "#93000a",
+                    "surface": "#200e0b",
+                    "secondary": "#c6c6c7",
+                    "on-tertiary-container": "#002859",
+                    "primary-container": "#ff5638",
+                    "surface-container-high": "#3a2520",
+                    "surface-variant": "#462f2b",
+                    "on-background": "#ffdad3",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "surface-container-highest": "#462f2b",
+                    "on-surface": "#ffdad3",
+                    "on-primary-container": "#590700",
+                    "primary-fixed": "#ffdad3",
+                    "surface-bright": "#4b332f",
+                    "secondary-container": "#454747",
+                    "inverse-on-surface": "#412b26",
+                    "on-primary-fixed-variant": "#8f1200",
+                    "on-tertiary-fixed": "#001b3f",
+                    "on-secondary": "#2f3131",
+                    "outline-variant": "#5f3f38",
+                    "on-error": "#690005",
+                    "background": "#200e0b",
+                    "on-primary": "#650a00",
+                    "tertiary-fixed": "#d7e2ff",
+                    "on-secondary-container": "#b4b5b5",
+                    "on-tertiary": "#002f66",
+                    "surface-tint": "#ffb4a5",
+                    "on-secondary-fixed-variant": "#454747",
+                    "on-surface-variant": "#e9bcb3",
+                    "on-tertiary-fixed-variant": "#00458f",
+                    "outline": "#b0877f",
+                    "surface-container-low": "#2a1613",
+                    "surface-container-lowest": "#1a0906",
+                    "tertiary-fixed-dim": "#abc7ff",
+                    "error": "#ffb4ab",
+                    "surface-dim": "#200e0b",
+                    "ferrari-red": "#FF2800"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "lg": "24px",
+                    "xs": "4px",
+                    "sm": "8px",
+                    "xl": "48px",
+                    "xxl": "80px",
+                    "md": "16px"
+            },
+            "fontFamily": {
+                    "display": ["Inter", "sans-serif"],
+                    "body-lg": ["Inter", "sans-serif"],
+                    "headline-lg": ["Inter", "sans-serif"],
+                    "label-caps": ["Inter", "sans-serif"],
+                    "body-md": ["Inter", "sans-serif"],
+                    "headline-lg-mobile": ["Inter", "sans-serif"]
+            },
+            "fontSize": {
+                    "display": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.2em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #000000;
+            color: #ffdad3;
+            -webkit-font-smoothing: antialiased;
+        }
+        .ferrari-glow {
+            box-shadow: 0 0 15px 0 rgba(255, 40, 0, 0.2);
+        }
+        .ferrari-glow:hover {
+            box-shadow: 0 0 25px 0 rgba(255, 40, 0, 0.4);
+        }
+        .cinematic-gradient {
+            background: linear-gradient(0deg, #000000 0%, rgba(0,0,0,0.8) 20%, transparent 100%);
+        }
+        .text-ferrari { color: #FF2800; }
+        .bg-ferrari { background-color: #FF2800; }
+        .border-ferrari { border-color: #FF2800; }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #FF2800; }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- Top Bar (Sticky) -->
+<nav class="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-[#1A1A1A] w-full">
+<div class="max-w-[780px] mx-auto flex items-center justify-between px-lg py-md">
+<a class="flex items-center gap-sm text-label-caps font-label-caps text-on-surface-variant hover:text-ferrari transition-all" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span>
+                BACK TO BLOG
+            </a>
+<div class="text-headline-lg font-headline-lg font-black tracking-tighter uppercase text-on-surface">
+                thebestpornai
+            </div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-ferrari">search</button>
+</div>
+</nav>
+<main class="w-full">
+<!-- Hero Section -->
+<div class="relative w-full h-[70vh] min-h-[500px]">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A cinematic, high-contrast close-up of an expensive, sleek supercar engine bay illuminated by neon red lights in a pitch-black studio. The metallic surfaces reflect deep shadows and sharp crimson highlights, creating an atmosphere of raw mechanical power and luxury performance. The aesthetic is clean, aggressive, and unapologetically premium, matching a matte-black Ferrari style." style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuBHN4HeXDj_o52rE9uk21ekZUMUUugK4OPxIRoKJ9b-hOMIbFSMAwMN9w88CvmmObQRh9Fyt4dNNhONnhQHaK0tK0h2vKVDwja0-KMKxWnv5_DKY4VgSnoy244543kq5BilceFty3gARWhqVGGEDcei3Fh0b_kWsbIbooqO49gxRVdhCfk13-77Ru8GuyMoOKNrwEKgND6_n8KhXuQPJJ-xGEe6gsZqtdXUuN8-Il4uJxdc91M6pyTOmg&quot;);">
+</div>
+<div class="absolute inset-0 cinematic-gradient"></div>
+<div class="absolute bottom-0 left-0 right-0 max-w-[780px] mx-auto px-lg pb-xl flex flex-col items-start gap-md">
+<span class="border border-ferrari px-md py-xs text-label-caps font-label-caps text-ferrari">FANTASIES</span>
+<h1 class="text-white font-display text-display leading-tight tracking-tighter">The Circuit Breaker</h1><p class="text-ferrari font-bold text-lg tracking-widest uppercase mt-xs">THE PULSE OF PURE SYNTHETIC DESIRE.</p>
+<div class="h-1 w-24 bg-ferrari"></div>
+<div class="flex items-center gap-md text-label-caps font-label-caps text-secondary-fixed-dim">
+<span class="">6 MIN READ</span>
+<span class="w-1 h-1 bg-secondary-fixed-dim rounded-full"></span>
+<span class="">3.8K STROKES</span>
+</div>
+</div>
+</div>
+<!-- Article Content -->
+<article class="max-w-[780px] mx-auto px-lg py-xxl mt-xl">
+<div class="max-w-[680px] mx-auto space-y-lg text-on-surface-variant leading-relaxed px-md">
+<p class="text-body-lg font-body-lg text-on-surface">
+                    There is a specific frequency where the human nervous system simply stops resisting. It’s not about endurance; it’s about overload. When the digital pulse matches your heart rate, the boundary between the screen and your skin dissolves.
+                </p>
+<p class="">
+                    You didn't come here for a story. You came here because your current reality is too quiet. You need the roar of a high-performance engine in your ears and the synthetic perfection of an AI-engineered goddess in your eyes. We don't do "realistic." We do better. We do optimal.
+                </p>
+<!-- Full-bleed Pull Quote -->
+<div class="relative py-xl -mx-lg px-lg border-y border-[#1A1A1A] my-xl bg-[#050505]">
+<blockquote class="text-ferrari font-display text-headline-lg italic leading-tight">
+                        "Your desire isn't a flaw in the system; it's the power source."
+                    </blockquote>
+</div>
+<p class="">
+                    Imagine the friction. Not just the physical, but the conceptual. The knowledge that what you’re watching was designed specifically to bypass your rational mind and speak directly to your limbic system. It’s a precision strike.
+                </p><div class="border-l-2 border-ferrari pl-lg my-xl space-y-md">
+    <h4 class="text-ferrari font-label-caps text-label-caps">KINKY TIPS</h4>
+    <ul class="space-y-sm text-on-surface-variant text-sm">
+        <li class=""><strong class="text-white">SYNTHETIC SYNC:</strong> Match your breathing to the neon flicker of the interface for maximum limbic bypass.</li>
+        <li class=""><strong class="text-white">HAPTIC OVERLOAD:</strong> If using external hardware, ensure the velocity curve is set to 'Aggressive'.</li>
+    </ul>
+</div>
+<!-- Interstitial Video Card -->
+<div class="group relative aspect-video bg-[#111111] overflow-hidden my-xl cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="A high-definition video frame showing a futuristic, dimly lit bedroom with deep red ambient lighting. A sophisticated, synthetic woman with a sharp gaze and flawless skin sits on the edge of a sleek black bed, looking directly into the lens. The lighting is cinematic, highlighting the curves and textures of the luxury environment. The mood is intimate, intense, and technologically superior." style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuADiTkwo6Vz7n5EIPuDgelfW7Mz1TK6qg55D9vqPCscUQZ4ay27Aq5ED2h2c5ulU_YC3Ad_XVLMLto86yQ9c0728nfUKLXHh2x3LHrvRq7RYnThgIwYnpiq-6jQTjOoN1vKcH33kNrnLrZXm6s1BNZzcSzTQq0SKE0mvF5TedGF-3TJ5hGhbijkRbrenURFtt0NAiF8v9L1Le9VAR6c1rBxVFjnUGoOVSOkdL9Cvj72pOTsJX4iHy8d-A&quot;);">
+</div>
+<div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-16 h-16 rounded-full border-2 border-white flex items-center justify-center group-hover:scale-110 transition-transform bg-black/20 backdrop-blur-sm">
+<span class="material-symbols-outlined text-white text-4xl" style="font-variation-settings: &quot;FILL&quot; 1;">play_arrow</span>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 p-md">
+<p class="text-label-caps font-label-caps text-ferrari mb-xs">FEATURED SCENE</p>
+<h3 class="text-white font-bold text-lg">NEON OVERLOAD: PHASE 1</h3>
+</div>
+</div>
+<p class="">
+                    The Circuit Breaker isn't just a title. It's an invitation to let go of the control you pretend to have. When the red lights start flashing in the periphery of your vision, you’ll know you’ve arrived. 
+                </p>
+</div>
+<!-- Primary CTA -->
+<div class="max-w-[680px] mx-auto mt-xxl border-t border-[#1A1A1A] px-md">
+    <div class="py-lg border-b border-[#1A1A1A]">
+        <h5 class="text-ferrari font-bold mb-xs">Is this really AI?</h5>
+        <p class="text-on-surface-variant text-sm">Better. It's the culmination of human desire and digital perfection.</p>
+    </div>
+    <div class="py-lg border-b border-[#1A1A1A]">
+        <h5 class="text-ferrari font-bold mb-xs">How do I optimize the experience?</h5>
+        <p class="text-on-surface-variant text-sm">Dark room. High volume. Zero inhibition.</p>
+    </div>
+</div><div class="flex flex-col items-center gap-md py-xxl text-center">
+<button class="bg-ferrari text-white font-display text-lg px-xl py-lg uppercase tracking-widest ferrari-glow transition-all active:scale-95 w-full md:w-auto">
+                    Watch this exact fantasy →
+                </button>
+<p class="text-label-caps font-label-caps text-secondary-fixed-dim">UNAPOLOGETIC PERFORMANCE GUARANTEED</p>
+</div>
+</article>
+<!-- Vertical Video Stack -->
+<section class="bg-[#080808] border-y border-[#1A1A1A] py-xxl mt-xl">
+<div class="max-w-[780px] mx-auto px-lg">
+<h2 class="text-headline-lg font-headline-lg text-white mb-xl uppercase tracking-tighter mb-xxl">Ready to stroke the real thing?</h2>
+<div class="flex flex-col gap-lg">
+<!-- Video Card 1 -->
+<div class="flex flex-col md:flex-row gap-md group cursor-pointer py-md">
+<div class="w-full md:w-64 aspect-video bg-[#111111] overflow-hidden shrink-0">
+<div class="h-full w-full bg-cover bg-center group-hover:scale-110 transition-transform duration-500" data-alt="A sharp, dramatic close-up of a high-end luxury watch on a wrist, catching the red studio lights. The background is a blurred dark leather interior of a supercar. The lighting creates deep contrasts and emphasizes textures of metal and leather. High-performance aesthetic with a dominant red and black color scheme." style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuC1jnBb41sICb9PAwayko5JGrmxJ896j5KlaGQ14cyBC3Ok83bwZMYK-FsrBus5j6p_NEdNCxjBqbZjCoRyKL1qdfZhcjQwoHj1pDk7qAky3p73BUygc_4WEyBSICZeTGmFWwbegnlq-Xa8tFpNzu4_Rx8kc_WT0TjigxZlMhJYwmQDeUe13gEe-7YbBmcvzVQWrZjiZBvtm8JbL60PNlR81rcL2bF8FVJLCkiTB5S61BFMG5VUsFOeLA&quot;);"></div>
+</div>
+<div class="flex flex-col justify-center">
+<h4 class="text-white font-bold text-lg group-hover:text-ferrari transition-colors">THE TITANIUM PROTOCOL</h4>
+<p class="text-on-surface-variant text-sm mt-xs">Precision engineered for maximum stimulation. 14 minutes of pure acceleration.</p>
+<div class="flex gap-sm mt-md">
+<span class="text-[10px] border border-outline-variant px-sm py-0.5 text-on-surface-variant">4K HDR</span>
+<span class="text-[10px] border border-outline-variant px-sm py-0.5 text-on-surface-variant">BINAURAL</span>
+</div>
+</div>
+</div>
+<!-- Video Card 2 -->
+<div class="flex flex-col md:flex-row gap-md group cursor-pointer py-md">
+<div class="w-full md:w-64 aspect-video bg-[#111111] overflow-hidden shrink-0">
+<div class="h-full w-full bg-cover bg-center group-hover:scale-110 transition-transform duration-500" data-alt="A cinematic, low-angle shot of a woman in a high-fashion, red silk dress walking through a dark, industrial hallway lined with vertical glowing white light strips. The contrast is extreme, emphasizing her silhouette and the vibrant red fabric. The mood is mysterious, seductive, and high-fashion editorial." style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuBySdxenG0wB39R0uCiZjB4hLYUNHLR4shfilX00BEDuuFTYnWcfBCXqpSWeTymQS-QtXbbSyIfkS3BWlrM3k7CDABo6iN3WF6hhrtcf2YIoNWTjaOfoQwidoBj5ZxgL9ssNqUfjDHiFGYSTwtgR67aHGa2CaLfqWDwjFyT4V73DK9G4CSGaUZzCS9Tn5oi_uH-TcAEGRJS_Mt_An2BshF0WKee4UHgq7XZimv2Q_5EKAKDARyk3IZBCA&quot;);"></div>
+</div>
+<div class="flex flex-col justify-center">
+<h4 class="text-white font-bold text-lg group-hover:text-ferrari transition-colors">VELOCITY RED</h4>
+<p class="text-on-surface-variant text-sm mt-xs">A high-speed pursuit of pleasure. No brakes, no limits, just impact.</p>
+<div class="flex gap-sm mt-md">
+<span class="text-[10px] border border-outline-variant px-sm py-0.5 text-on-surface-variant">POV</span>
+<span class="text-[10px] border border-outline-variant px-sm py-0.5 text-on-surface-variant">AI-ENHANCED</span>
+</div>
+</div>
+</div>
+<!-- Video Card 3 -->
+<div class="flex flex-col md:flex-row gap-md group cursor-pointer py-md">
+<div class="w-full md:w-64 aspect-video bg-[#111111] overflow-hidden shrink-0">
+<div class="h-full w-full bg-cover bg-center group-hover:scale-110 transition-transform duration-500" data-alt="Intense close-up of digital data streams and code reflecting on a pair of high-end, dark-tinted sunglasses. The surrounding environment is a dark, high-tech command center with subtle red lighting accents. The style is cyberpunk-lux, clean, and technically precise." style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuB7Pn4nwY1H1kn8a_j4TxzV8PBg0JilCS0rMJ8erW9ffl8UUHmaQtDP1AVxfaMFHt5GaLldktZsLuhkpg9ajv28VR7Z8xr3PqGUs7Wt0FrZhBO8eXqM72v5NPmzxiXXFoOum72RS49fMYqGfjfH4h8HTursRqySe907ylZkb2Hn_7yw_UU6qS9Ij7EdG7yv3DAXi4cKh5ZT8T-K4F-ytOStcEQBWleKqO_yvIXZANNxF3VNMPLyiU5uRA&quot;);"></div>
+</div>
+<div class="flex flex-col justify-center">
+<h4 class="text-white font-bold text-lg group-hover:text-ferrari transition-colors">THE BLACK BOX SESSIONS</h4>
+<p class="text-on-surface-variant text-sm mt-xs">Deep, immersive psychological play for those who crave absolute submission.</p>
+<div class="flex gap-sm mt-md">
+<span class="text-[10px] border border-outline-variant px-sm py-0.5 text-on-surface-variant">EXCLUSIVE</span>
+<span class="text-[10px] border border-outline-variant px-sm py-0.5 text-on-surface-variant">22 MIN</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Related Stories -->
+<section class="max-w-[780px] mx-auto px-lg py-xxl mt-xl">
+<h2 class="text-label-caps font-label-caps text-ferrari mb-lg">CONTINUE THE OBSESSION</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+<div class="group cursor-pointer">
+<div class="aspect-square bg-[#111111] mb-md overflow-hidden">
+<div class="w-full h-full bg-cover bg-center group-hover:opacity-60 transition-opacity" data-alt="A minimalist architectural shot of a sharp, concrete corner against a dark red sky. The composition is brutalist and cold, conveying a sense of power and structure. The lighting is low and dramatic." style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuBM_H-pSsDYRpRCQRE1215JZ7mMaNXnPhUC80Q-dtNeCpZPuVxTQ-FDpZYjuN5NSbs59xM9KzfHcoiOLC8L9TXfCh3nJy7oeXDcwYDi5gBsnzA5nHNgmE7umwlN2cBvdao9r5uyM1ycy_ydMXouuQA8wyXql4jMC9KqwTO05_4zQ-IxSJZpsHvFBJb0duZME-2esXU00JMzK038AkXVWRIXSHZhn-MM6mvJ_Jy2YdAP_aFPfHESoI2zlQ&quot;);"></div>
+</div>
+<h5 class="text-white font-bold group-hover:text-ferrari transition-colors">The Architecture of Desire</h5>
+</div>
+<div class="group cursor-pointer">
+<div class="aspect-square bg-[#111111] mb-md overflow-hidden">
+<div class="w-full h-full bg-cover bg-center group-hover:opacity-60 transition-opacity" data-alt="A top-down shot of a glass of dark liquid on a black marble table, reflecting a single red neon light above it. Minimalist, expensive, and atmospheric." style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuASdaVOhWGneDiaT2StsNDnM1fH4ea0KvtDzFfOpdVFLG1WSrIYC2-xO8_rKOFOXlxlaWOsNHJzi1g6vna_5zXav0TtIEwdzG5GVA5dY5sV06aYvl5eANm1uQv5EmugMDDLTDkocnB9XLvzUSg0h7PY8geCeAf8L7jA8g-Va2qTbKYAzwD55t590uyFN5rEp6iAMoN5voe1nhqbqd6oCsngcJT-O7i7CPGvOa_5jGOOI1amE30RreW8Yw&quot;);"></div>
+</div>
+<h5 class="text-white font-bold group-hover:text-ferrari transition-colors">Liquidity &amp; Loss</h5>
+</div>
+<div class="group cursor-pointer">
+<div class="aspect-square bg-[#111111] mb-md overflow-hidden">
+<div class="w-full h-full bg-cover bg-center group-hover:opacity-60 transition-opacity" data-alt="High-speed motion blur of city lights at night, seen through the window of a fast car. The streaks of light are predominantly red and white against a deep black sky." style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuD326PL0ItmgHhVMalJ39e8GAUdIkPIORRJVLIYAL3a-d_SxrVTgUZV-KqGmasdRBtJgeYtBQYC3VVMyTr8S0sOIpwmqj7BWNwbmexlWUT_ufBjwavO4SovtiU5yyNrbZhReoC2JYqOJOBkesw30Uhozo0I5GJKhW_N8jbX5v-OoEBMHNS3CIR02nDy6uApq0qcYaYD10QdU7vL_34jMYdr97r8i8gdIHffd1-dTQ7YQxmdMIVb9t_1TQ&quot;);"></div>
+</div>
+<h5 class="text-white font-bold group-hover:text-ferrari transition-colors">Zero to Sixty</h5>
+</div>
+</div>
+</section>
+<!-- Anonymous Confession -->
+<section class="max-w-[780px] mx-auto px-lg pb-xxl mt-xl">
+<div class="border border-[#1A1A1A] p-xl bg-[#050505]">
+<h3 class="text-headline-lg font-headline-lg text-white mb-md uppercase">ANONYMOUS CONFESSIONS</h3>
+<p class="text-on-surface-variant mb-xl">What did this trigger? Tell us everything. No name, no judgment, just the raw data of your desire.</p>
+<textarea class="w-full bg-transparent border-b border-[#A0A0A0] focus:border-ferrari focus:ring-0 text-white p-0 py-md min-h-[120px] resize-none transition-all outline-none" placeholder="Type your confession..."></textarea>
+<div class="mt-xl flex justify-end">
+<button class="text-label-caps font-label-caps text-ferrari flex items-center gap-sm hover:translate-x-2 transition-transform">
+                        SUBMIT ANONYMOUSLY <span class="material-symbols-outlined">trending_flat</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="border-t border-[#1A1A1A] bg-black">
+<div class="max-w-[780px] mx-auto px-lg py-xxl flex flex-col items-center gap-lg">
+<div class="text-headline-lg font-headline-lg font-black text-ferrari tracking-tighter uppercase">
+                thebestpornai
+            </div>
+<div class="flex flex-wrap justify-center gap-xl">
+<a class="text-label-caps font-label-caps text-secondary-fixed-dim hover:text-white transition-colors" href="#">TERMS OF SERVICE</a>
+<a class="text-label-caps font-label-caps text-secondary-fixed-dim hover:text-white transition-colors" href="#">PRIVACY POLICY</a>
+<a class="text-label-caps font-label-caps text-secondary-fixed-dim hover:text-white transition-colors" href="#">2257 COMPLIANCE</a>
+<a class="text-label-caps font-label-caps text-secondary-fixed-dim hover:text-white transition-colors" href="#">CONTACT</a>
+</div>
+<div class="text-[10px] text-secondary-fixed-dim tracking-[0.3em] font-medium opacity-50 uppercase">
+                © 2024 THEBESTPORNAI. UNAPOLOGETIC PERFORMANCE.
+            </div>
+</div>
+</footer>
+<script>
+        // Subtle micro-interaction for the textarea
+        const textarea = document.querySelector('textarea');
+        textarea.addEventListener('focus', () => {
+            textarea.closest('div').style.boxShadow = 'inset 0 -10px 20px -10px rgba(255, 40, 0, 0.1)';
+        });
+        textarea.addEventListener('blur', () => {
+            textarea.closest('div').style.boxShadow = 'none';
+        });
+
+        // Hover effect for image containers
+        document.querySelectorAll('.group').forEach(group => {
+            group.addEventListener('mouseenter', () => {
+                const overlay = group.querySelector('.bg-black/40');
+                if (overlay) overlay.style.backgroundColor = 'rgba(0,0,0,0.2)';
+            });
+            group.addEventListener('mouseleave', () => {
+                const overlay = group.querySelector('.bg-black/40');
+                if (overlay) overlay.style.backgroundColor = 'rgba(0,0,0,0.4)';
+            });
+        });
+    </script>
+
+
+</body></html>
