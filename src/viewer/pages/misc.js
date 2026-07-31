@@ -88,7 +88,7 @@ export function renderSettings(){
 
 export function renderLive(){
   return `<h2>Live</h2><p class="sub">Streams happening now</p>
-    <div class="grid">${pubVideos().slice(0,3).map(v=>videoCard(v,{extra:()=>`<div class="card-actions"><span class="chip" style="color:var(--accent2);border-color:var(--accent2)">● LIVE</span><span class="chip">${fmt(v.views)} watching</span></div>`})).join("")}</div>`;
+    <div class="grid">${pubVideos().slice(0,3).map(v=>videoCard(v,{extra:()=>`<div class="card-live-row"><span class="chip" style="color:var(--accent2);border-color:var(--accent2)">● LIVE</span><span class="chip">${fmt(v.views)} watching</span></div>`})).join("")}</div>`;
 }
 
 /* There's no real playlist data model yet (no create/name/add-to-playlist

@@ -11,6 +11,23 @@ let currentActiveVideo = null;
 let feedMuted = true;
 let activeProgressVideo = null;
 
+/* ---- DOM windowing (mirrors grid-window.js's role for list pages) ----
+   The feed's public/originals catalog can run into the hundreds of vertical
+   entries; renderFeed() used to map() and join() every single one into one
+   innerHTML write, meaning a full-featured .feed-item (progress bar,
+   overlay, 4-button sidebar, and a <video>) for every entry sat in the DOM
+   from first paint even though only ~3 are ever near the viewport at once.
+   Windowing keeps the DOM bounded the same way the home/search grids
+   already are, appending more .feed-item batches as the user nears the
+   bottom instead of building all of them upfront. */
+const FEED_INITIAL = 12;
+const FEED_BATCH = 12;
+const FEED_LOAD_MARGIN = 2400; // px lookahead — feed items are full-viewport tall
+let _feedVideos = [];
+let _feedCommentCounts = new Map();
+let _feedNext = 0;
+let _feedWindowObserver = null;
+
 function isDataSaverMode(){
   const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
   if (!c) return false;
@@ -57,6 +74,74 @@ export function toggleFeedMute(){
   });
 }
 
+function feedItemHtml(v, index, commentCountByVideo){
+  const c = creatorById(v.creator) || { name: "Unknown", id: "", verified: false };
+  const live = vstate.live[v.id] || { like: 0, dislike: 0 };
+  const commentCount = commentCountByVideo.get(v.id) || 0;
+  const subbed = vstate.subs.includes(v.creator);
+  const hasCreator = !!c.id;
+
+  return `
+    <div class="feed-item" data-index="${index}" data-video-id="${v.id}">
+      <!-- Top Video Scrub / Playback Progress Bar -->
+      <div class="feed-progress-wrap" aria-hidden="true">
+        <div class="feed-progress-bar"></div>
+      </div>
+
+      <!-- Video element -->
+      <video class="feed-video" playsinline ${feedMuted ? 'muted' : ''} data-src="${mediaUrl(v.src)}" poster="${mediaUrl(v.thumb)}"></video>
+
+      <!-- Play / Pause / Playback State Toast Badge Overlay -->
+      <div class="feed-state-badge" aria-hidden="true"></div>
+
+      <!-- Video Details Overlay (Bottom) -->
+      <div class="feed-overlay">
+        <div class="feed-creator-row">
+          <span class="feed-creator" onclick="openCreator('${jsq(c.id)}')">@${esc(c.name)}</span>
+          ${c.verified ? '<span class="verified-badge">✓</span>' : ''}
+        </div>
+        <div class="feed-title">${esc(v.title)}</div>
+        ${v.category ? `<div class="feed-category"><span class="vtag-cat">${esc(v.category)}</span></div>` : ''}
+      </div>
+
+      <!-- Engagement Action Sidebar (Right) -->
+      <div class="feed-sidebar">
+        <!-- Creator Avatar (+ overlapping follow badge) -->
+        <div class="feed-avatar-wrap">
+          <div class="feed-avatar" onclick="openCreator('${jsq(c.id)}')">${esc((c.name || "?")[0])}</div>
+          ${hasCreator ? `
+            <button class="feed-follow-dot ${subbed ? 'subbed' : ''}" onclick="event.stopPropagation();subscribe('${jsq(c.id)}')" aria-label="${subbed ? 'Following' : 'Follow'} ${esc(c.name)}">${subbed ? '✓' : '+'}</button>
+          ` : ''}
+        </div>
+
+        <!-- Sound / Mute Toggle -->
+        <div class="feed-action">
+          <button class="feed-btn feed-sound-btn" onclick="toggleFeedMute()" aria-label="Toggle sound"><svg class="ico"><use href="#icon-${feedMuted ? 'mute' : 'unmute'}"/></svg></button>
+          <span class="feed-label feed-sound-label">${feedMuted ? 'Muted' : 'Sound'}</span>
+        </div>
+
+        <!-- Like Button -->
+        <div class="feed-action">
+          <button class="feed-btn" onclick="likeVideo(${v.id})" aria-label="Like video"><svg class="ico"><use href="#icon-heart"/></svg></button>
+          <span class="feed-label" id="feedLike_${v.id}">${fmt(v.likes + live.like)}</span>
+        </div>
+
+        <!-- Comments Button -->
+        <div class="feed-action">
+          <button class="feed-btn" onclick="openFeedComments(${v.id})" aria-label="View comments"><svg class="ico"><use href="#icon-comment"/></svg></button>
+          <span class="feed-label" id="feedComment_${v.id}">${commentCount}</span>
+        </div>
+
+        <!-- Share Button -->
+        <div class="feed-action">
+          <button class="feed-btn" onclick="shareVideo(${v.id})" aria-label="Share video"><svg class="ico"><use href="#icon-share"/></svg></button>
+          <span class="feed-label">Share</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 export function renderFeed() {
   const videos = orderedFeedVideos();
   if (!videos.length) {
@@ -77,78 +162,19 @@ export function renderFeed() {
     }
   }
 
-  // Generate scroll-snap viewport container
-  const itemsHtml = videos.map((v, index) => {
-    const c = creatorById(v.creator) || { name: "Unknown", id: "", verified: false };
-    const live = vstate.live[v.id] || { like: 0, dislike: 0 };
-    const commentCount = commentCountByVideo.get(v.id) || 0;
-    const subbed = vstate.subs.includes(v.creator);
-    const hasCreator = !!c.id;
+  _feedVideos = videos;
+  _feedCommentCounts = commentCountByVideo;
+  if (_feedWindowObserver) { _feedWindowObserver.disconnect(); _feedWindowObserver = null; }
 
-    return `
-      <div class="feed-item" data-index="${index}" data-video-id="${v.id}">
-        <!-- Top Video Scrub / Playback Progress Bar -->
-        <div class="feed-progress-wrap" aria-hidden="true">
-          <div class="feed-progress-bar"></div>
-        </div>
-
-        <!-- Video element -->
-        <video class="feed-video" playsinline ${feedMuted ? 'muted' : ''} data-src="${mediaUrl(v.src)}" poster="${mediaUrl(v.thumb)}"></video>
-        
-        <!-- Play / Pause / Playback State Toast Badge Overlay -->
-        <div class="feed-state-badge" aria-hidden="true"></div>
-
-        <!-- Video Details Overlay (Bottom) -->
-        <div class="feed-overlay">
-          <div class="feed-creator-row">
-            <span class="feed-creator" onclick="openCreator('${jsq(c.id)}')">@${esc(c.name)}</span>
-            ${c.verified ? '<span class="verified-badge">✓</span>' : ''}
-          </div>
-          <div class="feed-title">${esc(v.title)}</div>
-          ${v.category ? `<div class="feed-category"><span class="vtag-cat">${esc(v.category)}</span></div>` : ''}
-        </div>
-
-        <!-- Engagement Action Sidebar (Right) -->
-        <div class="feed-sidebar">
-          <!-- Creator Avatar (+ overlapping follow badge) -->
-          <div class="feed-avatar-wrap">
-            <div class="feed-avatar" onclick="openCreator('${jsq(c.id)}')">${esc((c.name || "?")[0])}</div>
-            ${hasCreator ? `
-              <button class="feed-follow-dot ${subbed ? 'subbed' : ''}" onclick="event.stopPropagation();subscribe('${jsq(c.id)}')" aria-label="${subbed ? 'Following' : 'Follow'} ${esc(c.name)}">${subbed ? '✓' : '+'}</button>
-            ` : ''}
-          </div>
-
-          <!-- Sound / Mute Toggle -->
-          <div class="feed-action">
-            <button class="feed-btn feed-sound-btn" onclick="toggleFeedMute()" aria-label="Toggle sound"><svg class="ico"><use href="#icon-${feedMuted ? 'mute' : 'unmute'}"/></svg></button>
-            <span class="feed-label feed-sound-label">${feedMuted ? 'Muted' : 'Sound'}</span>
-          </div>
-
-          <!-- Like Button -->
-          <div class="feed-action">
-            <button class="feed-btn" onclick="likeVideo(${v.id})" aria-label="Like video"><svg class="ico"><use href="#icon-heart"/></svg></button>
-            <span class="feed-label" id="feedLike_${v.id}">${fmt(v.likes + live.like)}</span>
-          </div>
-
-          <!-- Comments Button -->
-          <div class="feed-action">
-            <button class="feed-btn" onclick="openFeedComments(${v.id})" aria-label="View comments"><svg class="ico"><use href="#icon-comment"/></svg></button>
-            <span class="feed-label" id="feedComment_${v.id}">${commentCount}</span>
-          </div>
-
-          <!-- Share Button -->
-          <div class="feed-action">
-            <button class="feed-btn" onclick="shareVideo(${v.id})" aria-label="Share video"><svg class="ico"><use href="#icon-share"/></svg></button>
-            <span class="feed-label">Share</span>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join("");
+  const initial = videos.slice(0, FEED_INITIAL);
+  _feedNext = initial.length;
+  const itemsHtml = initial.map((v, index) => feedItemHtml(v, index, commentCountByVideo)).join("");
+  const sentinel = videos.length > _feedNext
+    ? `<div class="feed-sentinel" data-feed-sentinel aria-hidden="true"></div>` : "";
 
   return `
     <div class="feed-container" id="feedContainer">
-      ${itemsHtml}
+      ${itemsHtml}${sentinel}
     </div>
 
     <!-- Feed Comments Backdrop -->
@@ -164,6 +190,53 @@ export function renderFeed() {
       <div class="feed-comments-footer" id="feedCommentsFooter"></div>
     </div>
   `;
+}
+
+function fillFeedWindow(sentinel){
+  const slice = _feedVideos.slice(_feedNext, _feedNext + FEED_BATCH);
+  if (!slice.length) {
+    _feedWindowObserver.unobserve(sentinel);
+    sentinel.remove();
+    return;
+  }
+  const startIndex = _feedNext;
+  const html = slice.map((v, i) => feedItemHtml(v, startIndex + i, _feedCommentCounts)).join("");
+  sentinel.insertAdjacentHTML("beforebegin", html);
+  _feedNext += slice.length;
+
+  // Newly appended items need the playback/preload IntersectionObserver and
+  // auto-advance 'ended' listener wired up — attachFeedObserver() re-scans
+  // every .feed-item each call, and bindAutoAdvance() is idempotent
+  // (dataset.autoAdvanceBound guard), so re-running it here is safe and
+  // simpler than threading incremental-bind logic through two files.
+  attachFeedObserver();
+
+  if (_feedNext >= _feedVideos.length) {
+    _feedWindowObserver.unobserve(sentinel);
+    sentinel.remove();
+    return;
+  }
+  // IO only refires on isIntersecting transitions — if this batch didn't
+  // push the sentinel past the lookahead margin, no further callback comes
+  // (same anti-stall recursion as grid-window.js's fill()).
+  if (sentinel.getBoundingClientRect().top < window.innerHeight + FEED_LOAD_MARGIN) {
+    fillFeedWindow(sentinel);
+  }
+}
+
+export function attachFeedWindowObserver(){
+  if (_feedWindowObserver) _feedWindowObserver.disconnect();
+  if (typeof IntersectionObserver === "undefined") return;
+  const container = document.getElementById("feedContainer");
+  const sentinel = document.querySelector("[data-feed-sentinel]");
+  if (!container || !sentinel) return;
+  // root must be the scrolling #feedContainer, not the default top-level
+  // viewport — the same reason attachFeedObserver()'s own playback observer
+  // passes root:container below.
+  _feedWindowObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) fillFeedWindow(e.target); });
+  }, { root: container, rootMargin: `${FEED_LOAD_MARGIN}px 0px` });
+  _feedWindowObserver.observe(sentinel);
 }
 
 function bindVideoProgress(item, videoEl){
