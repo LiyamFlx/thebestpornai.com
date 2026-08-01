@@ -1,5 +1,5 @@
 /* Creator profile page (#creator/<id>): banner, header, top + all videos. */
-import { DATA, esc, fmt } from "../../shared/catalog.js";
+import { DATA, esc, fmt, mediaUrl } from "../../shared/catalog.js";
 import { videoCard } from "../../shared/ui.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
@@ -13,11 +13,22 @@ export function renderCreatorPage(){
   const videos = DATA.videos.filter(v=>v.creator===cid && visible(v));
   const subbed = vstate.subs.includes(cid);
   const top5 = [...videos].sort((a,b)=>(b.likes*1.2+b.views*.01)-(a.likes*1.2+a.views*.01)).slice(0,5);
+  const initials = esc((c.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase());
+  // No dedicated cover-image field on creators yet — reuse their best-performing
+  // video's thumb as channel art (real content instead of a blank gradient box).
+  // Falls back to the plain gradient only when nothing has a poster.
+  const bannerThumb = top5.find(v=>v.thumb)?.thumb;
+  // Set as a custom property, not `background-image` directly — the .has-img
+  // CSS rule layers dark gradients over it for legibility, and an inline
+  // background-image would out-specificity (and fully replace) that rule.
+  const bannerStyle = bannerThumb ? ` style="--creator-banner-img:url('${esc(mediaUrl(bannerThumb))}')"` : '';
   return `
     <div class="creator-page">
-      <div class="creator-page-banner"></div>
+      <div class="creator-page-top">
+        <div class="creator-page-banner${bannerThumb?' has-img':''}"${bannerStyle}></div>
+        <div class="creator-page-avatar">${initials}</div>
+      </div>
       <div class="creator-page-header">
-        <div class="creator-page-avatar">${esc((c.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase())}</div>
         <div class="creator-page-info">
           <h2 class="creator-page-name">${esc(c.name)} ${c.verified?'<span class="verified" title="Verified">✓</span>':''}</h2>
           <div class="small" style="margin-top:4px">${c.handle?esc(c.handle)+' · ':''}${fmt(c.subs)} subscribers · ${videos.length} video${videos.length!==1?'s':''}</div>
