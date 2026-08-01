@@ -1,12 +1,11 @@
 /* Simple list-style pages: categories, subscriptions, profile, settings,
-   live, playlists, search, and the generic grid listPage used by
-   explore/trending/originals/favorites/later/history/downloads. */
+   library hub, live/playlists (demoted), search, and generic listPage. */
 import { DATA, esc, fmt } from "../../shared/catalog.js";
 import { videoCard, emptyState } from "../../shared/ui.js";
 import { POPULAR_TAGS } from "../../shared/taxonomy.js";
-import { vstate, persistState } from "../state.js";
+import { vstate } from "../state.js";
 import { jsq } from "../util.js";
-import { pubVideos, byCat } from "../catalog-queries.js";
+import { pubVideos, byCat, videoById } from "../catalog-queries.js";
 import { pagedGrid } from "../grid-window.js";
 
 // Horizontal category rows never need more than a screenful of cards.
@@ -15,6 +14,48 @@ const CAT_ROW_MAX = 24;
 export function listPage(title, list, emptyMsg){
   return `<h2>${title}</h2><p class="sub">${list.length} item${list.length!==1?'s':''}</p>
     ${list.length?pagedGrid(list, v=>videoCard(v,{layout:'row'}), {cls:'video-list'}):`<div class="empty">${emptyMsg}</div>`}`;
+}
+
+/* ---- Library hub: Later / Favorites / History / Downloads in one place ---- */
+const LIBRARY_TABS = [
+  { id: "later", label: "Watch Later", empty: "Nothing saved yet. Tap Save on any video." },
+  { id: "favorites", label: "Favorites", empty: "Tap ♥ on any video to save it here." },
+  { id: "history", label: "History", empty: "Videos you watch show up here." },
+  { id: "downloads", label: "Downloads", empty: "No downloads yet." },
+];
+
+function libraryList(tab){
+  if(tab === "later") return vstate.later.map(id => videoById(id)).filter(Boolean);
+  if(tab === "favorites") return vstate.favorites.map(id => videoById(id) || DATA.videos.find(x=>x.id===id)).filter(Boolean);
+  if(tab === "history") return vstate.history.map(id => videoById(id) || DATA.videos.find(x=>x.id===id)).filter(Boolean);
+  if(tab === "downloads") return vstate.downloads.map(id => videoById(id) || DATA.videos.find(x=>x.id===id)).filter(Boolean);
+  return [];
+}
+
+export function renderLibrary(){
+  const tab = LIBRARY_TABS.some(t => t.id === vstate.libraryTab) ? vstate.libraryTab : "later";
+  const meta = LIBRARY_TABS.find(t => t.id === tab) || LIBRARY_TABS[0];
+  const list = libraryList(tab);
+  return `
+    <div class="library-page">
+      <h2>Library</h2>
+      <p class="sub">Your saved and watched videos</p>
+      <div class="library-tabs mchrome-scroll" role="tablist" aria-label="Library sections">
+        ${LIBRARY_TABS.map(t => {
+          const n = libraryList(t.id).length;
+          const active = t.id === tab;
+          return `<button type="button" role="tab" class="library-tab ${active?'active':''}"
+            aria-selected="${active?'true':'false'}"
+            onclick="setLibraryTab('${t.id}')">${esc(t.label)}${n?` <span class="library-tab-count">${n}</span>`:''}</button>`;
+        }).join("")}
+      </div>
+      <div class="library-panel" role="tabpanel">
+        <p class="sub library-count">${list.length} item${list.length!==1?'s':''}</p>
+        ${list.length
+          ? pagedGrid(list, v => videoCard(v, { layout: "row" }), { cls: "video-list" })
+          : `<div class="empty">${esc(meta.empty)} <button type="button" class="btn ghost sm" style="margin-top:12px" onclick="go('home')">Browse Home</button></div>`}
+      </div>
+    </div>`;
 }
 
 export function renderCategories(){
@@ -32,7 +73,7 @@ export function renderSubs(){
 export function renderProfile(){
   const initials = (DATA.user.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
   const subCreators = DATA.creators.filter(c=>vstate.subs.includes(c.id));
-  return `<h2>Your Profile</h2>
+  return `<h2>You</h2>
     <div class="profile-hero panel">
       <div class="profile-avatar">${initials}</div>
       <div class="profile-info">
@@ -46,10 +87,10 @@ export function renderProfile(){
       </div>
     </div>
     <div class="metrics" style="margin-top:16px">
-      <div class="metric"><div class="label">Favorites</div><div class="value">${vstate.favorites.length}</div><div onclick="go('favorites')" class="metric-link">View all →</div></div>
-      <div class="metric"><div class="label">Watch Later</div><div class="value">${vstate.later.length}</div><div onclick="go('later')" class="metric-link">View all →</div></div>
-      <div class="metric"><div class="label">History</div><div class="value">${vstate.history.length}</div><div onclick="go('history')" class="metric-link">View all →</div></div>
-      <div class="metric"><div class="label">Downloads</div><div class="value">${vstate.downloads.length}</div><div onclick="go('downloads')" class="metric-link">View all →</div></div>
+      <div class="metric"><div class="label">Library</div><div class="value">${vstate.later.length + vstate.favorites.length}</div><div onclick="go('library')" class="metric-link">Open library →</div></div>
+      <div class="metric"><div class="label">Watch Later</div><div class="value">${vstate.later.length}</div><div onclick="setLibraryTab('later')" class="metric-link">View →</div></div>
+      <div class="metric"><div class="label">Favorites</div><div class="value">${vstate.favorites.length}</div><div onclick="setLibraryTab('favorites')" class="metric-link">View →</div></div>
+      <div class="metric"><div class="label">History</div><div class="value">${vstate.history.length}</div><div onclick="setLibraryTab('history')" class="metric-link">View →</div></div>
     </div>
     ${subCreators.length ? `
     <h3>Subscriptions</h3>
@@ -86,27 +127,24 @@ export function renderSettings(){
     </div>`;
 }
 
+/* Demoted stub surfaces — reachable by deep hash only, not primary nav.
+   Honest empty/coming-soon so we never imply a finished product. */
 export function renderLive(){
-  return `<h2>Live</h2><p class="sub">Streams happening now</p>
-    <div class="grid">${pubVideos().slice(0,3).map(v=>videoCard(v,{extra:()=>`<div class="card-live-row"><span class="chip" style="color:var(--accent2);border-color:var(--accent2)">● LIVE</span><span class="chip">${fmt(v.views)} watching</span></div>`})).join("")}</div>`;
+  return `<h2>Live</h2>
+    <div class="empty">
+      <div class="empty-emoji">🔴</div>
+      <div class="empty-msg">Live streams are coming soon.</div>
+      <button type="button" class="btn" onclick="go('home')">Browse videos</button>
+    </div>`;
 }
 
-/* There's no real playlist data model yet (no create/name/add-to-playlist
-   anywhere in the app) — these three are a placeholder grouping of whatever
-   the first few public videos are. They render as real, clickable video
-   cards (via videoCard(), same as every other grid) so tapping one actually
-   opens and plays it instead of doing nothing. */
 export function renderPlaylists(){
-  const labels = ["My Mix","Chill","Tech Deep-Dives"];
-  const videos = pubVideos().slice(0, labels.length);
-  return `<h2>Playlists</h2><p class="sub">Your collections</p>
-    ${videos.length ? `<div class="grid">
-      ${videos.map((v,i)=>`
-        <div>
-          <div class="small" style="margin-bottom:6px;color:var(--muted)">${esc(labels[i])} · ${(i+2)} videos</div>
-          ${videoCard(v)}
-        </div>`).join("")}
-    </div>` : `<div class="empty">No videos yet.</div>`}`;
+  return `<h2>Playlists</h2>
+    <div class="empty">
+      <div class="empty-emoji">≣</div>
+      <div class="empty-msg">Custom playlists aren't available yet. Use Library for Watch Later, Favorites, and History.</div>
+      <button type="button" class="btn" onclick="go('library')">Open Library</button>
+    </div>`;
 }
 
 /* Fuzzy multi-term search: every whitespace-separated term must match somewhere

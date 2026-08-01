@@ -14,7 +14,41 @@ import { hydrateWatch, persist } from "./hydrate.js";
 import { patchComments } from "./comments.js";
 import { pubVideos, visible } from "./catalog-queries.js";
 
-export function go(p){ vstate.page=p; setHash(p==="home"?"":p); render(); scrollToTop(); }
+/* Primary navigation destinations. Legacy aliases (later/favorites/…) route
+   into the Library hub with the matching tab so old links and menus still work. */
+const LIBRARY_ALIASES = { later: "later", favorites: "favorites", history: "history", downloads: "downloads" };
+
+export function go(p){
+  if(LIBRARY_ALIASES[p]){
+    vstate.libraryTab = LIBRARY_ALIASES[p];
+    vstate.page = "library";
+    setHash("library/" + vstate.libraryTab);
+    render();
+    scrollToTop();
+    return;
+  }
+  if(p === "library"){
+    vstate.page = "library";
+    if(!vstate.libraryTab) vstate.libraryTab = "later";
+    setHash("library/" + vstate.libraryTab);
+    render();
+    scrollToTop();
+    return;
+  }
+  vstate.page = p;
+  setHash(p === "home" ? "" : p);
+  render();
+  scrollToTop();
+}
+
+export function setLibraryTab(tab){
+  const t = ["later","favorites","history","downloads"].includes(tab) ? tab : "later";
+  vstate.libraryTab = t;
+  vstate.page = "library";
+  setHash("library/" + t);
+  render();
+  scrollToTop();
+}
 
 export function focusSearch(){
   const topbar = document.querySelector(".topbar");
@@ -112,10 +146,12 @@ export function loadMore(){
    appears/disappears when toggled, so the list must be rebuilt (full render);
    everywhere else we patch the affected controls in place and skip the render —
    avoiding a full grid rebuild (and lost scroll position) for a single tap. */
-const SET_PAGE = { fav: "favorites", later: "later" };
-
 function reflectSetToggle(kind, id, active){
-  if(vstate.page === SET_PAGE[kind]){ render(); return; }
+  // Library hub (or legacy aliases) must re-render so items appear/disappear.
+  if(vstate.page === "library" || vstate.page === "favorites" || vstate.page === "later" || vstate.page === "history" || vstate.page === "downloads"){
+    render();
+    return;
+  }
   // Watch-page primary action button (present only on the watch page).
   const watchBtn = document.getElementById(kind==="fav" ? "btnFav" : "btnLater");
   if(watchBtn) watchBtn.classList.toggle("on", active);

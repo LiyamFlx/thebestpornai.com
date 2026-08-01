@@ -25,8 +25,10 @@ import { refreshChipRows } from "./mobile-chrome.js";
 import { resetGridWindow, observeSentinels, setGridAppendHook } from "./grid-window.js";
 import {
   listPage, renderCategories, renderSubs, renderProfile, renderSettings,
-  renderLive, renderPlaylists, renderSearch,
+  renderLive, renderPlaylists, renderSearch, renderLibrary,
 } from "./pages/misc.js";
+
+const LIBRARY_PAGES = new Set(["library", "later", "favorites", "history", "downloads"]);
 
 export function render(){
   const v=document.getElementById("view"); const p=vstate.page;
@@ -39,19 +41,22 @@ export function render(){
     home:renderHome, watch:renderWatch, categories:renderCategories, subscriptions:renderSubs,
     profile:renderProfile, settings:renderSettings, live:renderLive, playlists:renderPlaylists,
     movie:renderMovieDetail, creator:renderCreatorPage, search:renderSearch,
-    feed:renderFeed,
+    feed:renderFeed, library:renderLibrary,
   };
   if(map[p]) v.innerHTML = map[p]();
   else if(p==="explore")   v.innerHTML = listPage("Explore", trending(), "");
   else if(p==="trending")  v.innerHTML = listPage("Trending", trending(), "");
   else if(p==="originals") v.innerHTML = listPage("House Originals", pubVideos().filter(x=>x.type==="original"), "");
-  else if(p==="favorites") v.innerHTML = listPage("Favorites", DATA.videos.filter(x=>vstate.favorites.includes(x.id)), "Tap ★ on any video to save it here.");
-  else if(p==="later")     v.innerHTML = listPage("Watch Later", DATA.videos.filter(x=>vstate.later.includes(x.id)), "Nothing saved yet.");
-  else if(p==="history")   v.innerHTML = listPage("History", vstate.history.map(id=>DATA.videos.find(x=>x.id===id)).filter(Boolean), "No watch history yet.");
-  else if(p==="downloads") v.innerHTML = listPage("Downloads", DATA.videos.filter(x=>vstate.downloads.includes(x.id)), "No downloads yet.");
+  // Legacy page ids still render via Library hub (go() also rewrites them)
+  else if(LIBRARY_PAGES.has(p)) v.innerHTML = renderLibrary();
   else v.innerHTML = renderHome();
 
-  document.querySelectorAll("#nav button, #bottomNav button").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
+  // Active nav: Library button stays lit for any library tab/legacy alias
+  const navPage = LIBRARY_PAGES.has(p) ? "library" : p;
+  document.querySelectorAll("#nav button, #bottomNav button, .mobile-drawer-nav button[data-page]").forEach(b=>{
+    const bp = b.dataset.page;
+    b.classList.toggle("active", bp === navPage || bp === p);
+  });
   markToggleStates();
   lazyLoadThumbs();
   observeSentinels();         // wire lazy-append for any windowed grids on this page

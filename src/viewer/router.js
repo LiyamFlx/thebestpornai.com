@@ -60,6 +60,19 @@ export function applyHash(){
   if(ms){ vstate.searchQuery=jsdec(ms[1]); vstate.page="search"; return; }
   const mcat=h.match(/^category\/(.+)$/);
   if(mcat){ vstate.homeCategory=jsdec(mcat[1]); vstate.homeFilter="all"; vstate.page="home"; return; }
+  // Library hub: #library or #library/later|favorites|history|downloads
+  const mlib=h.match(/^library(?:\/(later|favorites|history|downloads))?$/);
+  if(mlib){
+    vstate.page = "library";
+    vstate.libraryTab = mlib[1] || vstate.libraryTab || "later";
+    return;
+  }
+  // Legacy deep links still land in Library with the right tab
+  if(h==="later"||h==="favorites"||h==="history"||h==="downloads"){
+    vstate.page = "library";
+    vstate.libraryTab = h;
+    return;
+  }
   vstate.page = h || "home";
 }
 

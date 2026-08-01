@@ -32,6 +32,7 @@ export const vstate = {
   homeCategory:"",    // "" = no category filter, else a category name from taxonomy
   homeSort:"none",    // "none" | "latest" | "likes" | "views"
   homeExpandCats:false, // show secondary category/act rows on home
+  libraryTab:"later", // "later" | "favorites" | "history" | "downloads"
   commentPage: 1,     // comments paginated at COMMENTS_PER_PAGE
   commentSort: "new", // owned by state, not read back from the DOM mid-render
   searchQuery: "",    // search is a real page in the render pipeline
