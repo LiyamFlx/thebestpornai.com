@@ -72,8 +72,13 @@ export function openCreator(cid){
   scrollToTop();
 }
 
-export function setHomeFilter(f){ vstate.homeFilter = f; vstate.homeCategory = ""; render(); }
+export function setHomeFilter(f){ vstate.homeFilter = f; vstate.homeCategory = ""; vstate.homeExpandCats = false; render(); }
 export function setHomeSort(s){ vstate.homeSort = s; render(); }
+export function setHomeExpandCats(on){
+  vstate.homeExpandCats = !!on;
+  vstate.page = "home";
+  render();
+}
 
 /* Filter the home feed to a single category (from the filter bar "More" menu). */
 export function setHomeCategory(c){

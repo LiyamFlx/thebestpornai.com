@@ -1,33 +1,32 @@
-/* Home page: hero, filter/sort bars, and the row-based feed. */
+/* Home page: unified hero, filter/sort bars, curated rows + expand for more. */
 import { DATA, esc, creatorName, fmt, mediaUrl, ytId } from "../../shared/catalog.js";
 import { videoCard, rowSection, emptyState } from "../../shared/ui.js";
 import { CATEGORIES, POPULAR_TAGS } from "../../shared/taxonomy.js";
+import { POSTS } from "../../blog/posts.js";
+import { postCoverUrl } from "../../blog/card.js";
 import { vstate } from "../state.js";
-import { jsq } from "../util.js";
-import { pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies, actNames, clipsByAct, highlights, originals, byIdDesc, byViewsDesc, byUploadedDesc, videoById } from "../catalog-queries.js";
+import { jsq, relativeTime } from "../util.js";
+import {
+  pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies,
+  actNames, clipsByAct, highlights, originals, byIdDesc, byViewsDesc,
+  byUploadedDesc, videoById, relatedTo,
+} from "../catalog-queries.js";
 
 // Homepage hero rotates between a small pool, picked once per page load
 // (not per render — re-picking on every filter/sort change would make the
-// hero jump around while browsing). Add/remove ids here to change the pool.
+// hero jump around while browsing).
 const HERO_VIDEO_POOL = [193, 270];
 export const HERO_VIDEO_ID = HERO_VIDEO_POOL[Math.floor(Math.random() * HERO_VIDEO_POOL.length)];
 
-// A horizontal scroll row only ever shows a handful of cards at once; capping
-// each row keeps the homepage DOM to hundreds of cards instead of thousands
-// (categories/acts were previously rendered in full — every match got a card).
-const ROW_MAX = 24;
+// Horizontal rows: cap cards so DOM stays bounded.
+const ROW_MAX = 18;
+// How many category rows show before "Browse more categories".
+const PRIMARY_CAT_ROWS = 2;
 
 function homeFilterBar(){
   const filters = [["all","All"],["movies","Movies"],["scenes","Scenes"],["clips","Clips"]];
   const sorts = [["none","Default"],["latest","Latest"],["likes","Most Liked"],["views","Most Viewed"]];
   const activeCat = vstate.homeCategory;
-  // `.mchrome-scroll` turns the filter/category row into a single horizontal
-  // scroll strip on mobile (never wraps); desktop keeps the wrapping pill row.
-  // All categories live behind one "Filters ▾" dropdown (was previously a
-  // handful of always-visible category pills plus a "More" overflow) so the
-  // row only ever shows the 4 format tabs + Filters + Sort. On mobile the
-  // dropdown switches to position:fixed (see style.css) since the scroll
-  // strip's overflow-x:auto would otherwise clip an absolutely-positioned menu.
   return `<div class="pill-row home-combined-bar mchrome-scroll">
     ${filters.map(([key,label])=>`<button class="filter-pill ${(vstate.homeFilter===key && !activeCat)?'active':''}" onclick="setHomeFilter('${key}')">${label}</button>`).join("")}
     <span class="cat-more">
@@ -42,21 +41,13 @@ function homeFilterBar(){
   </div>`;
 }
 
-// `m.poster` is a video object (the full movie, or its lowest-numbered scene
-// as a fallback) per movies()'s return shape in catalog-queries.js — despite
-// the field name, this is NOT an image URL, so passing it straight into
-// videoCard() (which expects a video-shaped object) is correct as-is.
 const moviesRow = (allMovies) =>
-  `<h3>Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`, layout:'row'})).join("")}</div>`;
+  `<h3 class="row-heading">Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`, layout:'row'})).join("")}</div>`;
 
-// Circular-avatar creator row (Netflix/YouTube "Top Creators" pattern).
-// Ranked by subscriber count; routes through the same openCreator() the
-// Vertical Feed's avatar click already uses — a real per-creator profile
-// page, not a placeholder link.
 function topCreatorsRow(){
   const top = DATA.creators.slice().sort((a,b)=>(b.subs||0)-(a.subs||0)).slice(0, 8);
   if(!top.length) return "";
-  return `<h3>Top Creators</h3><div class="row-scroll creator-circle-row">
+  return `<h3 class="row-heading">Top Creators</h3><div class="row-scroll creator-circle-row">
     ${top.map(c=>`
       <div class="creator-circle" onclick="openCreator('${jsq(c.id)}')">
         <div class="creator-circle-avatar">${esc((c.name||"?")[0])}</div>
@@ -65,53 +56,128 @@ function topCreatorsRow(){
   </div>`;
 }
 
-// Returns { html, empty } instead of a bare string. Callers should check the
-// explicit `empty` flag rather than string-matching the rendered HTML for
-// 'class="empty"' — that approach false-positives whenever any nested
-// sub-row (e.g. an empty Highlights row) happens to render empty-state markup
-// inside an otherwise fully-populated homepage.
+/* Single hero: same markup everywhere; CSS switches desktop billboard vs mobile card. */
+function homeHero(hero){
+  const heroIsVideo = hero.src && !ytId(hero.src);
+  const laterOn = vstate.later.includes(hero.id);
+  const media = hero.thumb
+    ? `<img class="home-hero-img" src="${mediaUrl(hero.thumb)}" alt="" loading="eager" decoding="async"/>`
+    : (heroIsVideo
+        ? `<video class="home-hero-img" src="${mediaUrl(hero.src)}${hero.thumb ? '' : '#t=1'}" muted autoplay loop playsinline></video>`
+        : ``);
+  return `
+    <section class="home-hero" aria-label="Featured video">
+      <div class="home-hero-media">${media}</div>
+      <div class="home-hero-body">
+        <span class="home-hero-tag">Featured</span>
+        <h1 class="home-hero-title">${esc(hero.title)}</h1>
+        <p class="home-hero-meta">${esc(creatorName(hero.creator))} · ${fmt(hero.views)} views${hero.uploaded ? ` · ${esc(relativeTime(hero.uploaded))}` : ''}</p>
+        <div class="home-hero-actions">
+          <button type="button" class="btn home-hero-play" onclick="openVideo(${hero.id})">▶ Play</button>
+          <button type="button" class="hero-later-btn ${laterOn?'on':''}" onclick="toggleLater(${hero.id})" aria-label="${laterOn?'Remove from Watch Later':'Add to Watch Later'}" title="Watch Later"><svg class="ico"><use href="#icon-save"/></svg></button>
+        </div>
+      </div>
+    </section>`;
+}
+
+/* "Because you watched …" — tag-overlap recs from the most recent history item. */
+function becauseYouWatchedRow(){
+  const lastId = vstate.history && vstate.history[0];
+  if(lastId == null) return "";
+  const seed = videoById(lastId);
+  if(!seed) return "";
+  const recs = relatedTo(seed, ROW_MAX).filter(v => v.id !== seed.id);
+  if(recs.length < 3) return "";
+  const shortTitle = seed.title.length > 42 ? seed.title.slice(0, 40) + "…" : seed.title;
+  const heading = `Because you watched <span class="row-reason" title="${esc(seed.title)}">${esc(shortTitle)}</span>`;
+  return rowSection(heading, recs, { layout: "row", allowHtmlTitle: true });
+}
+
+/* Editorial teasers linking into /blog/ — keeps the product ↔ content loop warm. */
+function fromTheBlogRow(){
+  if(!POSTS || !POSTS.length) return "";
+  const posts = [...POSTS].sort((a,b) => String(b.date).localeCompare(String(a.date))).slice(0, 8);
+  const cards = posts.map(p => {
+    const cover = postCoverUrl(p);
+    return `
+      <a class="blog-home-card" href="/blog/${esc(p.slug)}.html">
+        <div class="blog-home-card-media">
+          ${cover ? `<img src="${esc(cover)}" alt="" loading="lazy" decoding="async"/>` : ``}
+          <span class="blog-home-card-pill">${esc(p.category)}</span>
+        </div>
+        <div class="blog-home-card-body">
+          <div class="blog-home-card-title">${esc(p.title)}</div>
+          <div class="blog-home-card-meta">${esc(relativeTime(p.date))} · ${p.readMins} min</div>
+        </div>
+      </a>`;
+  }).join("");
+  return `
+    <div class="row-heading-wrap">
+      <h3 class="row-heading">From the Blog</h3>
+      <a class="row-heading-link" href="/blog/">See all →</a>
+    </div>
+    <div class="row-scroll blog-home-row">${cards}</div>`;
+}
+
+function moreCategoriesBlock(cats, acts){
+  if(vstate.homeExpandCats){
+    return `
+      ${rowSection("Highlights", highlights().slice(0, ROW_MAX), { layout: "row" })}
+      ${acts.map(a => rowSection("Act: " + a, clipsByAct(a).slice(0, ROW_MAX), { layout: "row" })).join("")}
+      ${cats.map(c => rowSection(c, byCat(c).slice(0, ROW_MAX), { layout: "row" })).join("")}
+      ${rowSection("Recently Uploaded", byUploadedDesc().slice(0, ROW_MAX), { layout: "row" })}
+      <div class="home-more-wrap">
+        <button type="button" class="btn ghost" onclick="setHomeExpandCats(false)">Show fewer rows</button>
+      </div>`;
+  }
+  const preview = cats.slice(0, PRIMARY_CAT_ROWS);
+  const remaining = Math.max(0, cats.length - PRIMARY_CAT_ROWS + acts.length);
+  return `
+    ${preview.map(c => rowSection(c, byCat(c).slice(0, ROW_MAX), { layout: "row" })).join("")}
+    ${remaining > 0 ? `
+    <div class="home-more-wrap">
+      <button type="button" class="btn home-more-btn" onclick="setHomeExpandCats(true)">
+        Browse more categories${remaining ? ` (+${remaining})` : ""}
+      </button>
+    </div>` : ""}`;
+}
+
 function _renderHomeBody(){
-  const pub = pubVideos(); // computed once, reused for every section below
+  const pub = pubVideos();
   const hero = pub.find(v=>v.id===HERO_VIDEO_ID) || pub.find(v=>v.type==="original") || pub[0];
   if(!hero) return { html: `<div class="empty">No videos available yet.</div>`, empty: true };
 
   const filter = vstate.homeFilter;
   const sort = vstate.homeSort;
 
-  // A selected category filters the whole feed to matching videos (category or
-  // tag match), overriding the row layout with a focused grid.
   if(vstate.homeCategory){
     const cat = vstate.homeCategory;
     let matches = byCategoryFilter(cat);
     if(sort!=="none"){
-      const matchSet = new Set(matches); // O(1) membership check instead of Array#includes in a loop
+      const matchSet = new Set(matches);
       matches = sortedVideos(sort).filter(v=>matchSet.has(v));
     }
     const shown = matches.slice(0, vstate.limit);
     const html = `
       ${homeFilterBar()}
-      <h3>${esc(cat)} <span class="small">(${matches.length})</span></h3>
+      <h3 class="row-heading">${esc(cat)} <span class="small">(${matches.length})</span></h3>
       ${shown.length ? `<div class="video-list">${shown.map(v=>videoCard(v,{layout:'row'})).join("")}</div>` : emptyState(`No ${cat} videos yet.`, POPULAR_TAGS.filter(t=>t!==cat).slice(0,8))}
       ${matches.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more</button>` : ''}
     `;
     return { html, empty: !shown.length };
   }
 
-  // A non-default sort takes priority over the Movies/Scenes/Clips filter and
-  // replaces the usual row set with one flat grid, same pattern as those filters.
   if(sort!=="none"){
     const label = sort==="latest" ? "Latest" : sort==="likes" ? "Most Liked" : "Most Viewed";
     const all = sortedVideos(sort).slice(0, vstate.limit);
     const html = `
       ${homeFilterBar()}
-      ${all.length ? `<h3>${label}</h3><div class="video-list">${all.map(v=>videoCard(v,{layout:'row'})).join("")}</div>` : `<div class="empty">No videos yet.</div>`}
+      ${all.length ? `<h3 class="row-heading">${label}</h3><div class="video-list">${all.map(v=>videoCard(v,{layout:'row'})).join("")}</div>` : `<div class="empty">No videos yet.</div>`}
       ${pub.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
     `;
     return { html, empty: !all.length };
   }
 
-  // Movies/Scenes/Clips filters replace the usual row set with a focused view;
-  // "all" (the default) keeps today's full homepage layout unchanged.
   if(filter==="movies"){
     const allMovies = movies();
     const html = `${homeFilterBar()}${allMovies.length ? moviesRow(allMovies) : `<div class="empty">No movies yet.</div>`}`;
@@ -128,53 +194,32 @@ function _renderHomeBody(){
     return { html, empty: !allClips.length };
   }
 
+  // ---- Default curated home (Sprint B) ----
   const top = trending();
   const allMovies = movies();
-  const heroIsVideo = hero.src && !ytId(hero.src); // computed once, reused by desktop + mobile hero
-  const historySet = new Set(vstate.history); // O(1) membership for the Recommended row filter
+  const historySet = new Set(vstate.history);
   const continueWatching = vstate.history.map(id => videoById(id)).filter(Boolean);
+  const recommended = (() => {
+    const nw = top.filter(v => !historySet.has(v.id));
+    return (nw.length >= 6 ? nw : top).slice(0, ROW_MAX);
+  })();
+  const cats = DATA.categories || CATEGORIES;
+  const acts = actNames();
 
   const html = `
     ${homeFilterBar()}
-    <!-- Desktop Hero -->
-    <div class="hero">
-      ${heroIsVideo ? `<video src="${mediaUrl(hero.src)}" muted autoplay loop playsinline></video>` : ``}
-      <div class="hero-body">
-        <span class="tag">HOUSE ORIGINAL</span>
-        <h1>${esc(hero.title)}</h1>
-        <p class="sub">${esc(creatorName(hero.creator))} • ${fmt(hero.views)} views</p>
-        <button class="btn" onclick="openVideo(${hero.id})">▶ Play</button>
-        <button class="hero-later-btn ${vstate.later.includes(hero.id)?'on':''}" onclick="toggleLater(${hero.id})" aria-label="${vstate.later.includes(hero.id)?'Remove from Watch Later':'Add to Watch Later'}" title="Watch Later"><svg class="ico"><use href="#icon-save"/></svg></button>
-      </div>
-    </div>
+    ${homeHero(hero)}
 
-    <!-- Mobile Featured Hero Banner (Above-the-Fold Anchor) -->
-    <div class="mobile-hero" onclick="openVideo(${hero.id})">
-      <div class="mobile-hero-bg">
-        ${hero.thumb ? `<img src="${mediaUrl(hero.thumb)}" alt="" loading="eager"/>` : (heroIsVideo ? `<video src="${mediaUrl(hero.src)}#t=1" muted autoplay loop playsinline></video>` : ``)}
-      </div>
-      <div class="mobile-hero-overlay">
-        <span class="mobile-hero-tag">⚡ FEATURED ORIGINAL</span>
-        <div class="mobile-hero-title">${esc(hero.title)}</div>
-        <div class="mobile-hero-meta">${esc(creatorName(hero.creator))} • ${fmt(hero.views)} views</div>
-        <button class="btn mobile-hero-cta" onclick="event.stopPropagation();openVideo(${hero.id})">
-          ▶ Watch Now
-        </button>
-      </div>
-    </div>
-
-    ${continueWatching.length ? rowSection("Continue Watching", continueWatching, {layout:'row'}) : ""}
-    ${rowSection("🔥 Fresh Uploads", byIdDesc().slice(0, vstate.limit), {layout:'row'})}
-    ${rowSection("Recommended For You", (()=>{ const nw=top.filter(v=>!historySet.has(v.id)); return nw.length>=6?nw.slice(0, vstate.limit):top.slice(0, vstate.limit); })(), {layout:'row'})}
-    ${rowSection("Trending Now", byViewsDesc().slice(0, vstate.limit), {layout:'row'})}
-    ${topCreatorsRow()}
-    ${rowSection("House Originals", originals().slice(0, vstate.limit), {layout:'row'})}
+    ${continueWatching.length ? rowSection("Continue Watching", continueWatching, { layout: "row" }) : ""}
+    ${becauseYouWatchedRow()}
+    ${rowSection("Fresh Uploads", byIdDesc().slice(0, ROW_MAX), { layout: "row" })}
+    ${rowSection("Recommended for you", recommended, { layout: "row" })}
+    ${rowSection("Trending now", byViewsDesc().slice(0, ROW_MAX), { layout: "row" })}
+    ${fromTheBlogRow()}
+    ${rowSection("House Originals", originals().slice(0, ROW_MAX), { layout: "row" })}
     ${allMovies.length ? moviesRow(allMovies) : ""}
-    ${rowSection("Highlights", highlights().slice(0, ROW_MAX), {layout:'row'})}
-    ${actNames().map(a=>rowSection("Act: "+esc(a), clipsByAct(a).slice(0, ROW_MAX), {layout:'row'})).join("")}
-    ${DATA.categories.map(c=>rowSection(c, byCat(c).slice(0, ROW_MAX), {layout:'row'})).join("")}
-    ${rowSection("Recently Uploaded", byUploadedDesc().slice(0, vstate.limit), {layout:'row'})}
-    ${pub.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
+    ${topCreatorsRow()}
+    ${moreCategoriesBlock(cats, acts)}
   `;
   return { html, empty: false };
 }

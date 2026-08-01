@@ -375,29 +375,39 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
 .metric .delta.down{color:var(--muted)}
 
 /* Hero */
-/* Netflix-style billboard hero: full-bleed background media, a bottom-up
-   gradient fade (not a hard-edged overlay box) so the title/CTA read
-   clearly over any source image without needing a solid backing panel. */
-.hero{
-  position:relative;height:440px;border-radius:18px;overflow:hidden;margin-bottom:28px;
+/* Unified home hero (desktop billboard + mobile featured card via CSS).
+   Replaces the dual .hero / .mobile-hero markup that could stack or drift. */
+.home-hero{
+  position:relative;height:420px;border-radius:18px;overflow:hidden;margin-bottom:24px;
   display:flex;align-items:flex-end;
   background:linear-gradient(135deg,#2A0307,#0A0A0A);
   border:1px solid var(--border);
 }
-.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.hero::after{
+.home-hero-media{position:absolute;inset:0}
+.home-hero-img,.home-hero-media video,.home-hero-media img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+}
+.home-hero::after{
   content:"";position:absolute;inset:0;pointer-events:none;
   background:
-    linear-gradient(0deg, rgba(10,10,10,.85) 0%, rgba(10,10,10,.35) 40%, transparent 68%),
-    linear-gradient(90deg, rgba(10,10,10,.55) 0%, transparent 50%);
+    linear-gradient(0deg, rgba(10,10,10,.88) 0%, rgba(10,10,10,.35) 42%, transparent 70%),
+    linear-gradient(90deg, rgba(10,10,10,.55) 0%, transparent 52%);
 }
-.hero .hero-body{position:relative;z-index:1;padding:36px;max-width:600px}
-.hero h1{font-size:32px;font-weight:700;letter-spacing:-.3px;text-shadow:0 2px 14px rgba(0,0,0,.75)}
-.hero .tag{display:inline-block;background:var(--accent);color:#fff;font-size:10px;
+.home-hero-body{position:relative;z-index:1;padding:32px;max-width:580px}
+.home-hero-tag{
+  display:inline-block;background:var(--accent);color:#fff;font-size:10px;
   font-weight:800;padding:4px 10px;border-radius:6px;letter-spacing:1px;margin-bottom:12px;
-  text-transform:uppercase;box-shadow:0 0 16px rgba(229,9,20,.5)}
-.hero .btn{
-  padding:12px 26px;font-size:14.5px;border-radius:10px;
+  text-transform:uppercase;box-shadow:0 0 16px rgba(229,9,20,.5);
+}
+.home-hero-title{
+  margin:0 0 8px;font-size:clamp(22px,3vw,32px);font-weight:800;letter-spacing:-.3px;
+  line-height:1.15;text-shadow:0 2px 14px rgba(0,0,0,.75);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.home-hero-meta{margin:0 0 16px;font-size:13px;color:rgba(255,255,255,.78)}
+.home-hero-actions{display:flex;align-items:center;gap:10px}
+.home-hero-play{
+  padding:12px 26px;font-size:14.5px;border-radius:10px;min-height:44px;
   box-shadow:0 0 22px rgba(229,9,20,.45);
 }
 .hero-later-btn{
@@ -410,6 +420,49 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
 .hero-later-btn .ico{width:18px;height:18px}
 .hero-later-btn:hover{background:rgba(255,255,255,.1)}
 .hero-later-btn.on{border-color:var(--accent2);color:var(--accent2)}
+
+/* Legacy dual-hero (kept inert so old caches don't stack) */
+.hero,.mobile-hero{display:none!important}
+
+.row-heading{margin:18px 0 10px;font-size:16px;font-weight:800}
+.row-heading .row-reason{color:var(--muted);font-weight:600}
+.row-heading-wrap{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:18px 0 10px;
+}
+.row-heading-wrap .row-heading{margin:0}
+.row-heading-link{
+  font-size:12px;font-weight:700;color:var(--accent2);text-decoration:none;white-space:nowrap;
+}
+.row-heading-link:hover{text-decoration:underline}
+.home-more-wrap{display:flex;justify-content:center;margin:20px 0 8px}
+.home-more-btn{
+  min-height:44px;padding:0 22px;border-radius:999px;font-weight:700;
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);cursor:pointer;
+}
+.home-more-btn:hover{border-color:var(--accent);color:#fff}
+.card-when{opacity:.75;font-weight:600}
+
+/* Home "From the Blog" teaser cards */
+.blog-home-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.blog-home-row::-webkit-scrollbar{display:none}
+.blog-home-card{
+  flex:0 0 220px;max-width:220px;background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;overflow:hidden;text-decoration:none;color:var(--text);
+  transition:border-color .15s,transform .15s;
+}
+.blog-home-card:hover{border-color:rgba(229,9,20,.45);transform:translateY(-2px)}
+.blog-home-card-media{position:relative;aspect-ratio:16/10;background:var(--surface2)}
+.blog-home-card-media img{width:100%;height:100%;object-fit:cover}
+.blog-home-card-pill{
+  position:absolute;top:8px;left:8px;font-size:9px;font-weight:800;letter-spacing:.06em;
+  text-transform:uppercase;background:var(--accent);color:#fff;padding:3px 8px;border-radius:999px;
+}
+.blog-home-card-body{padding:10px 12px 12px}
+.blog-home-card-title{
+  font-size:13px;font-weight:800;line-height:1.3;margin-bottom:4px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.blog-home-card-meta{font-size:11px;color:var(--muted);font-weight:600}
 
 /* Movie detail page */
 .movie-detail{margin:-14px;margin-bottom:0}
@@ -1393,83 +1446,23 @@ iframe.player{object-fit:contain}
   }
   .topbar{min-height:0;padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px}
 
-  /* ---- Mobile Featured Hero Banner ---- */
-  .mobile-hero {
-    display: block;
-    position: relative;
-    height: 210px;
-    border-radius: 14px;
-    overflow: hidden;
-    margin-bottom: 16px;
-    border: 1px solid var(--border);
-    cursor: pointer;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  /* Unified home hero — mobile card treatment */
+  .home-hero{
+    height:auto;min-height:210px;aspect-ratio:16/10;border-radius:14px;margin-bottom:16px;
+    box-shadow:0 8px 24px rgba(0,0,0,.4);
   }
-  .mobile-hero-bg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+  .home-hero-body{
+    padding:14px;max-width:none;width:100%;
   }
-  .mobile-hero-bg img, .mobile-hero-bg video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  .home-hero-title{font-size:17px}
+  .home-hero-meta{font-size:11.5px;margin-bottom:10px}
+  .home-hero-play{
+    flex:1;width:auto;min-height:44px;font-size:14px;
+    background:linear-gradient(135deg,var(--accent,#e50914),#b20710);
   }
-  .mobile-hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(10,10,10,0.94) 90%);
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: flex-start;
-    gap: 4px;
-    z-index: 2;
-  }
-  .mobile-hero-tag {
-    background: var(--accent, #e50914);
-    color: #fff;
-    font-weight: 800;
-    font-size: 9px;
-    letter-spacing: 0.6px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    text-transform: uppercase;
-  }
-  .mobile-hero-title {
-    font-size: 17px;
-    font-weight: 800;
-    line-height: 1.25;
-    color: #fff;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .mobile-hero-meta {
-    font-size: 11.5px;
-    color: rgba(255,255,255,0.7);
-  }
-  .mobile-hero-cta {
-    margin-top: 6px;
-    width: 100%;
-    min-height: 46px;
-    font-size: 14px;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--accent, #e50914), #b20710);
-    border: none;
-    border-radius: 10px;
-    color: #fff;
-    box-shadow: 0 4px 14px rgba(229,9,20,0.45);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
+  .home-hero-actions{width:100%}
+  .home-hero-tag{font-size:9px;letter-spacing:.6px;padding:3px 8px}
+  .blog-home-card{flex:0 0 168px;max-width:168px}
 
   /* ---- Touch-Snap Carousels with 85% Peek Effect ---- */
   .row-scroll {
@@ -1543,8 +1536,7 @@ iframe.player{object-fit:contain}
   .page-feed .content.content-feed{height:100vh}
 
   /* ---- Home layout ---- */
-  .hero{display:none}
-  h3{margin:14px 0 8px;font-size:16px;font-weight:700}
+  h3,.row-heading{margin:14px 0 8px;font-size:16px;font-weight:700}
 
   /* ---- Filter/category/sort chip rows ---- */
   .mchrome-scroll{
