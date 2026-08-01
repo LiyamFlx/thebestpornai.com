@@ -67,6 +67,12 @@ export function applyHash(){
     vstate.libraryTab = mlib[1] || vstate.libraryTab || "later";
     return;
   }
+  // Unknown #library/... (typos, trailing slash) still open Library — never fall through to Home
+  if(h === "library" || h.startsWith("library/")){
+    vstate.page = "library";
+    vstate.libraryTab = vstate.libraryTab || "later";
+    return;
+  }
   // Legacy deep links still land in Library with the right tab
   if(h==="later"||h==="favorites"||h==="history"||h==="downloads"){
     vstate.page = "library";

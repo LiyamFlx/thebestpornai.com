@@ -74,7 +74,7 @@ function homeHero(hero){
         <p class="home-hero-meta">${esc(creatorName(hero.creator))} · ${fmt(hero.views)} views${hero.uploaded ? ` · ${esc(relativeTime(hero.uploaded))}` : ''}</p>
         <div class="home-hero-actions">
           <button type="button" class="btn home-hero-play" onclick="openVideo(${hero.id})">▶ Play</button>
-          <button type="button" class="hero-later-btn ${laterOn?'on':''}" onclick="toggleLater(${hero.id})" aria-label="${laterOn?'Remove from Watch Later':'Add to Watch Later'}" title="Watch Later"><svg class="ico"><use href="#icon-save"/></svg></button>
+          <button type="button" class="hero-later-btn ${laterOn?'on':''}" data-later-id="${hero.id}" aria-pressed="${laterOn?'true':'false'}" onclick="toggleLater(${hero.id})" aria-label="${laterOn?'Remove from Watch Later':'Add to Watch Later'}" title="Watch Later"><svg class="ico"><use href="#icon-save"/></svg></button>
         </div>
       </div>
     </section>`;
@@ -198,7 +198,8 @@ function _renderHomeBody(){
   const top = trending();
   const allMovies = movies();
   const historySet = new Set(vstate.history);
-  const continueWatching = vstate.history.map(id => videoById(id)).filter(Boolean);
+  // Cap like every other home row so long history does not dump 50 full cards.
+  const continueWatching = vstate.history.map(id => videoById(id)).filter(Boolean).slice(0, ROW_MAX);
   const recommended = (() => {
     const nw = top.filter(v => !historySet.has(v.id));
     return (nw.length >= 6 ? nw : top).slice(0, ROW_MAX);

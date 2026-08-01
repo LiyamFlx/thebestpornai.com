@@ -233,7 +233,8 @@ function attachAutoAdvance(overlay, video, wrap){
 
   const pickNext = () => {
     const cards = [...document.querySelectorAll(".upnext-card[data-video-id]")];
-    const nextCard = cards.find((c) => c.style.display !== "none") || cards[0];
+    // Only visible cards — never fall back to a filtered-out (display:none) item.
+    const nextCard = cards.find((c) => c.style.display !== "none");
     if(!nextCard) return null;
     const nextId = +nextCard.dataset.videoId;
     if(!Number.isFinite(nextId)) return null;

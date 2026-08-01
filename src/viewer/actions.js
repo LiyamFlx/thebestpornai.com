@@ -154,12 +154,18 @@ function reflectSetToggle(kind, id, active){
   }
   // Watch-page primary action button (present only on the watch page).
   const watchBtn = document.getElementById(kind==="fav" ? "btnFav" : "btnLater");
-  if(watchBtn) watchBtn.classList.toggle("on", active);
-  // Any card quick-action buttons for this id (a video can appear in several
-  // rows at once — patch every instance so they stay in sync).
+  if(watchBtn){
+    watchBtn.classList.toggle("on", active);
+    watchBtn.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+  // Card / hero quick-actions for this id (a video can appear in several places —
+  // patch every instance so they stay in sync). Hero uses data-later-id too.
   document.querySelectorAll(`[data-${kind}-id="${id}"]`).forEach(b => {
     b.classList.toggle("on", active);
     b.setAttribute("aria-pressed", active ? "true" : "false");
+    if(kind === "later" && b.classList.contains("hero-later-btn")){
+      b.setAttribute("aria-label", active ? "Remove from Watch Later" : "Add to Watch Later");
+    }
   });
 }
 
