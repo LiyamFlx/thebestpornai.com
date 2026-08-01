@@ -182,16 +182,21 @@ function playerOverlayDesktop(v){
 }
 
 function actionBar(v, live, hasCreator){
+  // Compact primary set — like/dislike, share, save, fav, download.
+  // Initial on/off state mirrors vstate so re-renders stay in sync without
+  // waiting for markToggleStates (which targets card data-* buttons).
+  const laterOn = vstate.later.includes(v.id);
+  const favOn = vstate.favorites.includes(v.id);
   return `
-    <div class="watch-action-bar mchrome-scroll">
+    <div class="watch-action-bar mchrome-scroll" role="toolbar" aria-label="Video actions">
       <div class="vote-pill">
         <button id="btnLike" class="vote-btn" onclick="likeVideo(${v.id})" aria-label="Like this video"><svg class="ic ico"><use href="#icon-like"/></svg> <span id="likeNum">${fmt(v.likes + live.like)}</span></button>
-        <span class="vote-div"></span>
+        <span class="vote-div" aria-hidden="true"></span>
         <button id="btnDislike" class="vote-btn" onclick="dislikeVideo(${v.id})" aria-label="Dislike this video"><svg class="ic ico"><use href="#icon-dislike"/></svg></button>
       </div>
       <button class="act-pill" onclick="openShareSheet()"><svg class="ic ico"><use href="#icon-share"/></svg><span>Share</span></button>
-      <button class="act-pill" onclick="openSaveSheet()"><svg class="ic ico"><use href="#icon-save"/></svg><span>Save</span></button>
-      <button id="btnThanks" class="act-pill thanks" onclick="likeVideo(${v.id})"><svg class="ic ico"><use href="#icon-heart"/></svg><span>Thanks</span></button>
+      <button class="act-pill ${laterOn?'on':''}" id="btnLater" onclick="toggleLater(${v.id})" aria-pressed="${laterOn?'true':'false'}"><svg class="ic ico"><use href="#icon-save"/></svg><span>Save</span></button>
+      <button class="act-pill ${favOn?'on':''}" id="btnFav" onclick="toggleFav(${v.id})" aria-pressed="${favOn?'true':'false'}"><svg class="ic ico"><use href="#icon-heart"/></svg><span>Fav</span></button>
       <button class="act-pill" id="downloadBtn" onclick="downloadWithFeedback(${v.id})"><svg class="ic ico" id="downloadIcon"><use href="#icon-download"/></svg><span id="downloadText">Download</span></button>
     </div>`;
 }
@@ -225,7 +230,7 @@ function blogStoryChip(v){
   return `<a class="watch-blog-chip" href="/blog/${esc(p.slug)}.html">📖 Story behind this scene</a>`;
 }
 
-function titleBlockMobile(v, catList, tagList){
+function titleBlockMobile(v, catList, tagList, live, c, hasCreator, subbed){
   return `
     <div class="watch-title-block">
       <div class="title-row">
@@ -236,6 +241,8 @@ function titleBlockMobile(v, catList, tagList){
         <div class="stats-left"><span class="views-count" id="watchViewsCount">${fmt(v.views)} views</span><span class="dot-sep">•</span><span>${esc(v.uploaded)}</span></div>
         ${tagList.length ? `<div class="stats-tags">${tagList.slice(0,2).map(t=>`<span onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}</div>` : ''}
       </div>
+      ${actionBar(v, live, hasCreator)}
+      ${creatorRow(c, hasCreator, subbed)}
       ${blogStoryChip(v)}
       ${(catList.length || tagList.length || v.desc) ? `
       <div class="quick-desc-box" id="quickDescBox" hidden>
@@ -371,7 +378,7 @@ export function renderWatch(){
         ${playerOverlayMobile(v)}
       </section>
       <main class="watch-main-v2">
-        ${titleBlockMobile(v, catList, tagList)}
+        ${titleBlockMobile(v, catList, tagList, live, c, hasCreator, subbed)}
         ${watchTabsNav(cms.length)}
         <div class="watch-tab-panel" id="tabPanelUpNext" ${vstate.watchTab!=='upnext'?'hidden':''}>
           ${upNextPanel(related, true)}

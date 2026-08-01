@@ -184,63 +184,162 @@ export function attachPlayerControlsV2(){
     if(container) container.classList.toggle("theater", vstate.theaterMode);
   }
 
-  // Auto-hide the play/pause/±10s overlay after 1s, and immediately on
-  // playback starting or on a tap — it's a brief control reveal, not a
-  // persistent chrome bar.
-  const hide = () => overlay.classList.remove("visible");
-  const show = () => {
+  // Auto-hide player chrome after idle. Longer delay + don't hide while the
+  // pointer is on seek/volume (scrubbing). Tap on video toggles play without
+  // fighting a simultaneous "show chrome" on the same gesture when possible.
+  const HIDE_MS = 2800;
+  const hide = () => {
+    if(overlay.querySelector(".pc-upnext")) return; // keep chrome usable under end card? end card is separate
+    overlay.classList.remove("visible");
+  };
+  const show = (opts = {}) => {
     overlay.classList.add("visible");
     clearAutoHide();
-    hideTimer = setTimeout(hide, 1000);
+    if(opts.sticky) return;
+    hideTimer = setTimeout(hide, HIDE_MS);
   };
-  wrap.addEventListener("mousemove", show);
-  wrap.addEventListener("touchstart", show, { passive:true });
+  wrap.addEventListener("mousemove", () => show());
+  // Touch: first contact only reveals controls (no play toggle here).
+  wrap.addEventListener("touchstart", (e) => {
+    if(e.target.closest(".player-overlay-v2")) return;
+    show();
+  }, { passive:true });
   overlay.addEventListener("mouseenter", () => clearAutoHide());
-  overlay.addEventListener("mouseleave", show);
-  video.addEventListener("play", hide);
-  video.addEventListener("pause", show);
-  video.addEventListener("click", () => { window.togglePlayPauseV2(); hide(); });
+  overlay.addEventListener("mouseleave", () => show());
+  // Keep chrome visible while scrubbing / adjusting volume.
+  seek?.addEventListener("pointerdown", () => { clearAutoHide(); overlay.classList.add("visible"); });
+  seek?.addEventListener("pointerup", () => show());
+  volumeSlider?.addEventListener("pointerdown", () => { clearAutoHide(); overlay.classList.add("visible"); });
+  volumeSlider?.addEventListener("pointerup", () => show());
+  video.addEventListener("play", () => show());
+  video.addEventListener("pause", () => show({ sticky: true }));
+  // Click on the video surface (not overlay buttons): toggle play/pause.
+  video.addEventListener("click", (e) => {
+    if(e.target !== video) return;
+    window.togglePlayPauseV2();
+    show();
+  });
   show();
 
-  attachAutoAdvance(overlay, video);
+  attachAutoAdvance(overlay, video, wrap);
 }
 
-/* "Up next" indicator: on video end, auto-advance to the first Up Next card
-   after a 5s countdown (YouTube/Netflix pattern) — without this, every
-   watch session dead-ends and needs a manual click. Centered card over the
-   final frame (thumbnail + title + countdown ring), with an explicit Cancel
-   action rather than "tap anywhere to dismiss". */
-function attachAutoAdvance(overlay, video){
-  if(!vstate.settings.autoplay) return;
-  const nextCard = document.querySelector(".upnext-card[data-video-id]");
-  if(!nextCard) return;
-  const nextId = +nextCard.dataset.videoId;
-  if(!Number.isFinite(nextId)) return;
-
+/* End-of-play card: next video preview + countdown + Cancel / Play now.
+   Uses the first *visible* Up Next card so category filters still apply. */
+function attachAutoAdvance(overlay, video, wrap){
   const DURATION_MS = 5000;
-  const RADIUS = 20;
+  const RADIUS = 22;
   const CIRC = 2 * Math.PI * RADIUS;
+
+  const pickNext = () => {
+    const cards = [...document.querySelectorAll(".upnext-card[data-video-id]")];
+    const nextCard = cards.find((c) => c.style.display !== "none") || cards[0];
+    if(!nextCard) return null;
+    const nextId = +nextCard.dataset.videoId;
+    if(!Number.isFinite(nextId)) return null;
+    return {
+      id: nextId,
+      title: nextCard.dataset.title || "Next video",
+      creator: nextCard.dataset.creator || "",
+      thumb: nextCard.dataset.thumb || "",
+    };
+  };
+
+  const cancelAdvance = () => {
+    clearAutoAdvance();
+    overlay.classList.add("visible");
+  };
+
+  window.cancelUpNextAdvance = cancelAdvance;
+  window.playUpNextNow = (id) => {
+    clearAutoAdvance();
+    openVideo(+id);
+  };
 
   video.addEventListener("ended", () => {
     if(advanceOverlay) return;
+    const next = pickNext();
+    if(!next) return;
+
+    // Autoplay off: static end screen with next + replay affordance, no timer.
+    const autoplayOn = !!vstate.settings.autoplay;
+
     advanceOverlay = document.createElement("div");
     advanceOverlay.className = "pc-upnext";
-    // Just the countdown ring — no thumbnail/title/creator/Cancel button.
+    advanceOverlay.setAttribute("role", "dialog");
+    advanceOverlay.setAttribute("aria-label", autoplayOn ? "Next video starting soon" : "Video ended");
+    const thumbHtml = next.thumb
+      ? `<img class="pc-upnext-thumb" src="${next.thumb}" alt="" loading="eager"/>`
+      : `<div class="pc-upnext-thumb pc-upnext-thumb-ph" aria-hidden="true"></div>`;
     advanceOverlay.innerHTML = `
-      <svg class="pc-upnext-ring" viewBox="0 0 48 48" aria-hidden="true">
-        <circle class="pc-upnext-ring-track" cx="24" cy="24" r="${RADIUS}"/>
-        <circle class="pc-upnext-ring-fill" cx="24" cy="24" r="${RADIUS}"
-          stroke-dasharray="${CIRC}" stroke-dashoffset="0"/>
-      </svg>`;
-    overlay.appendChild(advanceOverlay);
+      <div class="pc-upnext-card">
+        ${thumbHtml}
+        <div class="pc-upnext-info">
+          <div class="pc-upnext-kicker">${autoplayOn ? "Up next" : "Suggested next"}</div>
+          <div class="pc-upnext-title"></div>
+          <div class="pc-upnext-creator"></div>
+          ${autoplayOn ? `
+          <div class="pc-upnext-countdown-row">
+            <svg class="pc-upnext-ring" viewBox="0 0 48 48" aria-hidden="true">
+              <circle class="pc-upnext-ring-track" cx="24" cy="24" r="${RADIUS}"/>
+              <circle class="pc-upnext-ring-fill" cx="24" cy="24" r="${RADIUS}"
+                stroke-dasharray="${CIRC}" stroke-dashoffset="0"/>
+            </svg>
+            <span class="pc-upnext-count-label">Playing in <b id="pcUpNextSecs">5</b>s</span>
+          </div>` : ""}
+          <div class="pc-upnext-actions">
+            ${autoplayOn
+              ? `<button type="button" class="pc-upnext-btn ghost" id="pcUpNextCancel">Cancel</button>
+                 <button type="button" class="pc-upnext-btn primary" id="pcUpNextPlay">Play now</button>`
+              : `<button type="button" class="pc-upnext-btn ghost" id="pcUpNextReplay">Replay</button>
+                 <button type="button" class="pc-upnext-btn primary" id="pcUpNextPlay">Play next</button>`}
+          </div>
+        </div>
+      </div>`;
+    // Text via textContent to avoid XSS from catalog titles.
+    advanceOverlay.querySelector(".pc-upnext-title").textContent = next.title;
+    advanceOverlay.querySelector(".pc-upnext-creator").textContent = next.creator;
+
+    // Mount on the player container so it sits above the video even when
+    // the control overlay is hidden (opacity/pointer-events).
+    const mount = wrap?.closest(".player-container-v2") || wrap || overlay;
+    mount.appendChild(advanceOverlay);
+    overlay.classList.remove("visible");
+
+    advanceOverlay.querySelector("#pcUpNextCancel")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      cancelAdvance();
+    });
+    advanceOverlay.querySelector("#pcUpNextPlay")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      window.playUpNextNow(next.id);
+    });
+    advanceOverlay.querySelector("#pcUpNextReplay")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      clearAutoAdvance();
+      video.currentTime = 0;
+      video.play?.().catch(()=>{});
+      overlay.classList.add("visible");
+    });
+
+    if(!autoplayOn) return;
 
     const ringFill = advanceOverlay.querySelector(".pc-upnext-ring-fill");
+    const secsEl = advanceOverlay.querySelector("#pcUpNextSecs");
     const start = performance.now();
-
     const tick = (now) => {
+      if(!advanceOverlay) return;
       const elapsed = now - start;
+      const left = Math.max(0, DURATION_MS - elapsed);
       if(ringFill) ringFill.style.strokeDashoffset = String(CIRC * (1 - elapsed / DURATION_MS));
-      if(elapsed >= DURATION_MS){ advanceTimer = null; openVideo(nextId); return; }
+      if(secsEl) secsEl.textContent = String(Math.ceil(left / 1000));
+      if(elapsed >= DURATION_MS){
+        advanceTimer = null;
+        const id = next.id;
+        clearAutoAdvance();
+        openVideo(id);
+        return;
+      }
       advanceTimer = requestAnimationFrame(tick);
     };
     advanceTimer = requestAnimationFrame(tick);

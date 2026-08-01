@@ -122,6 +122,8 @@ Object.assign(window, {
   downloadWithFeedback,
   toggleDescSheetMobile,
   toggleDescExpandDesktop,
+  cancelUpNextAdvance: () => window.cancelUpNextAdvance?.(),
+  playUpNextNow: (id) => window.playUpNextNow?.(id),
 });
 
 // Keyboard navigation (Watch page): Left/Right cycle public videos,
@@ -146,6 +148,11 @@ document.addEventListener("keydown", (e) => {
 
   if (vstate.page !== "watch") return;
 
+  if (e.key === " " || e.code === "Space") {
+    e.preventDefault();
+    window.togglePlayPauseV2?.();
+    return;
+  }
   if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
     e.preventDefault();
     stepWatch(e.key === "ArrowRight" ? 1 : -1);
