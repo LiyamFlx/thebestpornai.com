@@ -1,19 +1,23 @@
 /* Simple list-style pages: categories, subscriptions, profile, settings,
    library hub, live/playlists (demoted), search, and generic listPage. */
-import { DATA, esc, fmt } from "../../shared/catalog.js";
-import { videoCard, emptyState } from "../../shared/ui.js";
-import { POPULAR_TAGS } from "../../shared/taxonomy.js";
+import { DATA, esc, fmt, creatorName } from "../../shared/catalog.js";
+import { videoCard, emptyState, rowSection } from "../../shared/ui.js";
+import { POPULAR_TAGS, CATEGORIES } from "../../shared/taxonomy.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
-import { pubVideos, byCat, videoById } from "../catalog-queries.js";
+import { pubVideos, byCat, videoById, trending } from "../catalog-queries.js";
 import { pagedGrid } from "../grid-window.js";
 
 // Horizontal category rows never need more than a screenful of cards.
 const CAT_ROW_MAX = 24;
+const SEARCH_HUB_TRENDING = 12;
+const SEARCH_HUB_CATS = 10;
 
 export function listPage(title, list, emptyMsg){
   return `<h2>${title}</h2><p class="sub">${list.length} item${list.length!==1?'s':''}</p>
-    ${list.length?pagedGrid(list, v=>videoCard(v,{layout:'row'}), {cls:'video-list'}):`<div class="empty">${emptyMsg}</div>`}`;
+    ${list.length
+      ? pagedGrid(list, v=>videoCard(v,{layout:'row'}), {cls:'video-list'})
+      : emptyState(emptyMsg || "Nothing here yet.", POPULAR_TAGS.slice(0, 8), { emoji: "📭" })}`;
 }
 
 /* ---- Library hub: Later / Favorites / History / Downloads in one place ---- */
@@ -67,7 +71,9 @@ export function renderSubs(){
   const list = pubVideos().filter(v=>vstate.subs.includes(v.creator));
   return `<h2>Subscriptions</h2><p class="sub">Latest from creators you follow</p>
     <div class="pill-row">${DATA.creators.filter(c=>vstate.subs.includes(c.id)).map(c=>`<button class="filter-pill active" onclick="openCreator('${jsq(c.id)}')">${esc(c.name)}</button>`).join("")}</div>
-    ${list.length?pagedGrid(list, v=>videoCard(v,{layout:'row'}), {cls:'video-list'}):`<div class="empty">Nothing from your subscriptions yet.</div>`}`;
+    ${list.length
+      ? pagedGrid(list, v=>videoCard(v,{layout:'row'}), {cls:'video-list'})
+      : emptyState("Nothing from your subscriptions yet. Follow creators to fill this feed.", POPULAR_TAGS.slice(0, 6), { emoji: "📺" })}`;
 }
 
 export function renderProfile(){
@@ -148,11 +154,11 @@ export function renderPlaylists(){
 }
 
 /* Fuzzy multi-term search: every whitespace-separated term must match somewhere
-   (title / category / categories / tags). Results are ranked — tag & category
-   hits and title-start matches score highest — so the most relevant filth
-   surfaces first. */
+   (title / category / categories / tags / creator). Results are ranked — tag &
+   category hits and title-start matches score highest. */
 function scoreVideo(v, terms){
   const title = (v.title||"").toLowerCase();
+  const creator = creatorName(v.creator).toLowerCase();
   const cats = [(v.category||""), ...(v.categories||[])].map(x=>String(x).toLowerCase());
   const tags = (v.tags||[]).map(t=>String(t).toLowerCase());
   let score = 0;
@@ -161,6 +167,7 @@ function scoreVideo(v, terms){
     if(tags.includes(term) || cats.includes(term)) hit = 10;          // exact tag/category
     else if(tags.some(t=>t.includes(term)) || cats.some(c=>c.includes(term))) hit = 6;
     else if(title.startsWith(term)) hit = 5;
+    else if(creator.includes(term)) hit = 4;
     else if(title.includes(term)) hit = 3;
     if(!hit) return -1;   // every term must match somewhere (AND)
     score += hit;
@@ -169,29 +176,92 @@ function scoreVideo(v, terms){
   return score;
 }
 
+function searchCreatorCard(c){
+  const initials = esc((c.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase());
+  return `
+    <button type="button" class="search-creator-card" onclick="openCreator('${jsq(c.id)}')">
+      <div class="search-creator-avatar">${initials}</div>
+      <div class="search-creator-meta">
+        <div class="search-creator-name">${esc(c.name)} ${c.verified?'<span class="verified">✓</span>':''}</div>
+        <div class="small">${fmt(c.subs)} subscribers</div>
+      </div>
+    </button>`;
+}
+
+/* Landing when Search is open with no query — tags, categories, trending. */
+function renderSearchHub(){
+  const top = trending().slice(0, SEARCH_HUB_TRENDING);
+  const cats = (DATA.categories && DATA.categories.length ? DATA.categories : CATEGORIES).slice(0, SEARCH_HUB_CATS);
+  return `
+    <div class="search-page search-hub">
+      <h2>Search</h2>
+      <p class="sub">Find videos, tags, and creators</p>
+      <div class="search-hub-prompt panel">
+        <div class="search-hub-prompt-ico" aria-hidden="true">🔍</div>
+        <div>
+          <div class="search-hub-prompt-title">Type in the search bar above</div>
+          <div class="small">Or jump in with a popular tag or category below.</div>
+        </div>
+        <button type="button" class="btn sm" onclick="focusSearch()">Focus search</button>
+      </div>
+      <h3 class="row-heading">Popular tags</h3>
+      <div class="pill-row related-tags">
+        ${POPULAR_TAGS.slice(0, 16).map(t=>`<button type="button" class="filter-pill" onclick="searchTag('${jsq(t)}')">#${esc(t)}</button>`).join("")}
+      </div>
+      <h3 class="row-heading">Browse categories</h3>
+      <div class="pill-row">
+        ${cats.map(c=>`<button type="button" class="filter-pill" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
+      </div>
+      ${top.length ? rowSection("Trending now", top, { layout: "row" }) : ""}
+    </div>`;
+}
+
 export function renderSearch(){
   const raw = (vstate.searchQuery||"").trim();
+  if(!raw) return renderSearchHub();
+
   const terms = raw.toLowerCase().split(/\s+/).filter(Boolean);
   const scored = pubVideos()
     .map(v=>({ v, s: scoreVideo(v, terms) }))
     .filter(x=>x.s >= 0)
     .sort((a,b)=>b.s - a.s);
   const vids = scored.map(x=>x.v);
-  const crs  = DATA.creators.filter(c=>c.name.toLowerCase().includes(raw.toLowerCase()) || (c.handle||"").toLowerCase().includes(raw.toLowerCase()));
+  const qLower = raw.toLowerCase();
+  const crs = DATA.creators.filter(c =>
+    (c.name||"").toLowerCase().includes(qLower) ||
+    (c.handle||"").toLowerCase().includes(qLower)
+  ).slice(0, 12);
 
-  // Related tags: most common tags among the results, minus the query itself, as
-  // clickable refinements.
+  // Related tags: most common among results (minus the query), as refinements.
   const tagFreq = {};
   for(const v of vids.slice(0, 60)) for(const t of (v.tags||[])){
-    if(t.toLowerCase()===raw.toLowerCase()) continue;
-    tagFreq[t] = (tagFreq[t]||0)+1;
+    if(t.toLowerCase() === qLower) continue;
+    tagFreq[t] = (tagFreq[t]||0) + 1;
   }
   const related = Object.entries(tagFreq).sort((a,b)=>b[1]-a[1]).slice(0, 12).map(x=>x[0]);
+  const fallback = !vids.length ? trending().slice(0, SEARCH_HUB_TRENDING) : [];
 
   return `
-    <h2>Search: "${esc(raw)}"</h2>
-    <p class="sub">${vids.length} video${vids.length!==1?'s':''}</p>
-    ${related.length?`<div class="pill-row related-tags">${related.map(t=>`<span class="filter-pill" onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}</div>`:''}
-    ${crs.length?`<h3>Creators</h3><div class="pill-row">${crs.map(c=>`<span class="filter-pill" onclick="openCreator('${jsq(c.id)}')">${esc(c.name)} ${c.verified?'✔️':''}</span>`).join("")}</div>`:''}
-    <h3>Videos</h3>${vids.length?pagedGrid(vids, v=>videoCard(v,{layout:'row'}), {cls:'video-list'}):emptyState(`No videos found for “${raw}”.`, POPULAR_TAGS.slice(0,8))}`;
+    <div class="search-page">
+      <div class="search-results-head">
+        <div>
+          <h2>Results for “${esc(raw)}”</h2>
+          <p class="sub">${vids.length} video${vids.length!==1?'s':''}${crs.length ? ` · ${crs.length} creator${crs.length!==1?'s':''}` : ''}</p>
+        </div>
+        <button type="button" class="btn ghost sm" onclick="clearSearch()">Clear</button>
+      </div>
+      ${related.length ? `
+        <div class="pill-row related-tags" aria-label="Related tags">
+          ${related.map(t=>`<button type="button" class="filter-pill" onclick="searchTag('${jsq(t)}')">#${esc(t)}</button>`).join("")}
+        </div>` : ""}
+      ${crs.length ? `
+        <h3 class="row-heading">Creators</h3>
+        <div class="search-creator-row">${crs.map(searchCreatorCard).join("")}</div>` : ""}
+      ${vids.length
+        ? `<h3 class="row-heading">Videos</h3>${pagedGrid(vids, v=>videoCard(v,{layout:'row'}), {cls:'video-list'})}`
+        : `
+        ${emptyState(`No videos found for “${raw}”.`, POPULAR_TAGS.slice(0, 8))}
+        ${fallback.length ? rowSection("Trending instead", fallback, { layout: "row" }) : ""}
+        `}
+    </div>`;
 }

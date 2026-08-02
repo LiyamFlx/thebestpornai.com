@@ -918,8 +918,41 @@ iframe.player{object-fit:contain}
 .empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:14px}
 .empty-emoji{font-size:34px;margin-bottom:8px;opacity:.7}
 .empty-msg{font-size:14px;margin-bottom:14px}
-.empty-suggest{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;font-size:12.5px;color:var(--muted)}
+.empty-suggest{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;font-size:12.5px;color:var(--muted);margin-bottom:12px}
 .empty-suggest .tag-chip{font-size:12px}
+.empty-home-btn{margin-top:4px}
+
+/* Search hub + results (Sprint D) */
+.search-page h2{margin:0 0 4px}
+.search-results-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px;
+}
+.search-results-head .sub{margin:0}
+.search-hub-prompt{
+  display:flex;align-items:center;gap:14px;padding:14px 16px;margin:14px 0 20px;
+  border-radius:14px;flex-wrap:wrap;
+}
+.search-hub-prompt-ico{font-size:22px;line-height:1}
+.search-hub-prompt-title{font-weight:700;font-size:14px;margin-bottom:2px}
+.search-hub-prompt .btn{margin-left:auto}
+.search-creator-row{
+  display:flex;gap:10px;overflow-x:auto;padding:4px 0 14px;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.search-creator-row::-webkit-scrollbar{display:none}
+.search-creator-card{
+  flex:0 0 auto;display:flex;align-items:center;gap:10px;min-width:180px;max-width:240px;
+  padding:10px 12px;border-radius:12px;cursor:pointer;text-align:left;
+  background:var(--surface);border:1px solid var(--border);color:var(--text);
+  font-family:inherit;transition:border-color .15s,background .15s;
+}
+.search-creator-card:hover{border-color:rgba(229,9,20,.45);background:var(--surface2)}
+.search-creator-avatar{
+  width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--accent),#7a0a12);color:#fff;font-weight:800;font-size:13px;flex:none;
+}
+.search-creator-name{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.search-creator-meta{min-width:0}
 
 /* Loading skeletons */
 .card.skeleton{pointer-events:none}

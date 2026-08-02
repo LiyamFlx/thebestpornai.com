@@ -1,6 +1,7 @@
 /* Creator profile page (#creator/<id>): banner, header, top + all videos. */
 import { DATA, esc, fmt, mediaUrl } from "../../shared/catalog.js";
-import { videoCard } from "../../shared/ui.js";
+import { videoCard, emptyState } from "../../shared/ui.js";
+import { POPULAR_TAGS } from "../../shared/taxonomy.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
 import { visible } from "../catalog-queries.js";
@@ -9,7 +10,9 @@ import { pagedGrid } from "../grid-window.js";
 export function renderCreatorPage(){
   const cid = vstate.creatorId;
   const c = DATA.creators.find(x=>x.id===cid);
-  if(!c) return `<div class="empty">Creator not found.</div>`;
+  if(!c){
+    return emptyState("Creator not found.", POPULAR_TAGS.slice(0, 6), { emoji: "👤" });
+  }
   const videos = DATA.videos.filter(v=>v.creator===cid && visible(v));
   const subbed = vstate.subs.includes(cid);
   const top5 = [...videos].sort((a,b)=>(b.likes*1.2+b.views*.01)-(a.likes*1.2+a.views*.01)).slice(0,5);
@@ -40,6 +43,6 @@ export function renderCreatorPage(){
       <h3 style="margin-top:20px">All Videos <span class="count-bubble">${videos.length}</span></h3>
       ${videos.length
         ? pagedGrid(videos, v=>videoCard(v,{layout:'row'}), {cls:'video-list'})
-        : `<div class="empty">No videos yet.</div>`}
+        : emptyState("This creator has no published videos yet.", POPULAR_TAGS.slice(0, 6), { emoji: "🎬" })}
     </div>`;
 }

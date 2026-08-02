@@ -8,6 +8,7 @@ import { applyHash, initRouter, promoteVideoQuery } from "./router.js";
 import { render } from "./render.js";
 import {
   go,
+  goSearch,
   focusSearch,
   openVideo,
   openMovie,
@@ -18,6 +19,7 @@ import {
   setHomeExpandCats,
   setLibraryTab,
   searchTag,
+  clearSearch,
   loadMore,
   toggleFav,
   toggleLater,
@@ -85,6 +87,7 @@ syncManifestOnLoad().then(() => {
 // Window bridge for inline onclick handlers and legacy integrations
 Object.assign(window, {
   go,
+  goSearch,
   focusSearch,
   openVideo,
   toggleFav,
@@ -106,6 +109,7 @@ Object.assign(window, {
   setHomeExpandCats,
   setLibraryTab,
   searchTag,
+  clearSearch,
   openMovie,
   openCreator,
   setCommentSort,

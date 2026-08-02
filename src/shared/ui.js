@@ -130,12 +130,22 @@ export function videoCard(v, opts={}){
 
 /* Spicier empty state: instead of a bare message, suggest hot tags to click.
    `suggest` is a list of tag strings; each becomes a clickable searchTag chip. */
-export function emptyState(message, suggest = []){
+/* Empty / zero-result recovery. `suggest` = tag chips; opts.home / opts.emoji. */
+export function emptyState(message, suggest = [], opts = {}){
+  const emoji = opts.emoji != null ? opts.emoji : "🔍";
   const chips = suggest.length
-    ? `<div class="empty-suggest">Try something hotter:
+    ? `<div class="empty-suggest">Try:
         ${suggest.map(t=>`<span class="tag-chip" onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}
        </div>` : "";
-  return `<div class="empty"><div class="empty-emoji">🔍</div><div class="empty-msg">${esc(message)}</div>${chips}</div>`;
+  const home = opts.home !== false
+    ? `<button type="button" class="btn ghost sm empty-home-btn" onclick="go('home')">Browse Home</button>`
+    : "";
+  return `<div class="empty">
+    <div class="empty-emoji">${emoji}</div>
+    <div class="empty-msg">${esc(message)}</div>
+    ${chips}
+    ${home}
+  </div>`;
 }
 
 /* Skeleton grid shown while content is still loading (manifest sync, etc.). */

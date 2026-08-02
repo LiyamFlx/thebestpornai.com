@@ -56,6 +56,12 @@ export function applyHash(){
   if(mm){ vstate.currentMovieTitle=jsdec(mm[1]); vstate.page="movie"; return; }
   const mc=h.match(/^creator\/(.+)$/);
   if(mc){ vstate.creatorId=jsdec(mc[1]); vstate.page="creator"; return; }
+  // Search hub (#search) or results (#search/<query>)
+  if(h === "search" || h === "search/"){
+    vstate.page = "search";
+    vstate.searchQuery = "";
+    return;
+  }
   const ms=h.match(/^search\/(.+)$/);
   if(ms){ vstate.searchQuery=jsdec(ms[1]); vstate.page="search"; return; }
   const mcat=h.match(/^category\/(.+)$/);

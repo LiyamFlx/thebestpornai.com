@@ -35,10 +35,25 @@ export function go(p){
     scrollToTop();
     return;
   }
+  if(p === "search"){
+    goSearch();
+    return;
+  }
   vstate.page = p;
   setHash(p === "home" ? "" : p);
   render();
   scrollToTop();
+}
+
+/* Open the Search hub (or keep the current query) and focus the topbar input. */
+export function goSearch(){
+  vstate.page = "search";
+  const q = (vstate.searchQuery || "").trim();
+  setHash(q ? "search/" + encodeURIComponent(q) : "search");
+  render();
+  scrollToTop();
+  // Focus after paint so the input exists and mobile chrome expands.
+  requestAnimationFrame(() => focusSearch());
 }
 
 export function setLibraryTab(tab){
@@ -57,8 +72,12 @@ export function focusSearch(){
     const toggleBtn = topbar.querySelector(".topbar-search-toggle");
     if(toggleBtn) toggleBtn.setAttribute("aria-expanded", "true");
   }
-  const i=document.getElementById("searchInput");
-  if(i){ i.scrollIntoView({block:"start",behavior:"smooth"}); i.focus(); }
+  const i = document.getElementById("searchInput");
+  if(i){
+    if(vstate.searchQuery && !i.value) i.value = vstate.searchQuery;
+    i.scrollIntoView({ block: "start", behavior: "smooth" });
+    i.focus();
+  }
 }
 
 export function openVideo(id){
@@ -135,6 +154,18 @@ export function searchTag(tag){
   scrollToTop();
   const el = document.getElementById("searchInput");
   if(el) el.value = tag;
+}
+
+/* Reset query and return to the Search hub. */
+export function clearSearch(){
+  vstate.searchQuery = "";
+  const el = document.getElementById("searchInput");
+  if(el) el.value = "";
+  vstate.page = "search";
+  setHash("search");
+  render();
+  scrollToTop();
+  requestAnimationFrame(() => focusSearch());
 }
 
 export function loadMore(){
@@ -341,7 +372,7 @@ export function shareVideo(id){
 
 /* Search is a real page in the render pipeline (vstate.searchQuery), not a raw
    innerHTML write — previously any render() (fav toggle, hydrate fallback)
-   silently wiped the results. */
+   silently wiped the results. Empty query opens the Search hub (not Home). */
 let _searchTimer;
 export function doSearch(){
   clearTimeout(_searchTimer);
@@ -349,10 +380,10 @@ export function doSearch(){
 }
 function _doSearchNow(){
   const el = document.getElementById("searchInput"); if(!el) return;
-  const q = (el.value||"").trim();
+  const q = (el.value || "").trim();
   vstate.searchQuery = q;
-  if(!q){ if(vstate.page==="search") vstate.page="home"; render(); return; }
   vstate.page = "search";
+  setHash(q ? "search/" + encodeURIComponent(q) : "search");
   render();
 }
 

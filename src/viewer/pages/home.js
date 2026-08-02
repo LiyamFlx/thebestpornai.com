@@ -161,7 +161,9 @@ function _renderHomeBody(){
     const html = `
       ${homeFilterBar()}
       <h3 class="row-heading">${esc(cat)} <span class="small">(${matches.length})</span></h3>
-      ${shown.length ? `<div class="video-list">${shown.map(v=>videoCard(v,{layout:'row'})).join("")}</div>` : emptyState(`No ${cat} videos yet.`, POPULAR_TAGS.filter(t=>t!==cat).slice(0,8))}
+      ${shown.length
+        ? `<div class="video-list">${shown.map(v=>videoCard(v,{layout:'row'})).join("")}</div>`
+        : emptyState(`No ${cat} videos yet.`, POPULAR_TAGS.filter(t=>t!==cat).slice(0,8))}
       ${matches.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more</button>` : ''}
     `;
     return { html, empty: !shown.length };
@@ -172,7 +174,9 @@ function _renderHomeBody(){
     const all = sortedVideos(sort).slice(0, vstate.limit);
     const html = `
       ${homeFilterBar()}
-      ${all.length ? `<h3 class="row-heading">${label}</h3><div class="video-list">${all.map(v=>videoCard(v,{layout:'row'})).join("")}</div>` : `<div class="empty">No videos yet.</div>`}
+      ${all.length
+        ? `<h3 class="row-heading">${label}</h3><div class="video-list">${all.map(v=>videoCard(v,{layout:'row'})).join("")}</div>`
+        : emptyState("No videos match this sort yet.", POPULAR_TAGS.slice(0, 8), { emoji: "📭" })}
       ${pub.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
     `;
     return { html, empty: !all.length };
@@ -180,17 +184,23 @@ function _renderHomeBody(){
 
   if(filter==="movies"){
     const allMovies = movies();
-    const html = `${homeFilterBar()}${allMovies.length ? moviesRow(allMovies) : `<div class="empty">No movies yet.</div>`}`;
+    const html = `${homeFilterBar()}${allMovies.length
+      ? moviesRow(allMovies)
+      : emptyState("No movies yet. Browse clips and scenes instead.", POPULAR_TAGS.slice(0, 6), { emoji: "🎬" })}`;
     return { html, empty: !allMovies.length };
   }
   if(filter==="scenes"){
     const allScenes = pub.filter(v=>v.level==="scene");
-    const html = `${homeFilterBar()}${allScenes.length ? rowSection("Scenes", allScenes, {layout:'row'}) : `<div class="empty">No scenes yet.</div>`}`;
+    const html = `${homeFilterBar()}${allScenes.length
+      ? rowSection("Scenes", allScenes.slice(0, ROW_MAX), {layout:'row'})
+      : emptyState("No scenes tagged yet.", POPULAR_TAGS.slice(0, 6), { emoji: "🎞" })}`;
     return { html, empty: !allScenes.length };
   }
   if(filter==="clips"){
     const allClips = pub.filter(v=>v.level==="clip");
-    const html = `${homeFilterBar()}${allClips.length ? rowSection("Clips", allClips, {layout:'row'}) : `<div class="empty">No clips yet.</div>`}`;
+    const html = `${homeFilterBar()}${allClips.length
+      ? rowSection("Clips", allClips.slice(0, ROW_MAX), {layout:'row'})
+      : emptyState("No clips tagged yet.", POPULAR_TAGS.slice(0, 6), { emoji: "📎" })}`;
     return { html, empty: !allClips.length };
   }
 

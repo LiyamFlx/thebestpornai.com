@@ -149,6 +149,7 @@ export function renderFeed() {
     return `<div class="empty">
       <div class="empty-emoji">📱</div>
       <div class="empty-msg">No vertical videos published yet.</div>
+      <button type="button" class="btn ghost sm empty-home-btn" onclick="go('home')">Browse Home</button>
     </div>`;
   }
 

@@ -57,6 +57,11 @@ export function render(){
     const bp = b.dataset.page;
     b.classList.toggle("active", bp === navPage || bp === p);
   });
+  // Keep the topbar search box in sync with routed query (hash / tag chips).
+  const searchInput = document.getElementById("searchInput");
+  if(searchInput && p === "search" && document.activeElement !== searchInput){
+    searchInput.value = vstate.searchQuery || "";
+  }
   markToggleStates();
   lazyLoadThumbs();
   observeSentinels();         // wire lazy-append for any windowed grids on this page
