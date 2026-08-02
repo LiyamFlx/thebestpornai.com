@@ -81,16 +81,33 @@ function walk(dir) {
   return out;
 }
 console.log("Scanning local folders for source videos…");
+// Prefer full relative path under media/ — basename collisions across folders
+// are real (see CLAUDE.md / .video-import.md). Basename is a last-resort fallback.
+const localByRel = new Map();
 const localByName = new Map();
+const mediaRoot = path.join(REPO, "media");
 for (const dir of scanDirs) for (const fp of walk(dir)) {
-  localByName.set(path.basename(fp).toLowerCase().trim(), fp);
+  const base = path.basename(fp).toLowerCase().trim();
+  if (!localByName.has(base)) localByName.set(base, fp);
+  try {
+    const rel = path.relative(mediaRoot, fp).split(path.sep).join("/");
+    if (rel && !rel.startsWith("..") && !path.isAbsolute(rel)) {
+      localByRel.set(rel.toLowerCase(), fp);
+    }
+  } catch { /* not under media root */ }
 }
-console.log(`Found ${localByName.size} local files.`);
+console.log(`Found ${localByName.size} basenames, ${localByRel.size} media-relative paths.`);
 
 const { VIDEOS } = await import("../src/shared/catalog-videos.js");
 let missing = VIDEOS.filter(v => v.src && !v.thumb);
 if (limit) missing = missing.slice(0, limit);
 console.log(`${VIDEOS.length} entries; ${missing.length} missing a poster${limit ? ` (limited to ${limit})` : ""}.`);
+
+function localForSrc(src) {
+  const rel = String(src || "").replace(/^(\.\.\/)?media\//, "").toLowerCase();
+  if (rel && localByRel.has(rel)) return localByRel.get(rel);
+  return localByName.get(path.basename(src || "").toLowerCase().trim()) || null;
+}
 
 async function existsOnR2(key) {
   try { await s3.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key })); return true; }
@@ -101,7 +118,7 @@ const generated = new Map();   // catalog src -> thumb path (to write back)
 let made = 0, uploaded = 0, skippedNoLocal = 0, failed = 0, existed = 0;
 
 async function processOne(v) {
-  const localPath = localByName.get(path.basename(v.src).toLowerCase().trim());
+  const localPath = localForSrc(v.src);
   if (!localPath) { skippedNoLocal++; return; }
   const { thumb, key, relJpg } = posterPaths(v.src);
   const outJpg = path.join(REPO, "media", "thumbs", relJpg);

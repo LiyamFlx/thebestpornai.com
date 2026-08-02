@@ -51,3 +51,18 @@ test("rowToVideo - same uuid always maps to the same numeric id across calls", (
   const row = { id: "f47ac10b-58cc-4372-a567-0e02b2c3d479", bunny_path: "media/x.mp4" };
   assert.equal(rowToVideo(row).id, rowToVideo(row).id);
 });
+
+test("rowToVideo - rejects missing id or bunny_path (never injects NaN/undefined src)", () => {
+  assert.equal(rowToVideo(null), null);
+  assert.equal(rowToVideo({}), null);
+  assert.equal(rowToVideo({ id: "f47ac10b-58cc-4372-a567-0e02b2c3d479" }), null);
+  assert.equal(rowToVideo({ id: "f47ac10b-58cc-4372-a567-0e02b2c3d479", bunny_path: "" }), null);
+  assert.equal(rowToVideo({ id: "", bunny_path: "media/x.mp4" }), null);
+});
+
+test("rowToVideo - normalizes bare and catalog-style paths", () => {
+  const uuid = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+  assert.equal(rowToVideo({ id: uuid, bunny_path: "media/uploads/a.mp4" }).src, "../media/uploads/a.mp4");
+  assert.equal(rowToVideo({ id: uuid, bunny_path: "../media/uploads/a.mp4" }).src, "../media/uploads/a.mp4");
+  assert.equal(rowToVideo({ id: uuid, bunny_path: "up_only.mp4" }).src, "../media/uploads/up_only.mp4");
+});

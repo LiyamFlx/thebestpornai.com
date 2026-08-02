@@ -21,10 +21,12 @@
  *   --tags "Big Ass,POV"   extra tags applied to every entry
  *   --creator c1           force a creator id (default: round-robin c1..c4)
  *   --concurrency 8        parallel uploads (default 8)
+ *   --limit N              only process the first N new files (safe batching)
+ *   --no-posters           skip JPEG poster generation (default: posters on)
  *   --dry-run              scan + report only, upload nothing, edit nothing
  *
  * Requires R2_* env vars (from .env) and ffprobe on PATH (optional; falls back
- * to 0:00 duration if missing).
+ * to 0:00 duration if missing). ffmpeg optional for posters.
  */
 import fs from "fs";
 import path from "path";
@@ -47,7 +49,7 @@ const PUBLIC_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev";
 const args = process.argv.slice(2);
 const folderArg = args.find(a => !a.startsWith("--"));
 if (!folderArg) {
-  console.error('Usage: node scripts/publish-folder.js "media/<folder>" [--category AI] [--tags "a,b"] [--creator c1] [--concurrency 8] [--dry-run]');
+  console.error('Usage: node scripts/publish-folder.js "media/<folder>" [--category AI] [--tags "a,b"] [--creator c1] [--concurrency 8] [--limit N] [--dry-run] [--no-posters]');
   process.exit(1);
 }
 const opt = (name, def) => { const i = args.indexOf("--" + name); return i >= 0 && args[i + 1] && !args[i + 1].startsWith("--") ? args[i + 1] : def; };
@@ -61,6 +63,7 @@ const tagPool = splitList(opt("tag-pool", ""));
 const tagsPerVideo = parseInt(opt("tags-per-video", "5"), 10) || 5;
 const creatorOverride = opt("creator", null);
 const concurrency = parseInt(opt("concurrency", "8"), 10) || 8;
+const limit = parseInt(opt("limit", "0"), 10) || 0;
 const dryRun = args.includes("--dry-run");
 const noPosters = args.includes("--no-posters");
 // Generate a JPEG poster per video (cheap card thumbnail instead of a <video>).
@@ -170,9 +173,11 @@ function srcFor(fp) {
   return { src: `../media/${rel}`, key: `media/${rel}`, publicUrl: `${PUBLIC_BASE}/media/${rel.split("/").map(encodeURIComponent).join("/")}` };
 }
 
-// Skip files already in the catalog by src.
-const todo = files.filter(fp => !publishedSrcs.has(srcFor(fp).src));
-console.log(`   ${files.length - todo.length} already in catalog, ${todo.length} to process.`);
+// Skip files already in the catalog by full src path (never basename-only).
+const fresh = files.filter(fp => !publishedSrcs.has(srcFor(fp).src));
+const already = files.length - fresh.length;
+let todo = limit > 0 ? fresh.slice(0, limit) : fresh;
+console.log(`   ${already} already in catalog, ${fresh.length} new${limit && fresh.length > limit ? ` (processing first ${todo.length} via --limit)` : ""}.`);
 if (!todo.length) { console.log("✅ Nothing new to publish."); process.exit(0); }
 
 const creators = ["c1", "c2", "c3", "c4"];
@@ -184,13 +189,14 @@ async function existsOnR2(key) {
 }
 
 // ---------- upload (parallel batches) + build entries ----------
+// IDs are assigned AFTER the parallel pass (sorted by file order) so concurrent
+// workers never interleave nextId++ and file order always matches id order.
 const CONTENT_TYPES = { ".mp4": "video/mp4", ".mov": "video/quicktime", ".webm": "video/webm", ".m4v": "video/x-m4v" };
-let nextId = maxId + 1;
 const newEntries = [];
-let uploaded = 0, skipped = 0, failed = 0;
+let uploaded = 0, skipped = 0, failed = 0, postersMade = 0;
 
 async function processOne(fp, i) {
-  const { src, key, publicUrl } = srcFor(fp);
+  const { src, key } = srcFor(fp);
   try {
     if (!dryRun) {
       if (await existsOnR2(key)) { skipped++; }
@@ -221,6 +227,7 @@ async function processOne(fp, i) {
           }));
         }
         thumb = pp.thumb;
+        postersMade++;
       } catch (e) { /* poster optional — leave thumb undefined */ }
     }
 
@@ -231,8 +238,9 @@ async function processOne(fp, i) {
     const cat = categoryFor(fp, r);
     const tags = tagsFor(title, cat, r);
     const creator = creatorOverride || creators[i % creators.length];
+    // id filled in after sort — see assignIds below
     const entry = {
-      id: nextId++, title, creator,
+      id: 0, title, creator,
       type: "ugc", category: cat, categories: [cat, ...tags.filter(t => t !== cat && t !== "Hardcore").slice(0, 2)],
       desc: describeFor(title, cat, tags, creator),
       views: 0, likes: 0, dislikes: 0, comments: 0, favorites: 0,
@@ -259,10 +267,19 @@ async function run() {
   }
   console.log("");
 
-  // preserve original file order for the catalog
+  // Preserve original file order, then mint sequential ids past current max.
   newEntries.sort((a, b) => a.i - b.i);
-  const entries = newEntries.map(x => x.entry);
-  if (!entries.length) { console.log("Nothing to insert."); return; }
+  let nextId = maxId + 1;
+  if (!Number.isFinite(nextId) || nextId < 1) nextId = 1;
+  const entries = newEntries.map(x => {
+    x.entry.id = nextId++;
+    return x.entry;
+  });
+  if (!entries.length) {
+    console.log(failed ? `Nothing to insert (${failed} failed).` : "Nothing to insert.");
+    if (failed) process.exit(1);
+    return;
+  }
 
   // ---------- validate entries BEFORE touching catalog.js ----------
   // Catches the two failure modes that have actually happened in production:
@@ -338,9 +355,13 @@ async function run() {
   }
 
   console.log(`\n✅ Published ${entries.length} videos.`);
-  console.log(`   Uploaded ${uploaded} to R2, skipped ${skipped} already there, ${failed} failed.`);
-  console.log(`   Inserted ids ${entries[0].id}–${entries[entries.length - 1].id} into catalog.js (backup: catalog.js.bak).`);
-  console.log(`\nNext:\n   npm run build   # sanity check\n   git add -A && git commit -m "publish ${entries.length} videos" && git push`);
+  console.log(`   Uploaded ${uploaded} to R2, skipped ${skipped} already there, ${failed} failed, posters ${postersMade}.`);
+  console.log(`   Inserted ids ${entries[0].id}–${entries[entries.length - 1].id} into catalog-videos.js (backup: .bak).`);
+  console.log(`\nSmoke:\n   npm run publish:doctor\n   npm run build\n   git add -A && git commit -m "publish ${entries.length} videos" && git push`);
+  if (failed) {
+    console.warn(`\n⚠ ${failed} file(s) failed during upload/process — re-run is safe (skips catalog/R2 hits).`);
+    process.exitCode = 1;
+  }
 }
 
 run().catch(e => { console.error("Fatal:", e); process.exit(1); });

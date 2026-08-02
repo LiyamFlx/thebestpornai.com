@@ -101,25 +101,28 @@ Videos are streamed from the Cloudflare R2 bucket. `mediaUrl(src)` in `src/share
 Drop videos into a folder under `media/`, then:
 
 ```bash
+npm run publish -- "media/<folder>" --category "AI" --tags "Big Ass,POV" --dry-run
 npm run publish -- "media/<folder>" --category "AI" --tags "Big Ass,POV"
-# or: node scripts/publish-folder.js "media/<folder>" --category "AI"
+# or: node scripts/publish-folder.js "media/<folder>" --category "AI" --limit 50
 ```
 
 This does everything in one idempotent pass — scans the folder, **skips anything
 already in the catalog or already on R2**, uploads missing files to R2 **in
-parallel batches**, generates entries (ffprobe duration, smart tags, movie/scene
-structure), and **inserts them straight into `src/shared/catalog-videos.js`** (a
-`catalog-videos.js.bak` is written first). Then:
+parallel batches**, generates posters when ffmpeg is present, builds entries
+(ffprobe duration, smart tags, movie/scene structure), and **inserts them into
+`src/shared/catalog-videos.js`** (a `.bak` is written first; post-write verify
+auto-restores on failure). Then:
 
 ```bash
+npm run publish:doctor                         # ids / src / poster coverage
 npm run build                                  # sanity check
 git add -A && git commit -m "publish batch" && git push   # → live via Vercel
 ```
 
 Flags: `--category`, `--tags "a,b"`, `--creator c1`, `--concurrency 8`,
-`--dry-run` (scan + report only, no upload, no edit — always dry-run a big batch
-first). Re-running is safe: already-published files are skipped. IDs auto-
-increment past the current max, so no collisions.
+`--limit N`, `--no-posters`, `--dry-run` (always dry-run a big batch first).
+Re-running is safe: already-published files are skipped. IDs are assigned after
+upload in file order past the current max. Operator notes: `.video-import.md`.
 
 #### Movie/Scene/Clip grouping (organizing a multi-part upload)
 

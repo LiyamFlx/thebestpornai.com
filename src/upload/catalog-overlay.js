@@ -44,9 +44,29 @@ export function uuidToStableInt(uuid) {
   return h >>> 1; // drop the sign bit -> non-negative
 }
 
+/* Normalize DB bunny_path → catalog src "../media/…". Reject garbage so we
+   never inject id:NaN or src:"../undefined" into the live catalog. */
+export function normalizeBunnyPath(bunnyPath) {
+  if (bunnyPath == null) return null;
+  let p = String(bunnyPath).trim().replace(/^\/+/, "");
+  if (!p) return null;
+  // Already a catalog-style path
+  if (p.startsWith("../media/")) return p.slice(3); // "media/…"
+  if (p.startsWith("media/")) return p;
+  // Bare key under uploads or other roots — require a media-ish path
+  if (!p.includes("/")) p = "media/uploads/" + p;
+  else if (!p.startsWith("media/")) p = "media/" + p.replace(/^media\//, "");
+  return p;
+}
+
 export function rowToVideo(r) {
+  if (!r || r.id == null || r.id === "") return null;
+  const key = normalizeBunnyPath(r.bunny_path);
+  if (!key) return null;
+  const id = LIVE_UPLOAD_ID_OFFSET + uuidToStableInt(String(r.id));
+  if (!Number.isFinite(id) || id < LIVE_UPLOAD_ID_OFFSET) return null;
   return {
-    id: LIVE_UPLOAD_ID_OFFSET + uuidToStableInt(String(r.id)),
+    id,
     title: r.title || "Untitled",
     creator: r.user_id,           // UUID; creatorName() -> "Unknown" until real creator profiles exist
     type: "ugc",
@@ -59,13 +79,13 @@ export function rowToVideo(r) {
     // prefix (e.g. "media/uploads/up_123.mp4" — written by api/verify-upload.js),
     // so prepending "../media/" here doubled the segment and 404'd every
     // upload that reached status='live'. Legacy column name, current R2 data.
-    src: "../" + r.bunny_path,
+    src: "../" + key,
     tags: r.tags || [],
     status: "published",
     flagged: false,
     orientation: r.orientation || "horizontal",
     _fromUpload: true,
-    _bunnyPath: r.bunny_path,
+    _bunnyPath: key,
   };
 }
 
@@ -80,8 +100,15 @@ export async function mergeLiveUploads() {
     const rows = await r.json();
     if (!Array.isArray(rows)) return;
     const have = new Set(DATA.videos.map((v) => v._bunnyPath).filter(Boolean));
-    for (const r of rows) {
-      if (!have.has(r.bunny_path)) DATA.videos.push(rowToVideo(r));
+    // Also de-dupe against catalog src so a published seed entry isn't doubled.
+    const haveSrc = new Set(DATA.videos.map((v) => v.src).filter(Boolean));
+    for (const row of rows) {
+      const video = rowToVideo(row);
+      if (!video) continue;
+      if (have.has(video._bunnyPath) || haveSrc.has(video.src)) continue;
+      DATA.videos.push(video);
+      have.add(video._bunnyPath);
+      haveSrc.add(video.src);
     }
   } catch (_) {
     /* best-effort: catalog still works from seed */
