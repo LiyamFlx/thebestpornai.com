@@ -1740,8 +1740,15 @@ iframe.player{object-fit:contain}
   background:linear-gradient(to bottom, transparent 0%, transparent 62%, rgba(0,0,0,.7) 100%);
   opacity:0;transition:opacity .25s ease;
 }
-.player-overlay-v2.visible{opacity:1;pointer-events:auto}
-.player-overlay-v2 * {pointer-events:auto}
+/* Root stays pointer-events:none even when visible so empty overlay space
+   doesn't trap the cursor (which used to cancel auto-hide forever) and so
+   taps pass through to the <video>. Only real controls capture input. */
+.player-overlay-v2.visible{opacity:1}
+.player-overlay-v2.visible button,
+.player-overlay-v2.visible input,
+.player-overlay-v2.visible select,
+.player-overlay-v2.visible a,
+.player-overlay-v2.visible label{pointer-events:auto}
 .ov-top{display:flex;align-items:center;justify-content:flex-end;gap:8px}
 .ov-icon-btn{
   width:44px;height:44px;min-width:44px;min-height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;

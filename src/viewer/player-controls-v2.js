@@ -184,28 +184,29 @@ export function attachPlayerControlsV2(){
     if(container) container.classList.toggle("theater", vstate.theaterMode);
   }
 
-  // Auto-hide player chrome after idle. Longer delay + don't hide while the
-  // pointer is on seek/volume (scrubbing). Tap on video toggles play without
-  // fighting a simultaneous "show chrome" on the same gesture when possible.
+  // Auto-hide player chrome after idle while playing. Stay sticky when paused
+  // so Play remains tappable. Do NOT cancel the timer on full-overlay
+  // mouseenter — the overlay covers the whole player, so that left controls
+  // stuck on forever whenever the cursor was over the video.
   const HIDE_MS = 2800;
+  const container = wrap.closest(".player-container-v2") || wrap;
   const hide = () => {
-    if(overlay.querySelector(".pc-upnext")) return; // keep chrome usable under end card? end card is separate
+    if(advanceOverlay) return; // end-card owns the surface
+    // Keep chrome while paused (standard player UX).
+    if(video.paused && !video.ended) return;
     overlay.classList.remove("visible");
   };
   const show = (opts = {}) => {
     overlay.classList.add("visible");
     clearAutoHide();
-    if(opts.sticky) return;
+    // sticky, paused, or actively scrubbing → stay up until next activity/play
+    if(opts.sticky || video.paused) return;
     hideTimer = setTimeout(hide, HIDE_MS);
   };
-  wrap.addEventListener("mousemove", () => show());
-  // Touch: first contact only reveals controls (no play toggle here).
-  wrap.addEventListener("touchstart", (e) => {
-    if(e.target.closest(".player-overlay-v2")) return;
-    show();
-  }, { passive:true });
-  overlay.addEventListener("mouseenter", () => clearAutoHide());
-  overlay.addEventListener("mouseleave", () => show());
+  // Activity anywhere on the player resets the idle timer (mousemove / touch).
+  const onActivity = () => show();
+  container.addEventListener("mousemove", onActivity);
+  container.addEventListener("touchstart", onActivity, { passive: true });
   // Keep chrome visible while scrubbing / adjusting volume.
   seek?.addEventListener("pointerdown", () => { clearAutoHide(); overlay.classList.add("visible"); });
   seek?.addEventListener("pointerup", () => show());
@@ -213,7 +214,7 @@ export function attachPlayerControlsV2(){
   volumeSlider?.addEventListener("pointerup", () => show());
   video.addEventListener("play", () => show());
   video.addEventListener("pause", () => show({ sticky: true }));
-  // Click on the video surface (not overlay buttons): toggle play/pause.
+  // Click on the video surface (empty overlay space passes through): toggle.
   video.addEventListener("click", (e) => {
     if(e.target !== video) return;
     window.togglePlayPauseV2();
