@@ -39,8 +39,20 @@ export function go(p){
     goSearch();
     return;
   }
+  // True Home: clear category/format filters so "Browse Home" recovery CTAs
+  // and the sidebar Home button always land on the curated default feed.
+  if(p === "home"){
+    vstate.page = "home";
+    vstate.homeCategory = "";
+    vstate.homeFilter = "all";
+    vstate.homeExpandCats = false;
+    setHash("");
+    render();
+    scrollToTop();
+    return;
+  }
   vstate.page = p;
-  setHash(p === "home" ? "" : p);
+  setHash(p);
   render();
   scrollToTop();
 }
@@ -383,7 +395,8 @@ function _doSearchNow(){
   const q = (el.value || "").trim();
   vstate.searchQuery = q;
   vstate.page = "search";
-  setHash(q ? "search/" + encodeURIComponent(q) : "search");
+  // replace:true — typing "milf" must not create 4 Back-stack entries
+  setHash(q ? "search/" + encodeURIComponent(q) : "search", { replace: true });
   render();
 }
 

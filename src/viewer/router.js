@@ -18,9 +18,20 @@ export function scrollToTop(){
   if(view) view.scrollTop = 0;
 }
 
-export function setHash(h){
+/* Update the URL hash. `replace:true` uses history.replaceState so live search
+   typing does not push a history entry per keystroke (Back would be unusable). */
+export function setHash(h, opts = {}){
   _suppressHash = true;
-  location.hash = h ? ("#"+h) : "";
+  const next = h ? ("#" + h) : "";
+  if(opts.replace){
+    try {
+      history.replaceState(null, "", location.pathname + location.search + next);
+    } catch(_){
+      location.hash = next;
+    }
+  } else {
+    location.hash = next;
+  }
   setTimeout(()=>_suppressHash=false, 0);
 }
 

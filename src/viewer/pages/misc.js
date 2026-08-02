@@ -156,9 +156,16 @@ export function renderPlaylists(){
 /* Fuzzy multi-term search: every whitespace-separated term must match somewhere
    (title / category / categories / tags / creator). Results are ranked — tag &
    category hits and title-start matches score highest. */
-function scoreVideo(v, terms){
+// One map per search pass — creatorName() is a linear find; avoid N× lookups.
+function creatorNameMap(){
+  const m = new Map();
+  for(const c of DATA.creators || []) m.set(c.id, (c.name || "").toLowerCase());
+  return m;
+}
+
+function scoreVideo(v, terms, creatorMap){
   const title = (v.title||"").toLowerCase();
-  const creator = creatorName(v.creator).toLowerCase();
+  const creator = creatorMap.get(v.creator) || creatorName(v.creator).toLowerCase();
   const cats = [(v.category||""), ...(v.categories||[])].map(x=>String(x).toLowerCase());
   const tags = (v.tags||[]).map(t=>String(t).toLowerCase());
   let score = 0;
@@ -221,8 +228,9 @@ export function renderSearch(){
   if(!raw) return renderSearchHub();
 
   const terms = raw.toLowerCase().split(/\s+/).filter(Boolean);
+  const creators = creatorNameMap();
   const scored = pubVideos()
-    .map(v=>({ v, s: scoreVideo(v, terms) }))
+    .map(v=>({ v, s: scoreVideo(v, terms, creators) }))
     .filter(x=>x.s >= 0)
     .sort((a,b)=>b.s - a.s);
   const vids = scored.map(x=>x.v);
