@@ -9,7 +9,7 @@
       ]
     },
     {
-      "source": "/api/internal-writer/(.*)",
+      "source": "/api/internal-writer",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
         { "key": "Cache-Control", "value": "no-store" }

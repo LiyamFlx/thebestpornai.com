@@ -120,7 +120,7 @@ function renderPreview() {
 async function resolveVideo() {
   setStatus($("formStatus"), "Resolving video…");
   try {
-    const v = await api("/api/internal-writer/resolve-video", {
+    const v = await api("/api/internal-writer?route=resolve-video", {
       method: "POST",
       body: JSON.stringify({ url: $("videoUrl").value }),
     });
@@ -141,7 +141,7 @@ async function generate() {
   try {
     if (!state.video) await resolveVideo();
     if (!state.video) throw new Error("Resolve a valid video first");
-    const data = await api("/api/internal-writer/generate", {
+    const data = await api("/api/internal-writer?route=generate", {
       method: "POST",
       body: JSON.stringify({
         title: $("title").value,
@@ -173,7 +173,7 @@ async function publish() {
   try {
     const draft = draftFromForm();
     if (!state.video) throw new Error("Missing video");
-    const data = await api("/api/internal-writer/publish", {
+    const data = await api("/api/internal-writer?route=publish", {
       method: "POST",
       body: JSON.stringify({
         ...draft,
@@ -208,7 +208,7 @@ async function publish() {
 
 async function init() {
   try {
-    const s = await api("/api/internal-writer/session");
+    const s = await api("/api/internal-writer?route=session");
     if (!s.passwordRequired || s.authenticated) showApp(true);
     else showApp(false);
   } catch {
@@ -218,7 +218,7 @@ async function init() {
   $("loginBtn").onclick = async () => {
     setStatus($("loginStatus"), "Checking…");
     try {
-      await api("/api/internal-writer/login", {
+      await api("/api/internal-writer?route=login", {
         method: "POST",
         body: JSON.stringify({ password: $("password").value }),
       });
@@ -231,7 +231,7 @@ async function init() {
     if (e.key === "Enter") $("loginBtn").click();
   });
   $("logoutBtn").onclick = async () => {
-    await api("/api/internal-writer/logout", { method: "POST", body: "{}" });
+    await api("/api/internal-writer?route=logout", { method: "POST", body: "{}" });
     showApp(false);
   };
   $("resolveBtn").onclick = () => resolveVideo();

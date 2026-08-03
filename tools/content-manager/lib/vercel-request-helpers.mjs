@@ -1,14 +1,14 @@
-/* Shared helpers for the internal writer tool's Vercel serverless functions
-   (api/internal-writer/*.js). Kept separate from tools/content-manager/lib
-   because that directory's code targets the standalone `node server.mjs`
-   path (raw Node http, in-memory session Map) — this file targets Vercel's
-   (req, res) handler shape instead, reusing the same underlying logic from
-   tools/content-manager/lib where it's already framework-agnostic (auth
-   token signing, video parsing, generation, publish).
+/* (req, res)-shaped helpers for the writer tool's single Vercel serverless
+   dispatcher (api/internal-writer.js). Lives under tools/content-manager/lib
+   rather than under api/ — any .js file directly under api/ (not prefixed
+   with "_") counts as its own Serverless Function against Vercel's
+   per-deployment limit (12 on the Hobby plan). This directory is outside
+   api/'s function-discovery scope, so importing from here costs nothing
+   extra regardless of how many helpers it holds.
 
    Session state: Vercel serverless functions are stateless between
-   invocations (no shared in-memory Map, unlike server.mjs), so auth uses
-   tools/content-manager/lib/auth.mjs's signed HMAC token instead of a
+   invocations (no shared in-memory Map like the standalone server.mjs
+   uses), so auth uses auth.mjs's signed HMAC token instead of a
    server-side session store — the token itself carries and proves its
    own validity, no lookup needed. */
 import {
@@ -18,7 +18,7 @@ import {
   verifySessionToken,
   sessionCookie,
   parseCookies,
-} from "../../tools/content-manager/lib/auth.mjs";
+} from "./auth.mjs";
 
 export {
   getCredentials,
