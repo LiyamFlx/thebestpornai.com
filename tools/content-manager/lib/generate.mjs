@@ -1,4 +1,32 @@
+import Anthropic from "@anthropic-ai/sdk";
 import { SYSTEM_PROMPT, buildUserPrompt } from "./prompt.mjs";
+
+// JSON Schema for the article Claude must return — enforced server-side via
+// output_config.format (structured outputs), not just requested in the
+// prompt. See prompt.mjs's SYSTEM_PROMPT for the human-readable spec this
+// mirrors.
+const ARTICLE_SCHEMA = {
+  type: "object",
+  properties: {
+    title: { type: "string" },
+    excerpt: { type: "string" },
+    microcopy: { type: "string" },
+    tags: { type: "array", items: { type: "string" } },
+    readMins: { type: "integer" },
+    body: { type: "string" },
+    faqs: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: { q: { type: "string" }, a: { type: "string" } },
+        required: ["q", "a"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["title", "excerpt", "microcopy", "tags", "readMins", "body", "faqs"],
+  additionalProperties: false,
+};
 
 function extractJson(text) {
   const raw = String(text || "").trim();
@@ -83,36 +111,37 @@ export async function generateArticle({ title, category, notes, video, env }) {
       ],
     });
   }
-  const apiKey = env.WRITER_LLM_API_KEY || env.OPENAI_API_KEY || env.XAI_API_KEY;
-  const base = (env.WRITER_LLM_BASE_URL || env.OPENAI_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "");
-  const model = env.WRITER_LLM_MODEL || env.OPENAI_MODEL || "gpt-4o-mini";
+  // WRITER_LLM_API_KEY is the primary var (matches this tool's own README/
+  // .env convention); ANTHROPIC_API_KEY as a fallback for anyone who already
+  // has that set globally. No OpenAI/xAI-shaped fallback — this calls the
+  // real Anthropic Messages API, not an OpenAI-compatible endpoint.
+  const apiKey = env.WRITER_LLM_API_KEY || env.ANTHROPIC_API_KEY;
+  const model = env.WRITER_LLM_MODEL || "claude-sonnet-5";
   if (!apiKey) {
-    throw new Error("Missing WRITER_LLM_API_KEY (or OPENAI_API_KEY / XAI_API_KEY) in environment");
+    throw new Error("Missing WRITER_LLM_API_KEY (or ANTHROPIC_API_KEY) in environment");
   }
 
-  const res = await fetch(`${base}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
+  const client = new Anthropic({ apiKey });
+
+  let response;
+  try {
+    response = await client.messages.create({
       model,
-      temperature: 0.7,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: buildUserPrompt({ title, category, notes, video }) },
-      ],
-    }),
-  });
-
-  if (!res.ok) {
-    const errText = await res.text().catch(() => "");
-    throw new Error(`LLM error ${res.status}: ${errText.slice(0, 400)}`);
+      max_tokens: 8000,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: buildUserPrompt({ title, category, notes, video }) }],
+      output_config: { format: { type: "json_schema", schema: ARTICLE_SCHEMA } },
+    });
+  } catch (e) {
+    throw new Error(`LLM error: ${e.message || e}`);
   }
-  const json = await res.json();
-  const content = json.choices?.[0]?.message?.content;
-  const parsed = extractJson(content);
+
+  if (response.stop_reason === "refusal") {
+    throw new Error("The model declined to generate this article — try a different title/notes.");
+  }
+
+  const textBlock = response.content.find((b) => b.type === "text");
+  if (!textBlock) throw new Error("Model returned no text content");
+  const parsed = extractJson(textBlock.text);
   return validateGenerated(parsed);
 }

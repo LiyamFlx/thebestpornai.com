@@ -27,10 +27,8 @@ In the Vercel project's **Environment Variables** (not `.env` — this runs as p
 
 ```
 WRITER_PASSWORD=long-random-password        # required — without it, auth is open
-WRITER_LLM_API_KEY=sk-...                   # or OPENAI_API_KEY / XAI_API_KEY
-# WRITER_LLM_BASE_URL=https://api.openai.com/v1     (default)
-# WRITER_LLM_MODEL=gpt-4o-mini                       (default)
-# For xAI: WRITER_LLM_BASE_URL=https://api.x.ai/v1  WRITER_LLM_MODEL=grok-...
+WRITER_LLM_API_KEY=sk-ant-...               # Anthropic API key (or set ANTHROPIC_API_KEY)
+# WRITER_LLM_MODEL=claude-sonnet-5                    (default)
 
 GITHUB_TOKEN=ghp_...                        # required for publish — needs contents:write on this repo
 GITHUB_REPO=LiyamFlx/thebestpornai.com      # required for publish
@@ -58,7 +56,7 @@ No Node, git, or terminal required on the writer's machine.
 ```bash
 # In repo root .env (never commit):
 WRITER_PASSWORD=long-random-password
-WRITER_LLM_API_KEY=sk-...
+WRITER_LLM_API_KEY=sk-ant-...
 # WRITER_MOCK_LLM=1   # skip real LLM calls entirely — returns a fixed mock article, useful for testing the pipeline without burning API credits
 
 npm run writer
