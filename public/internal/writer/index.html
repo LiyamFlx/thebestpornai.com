@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Content Manager · thebestpornai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body>
+  <div id="loginView" class="login-wrap">
+    <div class="card login-card">
+      <div class="brand" style="margin-bottom:8px">thebest<span>pornai</span></div>
+      <p style="color:var(--muted);margin:0 0 16px;font-size:14px">Internal Content Manager — writers only.</p>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="Shared writer password"/>
+      </div>
+      <button class="btn btn-primary" id="loginBtn" type="button" style="width:100%">Enter</button>
+      <p class="status" id="loginStatus" style="margin-top:12px"></p>
+    </div>
+  </div>
+
+  <div id="appView" class="app hidden">
+    <div class="top">
+      <div class="brand">thebest<span>pornai</span> · Writer</div>
+      <div class="row">
+        <span class="badge" id="statusBadge">Idle</span>
+        <button class="btn btn-ghost" type="button" id="logoutBtn">Log out</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <div class="field">
+          <label for="title">Title / Topic *</label>
+          <input id="title" type="text" placeholder="e.g. Best AI MILF Porn Scenes to Watch"/>
+        </div>
+        <div class="field">
+          <label for="videoUrl">Video URL *</label>
+          <input id="videoUrl" type="url" placeholder="https://www.thebestpornai.com/#video/4301"/>
+          <div id="videoBox" class="hidden"></div>
+        </div>
+        <div class="field">
+          <label for="category">Category</label>
+          <select id="category">
+            <option>Guides</option>
+            <option>Stories</option>
+            <option>Fantasies</option>
+            <option>Confessions</option>
+            <option>Kink Lab</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="notes">Notes (optional)</label>
+          <textarea id="notes" placeholder="Tone, angle, target keywords, length…"></textarea>
+        </div>
+        <div class="row">
+          <button class="btn btn-primary" type="button" id="generateBtn">Generate Article</button>
+          <button class="btn btn-ghost" type="button" id="resolveBtn">Resolve video</button>
+        </div>
+        <p class="status" id="formStatus"></p>
+
+        <div id="editPanel" class="hidden" style="margin-top:18px;border-top:1px solid var(--border);padding-top:16px">
+          <div class="field">
+            <label for="editTitle">Edit title</label>
+            <input id="editTitle" type="text"/>
+          </div>
+          <div class="field">
+            <label for="editExcerpt">Excerpt (SEO meta)</label>
+            <textarea id="editExcerpt" style="min-height:64px"></textarea>
+          </div>
+          <div class="field">
+            <label for="editMicro">Microcopy / deck</label>
+            <input id="editMicro" type="text"/>
+          </div>
+          <div class="field">
+            <label for="editBody">Body HTML</label>
+            <textarea id="editBody" class="body-edit"></textarea>
+          </div>
+          <div class="field">
+            <label for="editFaqs">FAQs (JSON array)</label>
+            <textarea id="editFaqs" style="min-height:120px;font-family:ui-monospace,monospace;font-size:12px"></textarea>
+          </div>
+          <div class="row">
+            <button class="btn btn-primary" type="button" id="publishBtn">Publish to Blog</button>
+            <button class="btn btn-ghost" type="button" id="refreshPreviewBtn">Refresh preview</button>
+          </div>
+          <div id="publishResult" class="hidden"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <label style="margin-bottom:10px">Live preview</label>
+        <div class="preview-frame" id="preview">
+          <p style="color:var(--dim);margin:0">Generate an article to preview it here.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

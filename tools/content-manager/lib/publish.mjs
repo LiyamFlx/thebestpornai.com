@@ -1,8 +1,15 @@
 import { spawn } from "child_process";
 import path from "path";
-import { REPO_ROOT, loadAllPosts, loadWriterPosts, writeWriterPosts, nextPostId } from "./posts-io.mjs";
+import {
+  REPO_ROOT,
+  loadAllPosts,
+  writeWriterPosts,
+  nextPostId,
+  readWriterPostsLocal,
+} from "./posts-io.mjs";
 import { slugify } from "./slug.mjs";
 import { sanitizeBodyHtml, validateGenerated } from "./generate.mjs";
+import { commitWriterPostsJson, fetchWriterPostsFromGithub } from "./github-publish.mjs";
 
 function runNode(scriptRel) {
   return new Promise((resolve, reject) => {
@@ -33,13 +40,11 @@ function uniqueSlug(base, existingSlugs) {
 }
 
 /**
- * @param {object} opts
- * @param {object} opts.draft - generated+edited fields
- * @param {object} opts.video - { id, title }
- * @param {string} opts.category
- * @param {boolean} opts.dryRun
+ * @param {'local'|'github'} mode
+ *  local  = write JSON + run gen-blog-posts (dev laptop)
+ *  github = commit JSON to GitHub; Vercel build generates HTML (production)
  */
-export async function publishPost({ draft, video, category, dryRun = false }) {
+export async function publishPost({ draft, video, category, dryRun = false, mode = "local", env = process.env, seedPosts = null }) {
   const validated = validateGenerated({
     title: draft.title,
     excerpt: draft.excerpt,
@@ -50,7 +55,22 @@ export async function publishPost({ draft, video, category, dryRun = false }) {
     readMins: draft.readMins,
   });
 
-  const { posts, writer } = await loadAllPosts();
+  let posts;
+  let writer;
+  let ghMeta = null;
+
+  if (mode === "github") {
+    ghMeta = await fetchWriterPostsFromGithub(env);
+    writer = ghMeta.posts;
+    // seedPosts should be passed from API (import SEED_POSTS) to compute next id
+    const seed = seedPosts || [];
+    posts = [...writer, ...seed];
+  } else {
+    const all = await loadAllPosts();
+    posts = all.posts;
+    writer = all.writer;
+  }
+
   const existingSlugs = new Set(posts.map((p) => p.slug));
   const baseSlug = slugify(validated.title);
   const slug = uniqueSlug(baseSlug, existingSlugs);
@@ -78,18 +98,60 @@ export async function publishPost({ draft, video, category, dryRun = false }) {
     return { dryRun: true, post, path: `/blog/${slug}.html` };
   }
 
-  // Replace same slug in writer list if re-publish
   const nextWriter = writer.filter((p) => p.slug !== slug);
   nextWriter.unshift(post);
-  writeWriterPosts(nextWriter);
 
+  let github = null;
+
+  if (mode === "github") {
+    github = await commitWriterPostsJson({
+      env,
+      posts: nextWriter,
+      message: `content(writer): ${slug}`,
+      sha: ghMeta?.sha,
+    });
+    if (github.skipped) {
+      throw new Error(
+        github.reason ||
+          "GitHub publish required on Vercel. Set GITHUB_TOKEN + GITHUB_REPO (and WRITER_GITHUB_PUBLISH=1)."
+      );
+    }
+    return {
+      dryRun: false,
+      post,
+      path: `/blog/${slug}.html`,
+      absolute: `https://www.thebestpornai.com/blog/${slug}.html`,
+      mode: "github",
+      github,
+      nextSteps: [
+        "GitHub commit created — Vercel will rebuild in ~1–2 minutes.",
+        `Live URL: https://www.thebestpornai.com/blog/${slug}.html`,
+      ],
+    };
+  }
+
+  // local filesystem
+  const prev = readWriterPostsLocal();
+  writeWriterPosts(nextWriter);
   try {
     await runNode("scripts/gen-blog-posts.js");
     await runNode("scripts/gen-sitemap.js");
   } catch (e) {
-    // rollback writer file to previous list
-    writeWriterPosts(writer);
+    writeWriterPosts(prev);
     throw e;
+  }
+
+  // optional also push to github
+  if (env.WRITER_GITHUB_PUBLISH === "1" || env.GITHUB_TOKEN) {
+    try {
+      github = await commitWriterPostsJson({
+        env,
+        posts: nextWriter,
+        message: `content(writer): ${slug}`,
+      });
+    } catch (e) {
+      github = { error: e.message };
+    }
   }
 
   return {
@@ -97,11 +159,13 @@ export async function publishPost({ draft, video, category, dryRun = false }) {
     post,
     path: `/blog/${slug}.html`,
     absolute: `https://www.thebestpornai.com/blog/${slug}.html`,
+    mode: "local",
+    github,
     nextSteps: [
-      "Review the generated HTML under blog/",
-      `git add src/blog/writer-posts.js blog/ public/blog/rss.xml public/sitemap.xml`,
-      `git commit -m "content(writer): ${slug}"`,
-      "git push origin main   # → Vercel production",
+      "Files written locally under blog/ and src/blog/writer-posts.json",
+      github && !github.skipped && !github.error
+        ? "Also committed to GitHub — Vercel will deploy."
+        : "git add src/blog/writer-posts.json blog/ public/blog public/sitemap.xml && git commit && git push",
     ],
   };
 }

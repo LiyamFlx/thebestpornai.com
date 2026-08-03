@@ -1,8 +1,8 @@
 /* ============================================================
-   WRITER_POSTS — posts created by tools/content-manager.
-   Appended by the Content Manager publish flow. Prefer the writer UI.
-   Seed (hand-authored) posts live in posts.js as SEED_POSTS.
+   WRITER_POSTS — posts from tools/content-manager /internal/writer.
+   Data lives in writer-posts.json (easier GitHub API updates).
    ============================================================ */
 
-export const WRITER_POSTS = [
-];
+import data from "./writer-posts.json" with { type: "json" };
+
+export const WRITER_POSTS = Array.isArray(data) ? data : [];

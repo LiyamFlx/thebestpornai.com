@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /creator/
 Disallow: /manager/
+Disallow: /internal/
 
 Sitemap: https://www.thebestpornai.com/sitemap.xml
