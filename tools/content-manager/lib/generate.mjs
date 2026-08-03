@@ -1,10 +1,10 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { SYSTEM_PROMPT, buildUserPrompt } from "./prompt.mjs";
 
-// JSON Schema for the article Claude must return — enforced server-side via
-// output_config.format (structured outputs), not just requested in the
-// prompt. See prompt.mjs's SYSTEM_PROMPT for the human-readable spec this
-// mirrors.
+// JSON Schema for the article the model must return — enforced server-side
+// via Gemini's generationConfig.responseSchema (structured outputs), not
+// just requested in the prompt. See prompt.mjs's SYSTEM_PROMPT for the
+// human-readable spec this mirrors. Gemini's schema support is an OpenAPI
+// 3.0 subset — no `additionalProperties`.
 const ARTICLE_SCHEMA = {
   type: "object",
   properties: {
@@ -20,12 +20,10 @@ const ARTICLE_SCHEMA = {
         type: "object",
         properties: { q: { type: "string" }, a: { type: "string" } },
         required: ["q", "a"],
-        additionalProperties: false,
       },
     },
   },
   required: ["title", "excerpt", "microcopy", "tags", "readMins", "body", "faqs"],
-  additionalProperties: false,
 };
 
 function extractJson(text) {
@@ -102,7 +100,7 @@ export async function generateArticle({ title, category, notes, video, env }) {
         "<p>The companion clip <em>" + safeVid + "</em> streams on thebestpornai. Open it when the words stop being enough.</p>\n" +
         "<h2>How to watch</h2>\n" +
         "<p>Fullscreen, sound on when privacy allows, and save keepers to Library. Quality beats infinite scroll.</p>\n" +
-        "<blockquote>Mock mode is for pipeline tests — set WRITER_LLM_API_KEY for real copy.</blockquote>\n" +
+        "<blockquote>Mock mode is for pipeline tests — set WRITER_LLM_API_KEY (Gemini) for real copy.</blockquote>\n" +
         "<h2>From story to stream</h2>\n" +
         "<p>Use the Watch CTA on this page to open video #" + video.id + " on https://www.thebestpornai.com/.</p>",
       faqs: [
@@ -112,35 +110,45 @@ export async function generateArticle({ title, category, notes, video, env }) {
     });
   }
   // WRITER_LLM_API_KEY is the primary var (matches this tool's own README/
-  // .env convention); ANTHROPIC_API_KEY as a fallback for anyone who already
-  // has that set globally. No OpenAI/xAI-shaped fallback — this calls the
-  // real Anthropic Messages API, not an OpenAI-compatible endpoint.
-  const apiKey = env.WRITER_LLM_API_KEY || env.ANTHROPIC_API_KEY;
-  const model = env.WRITER_LLM_MODEL || "claude-sonnet-5";
+  // .env convention); GEMINI_API_KEY as a fallback for anyone who already
+  // has that set globally. Calls Google's Gemini API directly via fetch —
+  // no SDK dependency needed for a single JSON-mode generate call.
+  const apiKey = env.WRITER_LLM_API_KEY || env.GEMINI_API_KEY;
+  const model = env.WRITER_LLM_MODEL || "gemini-2.5-flash";
   if (!apiKey) {
-    throw new Error("Missing WRITER_LLM_API_KEY (or ANTHROPIC_API_KEY) in environment");
+    throw new Error("Missing WRITER_LLM_API_KEY (or GEMINI_API_KEY) in environment");
   }
 
-  const client = new Anthropic({ apiKey });
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   let response;
   try {
-    response = await client.messages.create({
-      model,
-      max_tokens: 8000,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: buildUserPrompt({ title, category, notes, video }) }],
-      output_config: { format: { type: "json_schema", schema: ARTICLE_SCHEMA } },
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{ role: "user", parts: [{ text: buildUserPrompt({ title, category, notes, video }) }] }],
+        generationConfig: {
+          maxOutputTokens: 8000,
+          responseMimeType: "application/json",
+          responseSchema: ARTICLE_SCHEMA,
+        },
+      }),
     });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error?.message || `HTTP ${res.status}`);
+    response = data;
   } catch (e) {
     throw new Error(`LLM error: ${e.message || e}`);
   }
 
-  if (response.stop_reason === "refusal") {
+  const candidate = response.candidates?.[0];
+  if (candidate?.finishReason === "SAFETY" || candidate?.finishReason === "PROHIBITED_CONTENT") {
     throw new Error("The model declined to generate this article — try a different title/notes.");
   }
 
-  const textBlock = response.content.find((b) => b.type === "text");
+  const textBlock = candidate?.content?.parts?.find((p) => typeof p.text === "string");
   if (!textBlock) throw new Error("Model returned no text content");
   const parsed = extractJson(textBlock.text);
   return validateGenerated(parsed);
