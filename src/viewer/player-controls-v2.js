@@ -188,7 +188,7 @@ export function attachPlayerControlsV2(){
   // so Play remains tappable. Do NOT cancel the timer on full-overlay
   // mouseenter — the overlay covers the whole player, so that left controls
   // stuck on forever whenever the cursor was over the video.
-  const HIDE_MS = 2800;
+  const HIDE_MS = 1000;
   const container = wrap.closest(".player-container-v2") || wrap;
   const hide = () => {
     if(advanceOverlay) return; // end-card owns the surface
