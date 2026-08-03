@@ -8,14 +8,19 @@
    coverVideoId / relatedVideoIds resolve against VIDEOS in
    src/shared/catalog-videos.js. Prefer dedicated `cover` images under
    media/blog/ when available for social/OG quality.
+
+   SEED_POSTS = hand-authored. WRITER_POSTS = Content Manager output.
+   POSTS = merged date-desc.
    ============================================================ */
+
+import { WRITER_POSTS } from "./writer-posts.js";
 
 export const BLOG_AUTHOR = {
   name: "thebestpornai Editorial",
   url: "https://www.thebestpornai.com/blog/",
 };
 
-export const POSTS = [
+export const SEED_POSTS = [
   {
     id: 1,
     slug: "synthetic-lust-algorithm-of-her-ecstasy",
@@ -1188,6 +1193,13 @@ export const POSTS = [
     ],
   },
 ];
+
+/** Newest first so hub + RSS lead with fresh posts. */
+export const POSTS = [...WRITER_POSTS, ...SEED_POSTS].sort((a, b) => {
+  const d = String(b.date || "").localeCompare(String(a.date || ""));
+  if (d !== 0) return d;
+  return (Number(b.id) || 0) - (Number(a.id) || 0);
+});
 
 /** Map catalog video id → posts that feature it (for watch-page cross-links). */
 export function postsForVideoId(videoId) {
