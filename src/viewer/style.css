@@ -399,6 +399,10 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
   font-weight:800;padding:4px 10px;border-radius:6px;letter-spacing:1px;margin-bottom:12px;
   text-transform:uppercase;box-shadow:0 0 16px rgba(229,9,20,.5);
 }
+.home-hero-count{
+  display:inline-block;margin:0 0 12px 8px;font-size:12px;font-weight:600;
+  color:rgba(255,255,255,.82);letter-spacing:.2px;
+}
 .home-hero-title{
   margin:0 0 8px;font-size:clamp(22px,3vw,32px);font-weight:800;letter-spacing:-.3px;
   line-height:1.15;text-shadow:0 2px 14px rgba(0,0,0,.75);
@@ -1522,6 +1526,7 @@ iframe.player{object-fit:contain}
   }
   .home-hero-actions{width:100%}
   .home-hero-tag{font-size:9px;letter-spacing:.6px;padding:3px 8px}
+  .home-hero-count{font-size:10.5px;margin-left:6px}
   .blog-home-card{flex:0 0 168px;max-width:168px}
 
   /* ---- Touch-Snap Carousels with 85% Peek Effect ---- */

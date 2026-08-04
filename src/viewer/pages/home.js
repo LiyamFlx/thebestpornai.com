@@ -65,11 +65,13 @@ function homeHero(hero){
     : (heroIsVideo
         ? `<video class="home-hero-img" src="${mediaUrl(hero.src)}${hero.thumb ? '' : '#t=1'}" muted autoplay loop playsinline></video>`
         : ``);
+  const liveCount = pubVideos().filter(v => !v.flagged).length.toLocaleString("en-US");
   return `
     <section class="home-hero" aria-label="Featured video">
       <div class="home-hero-media">${media}</div>
       <div class="home-hero-body">
         <span class="home-hero-tag">Featured</span>
+        <span class="home-hero-count">${liveCount} videos and counting</span>
         <h1 class="home-hero-title">${esc(hero.title)}</h1>
         <p class="home-hero-meta">${esc(creatorName(hero.creator))} · ${fmt(hero.views)} views${hero.uploaded ? ` · ${esc(relativeTime(hero.uploaded))}` : ''}</p>
         <div class="home-hero-actions">
