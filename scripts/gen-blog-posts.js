@@ -352,7 +352,7 @@ function renderPost(post) {
 ${JSON.stringify(jsonLd, null, 2)}
 </script>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' https:; frame-src 'none';">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/src/shared/theme.css"/>
 </head>
 <body class="blog-body">
@@ -544,7 +544,7 @@ function renderIndex() {
 ${JSON.stringify(jsonLd, null, 2)}
 </script>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' https:; frame-src 'none';">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/src/shared/theme.css"/>
 </head>
 <body class="blog-body">
