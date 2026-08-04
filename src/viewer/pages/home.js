@@ -4,7 +4,7 @@ import { videoCard, rowSection, emptyState } from "../../shared/ui.js";
 import { CATEGORIES, POPULAR_TAGS } from "../../shared/taxonomy.js";
 import { POSTS } from "../../blog/posts.js";
 import { postCoverUrl } from "../../blog/card.js";
-import { vstate } from "../state.js";
+import { vstate, persistState } from "../state.js";
 import { jsq, relativeTime } from "../util.js";
 import {
   pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies,
@@ -211,7 +211,21 @@ function _renderHomeBody(){
   const allMovies = movies();
   const historySet = new Set(vstate.history);
   // Cap like every other home row so long history does not dump 50 full cards.
-  const continueWatching = vstate.history.map(id => videoById(id)).filter(Boolean).slice(0, ROW_MAX);
+  // Drop any history id that no longer resolves to a real video (deleted,
+  // unpublished, or plain corrupted localStorage data) — don't just hide it
+  // from this render, prune it from vstate.history for good so it can't keep
+  // reappearing every time this page renders.
+  const resolvedHistory = [];
+  const validHistoryIds = [];
+  for(const id of vstate.history){
+    const v = videoById(id);
+    if(v){ resolvedHistory.push(v); validHistoryIds.push(id); }
+  }
+  if(validHistoryIds.length !== vstate.history.length){
+    vstate.history = validHistoryIds;
+    persistState();
+  }
+  const continueWatching = resolvedHistory.slice(0, ROW_MAX);
   const recommended = (() => {
     const nw = top.filter(v => !historySet.has(v.id));
     return (nw.length >= 6 ? nw : top).slice(0, ROW_MAX);
