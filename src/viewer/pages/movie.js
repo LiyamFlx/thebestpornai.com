@@ -12,12 +12,18 @@ const ACT_NAMES = new Set(actNames());
 export function renderMovieDetail(){
   const title = vstate.currentMovieTitle;
   const scenes = scenesFor(title);
-  if(!title || !scenes.length) return `<div class="empty">Movie not found.</div>`;
-
   const pub = pubVideos(); // computed once, reused below
-  const movieEntry = pub.find(v=>v.movieTitle===title && v.level==="movie") || scenes[0];
+  // A movie can be a single flat entry with no scene/clip hierarchy — e.g.
+  // one large video promoted directly to level:"movie" (see the 100MB+
+  // batch promotion). movies() already accepts this (poster falls back to
+  // the level:"movie" entry itself); this page must too, or every such
+  // movie's card renders fine but the click-through 404s.
+  const movieEntry = pub.find(v=>v.movieTitle===title && v.level==="movie");
+  if(!title || (!scenes.length && !movieEntry)) return `<div class="empty">Movie not found.</div>`;
+
   const allClips = scenes.flatMap(scene => clipsFor(title, scene.sceneNumber));
-  const clipList = allClips.length ? allClips : scenes;
+  const clipList = allClips.length ? allClips : (scenes.length ? scenes : [movieEntry]);
+  const heroEntry = movieEntry || scenes[0];
 
   // Acts present in this movie only (not the whole-site actNames()), so the
   // badge reflects what's actually in this movie's clips. Filtered against
@@ -31,14 +37,14 @@ export function renderMovieDetail(){
   };
 
   const related = trending().filter(v=>v.movieTitle!==title).slice(0,8);
-  const primaryCategory = movieEntry.category;
+  const primaryCategory = heroEntry.category;
   const similar = primaryCategory ? byCat(primaryCategory).filter(v=>v.movieTitle!==title).slice(0,8) : [];
   const more = pub.filter(v=>v.movieTitle!==title).sort((a,b)=>(b.uploaded||"").localeCompare(a.uploaded||"")).slice(0,10);
 
   return `
     <div class="movie-detail">
       <div class="movie-hero">
-        ${movieEntry.src && !ytId(movieEntry.src) ? `<video src="${mediaUrl(movieEntry.src)}" muted autoplay loop playsinline></video>` : ``}
+        ${heroEntry.src && !ytId(heroEntry.src) ? `<video src="${mediaUrl(heroEntry.src)}" muted autoplay loop playsinline></video>` : ``}
         <div class="movie-hero-topnav">
           <button class="icon-btn movie-back" onclick="go('home')" aria-label="Back"><svg class="ico"><use href="#icon-back"/></svg></button>
           <button class="icon-btn movie-menu" onclick="go('categories')" aria-label="Browse categories"><svg class="ico"><use href="#icon-grid"/></svg></button>
@@ -46,8 +52,8 @@ export function renderMovieDetail(){
         <div class="movie-hero-body">
           <h1 class="movie-title">${esc(title)}</h1>
           <div class="movie-cta-row">
-            <button class="btn" onclick="openVideo(${movieEntry.id})">▶ Play</button>
-            <button class="btn ghost" onclick="toggleLater(${movieEntry.id})">+ Watch Later</button>
+            <button class="btn" onclick="openVideo(${heroEntry.id})">▶ Play</button>
+            <button class="btn ghost" onclick="toggleLater(${heroEntry.id})">+ Watch Later</button>
           </div>
         </div>
       </div>

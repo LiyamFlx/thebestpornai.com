@@ -76,19 +76,26 @@ initMobileChrome();
 
 // Swap the inline seed for the full catalog as soon as its code-split chunk
 // lands (off the critical path), then re-render so every video is available.
-// Re-run applyHash() first: an initial #video/N outside the seed was
-// deliberately left unresolved by router.js until now (see markCatalogReady).
-loadFullCatalog().then(() => {
-  markCatalogReady();
+const fullCatalogLoaded = loadFullCatalog().then(() => {
   applyHash();
   render();
 });
 
 // Fetch live database catalog updates and remote manifest uploads
-syncManifestOnLoad().then(() => {
-  mergeLiveUploads().then(() => {
+const manifestSynced = syncManifestOnLoad().then(() => {
+  return mergeLiveUploads().then(() => {
     render();
   });
+});
+
+// A #video/N id might live in the static catalog, the remote manifest, or a
+// live upload — three independent async sources. Only give up on resolving
+// an initial deep link (see the !_catalogReady branch in router.js) once ALL
+// of them have settled, otherwise a manifest-only video looks "not found"
+// before the manifest has even finished loading.
+Promise.allSettled([fullCatalogLoaded, manifestSynced]).then(() => {
+  markCatalogReady();
+  applyHash();
 });
 
 // Window bridge for inline onclick handlers and legacy integrations
