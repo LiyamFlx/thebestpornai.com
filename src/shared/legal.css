@@ -7,7 +7,18 @@ body{margin:0;background:var(--bg);color:var(--text);
 .legal .back:hover{color:var(--text)}
 .legal .logo{height:28px;display:block;margin-bottom:22px}
 .legal h1{font-size:24px;margin:0 0 20px}
+.legal h2{font-size:17px;color:var(--text);margin:32px 0 12px;padding-top:16px;border-top:1px solid var(--border)}
+.legal h2:first-of-type{margin-top:24px}
+.legal h3{font-size:14.5px;color:var(--text);margin:20px 0 8px}
 .legal p{color:var(--muted);line-height:1.7;font-size:14px;margin:0 0 16px}
+.legal ul,.legal ol{color:var(--muted);line-height:1.7;font-size:14px;margin:0 0 16px;padding-left:22px}
+.legal li{margin:0 0 8px}
 .legal a{color:var(--accent)}
+.legal .updated{color:var(--muted);font-size:12.5px;margin:0 0 24px}
 .legal .notice{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;
   color:#E5A0A3;font-size:13px}
+.legal .toc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:0 0 24px}
+.legal .toc p{margin:0 0 8px;font-size:13px;color:var(--text);font-weight:600}
+.legal .toc ol{margin:0;font-size:13px}
+.legal .toc a{color:var(--muted)}
+.legal .toc a:hover{color:var(--accent)}
