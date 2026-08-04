@@ -4,7 +4,7 @@ import { ageGate } from "../shared/age-gate.js";
 import { mergeLiveUploads } from "../upload/catalog-overlay.js";
 
 import { vstate } from "./state.js";
-import { applyHash, initRouter, promoteVideoQuery } from "./router.js";
+import { applyHash, initRouter, promoteVideoQuery, markCatalogReady } from "./router.js";
 import { render } from "./render.js";
 import {
   go,
@@ -76,7 +76,13 @@ initMobileChrome();
 
 // Swap the inline seed for the full catalog as soon as its code-split chunk
 // lands (off the critical path), then re-render so every video is available.
-loadFullCatalog().then(() => { render(); });
+// Re-run applyHash() first: an initial #video/N outside the seed was
+// deliberately left unresolved by router.js until now (see markCatalogReady).
+loadFullCatalog().then(() => {
+  markCatalogReady();
+  applyHash();
+  render();
+});
 
 // Fetch live database catalog updates and remote manifest uploads
 syncManifestOnLoad().then(() => {

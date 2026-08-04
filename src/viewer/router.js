@@ -1,7 +1,7 @@
 /* ---- URL hash routing: shareable/bookmarkable per-video URLs ----
    Owns the hash <-> vstate.page mapping and the pending-hydrate handoff for
    the direct-link/refresh path (applyHash -> render -> hydrateWatch). */
-import { DATA } from "../shared/catalog.js";
+import { DATA, toast } from "../shared/catalog.js";
 import { vstate, pushHistory } from "./state.js";
 import { jsdec } from "./util.js";
 import { visible } from "./catalog-queries.js";
@@ -9,6 +9,11 @@ import { visible } from "./catalog-queries.js";
 let _suppressHash = false;
 let _pendingHydrate = null;   // video id to hydrate after the next render
 let _savedScroll = null;      // {y, viewTop, page, hash} captured just before opening a video
+// Initial page load only runs applyHash() against the small SEED catalog
+// (see catalog.js) — a #video/N id that's real but outside the seed must not
+// be reported as "not found" until the full catalog has actually loaded.
+let _catalogReady = false;
+export function markCatalogReady(){ _catalogReady = true; }
 
 export function scrollToTop(){
   // On desktop layout #view (.content) is its own scroll container (.app is
@@ -83,6 +88,20 @@ export function applyHash(){
     // known private/pending id must not be directly openable just because
     // the numeric id leaked (e.g. shared before moderation, or guessed).
     if(vid && visible(vid)){ vstate.current=vid; pushHistory(vid.id); vstate.page="watch"; _pendingHydrate=vid.id; return; }
+    if(!_catalogReady){
+      // Full catalog hasn't loaded yet — this id may still turn out to be
+      // valid (it's just outside the small initial seed). Leave the hash
+      // alone; loadFullCatalog()'s completion handler re-runs applyHash().
+      return;
+    }
+    // Unknown/private id, and the full catalog is loaded — this really
+    // doesn't exist. Don't silently fall through to whatever vstate.page was
+    // previously — land on Home explicitly and say why, instead of a
+    // broken-looking blank/random result.
+    setHash("", { replace: true });
+    vstate.page = "home";
+    setTimeout(() => toast("That video isn't available."), 0);
+    return;
   }
   const mm=h.match(/^movie\/(.+)$/);
   if(mm){ vstate.currentMovieTitle=jsdec(mm[1]); vstate.page="movie"; return; }
