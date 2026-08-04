@@ -11,6 +11,7 @@ import {
   goSearch,
   focusSearch,
   openVideo,
+  closeWatch,
   openMovie,
   openCreator,
   setHomeFilter,
@@ -90,6 +91,7 @@ Object.assign(window, {
   goSearch,
   focusSearch,
   openVideo,
+  closeWatch,
   toggleFav,
   toggleLater,
   download,
@@ -150,7 +152,11 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     const openSheet = document.querySelector(".sheet-backdrop:not([hidden])");
     if (openSheet) { window.closeSheet(openSheet.id); return; }
-    if (document.fullscreenElement) { document.exitFullscreen?.().catch(()=>{}); return; }
+    // Exit fullscreen first (if active), then close the player back to
+    // wherever the user was browsing — don't rely on the browser's native
+    // post-fullscreen scroll restore, it's inconsistent.
+    if (document.fullscreenElement) document.exitFullscreen?.().catch(()=>{});
+    if (vstate.page === "watch") closeWatch();
     return;
   }
 

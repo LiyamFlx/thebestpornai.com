@@ -8,6 +8,7 @@ import { visible } from "./catalog-queries.js";
 
 let _suppressHash = false;
 let _pendingHydrate = null;   // video id to hydrate after the next render
+let _savedScroll = null;      // {y, viewTop, page, hash} captured just before opening a video
 
 export function scrollToTop(){
   // On desktop layout #view (.content) is its own scroll container (.app is
@@ -16,6 +17,26 @@ export function scrollToTop(){
   window.scrollTo(0, 0);
   const view = document.getElementById("view");
   if(view) view.scrollTop = 0;
+}
+
+/* Remember where the user was browsing (page, hash, scroll offset) so
+   closing the watch page (Esc, close button) can put them back on the same
+   card instead of always landing on Home/top. */
+export function saveScrollPosition(){
+  if(vstate.page === "watch") return; // already mid-watch (e.g. up-next) — keep the original spot
+  const view = document.getElementById("view");
+  _savedScroll = {
+    y: window.scrollY,
+    viewTop: view ? view.scrollTop : 0,
+    page: vstate.page,
+    hash: location.hash,
+  };
+}
+
+export function takeSavedReturn(){
+  const s = _savedScroll;
+  _savedScroll = null;
+  return s;
 }
 
 /* Update the URL hash. `replace:true` uses history.replaceState so live search

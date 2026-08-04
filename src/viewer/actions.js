@@ -8,7 +8,7 @@ import { DATA, toast, fmt, mediaUrl } from "../shared/catalog.js";
 import { ShAPI } from "../shared/streamhub-api.js";
 import { vstate, pushHistory, onWatch, persistState, COMMENT_MAX_LEN } from "./state.js";
 import { jsdec } from "./util.js";
-import { setHash, scrollToTop } from "./router.js";
+import { setHash, scrollToTop, saveScrollPosition, takeSavedReturn } from "./router.js";
 import { render } from "./render.js";
 import { hydrateWatch, persist } from "./hydrate.js";
 import { patchComments } from "./comments.js";
@@ -101,10 +101,29 @@ export function openVideo(id){
   if(!visible(video)) return;
   vstate.current = video;
   if(!vstate.current) return;
+  saveScrollPosition();
   pushHistory(id);
   vstate.commentPage = 1;
   vstate.page="watch"; setHash("video/"+id); render(); scrollToTop();
   hydrateWatch(id);   // fetch real counts/comments and patch them in (non-blocking)
+}
+
+/* Close the watch page (Esc / close button) back to wherever the user was
+   browsing before — same page, same filters, same scroll position. Unlike
+   go("home"), this never resets category/filter state. */
+export function closeWatch(){
+  if(vstate.page !== "watch") return;
+  const saved = takeSavedReturn();
+  vstate.page = saved?.page || "home";
+  setHash((saved?.hash || "").replace(/^#/, ""));
+  render();
+  if(saved){
+    window.scrollTo(0, saved.y);
+    const view = document.getElementById("view");
+    if(view) view.scrollTop = saved.viewTop;
+  } else {
+    scrollToTop();
+  }
 }
 
 /* Cycle to the previous/next public video from the watch page (dir: -1 | 1).
