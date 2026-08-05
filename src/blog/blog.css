@@ -23,8 +23,9 @@
   --border-strong: rgba(255, 255, 255, 0.14);
   --r-card: 14px;
   --r-lg: 14px;
-  --shell: 1160px;
-  --read: 720px;
+  --shell: 1240px;
+  --read: 820px;
+  --read-wide: 980px;
   --space: 8px;
   /* Single site-wide font stack (no second display face) */
   --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -85,6 +86,11 @@ a { color: inherit; }
   max-width: var(--read);
   margin: 0 auto;
   padding: 0 20px;
+}
+
+/* Guides / comparison posts: wider column so logos + tables breathe */
+.blog-read--wide {
+  max-width: var(--read-wide);
 }
 
 /* ---------- Sticky header ---------- */
@@ -727,6 +733,41 @@ a { color: inherit; }
   padding: 4px 0 8px;
 }
 
+/* Landscape / guide heroes: full-width banner, no portrait crop */
+.blog-feature--landscape {
+  grid-template-columns: 1fr;
+  gap: 22px;
+  align-items: stretch;
+  padding-top: 8px;
+}
+.blog-feature--landscape .blog-feature-media {
+  max-width: none;
+  width: 100%;
+}
+.blog-feature--landscape .blog-post-hero-frame {
+  aspect-ratio: 16 / 10;
+  max-height: min(46vh, 520px);
+  width: 100%;
+  border-radius: calc(var(--r-lg) + 2px);
+}
+.blog-feature--landscape .blog-post-hero-img {
+  background-position: center center;
+  background-size: cover;
+}
+.blog-feature--landscape .blog-post-hero-shade {
+  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 45%);
+}
+.blog-feature--landscape .blog-feature-copy {
+  max-width: var(--read-wide);
+  width: 100%;
+  margin: 0 auto;
+  padding: 4px 0 4px;
+}
+.blog-feature--landscape .blog-article-title {
+  max-width: 28ch;
+  font-size: clamp(28px, 3.8vw, 44px);
+}
+
 /* Legacy full-width hero (kept for any old markup) */
 .blog-post-hero {
   position: relative;
@@ -1069,23 +1110,24 @@ a { color: inherit; }
 .table-brand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 .table-logo {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
-  border-radius: 5px;
+  border-radius: 6px;
   background: #fff;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 .blog-rank-card {
   background: var(--black-card);
   border: 1px solid var(--border);
   border-radius: var(--r-card);
-  padding: 20px 18px 18px;
-  margin: 1.5em 0;
+  padding: 22px 22px 20px;
+  margin: 1.65em 0;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
   transition: border-color 0.18s, box-shadow 0.18s;
 }
@@ -1094,36 +1136,46 @@ a { color: inherit; }
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35), 0 0 28px rgba(229, 9, 20, 0.08);
 }
 .blog-rank-head {
-  display: flex;
+  display: grid;
+  grid-template-columns: 108px minmax(0, 1fr);
+  gap: 18px 20px;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 .blog-rank-logo {
-  width: 72px;
-  height: 72px;
+  width: 108px;
+  height: 108px;
   object-fit: contain;
-  border-radius: 12px;
+  border-radius: 16px;
   background: #ffffff;
-  padding: 8px;
+  padding: 12px;
   flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(229, 9, 20, 0.08);
+  justify-self: start;
 }
-.blog-rank-head-text { min-width: 0; flex: 1; }
+.blog-rank-head-text { min-width: 0; }
 .blog-rank-label {
   font-size: 12px;
   font-weight: 800;
   color: var(--red-hot);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 .blog-rank-card h3 {
-  margin: 0 0 10px;
-  font-size: 18px;
-  line-height: 1.3;
+  margin: 0;
+  font-size: clamp(17px, 2vw, 20px);
+  line-height: 1.28;
   color: var(--white);
+}
+/* Cards without logo head (ranks 7–10): keep title spacing */
+.blog-rank-card > .blog-rank-label + h3 {
+  margin: 0 0 12px;
 }
 .blog-rank-head + p,
 .blog-rank-card > p { margin-bottom: 14px; font-size: 15.5px; }
@@ -1221,10 +1273,20 @@ a { color: inherit; }
 .blog-embed-meta { font-size: 12px; color: var(--dim); }
 
 @media (max-width: 600px) {
-  .blog-rank-head { align-items: flex-start; }
-  .blog-rank-logo { width: 56px; height: 56px; padding: 6px; }
+  .blog-rank-head {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 12px 14px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+  .blog-rank-logo { width: 76px; height: 76px; padding: 8px; border-radius: 12px; }
+  .blog-rank-card { padding: 16px 14px 14px; }
   .blog-embed { flex-direction: column; }
   .blog-embed-thumb { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+  .blog-feature--landscape .blog-post-hero-frame {
+    aspect-ratio: 16 / 11;
+    max-height: min(38vh, 360px);
+  }
 }
 
 .blog-article-cta-wrap {

@@ -367,8 +367,8 @@ ${siteHeader({ mode: "post" })}
         <span aria-current="page">${esc(post.category)}</span>
       </nav>
 
-      <!-- Magazine feature: cover + intro side-by-side on desktop -->
-      <header class="blog-feature">
+      <!-- Magazine feature: portrait split, or landscape banner when coverLayout=landscape -->
+      <header class="blog-feature${post.coverLayout === "landscape" ? " blog-feature--landscape" : ""}">
         <div class="blog-feature-media">
           <div class="blog-post-hero-frame">
             <div class="blog-post-hero-img" style="background-image:url('${esc(cover)}')" role="img" aria-label="${esc(post.title)}"></div>
@@ -395,7 +395,7 @@ ${siteHeader({ mode: "post" })}
       </header>
     </div>
 
-    <div class="blog-read">
+    <div class="blog-read${post.coverLayout === "landscape" || post.wide === true ? " blog-read--wide" : ""}">
       <div class="blog-article-body" itemprop="articleBody">
         ${post.body}
       </div>
