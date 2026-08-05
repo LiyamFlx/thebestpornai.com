@@ -11,7 +11,7 @@ import { jsdec } from "./util.js";
 import { setHash, scrollToTop, saveScrollPosition, takeSavedReturn } from "./router.js";
 import { render } from "./render.js";
 import { hydrateWatch, persist } from "./hydrate.js";
-import { patchComments } from "./comments.js";
+import { patchComments, commentsFor, renderCommentList } from "./comments.js";
 import { pubVideos, visible } from "./catalog-queries.js";
 
 /* Primary navigation destinations. Legacy aliases (later/favorites/…) route
@@ -330,24 +330,53 @@ export function subscribe(cid){
   } else render();
 }
 
-export function addComment(id){
+/* Post a comment. `textOpt` is used by the Shorts feed drawer (#feedCbox);
+   watch page omits it and reads #cbox. Previously feed called addComment(id, text)
+   but this only looked at #cbox — so Shorts posts silently no-oped. */
+export function addComment(id, textOpt){
   id = +id;
-  const box=document.getElementById("cbox"); if(!box) return;
-  const t=(box.value||"").trim(); if(!t)return;
+  const cbox = document.getElementById("cbox");
+  const feedCbox = document.getElementById("feedCbox");
+  let t = typeof textOpt === "string" ? textOpt.trim() : "";
+  if (!t) {
+    const box = cbox || feedCbox;
+    if (!box) return false;
+    t = (box.value || "").trim();
+  }
+  if (!t) return false;
   if (t.length > COMMENT_MAX_LEN) {
     toast(`Comment too long (max ${COMMENT_MAX_LEN} characters)`);
-    return;
+    return false;
   }
   // vstate.live overlay, not DATA.comments — see comments.js's commentsFor()
-  const comment = {id:"m"+Date.now(), video:id, user:DATA.user.name, text:t, time:"now", ts:Date.now()};
-  const L = vstate.live[id] = vstate.live[id] || {like:0, dislike:0};
+  const author = (DATA.user && DATA.user.name) || "Guest";
+  const comment = { id: "m" + Date.now(), video: id, user: author, text: t, time: "now", ts: Date.now() };
+  const L = vstate.live[id] = vstate.live[id] || { like: 0, dislike: 0 };
   L.comments = L.comments || [];
   L.comments.push(comment);
-  box.value = "";
-  persist(()=> ShAPI.addComment(id, DATA.user.name, t));
-  // Patch the comment region only — render() would tear down the player mid-playback.
-  if(onWatch() && vstate.current && vstate.current.id===id) patchComments(vstate.current);
-  else render();
+  if (cbox) cbox.value = "";
+  if (feedCbox) feedCbox.value = "";
+  persist(() => ShAPI.addComment(id, author, t));
+
+  // Watch page: patch list only — full render() would tear down the player.
+  if (onWatch() && vstate.current && vstate.current.id === id) {
+    patchComments(vstate.current);
+  }
+
+  // Shorts feed drawer: refresh list + sidebar count without re-rendering the feed
+  // (full render() would reset scroll-snap position and pause playback).
+  const feedBody = document.getElementById("feedCommentsBody");
+  if (feedBody) {
+    const v = DATA.videos.find((x) => x.id === id);
+    if (v) {
+      feedBody.innerHTML = renderCommentList(v);
+      const commentLabel = document.getElementById(`feedComment_${id}`);
+      if (commentLabel) commentLabel.textContent = String(commentsFor(v).length);
+    }
+  } else if (!(onWatch() && vstate.current && vstate.current.id === id)) {
+    render();
+  }
+  return true;
 }
 
 /* Comment-level like toggle (distinct from video like/dislike). Persists only

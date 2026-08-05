@@ -3,7 +3,8 @@ import { pubVerticalVideos, creatorById } from "../catalog-queries.js";
 import { vstate, markFeedWatched } from "../state.js";
 import { jsq } from "../util.js";
 import { renderCommentList, commentsFor } from "../comments.js";
-import { likeVideo, subscribe } from "../actions.js";
+import { likeVideo, subscribe, addComment } from "../actions.js";
+import { ShAPI } from "../../shared/streamhub-api.js";
 
 // Global pointers to track observer, active video, and audio mute state
 let feedObserver = null;
@@ -451,6 +452,7 @@ if (typeof window !== "undefined") {
   window.toggleFeedMute = toggleFeedMute;
 
   window.openFeedComments = function(videoId) {
+    videoId = +videoId;
     const drawer = document.getElementById("feedCommentsDrawer");
     const backdrop = document.getElementById("feedCommentsBackdrop");
     const body = document.getElementById("feedCommentsBody");
@@ -462,12 +464,19 @@ if (typeof window !== "undefined") {
 
     body.innerHTML = renderCommentList(v);
     footer.innerHTML = `
-      <input class="fld" id="feedCbox" placeholder="Add a comment…" onkeydown="if(event.key==='Enter')submitFeedComment(${v.id})"/>
-      <button class="btn" onclick="submitFeedComment(${v.id})">Post</button>
+      <input class="fld" id="feedCbox" placeholder="Add a comment…" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();submitFeedComment(${v.id})}"/>
+      <button type="button" class="btn" onclick="submitFeedComment(${v.id})">Post</button>
     `;
 
     drawer.classList.add("open");
     if (backdrop) backdrop.classList.add("show");
+    // Pull server comments into the drawer (same source as watch page).
+    hydrateFeedComments(v).catch(() => {});
+    // Focus input after open so mobile keyboards can post immediately.
+    requestAnimationFrame(() => {
+      const input = document.getElementById("feedCbox");
+      if (input) try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+    });
   };
 
   window.closeFeedComments = function() {
@@ -477,26 +486,45 @@ if (typeof window !== "undefined") {
     if (backdrop) backdrop.classList.remove("show");
   };
 
-  window.submitFeedComment = async function(videoId) {
-    const box = document.getElementById("feedCbox");
-    if (!box || !box.value.trim()) return;
-
-    const bodyVal = box.value.trim();
-    box.value = "";
-
+  /* Merge Supabase comments for this video into DATA.comments, then refresh
+     the open drawer + sidebar count. Best-effort; seed/local overlay remain. */
+  async function hydrateFeedComments(v) {
+    if (!ShAPI || !ShAPI.enabled || !v) return;
     try {
-      if (window.addComment) {
-        await window.addComment(videoId, bodyVal);
-        const v = DATA.videos.find(x => x.id === videoId);
-        if (v) {
-          const body = document.getElementById("feedCommentsBody");
-          if (body) body.innerHTML = renderCommentList(v);
-          const commentLabel = document.getElementById(`feedComment_${videoId}`);
-          if (commentLabel) {
-            commentLabel.textContent = commentsFor(v).length;
-          }
+      const rows = await ShAPI.listComments(v.id);
+      if (!rows || !rows.length) return;
+      for (const c of rows) {
+        const key = "db" + c.id;
+        if (!DATA.comments.some((m) => m.id === key)) {
+          DATA.comments.push({
+            id: key,
+            video: v.id,
+            user: c.author,
+            text: c.body,
+            time: "",
+            ts: Date.parse(c.created_at) || 0,
+          });
         }
       }
+      const body = document.getElementById("feedCommentsBody");
+      if (body && document.getElementById("feedCommentsDrawer")?.classList.contains("open")) {
+        body.innerHTML = renderCommentList(v);
+      }
+      const commentLabel = document.getElementById(`feedComment_${v.id}`);
+      if (commentLabel) commentLabel.textContent = String(commentsFor(v).length);
+    } catch (_) { /* offline / API down */ }
+  }
+
+  window.submitFeedComment = function(videoId) {
+    videoId = +videoId;
+    const box = document.getElementById("feedCbox");
+    if (!box) return;
+    const bodyVal = (box.value || "").trim();
+    if (!bodyVal) return;
+    // addComment accepts text directly (does not require #cbox) and refreshes
+    // the feed drawer + count when #feedCommentsBody is present.
+    try {
+      addComment(videoId, bodyVal);
     } catch (e) {
       console.error("Failed to post comment", e);
     }
