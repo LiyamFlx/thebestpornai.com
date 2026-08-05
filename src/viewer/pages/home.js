@@ -6,6 +6,7 @@ import { POSTS } from "../../blog/posts.js";
 import { postCoverUrl } from "../../blog/card.js";
 import { vstate, persistState } from "../state.js";
 import { jsq, relativeTime } from "../util.js";
+import { displayViews } from "../display-metrics.js";
 import {
   pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies,
   actNames, clipsByAct, highlights, originals, byIdDesc, byViewsDesc,
@@ -73,7 +74,7 @@ function homeHero(hero){
         <span class="home-hero-tag">Featured</span>
         <span class="home-hero-count">${liveCount} videos and counting</span>
         <h1 class="home-hero-title">${esc(hero.title)}</h1>
-        <p class="home-hero-meta">${esc(creatorName(hero.creator))} · ${fmt(hero.views)} views${hero.uploaded ? ` · ${esc(relativeTime(hero.uploaded))}` : ''}</p>
+        <p class="home-hero-meta">${esc(creatorName(hero.creator))} · ${fmt(displayViews(hero))} views${hero.uploaded ? ` · ${esc(relativeTime(hero.uploaded))}` : ''}</p>
         <div class="home-hero-actions">
           <button type="button" class="btn home-hero-play" onclick="openVideo(${hero.id})">▶ Play</button>
           <button type="button" class="hero-later-btn ${laterOn?'on':''}" data-later-id="${hero.id}" aria-pressed="${laterOn?'true':'false'}" onclick="toggleLater(${hero.id})" aria-label="${laterOn?'Remove from Watch Later':'Add to Watch Later'}" title="Watch Later"><svg class="ico"><use href="#icon-save"/></svg></button>

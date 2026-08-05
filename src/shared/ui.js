@@ -33,6 +33,7 @@ export function distRows(arr) {
 
 import { esc, mediaUrl, ytId, creatorName, creatorVerified, fmt } from './catalog.js';
 import { jsq, relativeTime } from '../viewer/util.js';
+import { displayViews } from '../viewer/display-metrics.js';
 
 /* Clickable tag chips. `stop` guards the parent card's onclick so tapping a tag
    searches instead of opening the video. `max` caps how many render. */
@@ -103,7 +104,7 @@ export function videoCard(v, opts={}){
   const when = relativeTime(v.uploaded);
   const topRow = `<div class="card-top-row">
       <span class="card-creator">${esc(cName)}${isVerified ? `<span class="card-verified" title="Verified"><svg class="ico"><use href="#icon-verified-check"/></svg></span>` : ''}</span>
-      <span class="card-views"><svg class="ico"><use href="#icon-eye"/></svg>${fmt(v.views)}${when ? `<span class="card-when"> · ${esc(when)}</span>` : ''}</span>
+      <span class="card-views"><svg class="ico"><use href="#icon-eye"/></svg>${fmt(displayViews(v))}${when ? `<span class="card-when"> · ${esc(when)}</span>` : ''}</span>
     </div>`;
   const metaBlock = isRow
     ? `<div class="card-text">

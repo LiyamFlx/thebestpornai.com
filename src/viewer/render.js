@@ -12,6 +12,7 @@ import { DATA, toast, creatorName, mediaUrl } from "../shared/catalog.js";
 // serving different call sites, not duplication to clean up).
 const defaultThumbUrl = "/favicon-64.png";
 import { vstate } from "./state.js";
+import { displayViews } from "./display-metrics.js";
 import { pubVideos, trending } from "./catalog-queries.js";
 import { takePendingHydrate } from "./router.js";
 import { hydrateWatch } from "./hydrate.js";
@@ -278,7 +279,7 @@ function addStructuredData(){
       "keywords": (v.tags || []).join(", ") || undefined,
       "interactionStatistic": [
         { "@type": "InteractionCounter", "interactionType": "https://schema.org/LikeAction", "userInteractionCount": v.likes },
-        { "@type": "InteractionCounter", "interactionType": "https://schema.org/ViewAction", "userInteractionCount": v.views }
+        { "@type": "InteractionCounter", "interactionType": "https://schema.org/ViewAction", "userInteractionCount": displayViews(v) }
       ]
     };
   } else if (vstate.page === "home") {

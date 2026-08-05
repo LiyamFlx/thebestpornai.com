@@ -4,6 +4,7 @@ import { DATA, fmt } from "../shared/catalog.js";
 import { ShAPI } from "../shared/streamhub-api.js";
 import { vstate, onWatch } from "./state.js";
 import { patchComments } from "./comments.js";
+import { displayViews } from "./display-metrics.js";
 
 /* Fire-and-forget persistence: never let an API failure break the UI. The
    optimistic in-memory update has already been applied by the caller, so if
@@ -26,29 +27,39 @@ const _viewed = new Set();
 /* Pull persisted likes/comments from Supabase and patch the already-rendered
    watch page. Best-effort: any failure leaves the seeded values in place.
    Also records the view here so it fires on BOTH the click path (openVideo) and
-   the direct-link/refresh path (applyHash -> render -> pending hydrate). */
+   the direct-link/refresh path (applyHash -> render -> pending hydrate).
+
+   IMPORTANT: store the combined view total on vstate.live[id].views so grid
+   cards (which only had seed v.views) match the watch page after hydrate. */
 export async function hydrateWatch(id){
   if(typeof ShAPI==="undefined" || !ShAPI.enabled) return;
-  if(!_viewed.has(id)){ _viewed.add(id); persist(()=> ShAPI.addView(id)); }
+  // Record first, then count — parallel fire used to race and under-count.
+  if(!_viewed.has(id)){
+    _viewed.add(id);
+    await persist(()=> ShAPI.addView(id));
+  }
   try {
-    const [counts, comments, views] = await Promise.all([
+    const [counts, comments, serverViews] = await Promise.all([
       ShAPI.likeCounts(id), ShAPI.listComments(id), ShAPI.viewCount(id)
     ]);
+    const seed = DATA.videos.find(x => x.id === id) || vstate.current;
+    const seedViews = seed && Number.isFinite(Number(seed.views)) ? Number(seed.views) : 0;
+    // Server returns total engagement rows; seed is catalog baseline (often 0).
+    // Combined total is what the watch page has always shown (seed + server).
+    const totalViews = seedViews + (serverViews || 0);
+
+    const L = vstate.live[id] = vstate.live[id] || { like: 0, dislike: 0 };
+    L.like = counts.like || 0;
+    L.dislike = counts.dislike || 0;
+    L.views = totalViews;
+
     if(vstate.current && vstate.current.id===id && onWatch()){
       const v = vstate.current;
-      // Server counts become the authoritative overlay; they already include
-      // any votes we persisted earlier, so we never mutate the seed values
-      // (previously v.likes++ plus counts.like double-counted own likes).
-      vstate.live[id] = { like: counts.like||0, dislike: counts.dislike||0 };
       const likeNum=document.getElementById("likeNum");
-      if(likeNum) likeNum.textContent = fmt(v.likes + vstate.live[id].like);
-      // Views (seed + real) — the watch-v2 layout has no visible dislike count
-      // or favorites chip (matches the approved reference design), so only
-      // the views figure is patched here.
+      if(likeNum) likeNum.textContent = fmt((v.likes||0) + L.like);
       const viewsEl=document.getElementById("watchViewsCount");
-      if(viewsEl) viewsEl.textContent = fmt(v.views + (views||0)) + " views";
+      if(viewsEl) viewsEl.textContent = fmt(displayViews(v)) + " views";
       if(comments && comments.length){
-        // Merge persisted comments into DATA.comments (avoid dupes) and re-render the list region.
         for(const c of comments){
           const key = "db"+c.id;
           if(!DATA.comments.some(m=>m.id===key))

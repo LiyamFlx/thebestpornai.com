@@ -10,6 +10,7 @@ import { DATA, esc, creatorName, fmt, mediaUrl, ytId } from "../../shared/catalo
 import { playerEmbed } from "../../shared/ui.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
+import { displayViews } from "../display-metrics.js";
 import { pubVideos, trending, relatedTo, creatorById } from "../catalog-queries.js";
 import { renderCommentList, commentsFor } from "../comments.js";
 import { postsForVideoId } from "../../blog/posts.js";
@@ -39,7 +40,7 @@ function upNextCard(u){
       <div class="upnext-info">
         <h3 class="upnext-title">${esc(u.title)}</h3>
         <p class="upnext-creator">${esc(creatorName(u.creator))}</p>
-        <p class="upnext-meta">${fmt(u.views)} views <span class="dot-sep">•</span> ${esc(u.uploaded)}</p>
+        <p class="upnext-meta">${fmt(displayViews(u))} views <span class="dot-sep">•</span> ${esc(u.uploaded)}</p>
       </div>
       <button class="upnext-more" onclick="event.stopPropagation();toast('Added to queue')" aria-label="More options">
         <svg class="ico"><use href="#icon-more"/></svg>
@@ -238,7 +239,7 @@ function titleBlockMobile(v, catList, tagList, live, c, hasCreator, subbed){
         <button class="desc-chevron-btn" onclick="toggleDescSheetMobile()" id="descChevron" aria-label="More details"><svg class="ico"><use href="#icon-chevron-down"/></svg></button>
       </div>
       <div class="watch-stats-row">
-        <div class="stats-left"><span class="views-count" id="watchViewsCount">${fmt(v.views)} views</span><span class="dot-sep">•</span><span>${esc(v.uploaded)}</span></div>
+        <div class="stats-left"><span class="views-count" id="watchViewsCount">${fmt(displayViews(v))} views</span><span class="dot-sep">•</span><span>${esc(v.uploaded)}</span></div>
         ${tagList.length ? `<div class="stats-tags">${tagList.slice(0,2).map(t=>`<span onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}</div>` : ''}
       </div>
       ${actionBar(v, live, hasCreator)}
@@ -261,7 +262,7 @@ function metadataBlockDesktop(v, catList, tagList, live, hasCreator){
       <h1 class="watch-title-v2 desktop">${esc(v.title)}</h1>
       <div class="watch-meta-actions-row">
         <div class="stats-left">
-          <span class="views-count" id="watchViewsCount">${fmt(v.views)} views</span><span class="dot-sep">•</span><span>Published ${esc(v.uploaded)}</span>
+          <span class="views-count" id="watchViewsCount">${fmt(displayViews(v))} views</span><span class="dot-sep">•</span><span>Published ${esc(v.uploaded)}</span>
           ${tagList.length ? `<span class="dot-sep">•</span><span class="stats-tags">${tagList.slice(0,2).map(t=>`<span onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}</span>` : ''}
         </div>
         ${actionBar(v, live, hasCreator)}
