@@ -733,7 +733,7 @@ a { color: inherit; }
   padding: 4px 0 8px;
 }
 
-/* Landscape / guide heroes: full-width banner, no portrait crop */
+/* Landscape / guide heroes: full-width banner — never crop the artwork */
 .blog-feature--landscape {
   grid-template-columns: 1fr;
   gap: 22px;
@@ -744,18 +744,28 @@ a { color: inherit; }
   max-width: none;
   width: 100%;
 }
-.blog-feature--landscape .blog-post-hero-frame {
-  aspect-ratio: 16 / 10;
-  max-height: min(46vh, 520px);
+/* Banner frame: natural aspect of the file — never force 3/4 or cover-crop */
+.blog-post-hero-frame--banner {
+  aspect-ratio: unset;
+  max-height: none;
   width: 100%;
+  height: auto;
   border-radius: calc(var(--r-lg) + 2px);
+  background: #050505;
+  overflow: hidden; /* only for rounded corners; image is not cropped by size */
+  line-height: 0; /* kill gap under <img> */
 }
-.blog-feature--landscape .blog-post-hero-img {
-  background-position: center center;
-  background-size: cover;
+.blog-post-hero-frame--banner::after {
+  height: 2px;
 }
-.blog-feature--landscape .blog-post-hero-shade {
-  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 45%);
+.blog-post-hero-photo {
+  position: static;
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: center center;
 }
 .blog-feature--landscape .blog-feature-copy {
   max-width: var(--read-wide);
@@ -1283,9 +1293,9 @@ a { color: inherit; }
   .blog-rank-card { padding: 16px 14px 14px; }
   .blog-embed { flex-direction: column; }
   .blog-embed-thumb { width: 100%; height: auto; aspect-ratio: 16 / 9; }
-  .blog-feature--landscape .blog-post-hero-frame {
-    aspect-ratio: 16 / 11;
-    max-height: min(38vh, 360px);
+  .blog-post-hero-frame--banner {
+    max-height: none;
+    border-radius: var(--r-card);
   }
 }
 

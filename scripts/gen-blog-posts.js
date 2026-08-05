@@ -370,10 +370,16 @@ ${siteHeader({ mode: "post" })}
       <!-- Magazine feature: portrait split, or landscape banner when coverLayout=landscape -->
       <header class="blog-feature${post.coverLayout === "landscape" ? " blog-feature--landscape" : ""}">
         <div class="blog-feature-media">
-          <div class="blog-post-hero-frame">
+          ${
+            post.coverLayout === "landscape"
+              ? `<div class="blog-post-hero-frame blog-post-hero-frame--banner">
+            <img class="blog-post-hero-photo" src="${esc(cover)}" alt="${esc(post.title)}" width="1856" height="576" decoding="async" fetchpriority="high"/>
+          </div>`
+              : `<div class="blog-post-hero-frame">
             <div class="blog-post-hero-img" style="background-image:url('${esc(cover)}')" role="img" aria-label="${esc(post.title)}"></div>
             <div class="blog-post-hero-shade" aria-hidden="true"></div>
-          </div>
+          </div>`
+          }
         </div>
         <div class="blog-feature-copy">
           <span class="blog-article-pill">${esc(post.category)}</span>
