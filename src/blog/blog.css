@@ -354,8 +354,7 @@ a { color: inherit; }
 }
 
 .blog-hero-eyebrow,
-.blog-card-pill,
-.blog-article-pill {
+.blog-card-pill {
   display: inline-flex;
   align-items: center;
   width: fit-content;
@@ -686,7 +685,7 @@ a { color: inherit; }
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  padding: 18px 0 10px;
+  padding: 20px 0 8px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -702,6 +701,33 @@ a { color: inherit; }
 
 .blog-breadcrumbs a:hover { color: var(--red); }
 
+/* Magazine split: portrait cover + intro (title/meta/CTA) side by side */
+.blog-feature {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.92fr) minmax(280px, 1.18fr);
+  gap: clamp(24px, 4vw, 48px);
+  align-items: center;
+  padding: 12px 0 36px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.blog-feature-media {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.blog-feature-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 4px 0 8px;
+}
+
+/* Legacy full-width hero (kept for any old markup) */
 .blog-post-hero {
   position: relative;
   width: 100%;
@@ -710,13 +736,12 @@ a { color: inherit; }
   padding: 0 20px;
 }
 
-/* Portrait-friendly hero: tall covers stay sharp (no fake upscale crop mess).
-   Landscape covers still work with cover + center. */
+/* Portrait cover frame — sharp, no heavy overlays */
 .blog-post-hero-frame {
   position: relative;
   aspect-ratio: 3 / 4;
-  width: min(100%, 560px);
-  max-height: min(72vh, 720px);
+  width: 100%;
+  max-height: min(68vh, 640px);
   margin: 0 auto;
   border-radius: var(--r-lg);
   overflow: hidden;
@@ -724,8 +749,8 @@ a { color: inherit; }
   background: var(--black-card);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.04) inset,
-    0 24px 64px rgba(0, 0, 0, 0.55),
-    0 0 60px rgba(229, 9, 20, 0.08);
+    0 20px 48px rgba(0, 0, 0, 0.5),
+    0 0 48px rgba(229, 9, 20, 0.08);
 }
 
 .blog-post-hero-frame::after {
@@ -745,15 +770,13 @@ a { color: inherit; }
   inset: 0;
   background-size: cover;
   background-position: center top;
-  /* no scale transform — subpixel scaling softens faces */
   image-rendering: auto;
 }
 
 .blog-post-hero-shade {
   position: absolute;
   inset: 0;
-  /* Light gradient only — heavy dark overlays made soft sources look blurrier */
-  background: linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 42%);
+  background: linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 38%);
   pointer-events: none;
   z-index: 1;
 }
@@ -763,28 +786,38 @@ a { color: inherit; }
 }
 
 .blog-article-pill {
-  margin-bottom: 16px;
-  letter-spacing: 0.18em;
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(229, 9, 20, 0.45);
+  background: var(--red-soft);
+  color: var(--red-hot);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .blog-article-title {
   margin: 0 0 14px;
   font-family: var(--font-body);
-  font-size: clamp(28px, 4.6vw, 42px);
+  font-size: clamp(26px, 3.4vw, 40px);
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.12;
   letter-spacing: -0.03em;
   color: var(--white);
+  max-width: 18ch;
 }
 
-
 .blog-article-microcopy {
-  margin: 0 0 20px;
-  max-width: 36em;
-  color: var(--red-hot);
-  font-size: 17px;
-  font-weight: 600;
-  line-height: 1.5;
+  margin: 0 0 18px;
+  max-width: 34em;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 15.5px;
+  font-weight: 500;
+  line-height: 1.55;
   font-style: italic;
   letter-spacing: 0.01em;
   border-left: 2px solid var(--red);
@@ -793,7 +826,7 @@ a { color: inherit; }
 
 .blog-article-meta {
   gap: 8px 10px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   color: var(--muted);
   font-size: 13px;
 }
@@ -807,13 +840,31 @@ a { color: inherit; }
 
 .blog-article-meta a:hover { color: var(--red); border-color: var(--red); }
 
+.blog-feature-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.blog-feature .blog-share {
+  margin: 0 0 18px;
+  padding: 12px 0 0;
+  border-bottom: none;
+  width: 100%;
+}
+
+.blog-feature .blog-share::after {
+  display: none;
+}
+
 .blog-share {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin: 0 0 32px;
-  padding: 16px 0 24px;
+  margin: 0 0 28px;
+  padding: 16px 0 22px;
   border-bottom: 1px solid var(--border);
   position: relative;
 }
@@ -827,6 +878,12 @@ a { color: inherit; }
   height: 1px;
   background: var(--red);
   box-shadow: 0 0 12px var(--red);
+}
+
+/* Reading column sits under the feature split */
+.blog-post .blog-read {
+  padding-top: 28px;
+  padding-bottom: 48px;
 }
 
 .blog-share-label {
@@ -1416,7 +1473,14 @@ a { color: inherit; }
   .blog-related-posts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .blog-crawl-index ol { columns: 1; }
   .blog-hero { aspect-ratio: 16 / 10; max-height: none; }
-  /* portrait hero keeps 3/4 on tablet */
+
+  /* Tablet: still side-by-side, slightly tighter */
+  .blog-feature {
+    gap: 22px;
+    align-items: start;
+  }
+  .blog-feature-media { max-width: 340px; }
+  .blog-article-title { max-width: none; font-size: clamp(24px, 4vw, 34px); }
 }
 
 @media (max-width: 720px) {
@@ -1431,9 +1495,35 @@ a { color: inherit; }
   }
   .blog-hero-overlay { padding: 20px; }
   .blog-hero-title { max-width: none; }
+
+  /* Mobile: stack cover on top, copy below — no empty black void */
+  .blog-feature {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 8px 0 28px;
+    text-align: left;
+  }
+  .blog-feature-media {
+    max-width: min(100%, 380px);
+    margin: 0 auto;
+  }
   .blog-post-hero-frame {
-    aspect-ratio: 4 / 5;
-    min-height: 320px;
+    aspect-ratio: 3 / 4;
+    max-height: min(58vh, 520px);
+  }
+  .blog-feature-copy {
+    align-items: stretch;
+  }
+  .blog-article-title {
+    max-width: none;
+    font-size: clamp(24px, 7vw, 32px);
+  }
+  .blog-feature-cta {
+    width: 100%;
+  }
+  .blog-feature-cta .blog-cta {
+    flex: 1 1 auto;
+    min-width: min(100%, 140px);
   }
   .blog-prevnext { grid-template-columns: 1fr; }
   .blog-prevnext-link.newer { text-align: left; }

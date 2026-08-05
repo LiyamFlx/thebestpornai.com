@@ -359,34 +359,43 @@ ${JSON.stringify(jsonLd, null, 2)}
 ${siteHeader({ mode: "post" })}
 
 <main>
-  <div class="blog-read">
-    <nav class="blog-breadcrumbs" aria-label="Breadcrumb">
-      <a href="/">Home</a><span aria-hidden="true">/</span>
-      <a href="/blog/">Blog</a><span aria-hidden="true">/</span>
-      <span aria-current="page">${esc(post.category)}</span>
-    </nav>
-  </div>
+  <article class="blog-post" itemscope itemtype="https://schema.org/BlogPosting">
+    <div class="blog-shell">
+      <nav class="blog-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a><span aria-hidden="true">/</span>
+        <a href="/blog/">Blog</a><span aria-hidden="true">/</span>
+        <span aria-current="page">${esc(post.category)}</span>
+      </nav>
 
-  <header class="blog-post-hero">
-    <div class="blog-post-hero-frame">
-      <div class="blog-post-hero-img" style="background-image:url('${esc(cover)}')" role="img" aria-label="${esc(post.title)}"></div>
-      <div class="blog-post-hero-shade" aria-hidden="true"></div>
+      <!-- Magazine feature: cover + intro side-by-side on desktop -->
+      <header class="blog-feature">
+        <div class="blog-feature-media">
+          <div class="blog-post-hero-frame">
+            <div class="blog-post-hero-img" style="background-image:url('${esc(cover)}')" role="img" aria-label="${esc(post.title)}"></div>
+            <div class="blog-post-hero-shade" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="blog-feature-copy">
+          <span class="blog-article-pill">${esc(post.category)}</span>
+          <h1 class="blog-article-title" itemprop="headline">${esc(post.title)}</h1>
+          <p class="blog-article-microcopy">${esc(post.microcopy)}</p>
+          <div class="blog-article-meta">
+            <span>By <a href="${esc(BLOG_AUTHOR.url)}" rel="author">${esc(BLOG_AUTHOR.name)}</a></span>
+            <span class="dot"></span>
+            <span>${ICON_CLOCK}${post.readMins} min read</span>
+            <span class="dot"></span>
+            <span>${ICON_CALENDAR}<time datetime="${esc(post.date)}" itemprop="datePublished">${esc(formatDateLong(post.date))}</time></span>
+          </div>
+          ${shareHtml(post)}
+          <div class="blog-feature-cta">
+            <a class="blog-cta blog-cta-primary" href="${videoWatchUrl(primaryVideo)}">Watch this fantasy →</a>
+            <a class="blog-cta blog-cta-ghost" href="/blog/">More stories</a>
+          </div>
+        </div>
+      </header>
     </div>
-  </header>
 
-  <div class="blog-read">
-    <article class="blog-article" itemscope itemtype="https://schema.org/BlogPosting">
-      <span class="blog-article-pill">${esc(post.category)}</span>
-      <h1 class="blog-article-title" itemprop="headline">${esc(post.title)}</h1>
-      <p class="blog-article-microcopy">${esc(post.microcopy)}</p>
-      <div class="blog-article-meta">
-        <span>By <a href="${esc(BLOG_AUTHOR.url)}" rel="author">${esc(BLOG_AUTHOR.name)}</a></span>
-        <span class="dot"></span>
-        <span>${ICON_CLOCK}${post.readMins} min read</span>
-        <span class="dot"></span>
-        <span>${ICON_CALENDAR}<time datetime="${esc(post.date)}" itemprop="datePublished">${esc(formatDateLong(post.date))}</time></span>
-      </div>
-      ${shareHtml(post)}
+    <div class="blog-read">
       <div class="blog-article-body" itemprop="articleBody">
         ${post.body}
       </div>
@@ -394,52 +403,52 @@ ${siteHeader({ mode: "post" })}
         <a class="blog-cta blog-cta-primary" href="${videoWatchUrl(primaryVideo)}">Watch this fantasy →</a>
         <a class="blog-cta blog-cta-ghost" href="/blog/">More stories</a>
       </div>
-    </article>
 
-    ${faqHtml(post.faqs)}
+      ${faqHtml(post.faqs)}
 
-    ${
-      related.length
-        ? `
-    <section class="blog-related" aria-labelledby="watch-heading">
-      <h2 id="watch-heading">Ready to watch the real thing?</h2>
-      <p class="blog-related-sub">Companion clips from the thebestpornai catalog — opens the main player.</p>
-      <div class="blog-related-grid">
-        ${related.map(videoCardHtml).join("")}
-      </div>
-    </section>
-    `
-        : ""
-    }
-
-    ${
-      relatedPosts.length
-        ? `
-    <section class="blog-related" aria-labelledby="related-heading">
-      <h2 id="related-heading">Related stories</h2>
-      <div class="blog-related-posts">
-        ${relatedPosts.map((p) => postCardHtml(p)).join("")}
-      </div>
-    </section>
-    `
-        : ""
-    }
-
-    ${prevNextHtml(post)}
-
-    <section class="blog-confession">
-      <h3>Anonymous confession</h3>
-      <p>Tell us what you can't tell anyone else. Opens your email client — no account required. Don't name real people without consent.</p>
-      <form id="blog-confession-form" action="mailto:contact@thebestpornai.com?subject=Blog%20confession" method="post" enctype="text/plain">
-        <div class="blog-confession-field">
-          <label class="blog-confession-label" for="blog-confession-input">Your confession</label>
-          <textarea id="blog-confession-input" name="body" placeholder="Type your confession…" maxlength="2000" required></textarea>
+      ${
+        related.length
+          ? `
+      <section class="blog-related" aria-labelledby="watch-heading">
+        <h2 id="watch-heading">Ready to watch the real thing?</h2>
+        <p class="blog-related-sub">Companion clips from the thebestpornai catalog — opens the main player.</p>
+        <div class="blog-related-grid">
+          ${related.map(videoCardHtml).join("")}
         </div>
-        <button type="submit" class="blog-cta blog-cta-primary blog-confession-submit" id="blog-confession-submit">Send confession</button>
-        <p class="blog-confession-note">Nothing is stored in the browser beyond what you type.</p>
-      </form>
-    </section>
-  </div>
+      </section>
+      `
+          : ""
+      }
+
+      ${
+        relatedPosts.length
+          ? `
+      <section class="blog-related" aria-labelledby="related-heading">
+        <h2 id="related-heading">Related stories</h2>
+        <div class="blog-related-posts">
+          ${relatedPosts.map((p) => postCardHtml(p)).join("")}
+        </div>
+      </section>
+      `
+          : ""
+      }
+
+      ${prevNextHtml(post)}
+
+      <section class="blog-confession">
+        <h3>Anonymous confession</h3>
+        <p>Tell us what you can't tell anyone else. Opens your email client — no account required. Don't name real people without consent.</p>
+        <form id="blog-confession-form" action="mailto:contact@thebestpornai.com?subject=Blog%20confession" method="post" enctype="text/plain">
+          <div class="blog-confession-field">
+            <label class="blog-confession-label" for="blog-confession-input">Your confession</label>
+            <textarea id="blog-confession-input" name="body" placeholder="Type your confession…" maxlength="2000" required></textarea>
+          </div>
+          <button type="submit" class="blog-cta blog-cta-primary blog-confession-submit" id="blog-confession-submit">Send confession</button>
+          <p class="blog-confession-note">Nothing is stored in the browser beyond what you type.</p>
+        </form>
+      </section>
+    </div>
+  </article>
 </main>
 
 ${siteFooter()}
