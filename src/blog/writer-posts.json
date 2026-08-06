@@ -419,6 +419,7 @@
       }
     ],
     "coverLayout": "landscape",
-    "wide": true
+    "wide": true,
+    "cover": "../media/blog/ourdream-ai-vs-candy-ai-comparison-hero.jpg"
   }
 ]
