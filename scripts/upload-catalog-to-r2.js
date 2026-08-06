@@ -122,7 +122,8 @@ async function uploadFile(item) {
       Key: item.r2Key,
       Body: fileStream,
       ContentLength: size,
-      ContentType: "video/mp4"
+      ContentType: "video/mp4",
+      CacheControl: "public, max-age=31536000, immutable"
     }));
     console.log(`✅ Uploaded: "${item.title}"`);
   } catch (err) {

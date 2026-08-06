@@ -3,7 +3,7 @@ import { DATA, esc, creatorName, fmt, mediaUrl, ytId } from "../../shared/catalo
 import { videoCard, rowSection, emptyState } from "../../shared/ui.js";
 import { CATEGORIES, POPULAR_TAGS } from "../../shared/taxonomy.js";
 import { POSTS } from "../../blog/posts.js";
-import { postCoverUrl } from "../../blog/card.js";
+import { postCoverThumbUrl } from "../../blog/card.js";
 import { vstate, persistState } from "../state.js";
 import { jsq, relativeTime } from "../util.js";
 import { displayViews } from "../display-metrics.js";
@@ -101,11 +101,11 @@ function fromTheBlogRow(){
   if(!POSTS || !POSTS.length) return "";
   const posts = [...POSTS].sort((a,b) => String(b.date).localeCompare(String(a.date))).slice(0, 8);
   const cards = posts.map(p => {
-    const cover = postCoverUrl(p);
+    const cover = postCoverThumbUrl(p);
     return `
       <a class="blog-home-card" href="/blog/${esc(p.slug)}.html">
         <div class="blog-home-card-media">
-          ${cover ? `<img src="${esc(cover)}" alt="" loading="lazy" decoding="async"/>` : ``}
+          ${cover ? `<img src="${esc(cover)}" alt="" loading="lazy" decoding="async" width="166" height="104"/>` : ``}
           <span class="blog-home-card-pill">${esc(p.category)}</span>
         </div>
         <div class="blog-home-card-body">

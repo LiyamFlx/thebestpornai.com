@@ -206,6 +206,7 @@ async function processOne(fp, i) {
           Body: fs.createReadStream(fp),
           ContentLength: fs.statSync(fp).size,
           ContentType: CONTENT_TYPES[path.extname(fp).toLowerCase()] || "application/octet-stream",
+          CacheControl: "public, max-age=31536000, immutable",
         }));
         uploaded++;
       }
@@ -224,6 +225,7 @@ async function processOne(fp, i) {
             Body: fs.createReadStream(outJpg),
             ContentLength: fs.statSync(outJpg).size,
             ContentType: "image/jpeg",
+            CacheControl: "public, max-age=31536000, immutable",
           }));
         }
         thumb = pp.thumb;

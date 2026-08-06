@@ -136,6 +136,7 @@ async function processOne(v) {
         Body: fs.createReadStream(outJpg),
         ContentLength: fs.statSync(outJpg).size,
         ContentType: "image/jpeg",
+        CacheControl: "public, max-age=31536000, immutable",
       }));
       uploaded++;
     }
