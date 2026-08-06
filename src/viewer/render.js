@@ -15,6 +15,7 @@ import { vstate } from "./state.js";
 import { displayViews } from "./display-metrics.js";
 import { pubVideos, trending } from "./catalog-queries.js";
 import { takePendingHydrate } from "./router.js";
+// takePendingFeedFocus is consumed inside attachFeedObserver (pages/feed.js)
 import { hydrateWatch } from "./hydrate.js";
 import { attachPlayerControlsV2 } from "./player-controls-v2.js";
 import { renderHome } from "./pages/home.js";

@@ -8,6 +8,7 @@ import { visible } from "./catalog-queries.js";
 
 let _suppressHash = false;
 let _pendingHydrate = null;   // video id to hydrate after the next render
+let _pendingFeedFocus = null; // vertical video id to scroll-to after feed render
 let _savedScroll = null;      // {y, viewTop, page, hash} captured just before opening a video
 // Initial page load only runs applyHash() against the small SEED catalog
 // (see catalog.js) — a #video/N id that's real but outside the seed must not
@@ -63,16 +64,28 @@ export function setHash(h, opts = {}){
 
 /* Accept legacy / external links that use ?video=N (blog CTAs used this before
    hash routing was the only path). Promote to #video/N so the rest of the
-   router + share URLs stay consistent. */
+   router + share URLs stay consistent. Also promotes ?shorts=N / ?feed=N →
+   #shorts/N for shareable Shorts deep links (IG-reel style). */
 export function promoteVideoQuery(){
   try {
-    const q = new URLSearchParams(location.search).get("video");
-    if(!q) return;
-    const id = Number(q);
-    if(!Number.isFinite(id)) return;
+    const params = new URLSearchParams(location.search);
+    const shortsQ = params.get("shorts") || params.get("feed");
+    const videoQ = params.get("video");
     // Only rewrite when there's no explicit hash yet (don't clobber deep links).
     if(location.hash && location.hash !== "#") return;
     const url = new URL(location.href);
+    if(shortsQ){
+      const id = Number(shortsQ);
+      if(!Number.isFinite(id)) return;
+      url.searchParams.delete("shorts");
+      url.searchParams.delete("feed");
+      url.hash = "shorts/" + id;
+      history.replaceState(null, "", url.pathname + url.search + url.hash);
+      return;
+    }
+    if(!videoQ) return;
+    const id = Number(videoQ);
+    if(!Number.isFinite(id)) return;
     url.searchParams.delete("video");
     url.hash = "video/" + id;
     history.replaceState(null, "", url.pathname + url.search + url.hash);
@@ -87,7 +100,21 @@ export function applyHash(){
     // Same visible() gate as openVideo() (actions.js) — a #video/N hash to a
     // known private/pending id must not be directly openable just because
     // the numeric id leaked (e.g. shared before moderation, or guessed).
-    if(vid && visible(vid)){ vstate.current=vid; pushHistory(vid.id); vstate.page="watch"; _pendingHydrate=vid.id; return; }
+    if(vid && visible(vid)){
+      // Vertical clips belong in Shorts — redirect share/watch links into the feed
+      // so #video/N and #shorts/N both land on the right surface for reels.
+      if(vid.orientation === "vertical"){
+        vstate.page = "feed";
+        vstate.feedFocusId = vid.id;
+        _pendingFeedFocus = vid.id;
+        setHash("shorts/" + vid.id, { replace: true });
+        return;
+      }
+      vstate.current=vid; pushHistory(vid.id); vstate.page="watch";
+      vstate.feedFocusId = null;
+      _pendingHydrate=vid.id;
+      return;
+    }
     if(!_catalogReady){
       // Full catalog hasn't loaded yet — this id may still turn out to be
       // valid (it's just outside the small initial seed). Leave the hash
@@ -100,42 +127,90 @@ export function applyHash(){
     // broken-looking blank/random result.
     setHash("", { replace: true });
     vstate.page = "home";
+    vstate.feedFocusId = null;
     setTimeout(() => toast("That video isn't available."), 0);
     return;
   }
+
+  /* Shorts / vertical feed deep links — IG-reel style:
+     #shorts/123  (canonical share form)
+     #feed/123    (alias)
+     #shorts or #feed opens the feed without a pinned clip */
+  const mshort = h.match(/^(?:shorts|feed)\/(\d+)$/);
+  if(mshort){
+    const id = +mshort[1];
+    const vid = DATA.videos.find(v => v.id === id);
+    if(vid && visible(vid) && vid.orientation === "vertical"){
+      vstate.page = "feed";
+      vstate.feedFocusId = id;
+      _pendingFeedFocus = id;
+      // Normalize alias #feed/N → #shorts/N for consistent share URLs
+      if(h.startsWith("feed/")) setHash("shorts/" + id, { replace: true });
+      return;
+    }
+    if(vid && visible(vid) && vid.orientation !== "vertical"){
+      // Shared as shorts but it's a landscape clip — open the watch page instead
+      vstate.current = vid;
+      pushHistory(vid.id);
+      vstate.page = "watch";
+      vstate.feedFocusId = null;
+      _pendingHydrate = vid.id;
+      setHash("video/" + id, { replace: true });
+      return;
+    }
+    if(!_catalogReady) return;
+    setHash("shorts", { replace: true });
+    vstate.page = "feed";
+    vstate.feedFocusId = null;
+    setTimeout(() => toast("That Short isn't available."), 0);
+    return;
+  }
+  if(h === "shorts" || h === "feed" || h === "shorts/" || h === "feed/"){
+    vstate.page = "feed";
+    vstate.feedFocusId = null;
+    _pendingFeedFocus = null;
+    return;
+  }
+
   const mm=h.match(/^movie\/(.+)$/);
-  if(mm){ vstate.currentMovieTitle=jsdec(mm[1]); vstate.page="movie"; return; }
+  if(mm){ vstate.currentMovieTitle=jsdec(mm[1]); vstate.page="movie"; vstate.feedFocusId = null; return; }
   const mc=h.match(/^creator\/(.+)$/);
-  if(mc){ vstate.creatorId=jsdec(mc[1]); vstate.page="creator"; return; }
+  if(mc){ vstate.creatorId=jsdec(mc[1]); vstate.page="creator"; vstate.feedFocusId = null; return; }
   // Search hub (#search) or results (#search/<query>)
   if(h === "search" || h === "search/"){
     vstate.page = "search";
     vstate.searchQuery = "";
+    vstate.feedFocusId = null;
     return;
   }
   const ms=h.match(/^search\/(.+)$/);
-  if(ms){ vstate.searchQuery=jsdec(ms[1]); vstate.page="search"; return; }
+  if(ms){ vstate.searchQuery=jsdec(ms[1]); vstate.page="search"; vstate.feedFocusId = null; return; }
   const mcat=h.match(/^category\/(.+)$/);
-  if(mcat){ vstate.homeCategory=jsdec(mcat[1]); vstate.homeFilter="all"; vstate.page="home"; return; }
+  if(mcat){ vstate.homeCategory=jsdec(mcat[1]); vstate.homeFilter="all"; vstate.page="home"; vstate.feedFocusId = null; return; }
   // Library hub: #library or #library/later|favorites|history|downloads
   const mlib=h.match(/^library(?:\/(later|favorites|history|downloads))?$/);
   if(mlib){
     vstate.page = "library";
     vstate.libraryTab = mlib[1] || vstate.libraryTab || "later";
+    vstate.feedFocusId = null;
     return;
   }
   // Unknown #library/... (typos, trailing slash) still open Library — never fall through to Home
   if(h === "library" || h.startsWith("library/")){
     vstate.page = "library";
     vstate.libraryTab = vstate.libraryTab || "later";
+    vstate.feedFocusId = null;
     return;
   }
   // Legacy deep links still land in Library with the right tab
   if(h==="later"||h==="favorites"||h==="history"||h==="downloads"){
     vstate.page = "library";
     vstate.libraryTab = h;
+    vstate.feedFocusId = null;
     return;
   }
+  // Bare page names (#home, #explore, …) — clear shorts pin
+  if(h !== "feed" && h !== "shorts") vstate.feedFocusId = null;
   vstate.page = h || "home";
 }
 
@@ -143,6 +218,13 @@ export function applyHash(){
 export function takePendingHydrate(){
   const id = _pendingHydrate;
   _pendingHydrate = null;
+  return id;
+}
+
+/* Shorts deep-link target — consumed after feed DOM is built. */
+export function takePendingFeedFocus(){
+  const id = _pendingFeedFocus;
+  _pendingFeedFocus = null;
   return id;
 }
 

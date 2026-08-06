@@ -46,12 +46,23 @@ export function go(p){
     vstate.homeCategory = "";
     vstate.homeFilter = "all";
     vstate.homeExpandCats = false;
+    vstate.feedFocusId = null;
     setHash("");
     render();
     scrollToTop();
     return;
   }
+  // Shorts tab: open the vertical feed without a pinned clip (shareable bare #shorts)
+  if(p === "feed" || p === "shorts"){
+    vstate.page = "feed";
+    vstate.feedFocusId = null;
+    setHash("shorts");
+    render();
+    scrollToTop();
+    return;
+  }
   vstate.page = p;
+  vstate.feedFocusId = null;
   setHash(p);
   render();
   scrollToTop();
@@ -99,11 +110,23 @@ export function openVideo(id){
   // or #video/N hash — the visible() gate everywhere else (feeds, search,
   // trending, suggestions) was purely cosmetic if this entry point skipped it.
   if(!visible(video)) return;
+  // Vertical clips open in Shorts at the exact reel (shareable #shorts/N),
+  // not the landscape watch page — matches IG-style deep links.
+  if(video.orientation === "vertical"){
+    saveScrollPosition();
+    pushHistory(id);
+    vstate.feedFocusId = id;
+    vstate.page = "feed";
+    setHash("shorts/" + id);
+    render();
+    return;
+  }
   vstate.current = video;
   if(!vstate.current) return;
   saveScrollPosition();
   pushHistory(id);
   vstate.commentPage = 1;
+  vstate.feedFocusId = null;
   vstate.page="watch"; setHash("video/"+id); render(); scrollToTop();
   hydrateWatch(id);   // fetch real counts/comments and patch them in (non-blocking)
 }
@@ -424,10 +447,39 @@ export function reportVideo(id){
   persist(()=> ShAPI.moderate(id, "reported", "user report", null));
 }
 
+/* Share a deep link. Vertical (Shorts) clips use #shorts/N so the recipient
+   lands on that exact reel in the feed — same idea as an IG Reel URL.
+   Landscape clips keep #video/N (watch page). Prefer the Web Share sheet on
+   mobile when available; fall back to clipboard. */
 export function shareVideo(id){
-  const url = location.href.split("#")[0] + "#video/" + id;
-  if(navigator.clipboard) navigator.clipboard.writeText(url).then(()=>toast("Link copied"),()=>toast("Link: "+url));
-  else toast("Link: "+url);
+  id = +id;
+  const v = DATA.videos.find((x) => x.id === id);
+  const isShort = v && v.orientation === "vertical";
+  const hash = isShort ? ("shorts/" + id) : ("video/" + id);
+  const url = location.href.split("#")[0] + "#" + hash;
+  const title = (v && v.title) ? v.title : "Watch on thebestpornai";
+
+  if(typeof navigator.share === "function"){
+    navigator.share({ title, url, text: title }).then(() => {
+      toast(isShort ? "Short shared" : "Link shared");
+    }).catch((err) => {
+      if(err && err.name === "AbortError") return;
+      copyShareUrl(url, isShort);
+    });
+    return;
+  }
+  copyShareUrl(url, isShort);
+}
+
+function copyShareUrl(url, isShort){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(
+      () => toast(isShort ? "Short link copied" : "Link copied"),
+      () => toast("Link: " + url)
+    );
+  } else {
+    toast("Link: " + url);
+  }
 }
 
 /* Search is a real page in the render pipeline (vstate.searchQuery), not a raw

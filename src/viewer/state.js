@@ -45,6 +45,10 @@ export const vstate = {
   commentLikeCounts: {}, // comment id -> local like-count delta (session overlay, not persisted — only likedComments membership is)
   watchTab: "upnext", // "upnext" | "comments" — mobile watch-page tab selection (transient, resets each video)
   theaterMode: false, // desktop-only widened player layout (transient)
+  /* Shorts deep-link: when set, feed pins this vertical id first and scrolls to it
+     (from #shorts/N or #feed/N). Cleared when opening bare Shorts (#shorts / #feed)
+     or leaving the feed. Not persisted. */
+  feedFocusId: null,
   ...loadPersisted(),   // rehydrate favorites/later/history/downloads/subs/settings/likedComments
 };
 

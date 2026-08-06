@@ -1,10 +1,11 @@
 import { DATA, esc, creatorName, fmt, mediaUrl } from "../../shared/catalog.js";
-import { pubVerticalVideos, creatorById } from "../catalog-queries.js";
+import { pubVerticalVideos, creatorById, visible } from "../catalog-queries.js";
 import { vstate, markFeedWatched } from "../state.js";
 import { jsq } from "../util.js";
 import { renderCommentList, commentsFor } from "../comments.js";
 import { likeVideo, subscribe, addComment } from "../actions.js";
 import { ShAPI } from "../../shared/streamhub-api.js";
+import { setHash, takePendingFeedFocus } from "../router.js";
 
 // Global pointers to track observer, active video, and audio mute state
 let feedObserver = null;
@@ -56,13 +57,30 @@ function shuffle(list){
    markFeedWatched()) ahead of ones they have — so new/unseen clips surface
    first, with already-seen ones as shuffled filler at the end rather than
    disappearing (the feed still needs enough content to keep scrolling once
-   everything's been seen once). */
+   everything's been seen once).
+
+   Deep links (#shorts/N): when vstate.feedFocusId is set, that clip is
+   forced to index 0 so the shared reel is the first thing on screen. */
 function orderedFeedVideos(){
   const all = pubVerticalVideos();
   const seen = new Set(vstate.feedWatched);
   const unwatched = [], watched = [];
   for(const v of all) (seen.has(v.id) ? watched : unwatched).push(v);
-  return shuffle(unwatched).concat(shuffle(watched));
+  let list = shuffle(unwatched).concat(shuffle(watched));
+
+  const pinId = Number(vstate.feedFocusId);
+  if(Number.isFinite(pinId) && pinId > 0){
+    const idx = list.findIndex((v) => v.id === pinId);
+    if(idx > 0){
+      const [pinned] = list.splice(idx, 1);
+      list.unshift(pinned);
+    } else if(idx < 0){
+      // Not in the public vertical list yet (or edge case) — try raw catalog
+      const raw = DATA.videos.find((v) => v.id === pinId && v.orientation === "vertical" && visible(v));
+      if(raw) list = [raw].concat(list.filter((v) => v.id !== pinId));
+    }
+  }
+  return list;
 }
 
 export function toggleFeedMute(){
@@ -301,6 +319,15 @@ export function attachFeedObserver() {
 
       if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
         currentActiveVideo = videoId;
+        // Keep the URL pointed at the active reel so "Copy link" / native share
+        // of the address bar matches the clip on screen (IG Reel behaviour).
+        // replace:true — swipe-through must not flood the Back stack.
+        if(Number.isFinite(videoId) && vstate.page === "feed"){
+          const want = "shorts/" + videoId;
+          const cur = (location.hash || "").replace(/^#/, "");
+          if(cur !== want) setHash(want, { replace: true });
+          vstate.feedFocusId = videoId;
+        }
         // Hydrate this item + neighbours and devirtualize anything that
         // scrolled out of the window; this also injects the active item's
         // <video> if it wasn't already hydrated.
@@ -336,9 +363,43 @@ export function attachFeedObserver() {
 
   items.forEach(item => feedObserver.observe(item));
   attachFeedGestures(container);
-  // Paint the first screen's content immediately rather than waiting for the
+
+  // Deep link: jump to the pinned/shared clip before first paint settles.
+  // takePendingFeedFocus is set by applyHash for #shorts/N; fall back to
+  // vstate.feedFocusId when the pending token was already consumed.
+  const focusId = takePendingFeedFocus() ?? vstate.feedFocusId;
+  let startIndex = 0;
+  if(focusId != null && Number.isFinite(+focusId)){
+    const pinned = container.querySelector(`.feed-item[data-video-id="${+focusId}"]`);
+    if(pinned){
+      startIndex = parseInt(pinned.dataset.index, 10) || 0;
+      // Instant jump (no smooth scroll) — snap container + deep link must land
+      // on the exact reel without animating past other clips first.
+      container.scrollTop = pinned.offsetTop;
+    }
+  }
+
+  // Paint the focused screen's content immediately rather than waiting for the
   // observer's first async callback.
-  hydrateWindow(container, 0);
+  hydrateWindow(container, startIndex);
+  // Kick playback on the focused item if it was hydrated above.
+  const startItem = container.querySelector(`.feed-item[data-index="${startIndex}"]`);
+  const startVid = startItem && startItem.querySelector(".feed-video");
+  if(startVid && !isDataSaverMode()){
+    if(!startVid.src && startVid.dataset.src) startVid.src = startVid.dataset.src;
+    startVid.muted = feedMuted;
+    bindVideoProgress(startItem, startVid);
+    const playP = startVid.play();
+    if(playP && playP.catch){
+      playP.catch(() => {
+        startVid.muted = true;
+        startVid.play().catch(() => {});
+      });
+    }
+  }
+  if(focusId != null && Number.isFinite(+focusId)){
+    setHash("shorts/" + (+focusId), { replace: true });
+  }
 }
 
 /* Auto-advance: when a clip finishes, scroll to the next item in the feed
