@@ -1,7 +1,7 @@
 /* Top-level render: routes vstate.page to a page renderer, then runs the
    post-render side effects (nav highlight, lazy thumbs, player gestures,
    pending hydrate, structured data). */
-import { DATA, toast, creatorName, mediaUrl } from "../shared/catalog.js";
+import { DATA, toast, creatorName, mediaUrl, fmt, ytId } from "../shared/catalog.js";
 // Plain public/ path (not a bundler import) — this file is also loaded by
 // the plain Node test runner (see manifest-sync.test.mjs's import chain),
 // which can't resolve a Vite-style asset import for a .png file. Verified
@@ -15,10 +15,11 @@ import { vstate } from "./state.js";
 import { displayViews } from "./display-metrics.js";
 import { pubVideos, trending } from "./catalog-queries.js";
 import { takePendingHydrate } from "./router.js";
+import { relativeTime } from "./util.js";
 // takePendingFeedFocus is consumed inside attachFeedObserver (pages/feed.js)
 import { hydrateWatch } from "./hydrate.js";
 import { attachPlayerControlsV2 } from "./player-controls-v2.js";
-import { renderHome } from "./pages/home.js";
+import { renderHome, nextHero } from "./pages/home.js";
 import { renderWatch } from "./pages/watch.js";
 import { renderMovieDetail } from "./pages/movie.js";
 import { renderCreatorPage } from "./pages/creator.js";
@@ -70,6 +71,7 @@ export function render(){
   attachPlayer();
   attachPlayerControlsV2();
   attachHoverPreview();
+  attachHeroRotation(p === "home");
   if (p === "feed") {
     attachFeedObserver();
   }
@@ -218,6 +220,54 @@ function attachHoverPreview(){
   };
   view.addEventListener("mouseover", e=>{ const c=e.target.closest(".card"); if(c && !c.contains(e.relatedTarget)) play(c); });
   view.addEventListener("mouseout",  e=>{ const c=e.target.closest(".card"); if(c && !c.contains(e.relatedTarget)) stop(c); });
+}
+
+/* Home hero rotation: cycles the billboard through its pool of catalog
+   videos on a timer, patching the existing DOM in place (swap video src,
+   title, meta, action buttons) rather than a full re-render — a full
+   render() would reset scroll position and tear down every other row's
+   lazy-load state for the sake of one element. Timer is cleared on every
+   render() call (page nav, filter/sort change, catalog merge) so it never
+   stacks or outlives the .home-hero element it targets. */
+const HERO_ROTATE_MS = 7000;
+const HERO_FADE_MS = 260;
+let _heroRotateTimer = null;
+function attachHeroRotation(isHomePage){
+  clearInterval(_heroRotateTimer);
+  _heroRotateTimer = null;
+  if(!isHomePage) return;
+  const section = document.querySelector(".home-hero[data-hero-id]");
+  if(!section) return;   // filtered/sorted home views don't render a hero
+  _heroRotateTimer = setInterval(() => {
+    const hero = nextHero();
+    if(!hero) return;
+    section.classList.add("hero-fading");
+    setTimeout(() => {
+      section.dataset.heroId = hero.id;
+      const media = section.querySelector(".home-hero-media");
+      if(media){
+        const heroIsVideo = hero.src && !ytId(hero.src);
+        media.innerHTML = heroIsVideo
+          ? `<video class="home-hero-img" src="${mediaUrl(hero.src)}" ${hero.thumb ? `poster="${mediaUrl(hero.thumb)}"` : ''} muted autoplay loop playsinline preload="auto"></video>`
+          : (hero.thumb ? `<img class="home-hero-img" src="${mediaUrl(hero.thumb)}" alt="" loading="eager" decoding="async"/>` : '');
+      }
+      const title = section.querySelector(".home-hero-title");
+      if(title) title.textContent = hero.title;
+      const meta = section.querySelector(".home-hero-meta");
+      if(meta) meta.textContent = `${creatorName(hero.creator)} · ${fmt(displayViews(hero))} views${hero.uploaded ? ` · ${relativeTime(hero.uploaded)}` : ''}`;
+      const playBtn = section.querySelector(".home-hero-play");
+      if(playBtn) playBtn.setAttribute("onclick", `openVideo(${hero.id})`);
+      const laterBtn = section.querySelector(".hero-later-btn");
+      if(laterBtn){
+        const laterOn = vstate.later.includes(hero.id);
+        laterBtn.dataset.laterId = hero.id;
+        laterBtn.setAttribute("onclick", `toggleLater(${hero.id})`);
+        laterBtn.classList.toggle("on", laterOn);
+        laterBtn.setAttribute("aria-pressed", laterOn ? "true" : "false");
+      }
+      section.classList.remove("hero-fading");
+    }, HERO_FADE_MS);
+  }, HERO_ROTATE_MS);
 }
 
 /* "YYYY-MM-DD" -> full ISO 8601 datetime with timezone, e.g.

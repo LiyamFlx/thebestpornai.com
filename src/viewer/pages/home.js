@@ -13,11 +13,39 @@ import {
   byUploadedDesc, videoById, relatedTo,
 } from "../catalog-queries.js";
 
-// Homepage hero rotates between a small pool, picked once per page load
-// (not per render — re-picking on every filter/sort change would make the
-// hero jump around while browsing).
-const HERO_VIDEO_POOL = [193, 270];
-export const HERO_VIDEO_ID = HERO_VIDEO_POOL[Math.floor(Math.random() * HERO_VIDEO_POOL.length)];
+// Homepage hero rotates through a small, high-signal pool of catalog videos
+// (top performers with a real playable file — no YouTube embeds, no vertical
+// clips) instead of a couple of hardcoded ids. Built lazily and re-derived
+// whenever DATA.videos changes identity/length (seed -> full catalog swap,
+// manifest sync) so the pool upgrades from seed-only to catalog-wide once
+// the full list lands, same invalidation signal catalog-queries.js uses.
+const HERO_POOL_SIZE = 10;
+let _heroPool = null, _heroPoolLen = -1, _heroPoolRef = null;
+function heroPool(){
+  if(_heroPool && DATA.videos === _heroPoolRef && DATA.videos.length === _heroPoolLen) return _heroPool;
+  _heroPoolRef = DATA.videos; _heroPoolLen = DATA.videos.length;
+  const real = v => v.src && !ytId(v.src);
+  const pool = trending().filter(real).slice(0, HERO_POOL_SIZE);
+  _heroPool = pool.length ? pool : pubVideos().filter(real).slice(0, HERO_POOL_SIZE);
+  return _heroPool;
+}
+
+// Which pool entry is on screen — picked once per page load (not per render,
+// so filtering/sorting doesn't make the hero jump around), then advanced by
+// the rotation timer (see attachHeroRotation() in render.js).
+let _heroIndex = null;
+export function currentHero(){
+  const pool = heroPool();
+  if(!pool.length) return null;
+  if(_heroIndex === null) _heroIndex = Math.floor(Math.random() * pool.length);
+  return pool[_heroIndex % pool.length];
+}
+export function nextHero(){
+  const pool = heroPool();
+  if(!pool.length) return null;
+  _heroIndex = ((_heroIndex ?? 0) + 1) % pool.length;
+  return pool[_heroIndex];
+}
 
 // Horizontal rows: cap cards so DOM stays bounded.
 const ROW_MAX = 18;
@@ -57,18 +85,21 @@ function topCreatorsRow(){
   </div>`;
 }
 
-/* Single hero: same markup everywhere; CSS switches desktop billboard vs mobile card. */
+/* Single hero: same markup everywhere; CSS switches desktop billboard vs mobile card.
+   Always renders the actual video file, never the generated poster JPG — that
+   thumbnail is a single small ffmpeg-grabbed frame that reads visibly blurry
+   once CSS scales it up to fill the full-width billboard. `poster` still uses
+   the thumb (when present) purely for an instant first paint before the
+   video's own first frame decodes. */
 function homeHero(hero){
   const heroIsVideo = hero.src && !ytId(hero.src);
   const laterOn = vstate.later.includes(hero.id);
-  const media = hero.thumb
-    ? `<img class="home-hero-img" src="${mediaUrl(hero.thumb)}" alt="" loading="eager" decoding="async"/>`
-    : (heroIsVideo
-        ? `<video class="home-hero-img" src="${mediaUrl(hero.src)}${hero.thumb ? '' : '#t=1'}" muted autoplay loop playsinline></video>`
-        : ``);
+  const media = heroIsVideo
+    ? `<video class="home-hero-img" src="${mediaUrl(hero.src)}" ${hero.thumb ? `poster="${mediaUrl(hero.thumb)}"` : ''} muted autoplay loop playsinline preload="auto"></video>`
+    : (hero.thumb ? `<img class="home-hero-img" src="${mediaUrl(hero.thumb)}" alt="" loading="eager" decoding="async"/>` : ``);
   const liveCount = pubVideos().filter(v => !v.flagged).length.toLocaleString("en-US");
   return `
-    <section class="home-hero" aria-label="Featured video">
+    <section class="home-hero" aria-label="Featured video" data-hero-id="${hero.id}">
       <div class="home-hero-media">${media}</div>
       <div class="home-hero-body">
         <span class="home-hero-tag">Featured</span>
@@ -147,7 +178,7 @@ function moreCategoriesBlock(cats, acts){
 
 function _renderHomeBody(){
   const pub = pubVideos();
-  const hero = pub.find(v=>v.id===HERO_VIDEO_ID) || pub.find(v=>v.type==="original") || pub[0];
+  const hero = currentHero() || pub.find(v=>v.type==="original") || pub[0];
   if(!hero) return { html: `<div class="empty">No videos available yet.</div>`, empty: true };
 
   const filter = vstate.homeFilter;

@@ -383,10 +383,13 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
   background:linear-gradient(135deg,#2A0307,#0A0A0A);
   border:1px solid var(--border);
 }
-.home-hero-media{position:absolute;inset:0}
+.home-hero-media{position:absolute;inset:0;transition:opacity .26s ease}
 .home-hero-img,.home-hero-media video,.home-hero-media img{
   position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
 }
+/* Rotation crossfade: JS toggles this while it swaps the hero video/meta
+   underneath (see attachHeroRotation() in render.js). */
+.home-hero.hero-fading .home-hero-media{opacity:0}
 .home-hero::after{
   content:"";position:absolute;inset:0;pointer-events:none;
   background:
