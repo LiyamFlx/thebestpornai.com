@@ -33,7 +33,7 @@ export function bumpCatalogGeneration(){ _generation++; }
    caller — invalidation is generation-counter-driven now, not a manual reset. */
 export function invalidateCatalogCache(){ bumpCatalogGeneration(); }
 
-let _pub = null, _pubVert = null, _trending = null;
+let _pub = null, _pubVert = null, _searchable = null, _trending = null;
 let _movies = null, _actNames = null, _highlights = null, _originals = null;
 let _byIdDesc = null, _byViewsDesc = null, _byUploadedDesc = null;
 let _videoById = null;
@@ -46,7 +46,7 @@ function _ensure(){
   // generation counter after an in-place field mutation.
   if(DATA.videos !== _cacheRef || DATA.videos.length !== _cacheLen || _generation !== _cacheGen){
     _cacheRef = DATA.videos; _cacheLen = DATA.videos.length; _cacheGen = _generation;
-    _pub = null; _pubVert = null; _trending = null; _byCat.clear();
+    _pub = null; _pubVert = null; _searchable = null; _trending = null; _byCat.clear();
     _movies = null; _actNames = null; _highlights = null; _originals = null; _clipsByAct.clear();
     _byIdDesc = null; _byViewsDesc = null; _byUploadedDesc = null;
     _videoById = null;
@@ -74,13 +74,18 @@ export const creatorById = (id) => { if(!_creatorById) _creatorById = new Map(DA
    16:9 catalog — home rows, trending, related, category filters, keyboard
    prev/next via stepWatch()) and pubVerticalVideos() (the Shorts-style
    vertical feed, feed.js) are two disjoint discovery surfaces by design.
-   A vertical upload ONLY appears in the vertical feed; it will never surface
-   in home/trending/related/category/search. If that's ever meant to change
-   (e.g. vertical videos should also be searchable, or appear in "related"),
-   it's a product decision, not a bug — update both call sites deliberately
-   rather than silently merging the two lists here. */
+   A vertical upload ONLY appears in the vertical feed, NOT in
+   home/trending/related/category — that split stays intentional.
+
+   Search is the deliberate exception: a viewer typing a title doesn't know
+   or care which shelf a clip lives on, and openVideo() already routes a
+   vertical result to its Shorts deep link (#shorts/N) correctly, so there's
+   no dead-end to worry about. searchableVideos() is the union used ONLY by
+   renderSearch() (misc.js) — every other call site keeps using pubVideos()
+   on purpose. */
 export const pubVideos = () => { _ensure(); return _pub || (_pub = DATA.videos.filter(v => visible(v) && v.orientation !== "vertical")); };
 export const pubVerticalVideos = () => { _ensure(); return _pubVert || (_pubVert = DATA.videos.filter(v => visible(v) && v.orientation === "vertical")); };
+export const searchableVideos = () => { _ensure(); return _searchable || (_searchable = pubVideos().concat(pubVerticalVideos())); };
 
 /* trending / byCat return cached arrays — callers must NOT mutate them in place
    (e.g. .sort()). pubVideos() above is likewise shared; home.js clones with

@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 import { DATA } from "../shared/catalog.js";
 import {
   pubVideos,
+  pubVerticalVideos,
+  searchableVideos,
   visible,
   trending,
   byCat,
@@ -89,6 +91,27 @@ test("catalog queries - memo cache invalidates on in-place mutation via bumpCata
   } finally {
     DATA.videos = origVideos;
     bumpCatalogGeneration(); // leave the counter clean for subsequent tests
+  }
+});
+
+test("catalog queries - searchableVideos includes vertical clips that pubVideos excludes", (t) => {
+  const origVideos = DATA.videos;
+  DATA.videos = [
+    { id: 1, status: "published", title: "Landscape" },
+    { id: 2, status: "published", title: "Short", orientation: "vertical" },
+    { id: 3, status: "private", title: "Hidden", orientation: "vertical" },
+  ];
+
+  try {
+    // pubVideos() keeps excluding vertical clips — that split is unchanged
+    // for home/trending/related/category surfaces.
+    assert.deepEqual(pubVideos().map(v => v.id), [1]);
+    assert.deepEqual(pubVerticalVideos().map(v => v.id), [2]);
+    // searchableVideos() is the union, still gated by visible() — the
+    // private vertical clip must not leak into search either.
+    assert.deepEqual(searchableVideos().map(v => v.id).sort(), [1, 2]);
+  } finally {
+    DATA.videos = origVideos;
   }
 });
 

@@ -5,7 +5,7 @@ import { videoCard, emptyState, rowSection } from "../../shared/ui.js";
 import { POPULAR_TAGS, CATEGORIES } from "../../shared/taxonomy.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
-import { pubVideos, byCat, videoById, trending } from "../catalog-queries.js";
+import { pubVideos, searchableVideos, byCat, videoById, trending } from "../catalog-queries.js";
 import { pagedGrid } from "../grid-window.js";
 
 // Horizontal category rows never need more than a screenful of cards.
@@ -165,6 +165,10 @@ function creatorNameMap(){
 
 function scoreVideo(v, terms, creatorMap){
   const title = (v.title||"").toLowerCase();
+  // Multi-part uploads (movie/scene/clip convention) carry the human-readable
+  // title on movieTitle, not title — without this a search for the movie's
+  // name never matches its individual scene/clip entries.
+  const movieTitle = (v.movieTitle||"").toLowerCase();
   const creator = creatorMap.get(v.creator) || creatorName(v.creator).toLowerCase();
   const cats = [(v.category||""), ...(v.categories||[])].map(x=>String(x).toLowerCase());
   const tags = (v.tags||[]).map(t=>String(t).toLowerCase());
@@ -176,6 +180,7 @@ function scoreVideo(v, terms, creatorMap){
     else if(title.startsWith(term)) hit = 5;
     else if(creator.includes(term)) hit = 4;
     else if(title.includes(term)) hit = 3;
+    else if(movieTitle.includes(term)) hit = 2;
     if(!hit) return -1;   // every term must match somewhere (AND)
     score += hit;
   }
@@ -229,7 +234,11 @@ export function renderSearch(){
 
   const terms = raw.toLowerCase().split(/\s+/).filter(Boolean);
   const creators = creatorNameMap();
-  const scored = pubVideos()
+  // searchableVideos() (horizontal + vertical/Shorts) — unlike every other
+  // row on this page, search results shouldn't silently exclude Shorts just
+  // because they don't fit the 16:9 grid. openVideo() already routes a
+  // vertical hit to its Shorts deep link correctly.
+  const scored = searchableVideos()
     .map(v=>({ v, s: scoreVideo(v, terms, creators) }))
     .filter(x=>x.s >= 0)
     .sort((a,b)=>b.s - a.s);
