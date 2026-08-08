@@ -33,7 +33,7 @@ export function bumpCatalogGeneration(){ _generation++; }
    caller — invalidation is generation-counter-driven now, not a manual reset. */
 export function invalidateCatalogCache(){ bumpCatalogGeneration(); }
 
-let _pub = null, _pubVert = null, _trending = null;
+let _pub = null, _pubVert = null, _searchable = null, _trending = null;
 let _movies = null, _actNames = null, _highlights = null, _originals = null;
 let _byIdDesc = null, _byViewsDesc = null, _byUploadedDesc = null;
 let _videoById = null;
@@ -48,7 +48,7 @@ function _ensure(){
   // generation counter after an in-place field mutation.
   if(DATA.videos !== _cacheRef || DATA.videos.length !== _cacheLen || _generation !== _cacheGen){
     _cacheRef = DATA.videos; _cacheLen = DATA.videos.length; _cacheGen = _generation;
-    _pub = null; _pubVert = null; _trending = null; _byCat.clear(); _byCatFilter.clear();
+    _pub = null; _pubVert = null; _searchable = null; _trending = null; _byCat.clear(); _byCatFilter.clear();
     _movies = null; _actNames = null; _highlights = null; _originals = null; _clipsByAct.clear();
     _byIdDesc = null; _byViewsDesc = null; _byUploadedDesc = null;
     _videoById = null;
@@ -77,13 +77,18 @@ export const creatorById = (id) => { if(!_creatorById) _creatorById = new Map(DA
    16:9 catalog — home rows, trending, related, category filters, keyboard
    prev/next via stepWatch()) and pubVerticalVideos() (the Shorts-style
    vertical feed, feed.js) are two disjoint discovery surfaces by design.
-   A vertical upload ONLY appears in the vertical feed; it will never surface
-   in home/trending/related/category/search. If that's ever meant to change
-   (e.g. vertical videos should also be searchable, or appear in "related"),
-   it's a product decision, not a bug — update both call sites deliberately
-   rather than silently merging the two lists here. */
+   A vertical upload ONLY appears in the vertical feed, NOT in
+   home/trending/related/category — that split stays intentional.
+
+   Search is the deliberate exception: a viewer typing a title doesn't know
+   or care which shelf a clip lives on, and openVideo() already routes a
+   vertical result to its Shorts deep link (#shorts/N) correctly, so there's
+   no dead-end to worry about. searchableVideos() is the union used ONLY by
+   renderSearch() (misc.js) — every other call site keeps using pubVideos()
+   on purpose. */
 export const pubVideos = () => { _ensure(); return _pub || (_pub = DATA.videos.filter(v => visible(v) && v.orientation !== "vertical")); };
 export const pubVerticalVideos = () => { _ensure(); return _pubVert || (_pubVert = DATA.videos.filter(v => visible(v) && v.orientation === "vertical")); };
+export const searchableVideos = () => { _ensure(); return _searchable || (_searchable = pubVideos().concat(pubVerticalVideos())); };
 
 /** Pornstar profiles (kind:"pornstar") — home row + #pornstars hub. */
 export const pornstars = () =>
@@ -223,9 +228,12 @@ function _buildSearchIndex(){
     set.add(v);
   }
 
-  for (const v of pubVideos()) {
+  for (const v of searchableVideos()) {
     const words = (v.title || "").toLowerCase().split(/[\s\-_—,./()]+/);
     for (const w of words) addToken(w, v);
+    const movieWords = (v.movieTitle || "").toLowerCase().split(/[\s\-_—,./()]+/);
+    for (const w of movieWords) addToken(w, v);
+    addToken(v.movieTitle, v);
     addToken(v.category, v);
     for (const c of (v.categories || [])) addToken(c, v);
     for (const t of (v.tags || [])) {
@@ -271,6 +279,7 @@ export function searchCatalog(query){
   const scored = matched.map(v => {
     let score = 0;
     const title = (v.title || "").toLowerCase();
+    const movieTitle = (v.movieTitle || "").toLowerCase();
     const tags = (v.tags || []).map(t => String(t).toLowerCase());
     const cats = [(v.category || ""), ...(v.categories || [])].map(c => String(c).toLowerCase());
     for (const term of terms) {
@@ -278,6 +287,7 @@ export function searchCatalog(query){
       else if (title.startsWith(term)) score += 7;
       else if (tags.some(t => t.includes(term)) || cats.some(c => c.includes(term))) score += 5;
       else if (title.includes(term)) score += 3;
+      else if (movieTitle.includes(term)) score += 2;
       else score += 1;
     }
     score += (v.views || 0) * 0.00001 + (v.likes || 0) * 0.001;

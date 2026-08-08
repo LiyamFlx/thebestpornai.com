@@ -236,6 +236,10 @@ function creatorNameMap(){
 
 function scoreVideo(v, terms, creatorMap){
   const title = (v.title||"").toLowerCase();
+  // Multi-part uploads (movie/scene/clip convention) carry the human-readable
+  // title on movieTitle, not title — without this a search for the movie's
+  // name never matches its individual scene/clip entries.
+  const movieTitle = (v.movieTitle||"").toLowerCase();
   const creator = creatorMap.get(v.creator) || creatorName(v.creator).toLowerCase();
   const cats = [(v.category||""), ...(v.categories||[])].map(x=>String(x).toLowerCase());
   const tags = (v.tags||[]).map(t=>String(t).toLowerCase());
@@ -247,6 +251,7 @@ function scoreVideo(v, terms, creatorMap){
     else if(title.startsWith(term)) hit = 5;
     else if(creator.includes(term)) hit = 4;
     else if(title.includes(term)) hit = 3;
+    else if(movieTitle.includes(term)) hit = 2;
     if(!hit) return -1;   // every term must match somewhere (AND)
     score += hit;
   }
