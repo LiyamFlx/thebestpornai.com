@@ -1,4 +1,5 @@
 import { DATA, esc, fmt, toast, loadFullCatalog } from "../shared/catalog.js";
+import { fetchManifest, mergeManifest } from "../shared/manifest-core.js";
 import { ShAuth, ShAPI } from "../shared/streamhub-api.js";
 import { metric, barChart, distRows } from "../shared/ui.js";
 import { ALL_CATEGORIES, ALL_TAGS, POPULAR_TAGS, isPopularTag } from "../shared/taxonomy.js";
@@ -536,6 +537,16 @@ async function uPublish(){
         if(vid) vid.status = "pending";
         toast(`"${u.title||'Untitled'}" uploaded — pending review before it goes live.`);
       }
+
+      // Re-fetch manifest.json now that our own write just landed in it —
+      // closes the loop: the optimistic local entry above only lives in this
+      // page's memory, so without this the video "worked" for this session
+      // and then silently disappeared from Content on the next reload (it
+      // was saved server-side the whole time, this app just never re-read
+      // it). R2 is eventually-consistent, so this can occasionally still
+      // miss the entry on the very first read; syncCreatorManifest() on next
+      // page load is the backstop.
+      syncCreatorManifest();
     } catch(e){
       const msg = String(e.message || "");
       if(msg === "banned" || msg === "duplicate"){
@@ -1042,6 +1053,18 @@ render();
 // catalog.js ships only a small seed for fast first paint; pull in the full
 // video list (code-split chunk) and re-render so the creator's full library shows.
 loadFullCatalog().then(render).catch(e=>console.error("Full catalog load failed (seed catalog still shown):", e));
+
+// Merge manifest.json (R2) into DATA.videos so a creator's own past uploads
+// still show in "Content" after a reload — uPublish()'s optimistic
+// DATA.videos.unshift() only lives for that page session; without this sync
+// the upload looked successful but silently vanished on next visit (the
+// video WAS saved server-side the whole time, this app just never read it
+// back). Also called again right after a publish succeeds (see uPublish).
+function syncCreatorManifest(){
+  fetchManifest().then(uploads => { if (mergeManifest(uploads)) render(); })
+    .catch(e => console.warn("[manifest] creator sync failed (non-fatal):", e?.message || e));
+}
+syncCreatorManifest();
 
 /* ---- Attach functions invoked from inline HTML event handler attributes ---- */
 window.go = go;
