@@ -8,6 +8,27 @@
 <meta name="theme-color" content="#E50914"/>
 <meta name="robots" content="noindex"/>
 <link rel="icon" type="image/png" href="/src/shared/assets/favicon-32.png"/>
+<!-- CSP: this had none before — the highest-privilege surface on the site
+     (moderation actions, Supabase session auth) was shipping wide open.
+     script-src/style-src need 'unsafe-inline' for the same reason as
+     creator/index.html: main.js renders onclick="..." handlers via
+     innerHTML; moving to addEventListener + data-action delegation is the
+     real fix, not done here. connect-src/img-src/media-src are scoped to
+     exactly what manager talks to: R2 (thumbs) + Supabase (auth/moderation
+     REST). Prefer sending this as an HTTP header instead of a meta tag if
+     possible. -->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline';
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev data:;
+  media-src 'self' https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev blob:;
+  connect-src 'self' https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev https://dabfxysxcngijcxxekzc.supabase.co;
+  frame-src 'none';
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+">
 <link rel="stylesheet" href="/src/shared/theme.css" />
 <link rel="stylesheet" href="/src/manager/style.css" />
 </head>

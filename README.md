@@ -56,8 +56,12 @@ npm run dev        # Vite dev server with hot reload
 
 Short version:
 1. Move the `.mp4` file(s) into one of the `media/` subfolders.
-2. Add one entry per video to `DATA.videos` in `src/shared/catalog.js`.
-3. Run the media sync script to upload them to R2:
+2. Run `npm run publish -- "media/<folder>" ...` to upload to R2 and insert
+   entries into `src/shared/catalog-videos.js` (the actual ~5k-entry catalog —
+   `catalog.js` only holds a small SEED for instant first paint plus shared
+   helpers). See `CLAUDE.md` → "Adding videos" for flags and the manual path.
+3. Run the media sync script to upload them to R2 (only needed for the manual
+   path — `publish-folder.js` already uploads as part of step 2):
    ```bash
    npm run sync-media
    ```

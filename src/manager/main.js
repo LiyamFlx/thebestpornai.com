@@ -184,7 +184,7 @@ function renderModeration(){
   const pending = (_modPending||[]).filter(u=>!decided(u.id));
   const queue = [
     ...pending.map(u=>({ id:u.id, title:u.title, who:u.creator||"upload", src:u.src, why:"New open upload — pending review", isUpload:true, kind:"manifest" })),
-    ...flagged.map(v=>({ id:v.id, title:v.title, who:creatorName(v.creator), src:v.src, why:"Flagged for review (demo data — not a real classifier signal)", isUpload:false, kind:"supabase" })),
+    ...flagged.map(v=>({ id:v.id, title:v.title, who:creatorName(v.creator), src:v.src, why:"⚠️ Preview UI — not a real classifier signal", isUpload:false, kind:"supabase" })),
   ];
   return `<h1>Content Moderation</h1><p class="sub">${queue.length} items in queue</p>
     <div class="tabs"><button class="active">Review Queue</button><button onclick="loadModeration()">↻ Refresh</button></div>

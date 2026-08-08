@@ -11,16 +11,17 @@
 /* ---------- CATEGORIES (homepage rows, sidebar, filter bar) ---------- */
 /* "All" is a UI pseudo-category handled by the filter bar, not stored here. */
 export const CATEGORIES = [
-  "Lesbian", "MILF", "18+", "Big Ass", "Big Tits", "Anal", "Blowjob", "Creampie",
-  "Cumshot", "Gangbang", "Threesome", "Interracial", "Ebony", "Asian", "Latina",
-  "Amateur", "Homemade", "POV", "Public", "BDSM", "Fetish", "VR Porn",
+  "AI Generated", "Lesbian", "MILF", "18+", "Big Ass", "Big Tits", "Anal", "Blowjob",
+  "Creampie", "Cumshot", "Gangbang", "Threesome", "Interracial", "Ebony", "Asian",
+  "Latina", "Amateur", "Homemade", "POV", "Public", "BDSM", "Fetish", "VR Porn",
   "Hentai / Anime", "Mature", "Foot Fetish", "Massage", "Orgy", "Squirt",
-  "Step Fantasy", "Casting", "Romantic", "Hardcore", "Softcore",
+  "Step Fantasy", "Casting", "Romantic", "Hardcore", "Softcore", "PAWG", "Deepthroat",
+  "Titjob", "Compilation", "Blonde", "Rough Sex",
 ];
 
 /* Premium / House Originals sub-categories (badged separately in the UI). */
 export const PREMIUM_CATEGORIES = [
-  "4K Ultra HD", "8K", "AI Generated", "Exclusive Scenes",
+  "4K Ultra HD", "8K", "Exclusive Scenes",
   "Series / Movies", "Behind the Scenes",
 ];
 

@@ -34,11 +34,16 @@
 }
 </script>
 
-<!-- CSP - Updated for R2, Supabase, Google Fonts, and Vercel
-     TODO: img-src/media-src/connect-src still use the bare `https:` wildcard
-     instead of actual R2/Supabase origins — scope these down once domains are
-     finalized. Also audit whether 'unsafe-eval' in script-src is still needed. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://vercel.live https://*.vercel.app; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' https: wss:; frame-src 'self' https://www.youtube.com https://vercel.live;">
+<!-- CSP - scoped to R2, Supabase, Google Fonts, YouTube, and Vercel.
+     'unsafe-eval' removed: confirmed no eval()/new Function() anywhere in
+     src/ (grep swept clean), so it was dead weight. connect-src/img-src/
+     media-src scoped to actual origins (R2 pub host + Supabase REST) instead
+     of the bare `https:` wildcard, matching the pattern already used in
+     creator/index.html and manager/index.html. script-src/style-src still
+     need 'unsafe-inline' — same reason as creator/manager: render.js/ui.js
+     emit onclick="..." via innerHTML; event-delegation migration is the
+     real fix, not done here. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' blob: data:; script-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://vercel.live https://*.vercel.app; img-src 'self' data: blob: https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev https://i.ytimg.com; media-src 'self' blob: https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev; connect-src 'self' https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev https://dabfxysxcngijcxxekzc.supabase.co https://vercel.live; frame-src 'self' https://www.youtube.com https://vercel.live;">
 
 <link rel="stylesheet" href="/src/shared/theme.css" />
 <link rel="stylesheet" href="/src/viewer/style.css" />
