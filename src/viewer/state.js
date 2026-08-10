@@ -6,7 +6,9 @@
    are stored (not transient UI state like page/search). */
 const PERSIST_KEY = "sh_viewer_state";
 const PERSIST_FIELDS = ["favorites", "later", "history", "downloads", "subs", "settings", "likedComments", "feedWatched"];
-const DEFAULT_SETTINGS = { quality: "auto", autoplay: true, language: "en", playbackRate: 1, volume: 0.5, muted: false };
+// muted:true by default — browsers block unmuted autoplay without a gesture;
+// users unmute via the player control (preference then persists).
+const DEFAULT_SETTINGS = { quality: "auto", autoplay: true, language: "en", playbackRate: 1, volume: 0.5, muted: true };
 function loadPersisted(){
   try {
     const saved = JSON.parse(localStorage.getItem(PERSIST_KEY) || "null");

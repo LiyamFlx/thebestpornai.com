@@ -222,11 +222,15 @@ if (window.matchMedia) {
   else if (watchBreakpoint.addListener) watchBreakpoint.addListener(onWatchBreakpointChange); // Safari < 14
 }
 
-// Register /sw.js — currently a KILL SWITCH that unregisters any old service
-// worker and wipes its caches (the old SW was serving stale content). Once
-// browsers have run it, the site is served fresh from the network every time.
+// Service worker: only register the kill-switch when something is already
+// controlling/registered (legacy caching SW). Avoid re-registering forever
+// just to install a no-op — that caused "Fetch event handler is recognized
+// as no-op" noise and extra navigation overhead.
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    navigator.serviceWorker.getRegistrations().then((regs) => {
+      if(!regs || !regs.length) return;
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }).catch(() => {});
   });
 }

@@ -61,15 +61,34 @@ export function attachPlayerControlsV2(){
     if(muteBtn) muteBtn.setAttribute("aria-label", video.muted ? "Unmute" : "Mute");
   };
 
-  // Autoplay (both on opening a video and on switching to the next/prev one)
-  // only works if the video is muted at the moment the browser's autoplay
-  // policy evaluates it — setting muted=false here synchronously, before
-  // playback has actually started, silently blocks autoplay entirely with
-  // no error. Stay muted for the autoplay attempt, then restore the user's
-  // real mute preference once playback has actually begun.
+  // Autoplay only works muted without a prior user gesture. Unmuting in the
+  // "playing" handler without userActivation pauses the element and logs:
+  //   "Unmuting failed and the element was paused instead…"
+  // Stay muted for the autoplay attempt; only restore sound if the user has
+  // already interacted with the page (or they unmute via the control).
+  const canUnmute = () => {
+    try {
+      // Chromium: true after any click/key/tap in this document.
+      if(navigator.userActivation && typeof navigator.userActivation.hasBeenActive === "boolean"){
+        return navigator.userActivation.hasBeenActive;
+      }
+    } catch(_){}
+    // Conservative fallback: never auto-unmute (avoids the pause+console warning).
+    return false;
+  };
   const wantsUnmuted = !vstate.settings.muted;
   video.muted = true;
-  if(wantsUnmuted) video.addEventListener("playing", () => { video.muted = false; setMuteIcon(); }, { once:true });
+  if(wantsUnmuted){
+    video.addEventListener("playing", () => {
+      if(!canUnmute()){
+        // Keep playing muted; mute icon stays on so the user can tap sound.
+        setMuteIcon();
+        return;
+      }
+      try { video.muted = false; } catch(_){}
+      setMuteIcon();
+    }, { once: true });
+  }
   video.play?.().catch(()=>{});
 
   setPlayIcon(); setMuteIcon();

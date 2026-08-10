@@ -86,7 +86,8 @@ function orderedFeedVideos(){
 export function toggleFeedMute(){
   feedMuted = !feedMuted;
   document.querySelectorAll(".feed-video").forEach(v => {
-    v.muted = feedMuted;
+    // Unmute only after user gesture (this handler runs on click).
+    try { v.muted = feedMuted; } catch(_){ v.muted = true; }
   });
   document.querySelectorAll(".feed-sound-btn").forEach(b => {
     b.innerHTML = `<svg class="ico"><use href="#icon-${feedMuted ? 'mute' : 'unmute'}"/></svg>`;
