@@ -243,9 +243,34 @@ const ShAPI = {
     return rows && rows[0];
   },
 
-  /* ---- VIEWS ---- */
+  /* ---- VIEWS ----
+     Deduped to one insert per (video, client) per UTC day.
+     Server RLS historically rejected re-inserts with 401 (PostgREST maps
+     RLS failures that way) — noisy in DevTools on every refresh. We:
+       1) skip the POST if this browser already recorded today (localStorage),
+       2) send Prefer: resolution=ignore-duplicates for multi-tab races once
+          the unique-day index migration is applied (schema-views-upsert.sql).
+  */
   async addView(videoId){
-    await _req(`/views`, { method:"POST", body: JSON.stringify({ video_id: videoId, client_id: shClientId() }) });
+    const id = Number(videoId);
+    if(!Number.isFinite(id)) return;
+    const day = new Date().toISOString().slice(0, 10); // UTC day key
+    const lsKey = "sh_viewed_" + day;
+    let seen = [];
+    try {
+      const raw = JSON.parse(localStorage.getItem(lsKey) || "[]");
+      if(Array.isArray(raw)) seen = raw;
+    } catch(_){}
+    if(seen.includes(id)) return; // already posted today — avoid 401 spam
+    seen.push(id);
+    if(seen.length > 800) seen = seen.slice(-800);
+    try { localStorage.setItem(lsKey, JSON.stringify(seen)); } catch(_){}
+
+    await _req(`/views`, {
+      method: "POST",
+      headers: { "Prefer": "resolution=ignore-duplicates,return=minimal" },
+      body: JSON.stringify({ video_id: id, client_id: shClientId() }),
+    });
   },
   async viewCount(videoId){
     return _count(`/views?video_id=eq.${videoId}&select=id`);
