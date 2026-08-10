@@ -31,6 +31,19 @@ media/**/*.mkv
 
 # Brainstorming visual-companion sessions (ephemeral mockups, not source)
 .superpowers/
+.planning/
+
+# Local media staging (never commit raw assets — they live on R2)
+# Videos already covered above; also ignore stills/frames and symlink traps.
+media/**/*.png
+media/**/*.webp
+media/**/*.avif
+media/**/*.bak
+media/Perfect Latin
+media/batch */
+media/new batch*/
+media/Mia Nympo PornStar/
+media/blog/
 
 # Environment secrets — never commit
 .env
@@ -44,3 +57,4 @@ src/shared/catalog.js.bak
 src/shared/catalog-videos.js.bak
 broken-videos.json
 src/blog/writer-posts.js.bak
+*.bak
