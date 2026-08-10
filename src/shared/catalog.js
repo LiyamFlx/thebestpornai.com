@@ -104,6 +104,21 @@ const DATA = {
       banner: "../media/Mia Nympo PornStar/Mia Nympo7.avif",
       introVideoId: 5168, // Mia Nympo — Intro
     },
+    {
+      id: "ps-sabrina-ass",
+      kind: "pornstar",
+      name: "Sabrina Ass",
+      handle: "@sabrinaass",
+      slug: "sabrina-ass",
+      subs: 9400,
+      verified: true,
+      bio: "AI pornstar pack — full intro plus vertical Shorts. Curves first, zero apology.",
+      tags: ["Sabrina Ass", "Pornstar", "Big Ass", "Babe", "AI", "Solo", "PAWG"],
+      categories: ["Big Ass", "AI Generated"],
+      avatar: "../media/Sabrina Ass/Sabrina.avif",
+      banner: "../media/Sabrina Ass/Sabrina 2.avif",
+      introVideoId: 5248, // Sabrina Ass — Intro
+    },
   ],
 
   // Homepage rows / sidebar / filter bar taxonomy — sourced from taxonomy.js
