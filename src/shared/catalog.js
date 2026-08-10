@@ -119,6 +119,21 @@ const DATA = {
       banner: "../media/Sabrina Ass/Sabrina 2.avif",
       introVideoId: 5248, // Sabrina Ass — Intro
     },
+    {
+      id: "ps-marsha-banks",
+      kind: "pornstar",
+      name: "Marsha Banks",
+      handle: "@marshabanks",
+      slug: "marsha-banks",
+      subs: 15600,
+      verified: true,
+      bio: "AI pornstar pack — slow-burn energy, full intro, and vertical Shorts. Soft heat with a spine.",
+      tags: ["Marsha Banks", "Pornstar", "MILF", "Babe", "AI", "Solo", "Romantic"],
+      categories: ["MILF", "AI Generated"],
+      avatar: "../media/Marsha Banks/Marsha Banks.avif",
+      banner: "../media/Marsha Banks/Marsha Banks pool.avif",
+      introVideoId: 5257, // Marsha Banks — Intro
+    },
   ],
 
   // Homepage rows / sidebar / filter bar taxonomy — sourced from taxonomy.js
