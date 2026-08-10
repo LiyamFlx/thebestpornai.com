@@ -176,6 +176,14 @@ export function applyHash(){
   if(mm){ vstate.currentMovieTitle=jsdec(mm[1]); vstate.page="movie"; vstate.feedFocusId = null; return; }
   const mc=h.match(/^creator\/(.+)$/);
   if(mc){ vstate.creatorId=jsdec(mc[1]); vstate.page="creator"; vstate.feedFocusId = null; return; }
+  // Alias: #pornstar/<id> → same as #creator/<id>
+  const mps=h.match(/^pornstar\/(.+)$/);
+  if(mps){ vstate.creatorId=jsdec(mps[1]); vstate.page="creator"; vstate.feedFocusId = null; return; }
+  if(h === "pornstars" || h === "pornstar"){
+    vstate.page = "pornstars";
+    vstate.feedFocusId = null;
+    return;
+  }
   // Search hub (#search) or results (#search/<query>)
   if(h === "search" || h === "search/"){
     vstate.page = "search";

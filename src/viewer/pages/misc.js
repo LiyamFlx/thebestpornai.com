@@ -1,11 +1,11 @@
 /* Simple list-style pages: categories, subscriptions, profile, settings,
    library hub, live/playlists (demoted), search, and generic listPage. */
-import { DATA, esc, fmt, creatorName } from "../../shared/catalog.js";
+import { DATA, esc, fmt, creatorName, mediaUrl } from "../../shared/catalog.js";
 import { videoCard, emptyState, rowSection } from "../../shared/ui.js";
 import { POPULAR_TAGS, CATEGORIES } from "../../shared/taxonomy.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
-import { pubVideos, byCat, videoById, trending } from "../catalog-queries.js";
+import { pubVideos, byCat, videoById, trending, pornstars } from "../catalog-queries.js";
 import { pagedGrid } from "../grid-window.js";
 
 // Horizontal category rows never need more than a screenful of cards.
@@ -65,6 +65,38 @@ export function renderLibrary(){
 export function renderCategories(){
   return `<h2>Categories</h2><p class="sub">Browse by topic</p>
     ${DATA.categories.map(c=>`<h3>${esc(c)}</h3><div class="row-scroll">${byCat(c).slice(0, CAT_ROW_MAX).map(v=>videoCard(v)).join("")||'<div class="small">No videos yet.</div>'}</div>`).join("")}`;
+}
+
+/** Hub of pornstar face packs (#pornstars). */
+export function renderPornstars(){
+  const stars = pornstars().slice().sort((a, b) => (b.subs || 0) - (a.subs || 0));
+  if(!stars.length){
+    return emptyState("No pornstars yet. Check back soon.", POPULAR_TAGS.slice(0, 6), { emoji: "⭐" });
+  }
+  return `
+    <div class="pornstars-page">
+      <h2>Pornstars</h2>
+      <p class="sub">${stars.length} star${stars.length !== 1 ? "s" : ""} · intro + Shorts packs</p>
+      <div class="pornstars-grid">
+        ${stars.map(c => {
+          const vids = DATA.videos.filter(v => v.creator === c.id && (v.status !== "private" && v.status !== "pending"));
+          const shortsN = vids.filter(v => v.orientation === "vertical").length;
+          const av = c.avatar
+            ? `<img src="${esc(mediaUrl(c.avatar))}" alt="" loading="lazy" decoding="async"/>`
+            : `<span>${esc((c.name || "?")[0])}</span>`;
+          const tags = (c.tags || []).slice(0, 4).map(t => `<span class="tag-chip">#${esc(t)}</span>`).join("");
+          return `
+          <button type="button" class="pornstar-card" onclick="openCreator('${jsq(c.id)}')">
+            <div class="pornstar-card-avatar${c.avatar ? " has-img" : ""}">${av}</div>
+            <div class="pornstar-card-body">
+              <div class="pornstar-card-name">${esc(c.name)} ${c.verified ? '<span class="verified">✓</span>' : ""}</div>
+              <div class="small">${vids.length} video${vids.length !== 1 ? "s" : ""}${shortsN ? ` · ${shortsN} Shorts` : ""}</div>
+              ${tags ? `<div class="tag-chips" style="margin-top:8px">${tags}</div>` : ""}
+            </div>
+          </button>`;
+        }).join("")}
+      </div>
+    </div>`;
 }
 
 export function renderSubs(){

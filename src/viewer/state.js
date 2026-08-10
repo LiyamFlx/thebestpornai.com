@@ -28,7 +28,7 @@ export const vstate = {
   currentMovieTitle:null,
   favorites:[], later:[], history:[], downloads:[], feedWatched:[],
   subs:["c1","c2"],
-  homeFilter:"all",   // "all" | "movies" | "scenes" | "clips"
+  homeFilter:"all",   // "all" | "movies" | "scenes" | "clips" | "pornstars"
   homeCategory:"",    // "" = no category filter, else a category name from taxonomy
   homeSort:"none",    // "none" | "latest" | "likes" | "views"
   homeExpandCats:false, // show secondary category/act rows on home

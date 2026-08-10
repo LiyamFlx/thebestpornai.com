@@ -82,6 +82,10 @@ export const creatorById = (id) => { if(!_creatorById) _creatorById = new Map(DA
 export const pubVideos = () => { _ensure(); return _pub || (_pub = DATA.videos.filter(v => visible(v) && v.orientation !== "vertical")); };
 export const pubVerticalVideos = () => { _ensure(); return _pubVert || (_pubVert = DATA.videos.filter(v => visible(v) && v.orientation === "vertical")); };
 
+/** Pornstar profiles (kind:"pornstar") — home row + #pornstars hub. */
+export const pornstars = () =>
+  (DATA.creators || []).filter(c => c && c.kind === "pornstar");
+
 /* trending / byCat return cached arrays — callers must NOT mutate them in place
    (e.g. .sort()). pubVideos() above is likewise shared; home.js clones with
    .slice() before sorting. */

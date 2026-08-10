@@ -28,7 +28,7 @@ import { refreshChipRows } from "./mobile-chrome.js";
 import { resetGridWindow, observeSentinels, setGridAppendHook } from "./grid-window.js";
 import {
   listPage, renderCategories, renderSubs, renderProfile, renderSettings,
-  renderLive, renderPlaylists, renderSearch, renderLibrary,
+  renderLive, renderPlaylists, renderSearch, renderLibrary, renderPornstars,
 } from "./pages/misc.js";
 
 const LIBRARY_PAGES = new Set(["library", "later", "favorites", "history", "downloads"]);
@@ -44,7 +44,7 @@ export function render(){
     home:renderHome, watch:renderWatch, categories:renderCategories, subscriptions:renderSubs,
     profile:renderProfile, settings:renderSettings, live:renderLive, playlists:renderPlaylists,
     movie:renderMovieDetail, creator:renderCreatorPage, search:renderSearch,
-    feed:renderFeed, library:renderLibrary,
+    feed:renderFeed, library:renderLibrary, pornstars:renderPornstars,
   };
   if(map[p]) v.innerHTML = map[p]();
   else if(p==="explore")   v.innerHTML = listPage("Explore", trending(), "");

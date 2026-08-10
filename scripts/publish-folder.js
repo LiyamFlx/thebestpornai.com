@@ -36,6 +36,7 @@ import "dotenv/config";
 import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { posterPaths, generatePoster, hasFfmpeg } from "./lib/posters.js";
 import { parseStructure } from "./lib/parse-structure.js";
+import { deriveOrientation } from "../lib/orientation.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
@@ -95,8 +96,34 @@ function getDuration(fp) {
     return `${Math.floor(secs / 60)}:${String(Math.floor(secs % 60)).padStart(2, "0")}`;
   } catch { return "0:00"; }
 }
+/** Probe width×height → "vertical" | "horizontal" | undefined (see lib/orientation.js). */
+function getOrientation(fp) {
+  try {
+    const out = execSync(
+      `ffprobe -v quiet -select_streams v:0 -show_entries stream=width,height -of json "${fp}"`,
+      { encoding: "utf8" }
+    );
+    const s = JSON.parse(out).streams?.[0] || {};
+    return deriveOrientation(Number(s.width), Number(s.height));
+  } catch { return undefined; }
+}
+/** Intro reels: filename contains "intro" (case-insensitive). Stay on watch page, not Shorts. */
+function isIntroFile(fp) {
+  return /intro/i.test(path.basename(fp, path.extname(fp)));
+}
 function titleFromFile(f) {
-  return path.basename(f, path.extname(f)).replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim().replace(/\b\w/g, c => c.toUpperCase());
+  const base = path.basename(f, path.extname(f)).replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+  // "Mia Nympo Intro" → "Mia Nympo — Intro"
+  if (/intro/i.test(base)) {
+    return base.replace(/\s*intro\s*/i, " ").trim().replace(/\b\w/g, c => c.toUpperCase()) + " — Intro";
+  }
+  // "Mia Nympo12" / "Mia Nympo 12" → "Mia Nympo · Short 12"
+  const shortM = base.match(/^(.*?)[\s._-]*(\d+)$/);
+  if (shortM && shortM[1].trim()) {
+    const name = shortM[1].trim().replace(/\b\w/g, c => c.toUpperCase());
+    return `${name} · Short ${parseInt(shortM[2], 10)}`;
+  }
+  return base.replace(/\b\w/g, c => c.toUpperCase());
 }
 // Deterministic per-file seed so a given filename always yields the same
 // "random" variety (re-runs are stable; no Math.random noise in the catalog).
@@ -235,11 +262,16 @@ async function processOne(fp, i) {
 
     const title = titleFromFile(fp);
     const st = parseStructure(fp);
+    const intro = isIntroFile(fp);
     // Per-video variety, seeded by filename so re-runs are stable.
     const r = rng(seedFrom(path.basename(fp)));
     const cat = categoryFor(fp, r);
     const tags = tagsFor(title, cat, r);
+    if (intro && !tags.includes("Intro")) tags.unshift("Intro");
     const creator = creatorOverride || creators[i % creators.length];
+    // Orientation from probe. Intro always horizontal (watch page), even if square.
+    let orientation = getOrientation(fp);
+    if (intro) orientation = "horizontal";
     // id filled in after sort — see assignIds below
     const entry = {
       id: 0, title, creator,
@@ -249,6 +281,8 @@ async function processOne(fp, i) {
       duration: getDuration(fp), uploaded: today, src, tags,
       ...(thumb ? { thumb } : {}),
       status: "published", flagged: false,
+      ...(orientation === "vertical" ? { orientation: "vertical" } : {}),
+      ...(intro ? { role: "intro" } : {}),
       ...(st.movieTitle ? { movieTitle: st.movieTitle } : {}),
       ...(st.level ? { level: st.level } : {}),
       ...(st.sceneNumber ? { sceneNumber: st.sceneNumber } : {}),

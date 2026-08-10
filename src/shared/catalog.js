@@ -87,6 +87,23 @@ const DATA = {
     { id:"c14", name:"Studio Aurora",   handle:"@studioaurora",subs:75000,verified:true },
     { id:"c15", name:"Foxglove",        handle:"@foxglove",  subs:14000,  verified:false },
     { id:"c16", name:"Ivory & Co",      handle:"@ivoryco",   subs:52000,  verified:false },
+    // Pornstars (kind:"pornstar") — face packs with intro + shorts. See creator page.
+    {
+      id: "ps-mia-nympo",
+      kind: "pornstar",
+      name: "Mia Nympo",
+      handle: "@mianympo",
+      slug: "mia-nympo",
+      subs: 12800,
+      verified: true,
+      bio: "AI pornstar pack — intro scene plus vertical Shorts. Blonde, bold, built for rewatch.",
+      tags: ["Mia Nympo", "Pornstar", "Blonde", "Babe", "AI", "Solo"],
+      categories: ["Babe", "AI Generated"],
+      // avatar/banner paths relative to media/; filled for R2 via mediaUrl()
+      avatar: "../media/Mia Nympo PornStar/Mia Nympo6.avif",
+      banner: "../media/Mia Nympo PornStar/Mia Nympo7.avif",
+      introVideoId: 5168, // Mia Nympo — Intro
+    },
   ],
 
   // Homepage rows / sidebar / filter bar taxonomy — sourced from taxonomy.js

@@ -439,6 +439,7 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
 .row-heading-wrap .row-heading{margin:0}
 .row-heading-link{
   font-size:12px;font-weight:700;color:var(--accent2);text-decoration:none;white-space:nowrap;
+  background:none;border:none;padding:0;cursor:pointer;font-family:inherit;
 }
 .row-heading-link:hover{text-decoration:underline}
 .home-more-wrap{display:flex;justify-content:center;margin:20px 0 8px}
@@ -705,11 +706,48 @@ table.data tr:hover td{background:var(--surface2)}
   display:flex;align-items:center;justify-content:center;
   font-weight:800;font-size:28px;border:4px solid var(--bg);
   box-shadow:0 4px 16px rgba(0,0,0,0.5);
+  overflow:hidden;
 }
+.creator-page-avatar.has-img{background:#1a0a0a;padding:0}
+.creator-page-avatar-img{width:100%;height:100%;object-fit:cover;display:block}
 .creator-page-header{display:flex;align-items:center;gap:16px;padding:0 20px 0 120px;margin-bottom:24px;flex-wrap:wrap}
 .creator-page-info{flex:1;min-width:0}
 .creator-page-name{margin:0 0 4px;font-size:22px;font-weight:800}
 .creator-bio{font-size:13px;color:var(--muted);margin:8px 0 0;line-height:1.6;max-width:500px}
+.creator-page-tags{margin-top:10px}
+.creator-page-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.pornstar-badge{
+  display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;
+  font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
+  background:rgba(229,9,20,.18);color:var(--accent);vertical-align:middle;
+}
+.creator-circle-avatar.has-img{padding:0;overflow:hidden;background:#1a0a0a}
+.creator-circle-avatar-img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
+.pornstars-page{padding-bottom:32px}
+.pornstars-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:14px;margin-top:16px;
+}
+.pornstar-card{
+  display:flex;align-items:center;gap:14px;text-align:left;
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:14px 16px;cursor:pointer;color:inherit;font:inherit;
+  transition:border-color .2s,transform .2s,box-shadow .2s;
+}
+.pornstar-card:hover{
+  border-color:rgba(229,9,20,.45);transform:translateY(-2px);
+  box-shadow:0 12px 32px rgba(0,0,0,.35);
+}
+.pornstar-card-avatar{
+  width:64px;height:64px;border-radius:50%;flex:none;overflow:hidden;
+  background:linear-gradient(135deg,var(--accent),#7A0008);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:22px;
+}
+.pornstar-card-avatar.has-img{background:#1a0a0a}
+.pornstar-card-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.pornstar-card-name{font-weight:700;font-size:15px;margin-bottom:2px}
+.pornstar-card-body{min-width:0;flex:1}
 
 /* Profile page */
 .profile-hero{display:flex;align-items:center;gap:18px}

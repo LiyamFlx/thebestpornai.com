@@ -10,7 +10,7 @@ import { displayViews } from "../display-metrics.js";
 import {
   pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies,
   actNames, clipsByAct, highlights, originals, byIdDesc, byViewsDesc,
-  byUploadedDesc, videoById, relatedTo,
+  byUploadedDesc, videoById, relatedTo, pornstars,
 } from "../catalog-queries.js";
 
 // Homepage hero rotates through a small, high-signal pool of catalog videos
@@ -53,9 +53,17 @@ const ROW_MAX = 18;
 const PRIMARY_CAT_ROWS = 2;
 
 function homeFilterBar(){
-  const filters = [["all","All"],["movies","Movies"],["scenes","Scenes"],["clips","Clips"]];
+  const filters = [
+    ["all","All"],
+    ["movies","Movies"],
+    ["scenes","Scenes"],
+    ["clips","Clips"],
+    ["pornstars","Pornstars"],
+  ];
   const sorts = [["none","Default"],["latest","Latest"],["likes","Most Liked"],["views","Most Viewed"]];
   const activeCat = vstate.homeCategory;
+  // Hide sort when browsing stars (not a video list)
+  const showSort = vstate.homeFilter !== "pornstars";
   return `<div class="pill-row home-combined-bar mchrome-scroll">
     ${filters.map(([key,label])=>`<button class="filter-pill ${(vstate.homeFilter===key && !activeCat)?'active':''}" onclick="setHomeFilter('${key}')">${label}</button>`).join("")}
     <span class="cat-more">
@@ -64,17 +72,47 @@ function homeFilterBar(){
         ${CATEGORIES.map(c=>`<button class="cat-more-item ${activeCat===c?'active':''}" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
       </div>
     </span>
-    <select class="sort-select sort-select-inline" onchange="setHomeSort(this.value)" aria-label="Sort videos">
+    ${showSort ? `<select class="sort-select sort-select-inline" onchange="setHomeSort(this.value)" aria-label="Sort videos">
       ${sorts.map(([key,label])=>`<option value="${key}" ${vstate.homeSort===key?'selected':''}>Sort: ${label}</option>`).join("")}
-    </select>
+    </select>` : ""}
   </div>`;
+}
+
+/** Full pornstar card grid for the home "Pornstars" filter (same cards as #pornstars hub). */
+function pornstarsFilterBody(){
+  const stars = pornstars().slice().sort((a, b) => (b.subs || 0) - (a.subs || 0));
+  if(!stars.length){
+    return emptyState("No pornstars yet. Check back soon.", POPULAR_TAGS.slice(0, 6), { emoji: "⭐" });
+  }
+  return `
+    <h3 class="row-heading">Pornstars <span class="small">(${stars.length})</span></h3>
+    <p class="sub" style="margin-top:-4px">Intro + Shorts packs — tap a star to open their page</p>
+    <div class="pornstars-grid">
+      ${stars.map(c => {
+        const vids = DATA.videos.filter(v => v.creator === c.id && v.status !== "private" && v.status !== "pending");
+        const shortsN = vids.filter(v => v.orientation === "vertical").length;
+        const av = c.avatar
+          ? `<img src="${esc(mediaUrl(c.avatar))}" alt="" loading="lazy" decoding="async"/>`
+          : `<span>${esc((c.name || "?")[0])}</span>`;
+        const tags = (c.tags || []).slice(0, 4).map(t => `<span class="tag-chip">#${esc(t)}</span>`).join("");
+        return `
+        <button type="button" class="pornstar-card" onclick="openCreator('${jsq(c.id)}')">
+          <div class="pornstar-card-avatar${c.avatar ? " has-img" : ""}">${av}</div>
+          <div class="pornstar-card-body">
+            <div class="pornstar-card-name">${esc(c.name)} ${c.verified ? '<span class="verified">✓</span>' : ""}</div>
+            <div class="small">${vids.length} video${vids.length !== 1 ? "s" : ""}${shortsN ? ` · ${shortsN} Shorts` : ""}</div>
+            ${tags ? `<div class="tag-chips" style="margin-top:8px">${tags}</div>` : ""}
+          </div>
+        </button>`;
+      }).join("")}
+    </div>`;
 }
 
 const moviesRow = (allMovies) =>
   `<h3 class="row-heading">Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`, layout:'row'})).join("")}</div>`;
 
 function topCreatorsRow(){
-  const top = DATA.creators.slice().sort((a,b)=>(b.subs||0)-(a.subs||0)).slice(0, 8);
+  const top = DATA.creators.filter(c => c.kind !== "pornstar").slice().sort((a,b)=>(b.subs||0)-(a.subs||0)).slice(0, 8);
   if(!top.length) return "";
   return `<h3 class="row-heading">Top Creators</h3><div class="row-scroll creator-circle-row">
     ${top.map(c=>`
@@ -83,6 +121,29 @@ function topCreatorsRow(){
         <div class="creator-circle-name">${esc(c.name)}</div>
       </div>`).join("")}
   </div>`;
+}
+
+/** Face pack row — pornstars with avatar when set. */
+function pornstarsRow(){
+  const stars = pornstars().slice().sort((a,b)=>(b.subs||0)-(a.subs||0)).slice(0, 12);
+  if(!stars.length) return "";
+  return `
+    <div class="row-heading-wrap">
+      <h3 class="row-heading">Pornstars</h3>
+      <button type="button" class="row-heading-link" onclick="go('pornstars')">See all →</button>
+    </div>
+    <div class="row-scroll creator-circle-row pornstar-circle-row">
+      ${stars.map(c => {
+        const av = c.avatar
+          ? `<img class="creator-circle-avatar-img" src="${esc(mediaUrl(c.avatar))}" alt="" loading="lazy" decoding="async"/>`
+          : esc((c.name||"?")[0]);
+        return `
+      <div class="creator-circle pornstar-circle" onclick="openCreator('${jsq(c.id)}')" title="${esc(c.name)}">
+        <div class="creator-circle-avatar${c.avatar ? " has-img" : ""}">${av}</div>
+        <div class="creator-circle-name">${esc(c.name)}</div>
+      </div>`;
+      }).join("")}
+    </div>`;
 }
 
 /* Single hero: same markup everywhere; CSS switches desktop billboard vs mobile card.
@@ -237,6 +298,11 @@ function _renderHomeBody(){
       : emptyState("No clips tagged yet.", POPULAR_TAGS.slice(0, 6), { emoji: "📎" })}`;
     return { html, empty: !allClips.length };
   }
+  if(filter==="pornstars"){
+    const stars = pornstars();
+    const html = `${homeFilterBar()}${pornstarsFilterBody()}`;
+    return { html, empty: !stars.length };
+  }
 
   // ---- Default curated home (Sprint B) ----
   const top = trending();
@@ -275,6 +341,7 @@ function _renderHomeBody(){
     ${rowSection("Recommended for you", recommended, { layout: "row" })}
     ${rowSection("Trending now", byViewsDesc().slice(0, ROW_MAX), { layout: "row" })}
     ${fromTheBlogRow()}
+    ${pornstarsRow()}
     ${rowSection("House Originals", originals().slice(0, ROW_MAX), { layout: "row" })}
     ${allMovies.length ? moviesRow(allMovies) : ""}
     ${topCreatorsRow()}

@@ -179,7 +179,15 @@ export function openCreator(cid){
   scrollToTop();
 }
 
-export function setHomeFilter(f){ vstate.homeFilter = f; vstate.homeCategory = ""; vstate.homeExpandCats = false; render(); }
+export function setHomeFilter(f){
+  const allowed = new Set(["all","movies","scenes","clips","pornstars"]);
+  vstate.homeFilter = allowed.has(f) ? f : "all";
+  vstate.homeCategory = "";
+  vstate.homeExpandCats = false;
+  // Stars are people, not a sorted video list — reset sort noise
+  if(vstate.homeFilter === "pornstars") vstate.homeSort = "none";
+  render();
+}
 export function setHomeSort(s){ vstate.homeSort = s; render(); }
 export function setHomeExpandCats(on){
   vstate.homeExpandCats = !!on;
