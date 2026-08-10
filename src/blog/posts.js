@@ -1194,12 +1194,39 @@ export const SEED_POSTS = [
   },
 ];
 
+/** Canonical featured hub hero — always pinned on /blog/ (override via post.featured). */
+export const FEATURED_BLOG_SLUG = "best-ai-porn-generators-2026";
+
 /** Newest first so hub + RSS lead with fresh posts. */
 export const POSTS = [...WRITER_POSTS, ...SEED_POSTS].sort((a, b) => {
   const d = String(b.date || "").localeCompare(String(a.date || ""));
   if (d !== 0) return d;
   return (Number(b.id) || 0) - (Number(a.id) || 0);
 });
+
+/** True if this post is the pinned main story (flag or canonical slug). */
+export function isFeaturedPost(p) {
+  if (!p) return false;
+  if (p.featured === true) return true;
+  return p.slug === FEATURED_BLOG_SLUG;
+}
+
+/** Hub hero post — always the featured article when present. */
+export function getFeaturedPost(posts = POSTS) {
+  return posts.find(isFeaturedPost) || posts[0] || null;
+}
+
+/**
+ * Blog list order: featured first (pinned), then date-desc.
+ * Use for hub hero + grid, homepage “From the Blog”, and static index.
+ * RSS keeps pure chronological (callers pass POSTS sorted by date only).
+ */
+export function postsForHub(posts = POSTS) {
+  const list = [...posts];
+  const feat = getFeaturedPost(list);
+  if (!feat) return list;
+  return [feat, ...list.filter((p) => p.slug !== feat.slug)];
+}
 
 /** Map catalog video id → posts that feature it (for watch-page cross-links). */
 export function postsForVideoId(videoId) {

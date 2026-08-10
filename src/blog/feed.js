@@ -1,10 +1,11 @@
 import "./blog.css";
 import { esc } from "../shared/catalog.js";
-import { POSTS } from "./posts.js";
+import { POSTS, getFeaturedPost, postsForHub } from "./posts.js";
 import { postCardHtml, postCardSkeletonHtml, postCoverUrl, formatDate } from "./card.js";
 
 const PAGE_SIZE = 6;
-const CATEGORIES = ["All", "Stories", "Fantasies", "Confessions", "Kink Lab"];
+// Include Guides — most SEO pillars (incl. featured generators guide) live there.
+const CATEGORIES = ["All", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
 const SKELETON_DELAY_MS = 280;
 
 const ICON_CLOCK = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
@@ -15,14 +16,15 @@ let visibleCount = PAGE_SIZE;
 let searchQuery = "";
 let loadingMore = false;
 
+// Date-desc for filters/search; hub order pins the featured generators guide first.
 const sorted = [...POSTS].sort((a, b) => new Date(b.date) - new Date(a.date));
-const featured = sorted[0];
-const rest = sorted.slice(1);
+const featured = getFeaturedPost(sorted);
+const rest = postsForHub(sorted).filter((p) => p.slug !== featured?.slug);
 
 function renderHero() {
   const el = document.getElementById("blog-hero");
   if (!el || !featured) return;
-  // Hide featured when filtering away from its category
+  // Keep featured hero on "All" and when filtering its own category (Guides).
   if (activeCategory !== "all" && featured.category !== activeCategory) {
     el.hidden = true;
     el.innerHTML = "";
@@ -30,14 +32,14 @@ function renderHero() {
   }
   el.hidden = false;
   el.innerHTML = `
-    <a href="/blog/${esc(featured.slug)}.html" class="blog-hero">
+    <a href="/blog/${esc(featured.slug)}.html" class="blog-hero" aria-label="Featured: ${esc(featured.title)}">
       <div class="blog-hero-img" style="background-image:url('${postCoverUrl(featured)}')"></div>
       <div class="blog-hero-overlay">
-        <span class="blog-hero-eyebrow">${esc(featured.category)}</span>
+        <span class="blog-hero-eyebrow">Featured · ${esc(featured.category)}</span>
         <h2 class="blog-hero-title">${esc(featured.title)}</h2>
         <p class="blog-hero-excerpt">${esc(featured.excerpt)}</p>
         <div class="blog-hero-footer">
-          <span class="blog-cta blog-cta-primary">Read story</span>
+          <span class="blog-cta blog-cta-primary">Read guide</span>
           <div class="blog-hero-meta">
             <span>${ICON_CLOCK}${featured.readMins} min</span>
             <span class="dot"></span>

@@ -15,7 +15,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { POSTS, BLOG_AUTHOR } from "../src/blog/posts.js";
+import { POSTS, BLOG_AUTHOR, getFeaturedPost, postsForHub } from "../src/blog/posts.js";
 import { VIDEOS } from "../src/shared/catalog-videos.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -525,19 +525,19 @@ function jsonLdForIndex(sorted) {
 
 function renderIndex() {
   const sorted = [...POSTS].sort((a, b) => new Date(b.date) - new Date(a.date));
-  // Featured hero prefers the newest narrative/erotica post over the newest
-  // Guides post — Guides are dry comparison/SEO content, a tone mismatch for
-  // the homepage's single hero slot. Falls back to the newest post overall
-  // if every post happens to be a Guide (shouldn't happen in practice, but
-  // the hero must never be empty).
-  const featured = sorted.find((p) => p.category !== "Guides") || sorted[0];
-  const rest = sorted.filter((p) => p !== featured);
+  // Pinned main story: FEATURED_BLOG_SLUG / post.featured (generators guide).
+  // Always hero on /blog/ — not “newest non-Guide”.
+  const hub = postsForHub(sorted);
+  const featured = getFeaturedPost(sorted) || hub[0];
+  const rest = hub.filter((p) => p.slug !== featured?.slug);
   const cover = postCoverUrl(featured);
-  const jsonLd = jsonLdForIndex(sorted);
-  const categories = ["All", "Stories", "Fantasies", "Confessions", "Kink Lab", "Guides"];
+  // JSON-LD / crawl list: featured first so AI/search see the pillar on top.
+  const listForSeo = hub;
+  const jsonLd = jsonLdForIndex(listForSeo);
+  const categories = ["All", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
 
   const staticCards = rest.map((p, i) => postCardHtml(p, { eager: i < 3 })).join("");
-  const allLinks = sorted
+  const allLinks = listForSeo
     .map(
       (p) =>
         `<li><a href="/blog/${esc(p.slug)}.html">${esc(p.title)}</a> — ${esc(p.category)} · ${esc(formatDate(p.date))}</li>`
@@ -595,14 +595,14 @@ ${siteHeader({ mode: "index" })}
   </nav>
 
   <div id="blog-hero">
-    <a href="/blog/${esc(featured.slug)}.html" class="blog-hero">
+    <a href="/blog/${esc(featured.slug)}.html" class="blog-hero" aria-label="Featured: ${esc(featured.title)}">
       <div class="blog-hero-img" style="background-image:url('${esc(cover)}')"></div>
       <div class="blog-hero-overlay">
-        <span class="blog-hero-eyebrow">${esc(featured.category)}</span>
+        <span class="blog-hero-eyebrow">Featured · ${esc(featured.category)}</span>
         <h2 class="blog-hero-title">${esc(featured.title)}</h2>
         <p class="blog-hero-excerpt">${esc(featured.excerpt)}</p>
         <div class="blog-hero-footer">
-          <span class="blog-cta blog-cta-primary">Read story</span>
+          <span class="blog-cta blog-cta-primary">Read guide</span>
           <div class="blog-hero-meta">
             <span>${ICON_CLOCK}${featured.readMins} min</span>
             <span class="dot"></span>

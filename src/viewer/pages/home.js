@@ -2,7 +2,7 @@
 import { DATA, esc, creatorName, fmt, mediaUrl, ytId } from "../../shared/catalog.js";
 import { videoCard, rowSection, emptyState } from "../../shared/ui.js";
 import { CATEGORIES, POPULAR_TAGS } from "../../shared/taxonomy.js";
-import { POSTS } from "../../blog/posts.js";
+import { POSTS, postsForHub, isFeaturedPost } from "../../blog/posts.js";
 import { postCoverThumbUrl } from "../../blog/card.js";
 import { vstate, persistState } from "../state.js";
 import { jsq, relativeTime } from "../util.js";
@@ -191,14 +191,16 @@ function becauseYouWatchedRow(){
 /* Editorial teasers linking into /blog/ — keeps the product ↔ content loop warm. */
 function fromTheBlogRow(){
   if(!POSTS || !POSTS.length) return "";
-  const posts = [...POSTS].sort((a,b) => String(b.date).localeCompare(String(a.date))).slice(0, 8);
-  const cards = posts.map(p => {
+  // Featured generators guide first, then newest others (matches /blog/ hub).
+  const posts = postsForHub(POSTS).slice(0, 8);
+  const cards = posts.map((p, i) => {
     const cover = postCoverThumbUrl(p);
+    const pill = isFeaturedPost(p) ? "Featured" : p.category;
     return `
       <a class="blog-home-card" href="/blog/${esc(p.slug)}.html">
         <div class="blog-home-card-media">
-          ${cover ? `<img src="${esc(cover)}" alt="" loading="lazy" decoding="async" width="166" height="104"/>` : ``}
-          <span class="blog-home-card-pill">${esc(p.category)}</span>
+          ${cover ? `<img src="${esc(cover)}" alt="" loading="${i === 0 ? "eager" : "lazy"}" decoding="async" width="166" height="104"/>` : ``}
+          <span class="blog-home-card-pill">${esc(pill)}</span>
         </div>
         <div class="blog-home-card-body">
           <div class="blog-home-card-title">${esc(p.title)}</div>
