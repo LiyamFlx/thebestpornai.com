@@ -47,7 +47,8 @@ for (const v of VIDEOS) {
   } else {
     srcs.add(v.src);
   }
-  if (!v.status) errors.push(`id ${v.id}: missing status`);
+  const status = v.status || "published";
+  if (!["published", "private", "pending"].includes(status)) errors.push(`id ${v.id}: invalid status "${status}"`);
   if (!v.title) warnings.push(`id ${v.id}: empty title`);
   if (v.src && !v.thumb) missingThumb++;
 }

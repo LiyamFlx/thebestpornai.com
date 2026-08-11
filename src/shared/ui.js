@@ -41,7 +41,7 @@ export function tagChips(tags, { max = 3, stop = false } = {}){
   if(!Array.isArray(tags) || !tags.length) return '';
   const guard = stop ? 'event.stopPropagation();' : '';
   const chips = tags.slice(0, max).map(t =>
-    `<span class="tag-chip" onclick="${guard}searchTag('${jsq(t)}')">#${esc(t)}</span>`
+    `<span class="tag-chip" data-action="search-tag" data-tag="${esc(t)}" onclick="${guard}searchTag('${jsq(t)}')">#${esc(t)}</span>`
   ).join('');
   return `<div class="tag-chips">${chips}</div>`;
 }
@@ -83,9 +83,9 @@ export function videoCard(v, opts={}){
   const badge = opts.badge ? opts.badge(v) : null;
   const quickActions = opts.hideActions ? `` : `
         <div class="card-actions">
-          <button class="card-act" title="Favorite" data-fav-id="${v.id}" aria-pressed="false" onclick="event.stopPropagation();toggleFav(${v.id})"><svg class="ico"><use href="#icon-heart"/></svg></button>
-          <button class="card-act" title="Watch Later" data-later-id="${v.id}" aria-pressed="false" onclick="event.stopPropagation();toggleLater(${v.id})"><svg class="ico"><use href="#icon-save"/></svg></button>
-          <button class="card-act" title="Share" aria-label="Share this video" onclick="event.stopPropagation();shareVideo(${v.id})"><svg class="ico"><use href="#icon-share"/></svg></button>
+          <button class="card-act" title="Favorite" data-action="toggle-fav" data-video-id="${v.id}" data-fav-id="${v.id}" aria-pressed="false" onclick="event.stopPropagation();toggleFav(${v.id})"><svg class="ico"><use href="#icon-heart"/></svg></button>
+          <button class="card-act" title="Watch Later" data-action="toggle-later" data-video-id="${v.id}" data-later-id="${v.id}" aria-pressed="false" onclick="event.stopPropagation();toggleLater(${v.id})"><svg class="ico"><use href="#icon-save"/></svg></button>
+          <button class="card-act" title="Share" aria-label="Share this video" data-action="share-video" data-video-id="${v.id}" onclick="event.stopPropagation();shareVideo(${v.id})"><svg class="ico"><use href="#icon-share"/></svg></button>
         </div>`;
   // 'row' is the YouTube-Home-style single-column card (thumb full-width on
   // top, a two-line identity block below, no avatar — a per-card avatar read
@@ -114,7 +114,7 @@ export function videoCard(v, opts={}){
     : `${topRow}
       <div class="title">${esc(v.title)}</div>`;
   return `
-    <article class="card${isRow ? ' card--row' : ''}" onclick="${opts.onClick || `openVideo(${v.id})`}">
+    <article class="card${isRow ? ' card--row' : ''}" data-action="open-video" data-video-id="${v.id}" onclick="${opts.onClick || `openVideo(${v.id})`}">
       <div class="video-thumb ${v.type==='original'?'original':''}">
         ${badge?`<span class="corner-badge">${esc(badge)}</span>`:``}
         ${thumb}

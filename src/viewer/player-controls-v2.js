@@ -104,6 +104,21 @@ export function attachPlayerControlsV2(){
     if(!isFinite(video.duration)) return;
     video.currentTime = Math.min(Math.max(video.currentTime + secs, 0), video.duration);
   };
+  window.seekToPercent = (pct) => {
+    if(!isFinite(video.duration)) return;
+    video.currentTime = Math.min(Math.max((pct / 100) * video.duration, 0), video.duration);
+  };
+  window.stepSpeed = (delta) => {
+    const current = vstate.settings.playbackRate || 1;
+    const rates = [0.5, 0.75, 1, 1.25, 1.5, 2];
+    let next;
+    if(delta > 0) {
+      next = rates.find(r => r > current) || 2;
+    } else {
+      next = rates.slice().reverse().find(r => r < current) || 0.5;
+    }
+    changeSpeedV2(next);
+  };
   window.toggleMuteV2 = () => {
     video.muted = !video.muted;
     if(!video.muted && video.volume===0) video.volume = 0.5;

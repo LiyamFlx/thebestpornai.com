@@ -441,3 +441,61 @@ setGridAppendHook((added) => {
     });
   }
 });
+
+/* Event delegation on document: handles all cards, chips, and quick-actions */
+if (typeof document !== "undefined") {
+  document.addEventListener("click", (e) => {
+    const target = e.target.closest("[data-action]");
+    if (!target) return;
+    const action = target.dataset.action;
+    if (!action) return;
+
+    if (action === "open-video") {
+      const id = target.dataset.videoId;
+      if (id) {
+        e.preventDefault();
+        window.openVideo?.(Number(id));
+      }
+    } else if (action === "toggle-fav") {
+      const id = target.dataset.videoId;
+      if (id) {
+        e.stopPropagation();
+        e.preventDefault();
+        window.toggleFav?.(Number(id));
+      }
+    } else if (action === "toggle-later") {
+      const id = target.dataset.videoId;
+      if (id) {
+        e.stopPropagation();
+        e.preventDefault();
+        window.toggleLater?.(Number(id));
+      }
+    } else if (action === "share-video") {
+      const id = target.dataset.videoId;
+      if (id) {
+        e.stopPropagation();
+        e.preventDefault();
+        window.shareVideo?.(Number(id));
+      }
+    } else if (action === "search-tag") {
+      const tag = target.dataset.tag;
+      if (tag) {
+        e.stopPropagation();
+        e.preventDefault();
+        window.searchTag?.(tag);
+      }
+    } else if (action === "open-creator") {
+      const id = target.dataset.creatorId;
+      if (id) {
+        e.preventDefault();
+        window.openCreator?.(id);
+      }
+    } else if (action === "set-home-category") {
+      const cat = target.dataset.category;
+      if (cat) {
+        e.preventDefault();
+        window.setHomeCategory?.(cat);
+      }
+    }
+  });
+}

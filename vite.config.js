@@ -32,6 +32,24 @@ const blogPostInputs = existsSync(blogDir)
     )
   : {};
 
+const pornstarsDir = resolve(__dirname, "pornstars");
+const pornstarInputs = existsSync(pornstarsDir)
+  ? Object.fromEntries(
+      readdirSync(pornstarsDir)
+        .filter((f) => f.endsWith(".html"))
+        .map((f) => [`pornstars-${f.replace(/\.html$/, "")}`, resolve(pornstarsDir, f)])
+    )
+  : {};
+
+const categoriesDir = resolve(__dirname, "categories");
+const categoryInputs = existsSync(categoriesDir)
+  ? Object.fromEntries(
+      readdirSync(categoriesDir)
+        .filter((f) => f.endsWith(".html"))
+        .map((f) => [`categories-${f.replace(/\.html$/, "")}`, resolve(categoriesDir, f)])
+    )
+  : {};
+
 export default defineConfig({
   root: ".",
   define: {
@@ -52,6 +70,8 @@ export default defineConfig({
         legal2257: resolve(__dirname, "legal/2257.html"),
         blogIndex: resolve(__dirname, "blog/index.html"),
         ...blogPostInputs,
+        ...pornstarInputs,
+        ...categoryInputs,
       },
       output: {
         // Split the huge catalog data (500+ videos) into its own chunk.

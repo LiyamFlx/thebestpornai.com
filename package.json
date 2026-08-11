@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/gen-blog-posts.js && node scripts/gen-sitemap.js && vite build",
+    "build": "node scripts/gen-blog-posts.js && node scripts/gen-static-routes.js && node scripts/gen-sitemap.js && vite build",
     "gen-blog": "node scripts/gen-blog-posts.js",
-    "gen-all": "node scripts/gen-blog-posts.js && node scripts/gen-sitemap.js",
+    "gen-routes": "node scripts/gen-static-routes.js",
+    "gen-all": "node scripts/gen-blog-posts.js && node scripts/gen-static-routes.js && node scripts/gen-sitemap.js",
     "preview": "vite preview",
     "sync-media": "node scripts/upload-catalog-to-r2.js",
     "posters": "node scripts/gen-posters.js",
@@ -15,7 +16,8 @@
     "publish:doctor": "node scripts/publish-doctor.js",
     "sitemap": "node scripts/gen-sitemap.js",
     "check-catalog-ids": "node scripts/check-catalog-ids.js",
-    "test": "node scripts/check-catalog-ids.js && node scripts/publish-doctor.js && node --test src/",
+    "test": "node scripts/check-catalog-ids.js && node scripts/publish-doctor.js && node --test src/ && node scripts/regression-suite.mjs",
+    "test:regression": "node scripts/regression-suite.mjs",
     "writer": "node tools/content-manager/server.mjs",
     "writer:test": "node --test tools/content-manager/lib/*.test.mjs"
   },

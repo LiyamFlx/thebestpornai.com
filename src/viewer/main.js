@@ -175,21 +175,104 @@ document.addEventListener("keydown", (e) => {
 
   if (vstate.page !== "watch") return;
 
-  if (e.key === " " || e.code === "Space") {
+  const key = e.key;
+  const keyLower = key.toLowerCase();
+
+  // Play / Pause: Space or K
+  if (key === " " || e.code === "Space" || keyLower === "k") {
     e.preventDefault();
     window.togglePlayPauseV2?.();
     return;
   }
-  if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+
+  // Seek: Left/Right arrows (5s) or J/L (10s)
+  if (key === "ArrowLeft") {
     e.preventDefault();
-    stepWatch(e.key === "ArrowRight" ? 1 : -1);
-  } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+    if (e.shiftKey) stepWatch(-1);
+    else window.skipTime?.(-5);
+    return;
+  }
+  if (key === "ArrowRight") {
     e.preventDefault();
-    window.adjustVolumeV2?.(e.key === "ArrowUp" ? 0.05 : -0.05);
-  } else if (e.key.toLowerCase() === "m") {
+    if (e.shiftKey) stepWatch(1);
+    else window.skipTime?.(5);
+    return;
+  }
+  if (keyLower === "j") {
+    e.preventDefault();
+    window.skipTime?.(-10);
+    return;
+  }
+  if (keyLower === "l") {
+    e.preventDefault();
+    window.skipTime?.(10);
+    return;
+  }
+
+  // Next / Prev video: N / P
+  if (keyLower === "n") {
+    e.preventDefault();
+    stepWatch(1);
+    return;
+  }
+  if (keyLower === "p") {
+    e.preventDefault();
+    stepWatch(-1);
+    return;
+  }
+
+  // Percentage seek: numbers 0-9
+  if (/^[0-9]$/.test(key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault();
+    window.seekToPercent?.(Number(key) * 10);
+    return;
+  }
+
+  // Playback speed: < (,) or > (.)
+  if (key === "<" || key === ",") {
+    e.preventDefault();
+    window.stepSpeed?.(-1);
+    return;
+  }
+  if (key === ">" || key === ".") {
+    e.preventDefault();
+    window.stepSpeed?.(1);
+    return;
+  }
+
+  // Volume: Up/Down arrows
+  if (key === "ArrowUp" || key === "ArrowDown") {
+    e.preventDefault();
+    window.adjustVolumeV2?.(key === "ArrowUp" ? 0.05 : -0.05);
+    return;
+  }
+
+  // Mute: M
+  if (keyLower === "m") {
+    e.preventDefault();
     window.toggleMuteV2?.();
-  } else if (e.key.toLowerCase() === "f") {
+    return;
+  }
+
+  // Fullscreen: F
+  if (keyLower === "f") {
+    e.preventDefault();
     window.toggleFullscreenV2?.();
+    return;
+  }
+
+  // Theater Mode: T
+  if (keyLower === "t") {
+    e.preventDefault();
+    window.toggleTheaterMode?.();
+    return;
+  }
+
+  // Picture in Picture: I
+  if (keyLower === "i") {
+    e.preventDefault();
+    window.togglePiP?.();
+    return;
   }
 });
 

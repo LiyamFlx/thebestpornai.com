@@ -37,6 +37,7 @@ let _pub = null, _pubVert = null, _trending = null;
 let _movies = null, _actNames = null, _highlights = null, _originals = null;
 let _byIdDesc = null, _byViewsDesc = null, _byUploadedDesc = null;
 let _videoById = null;
+let _searchIndex = null;
 const _byCat = new Map();
 const _clipsByAct = new Map();
 function _ensure(){
@@ -50,6 +51,7 @@ function _ensure(){
     _movies = null; _actNames = null; _highlights = null; _originals = null; _clipsByAct.clear();
     _byIdDesc = null; _byViewsDesc = null; _byUploadedDesc = null;
     _videoById = null;
+    _searchIndex = null;
   }
 }
 
@@ -190,3 +192,79 @@ export const actNames = () => {
 export const clipsByAct = (actName)=> { _ensure(); let r = _clipsByAct.get(actName); if(!r){ r = pubVideos().filter(v=>v.level==="clip" && (v.tags||[]).includes(actName)); _clipsByAct.set(actName, r); } return r; };
 export const highlights = () => { _ensure(); return _highlights || (_highlights = pubVideos().filter(v=>v.level==="highlight")); };
 export const originals = () => { _ensure(); return _originals || (_originals = pubVideos().filter(v=>v.type==="original")); };
+
+function _buildSearchIndex(){
+  const index = new Map();
+  const creatorMap = new Map((DATA.creators || []).map(c => [c.id, (c.name || "").toLowerCase()]));
+  function addToken(token, v) {
+    if (!token || typeof token !== "string" || token.length < 2) return;
+    const t = token.toLowerCase();
+    let set = index.get(t);
+    if (!set) { set = new Set(); index.set(t, set); }
+    set.add(v);
+  }
+
+  for (const v of pubVideos()) {
+    const words = (v.title || "").toLowerCase().split(/[\s\-_—,./()]+/);
+    for (const w of words) addToken(w, v);
+    addToken(v.category, v);
+    for (const c of (v.categories || [])) addToken(c, v);
+    for (const t of (v.tags || [])) {
+      addToken(t, v);
+      for (const tw of String(t).toLowerCase().split(/\s+/)) addToken(tw, v);
+    }
+    const cName = creatorMap.get(v.creator);
+    if (cName) {
+      addToken(cName, v);
+      for (const cw of cName.split(/\s+/)) addToken(cw, v);
+    }
+  }
+  return index;
+}
+
+export function searchCatalog(query){
+  _ensure();
+  const raw = String(query || "").trim();
+  if(!raw) return [];
+  const terms = raw.toLowerCase().split(/\s+/).filter(Boolean);
+  if(!terms.length) return [];
+
+  if(!_searchIndex) _searchIndex = _buildSearchIndex();
+
+  const termCandidates = [];
+  for (const term of terms) {
+    const candidates = new Set();
+    for (const [token, vSet] of _searchIndex.entries()) {
+      if (token.includes(term)) {
+        for (const v of vSet) candidates.add(v);
+      }
+    }
+    termCandidates.push(candidates);
+  }
+  if (!termCandidates.length) return [];
+
+  let matched = [...termCandidates[0]];
+  for (let i = 1; i < termCandidates.length; i++) {
+    const set = termCandidates[i];
+    matched = matched.filter(v => set.has(v));
+  }
+
+  const scored = matched.map(v => {
+    let score = 0;
+    const title = (v.title || "").toLowerCase();
+    const tags = (v.tags || []).map(t => String(t).toLowerCase());
+    const cats = [(v.category || ""), ...(v.categories || [])].map(c => String(c).toLowerCase());
+    for (const term of terms) {
+      if (tags.includes(term) || cats.includes(term)) score += 10;
+      else if (title.startsWith(term)) score += 7;
+      else if (tags.some(t => t.includes(term)) || cats.some(c => c.includes(term))) score += 5;
+      else if (title.includes(term)) score += 3;
+      else score += 1;
+    }
+    score += (v.views || 0) * 0.00001 + (v.likes || 0) * 0.001;
+    return { v, score };
+  });
+
+  return scored.sort((a, b) => b.score - a.score).map(x => x.v);
+}
+

@@ -5,7 +5,7 @@ import { videoCard, emptyState, rowSection } from "../../shared/ui.js";
 import { POPULAR_TAGS, CATEGORIES } from "../../shared/taxonomy.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
-import { pubVideos, byCat, videoById, trending, pornstars } from "../catalog-queries.js";
+import { pubVideos, byCat, videoById, trending, pornstars, searchCatalog } from "../catalog-queries.js";
 import { pagedGrid } from "../grid-window.js";
 
 // Horizontal category rows never need more than a screenful of cards.
@@ -259,13 +259,7 @@ export function renderSearch(){
   const raw = (vstate.searchQuery||"").trim();
   if(!raw) return renderSearchHub();
 
-  const terms = raw.toLowerCase().split(/\s+/).filter(Boolean);
-  const creators = creatorNameMap();
-  const scored = pubVideos()
-    .map(v=>({ v, s: scoreVideo(v, terms, creators) }))
-    .filter(x=>x.s >= 0)
-    .sort((a,b)=>b.s - a.s);
-  const vids = scored.map(x=>x.v);
+  const vids = searchCatalog(raw);
   const qLower = raw.toLowerCase();
   const crs = DATA.creators.filter(c =>
     (c.name||"").toLowerCase().includes(qLower) ||
