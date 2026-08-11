@@ -3,6 +3,7 @@
 import { DATA, esc, fmt, creatorName, mediaUrl } from "../../shared/catalog.js";
 import { videoCard, emptyState, rowSection } from "../../shared/ui.js";
 import { POPULAR_TAGS, CATEGORIES } from "../../shared/taxonomy.js";
+import { ShAuth } from "../../shared/streamhub-api.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
 import { pubVideos, byCat, videoById, trending, pornstars, searchCatalog } from "../catalog-queries.js";
@@ -109,14 +110,17 @@ export function renderSubs(){
 }
 
 export function renderProfile(){
-  const initials = (DATA.user.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+  const isSignedIn = typeof ShAuth !== "undefined" && ShAuth.isSignedIn();
+  const session = isSignedIn ? ShAuth.session() : null;
+  const userEmail = session?.user?.email || DATA.user.name || "Guest";
+  const initials = (userEmail||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
   const subCreators = DATA.creators.filter(c=>vstate.subs.includes(c.id));
   return `<h2>You</h2>
     <div class="profile-hero panel">
       <div class="profile-avatar">${initials}</div>
       <div class="profile-info">
-        <h3 style="margin:0 0 2px">${esc(DATA.user.name)}</h3>
-        <div class="small">${esc(DATA.user.handle||"@viewer")}</div>
+        <h3 style="margin:0 0 2px">${esc(userEmail)}</h3>
+        <div class="small">${isSignedIn ? "Verified Session" : esc(DATA.user.handle||"@viewer")}</div>
         <div class="profile-stats">
           <span>${vstate.subs.length} <b>subscriptions</b></span>
           <span>${vstate.favorites.length} <b>favorites</b></span>
@@ -124,7 +128,16 @@ export function renderProfile(){
         </div>
       </div>
     </div>
-    <div class="metrics" style="margin-top:16px">
+    <div class="account-session-card panel" style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px">
+      <div>
+        <div style="font-weight:700;font-size:14px">Account Session</div>
+        <div class="small" style="color:var(--muted)">${isSignedIn ? `Signed in as ${esc(userEmail)}` : 'Browsing as Guest'}</div>
+      </div>
+      <button type="button" class="btn ghost sm" onclick="signOutUser()" style="border-color:var(--accent);color:var(--accent);font-weight:700;border-radius:999px;padding:6px 16px">
+        Sign Out
+      </button>
+    </div>
+    <div class="metrics" style="margin-top:14px">
       <div class="metric"><div class="label">Library</div><div class="value">${vstate.later.length + vstate.favorites.length}</div><div onclick="go('library')" class="metric-link">Open library →</div></div>
       <div class="metric"><div class="label">Watch Later</div><div class="value">${vstate.later.length}</div><div onclick="setLibraryTab('later')" class="metric-link">View →</div></div>
       <div class="metric"><div class="label">Favorites</div><div class="value">${vstate.favorites.length}</div><div onclick="setLibraryTab('favorites')" class="metric-link">View →</div></div>
@@ -153,6 +166,7 @@ export function renderProfile(){
 }
 
 export function renderSettings(){
+  const isSignedIn = typeof ShAuth !== "undefined" && ShAuth.isSignedIn();
   return `<h2>Settings</h2>
     <div class="panel" style="max-width:520px">
       <label class="setting-row">
@@ -162,6 +176,15 @@ export function renderSettings(){
         </span>
         <input type="checkbox" class="switch" ${vstate.settings.autoplay ? 'checked' : ''} onchange="toggleAutoplaySetting(this.checked)"/>
       </label>
+      <div class="setting-row" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <span>
+          <span class="lbl" style="margin:0">Account Session</span>
+          <span class="small" style="display:block;color:var(--muted)">${isSignedIn ? 'Clear your authenticated session on this device.' : 'Clear local guest session.'}</span>
+        </span>
+        <button type="button" class="btn ghost sm" onclick="signOutUser()" style="border-color:var(--accent);color:var(--accent);font-weight:700">
+          Sign Out
+        </button>
+      </div>
     </div>`;
 }
 

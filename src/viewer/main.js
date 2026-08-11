@@ -37,6 +37,7 @@ import {
   doSearch,
   stepWatch,
   toggleAutoplaySetting,
+  signOutUser,
 } from "./actions.js";
 import { refreshManifest, syncManifestOnLoad } from "./manifest-sync.js";
 import { initMobileChrome } from "./mobile-chrome.js";
@@ -133,6 +134,7 @@ Object.assign(window, {
   refreshManifest,
   stepWatch,
   toggleAutoplaySetting,
+  signOutUser,
   switchWatchTab,
   filterUpNext,
   openShareSheet,

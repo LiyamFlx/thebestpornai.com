@@ -149,14 +149,32 @@ export function closeWatch(){
   }
 }
 
-/* Cycle to the previous/next public video from the watch page (dir: -1 | 1).
-   Shared by the on-screen prev/next buttons and the ArrowLeft/ArrowRight
-   keyboard shortcut in main.js so both stay in sync. */
 export function stepWatch(dir){
+  // Immediately clear any active auto-advance overlay or countdown timer
+  if(typeof window !== "undefined" && window.cancelUpNextAdvance){
+    try { window.cancelUpNextAdvance(); } catch(_){}
+  }
+  const overlay = typeof document !== "undefined" ? document.querySelector(".pc-upnext") : null;
+  if(overlay) overlay.remove();
+
+  // If stepping forward (+1), prioritize the top Up Next recommendation
+  if(dir === 1 && typeof document !== "undefined"){
+    const firstCard = document.querySelector(".upnext-card[data-video-id]");
+    const nextId = firstCard ? parseInt(firstCard.dataset.videoId, 10) : null;
+    if(nextId && nextId !== vstate.current?.id && DATA.videos.some(v => v.id === nextId)){
+      openVideo(nextId);
+      return;
+    }
+  }
+
+  // Fallback to sequential catalog navigation
   const list = pubVideos();
   if(!list.length) return;
   const currentIdx = list.findIndex(v=>v.id===vstate.current?.id);
-  if(currentIdx===-1) return;
+  if(currentIdx===-1){
+    openVideo(list[0].id);
+    return;
+  }
   const nextIdx = (currentIdx + dir + list.length) % list.length;
   openVideo(list[nextIdx].id);
 }
@@ -517,4 +535,13 @@ export function toggleAutoplaySetting(on){
   vstate.settings.autoplay = !!on;
   persistState();
   toast(on ? "Autoplay turned on" : "Autoplay turned off");
+}
+
+export function signOutUser(){
+  try {
+    localStorage.removeItem("sh_session");
+    localStorage.removeItem("sh_user");
+  } catch(_){}
+  toast("Signed out successfully");
+  render();
 }
