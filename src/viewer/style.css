@@ -1219,17 +1219,14 @@ iframe.player{object-fit:contain}
   bottom: 0;
   left: 0;
   right: 0;
-  /* Bottom padding matches .feed-sidebar's clearance above so the caption's
-     clickable creator-name/category chip aren't fighting the bottom-nav
-     either. */
-  padding: 24px 80px calc(78px + env(safe-area-inset-bottom)) 16px;
-  background: linear-gradient(0deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.4) 65%, transparent 100%);
+  padding: 20px 76px calc(96px + env(safe-area-inset-bottom)) 16px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 60%, transparent 100%);
   color: #fff;
   z-index: 10;
   pointer-events: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 .feed-creator-row {
   display: flex;
@@ -1270,15 +1267,10 @@ iframe.player{object-fit:contain}
 .feed-sidebar {
   position: absolute;
   right: 12px;
-  /* Clears the fixed .bottom-nav (z-index:50, ~69px tall + safe-area even in
-     its transparent .page-feed variant) — at bottom:24px the Share button
-     used to sit directly under the nav's real, higher-stacked tap targets,
-     so taps meant for Share/Comment were being intercepted by the invisible
-     nav instead. */
-  bottom: calc(78px + env(safe-area-inset-bottom));
+  bottom: calc(96px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
   z-index: 15;
 }
@@ -1286,8 +1278,8 @@ iframe.player{object-fit:contain}
   position: relative;
 }
 .feed-avatar {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), #7A0008);
   color: #fff;
@@ -1298,7 +1290,7 @@ iframe.player{object-fit:contain}
   border: 2px solid var(--accent);
   cursor: pointer;
   box-shadow: 0 0 14px rgba(229,9,20,0.5), 0 4px 12px rgba(0,0,0,0.4);
-  font-size: 16px;
+  font-size: 15px;
   transition: transform 0.15s ease;
 }
 .feed-avatar:active {
@@ -1355,8 +1347,9 @@ iframe.player{object-fit:contain}
   background: rgba(18, 18, 20, 0.65);
   border: 1px solid rgba(255,255,255,0.18);
   border-radius: calc(var(--ctrl-radius) + 2px);
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1365,9 +1358,9 @@ iframe.player{object-fit:contain}
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   transition: transform 0.15s ease, background 0.15s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
 }
-.feed-btn .ico{width:20px;height:20px}
+.feed-btn .ico{width:18px;height:18px}
 .feed-btn:active {
   transform: scale(0.9);
 }
@@ -1387,10 +1380,10 @@ iframe.player{object-fit:contain}
 }
 @media (prefers-reduced-motion: reduce){ .feed-btn.liked{animation:none} }
 .feed-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.9);
-  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.95);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
 }
 
 /* Slide-up Comments Drawer */
@@ -1635,9 +1628,13 @@ iframe.player{object-fit:contain}
     backdrop-filter:none;-webkit-backdrop-filter:none;border-bottom:none;
   }
   .page-feed .bottom-nav{
-    background:linear-gradient(0deg,rgba(0,0,0,.6),transparent);
-    backdrop-filter:none;-webkit-backdrop-filter:none;
-    border-top:none;box-shadow:none;
+    background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 70%, transparent 100%);
+    backdrop-filter: none; -webkit-backdrop-filter: none;
+    border-top: none; box-shadow: none;
+    pointer-events: none;
+  }
+  .page-feed .bottom-nav button {
+    pointer-events: auto;
   }
   .page-feed .content.content-feed{height:100vh}
 
@@ -2121,11 +2118,71 @@ iframe.player{object-fit:contain}
    tabs, single-column stack) visible only below the breakpoint.
    ============================================================ */
 @media(max-width:760px){
-  .watch-main-v2{padding:14px}
-  .ov-center{gap:18px}
-  .ov-playpause{width:52px;height:52px}
-  .ov-skip{width:36px;height:36px}
+  .watch-main-v2{padding:12px 14px}
+  .watch-v2-mobile .player-nav{display:none !important}
+  .ov-center{gap:20px}
+  .ov-playpause{width:48px;height:48px}
+  .ov-skip{width:36px;height:36px;background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);border-radius:50%}
+  .watch-title-block{margin-bottom:10px}
+  .watch-title-v2{font-size:15px;line-height:1.3}
+  .watch-title-block .watch-action-bar{margin:8px 0 10px;gap:6px}
+  .watch-title-block .vote-btn,
+  .watch-title-block .act-pill{min-height:36px;padding:6px 12px;font-size:12px}
+  .watch-title-block .vote-btn .ic,
+  .watch-title-block .act-pill .ic{width:14px;height:14px}
 }
+
+/* ---- Mobile Watch: Stats Inline ---- */
+.watch-stats-inline{
+  display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:6px;
+  font-size:11.5px;color:var(--muted);
+}
+.watch-stats-inline .views-count{color:var(--text);font-weight:600}
+.watch-stats-inline .stats-tags{display:inline-flex;gap:6px;color:var(--accent2);font-weight:600;font-size:11.5px}
+.watch-stats-inline .stats-tags span{cursor:pointer}
+.watch-stats-inline .stats-tags span:hover{text-decoration:underline}
+
+/* ---- Mobile Watch: Integrated Creator Row ---- */
+.watch-creator-row-mobile{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:10px 0 12px;padding:0;background:none;border:none;
+}
+.creator-mobile-id{display:flex;align-items:center;gap:10px;min-width:0;cursor:pointer}
+.creator-mobile-meta{display:flex;flex-direction:column;min-width:0}
+.creator-name-row{display:flex;align-items:center;gap:5px}
+.creator-mobile-name{font-size:13.5px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.watch-creator-verified-sm{
+  background:var(--accent);color:#fff;font-size:8px;font-weight:900;
+  width:13px;height:13px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+}
+.creator-mobile-subs{font-size:11px;color:var(--muted);line-height:1.2;margin-top:1px}
+.subscribe-btn-sm{
+  background:#fff;color:#000;border:none;padding:6px 14px;border-radius:999px;
+  font-size:12px;font-weight:700;cursor:pointer;flex:none;transition:transform .15s, background .15s;
+}
+.subscribe-btn-sm:active{transform:scale(0.94)}
+.subscribe-btn-sm.subscribed{background:var(--surface3);color:var(--text);border:1px solid var(--border)}
+
+/* ---- Up Next Header Bar & Compact Autoplay ---- */
+.upnext-head-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;
+}
+.upnext-head-bar .upnext-chips{flex:1;min-width:0;margin-bottom:0}
+.autoplay-compact-toggle{
+  display:inline-flex;align-items:center;gap:6px;cursor:pointer;flex:none;
+  font-size:11px;font-weight:600;color:var(--muted);user-select:none;
+}
+.autoplay-compact-toggle input{position:absolute;opacity:0;width:0;height:0}
+.switch-track-sm{
+  width:28px;height:16px;border-radius:999px;background:var(--surface3);
+  position:relative;transition:background .2s;border:1px solid var(--border);
+}
+.switch-track-sm::after{
+  content:"";position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;
+  background:#fff;transition:transform .2s;
+}
+.autoplay-compact-toggle input:checked + .switch-track-sm{background:var(--accent);border-color:var(--accent)}
+.autoplay-compact-toggle input:checked + .switch-track-sm::after{transform:translateX(12px)}
 
 /* ---- Mobile PWA Install Banner ---- */
 .pwa-install-banner {

@@ -108,8 +108,16 @@ function commentsPanel(v){
 function upNextPanel(related, showAutoplay){
   return `
     <div class="upnext-panel">
-      ${upNextCategoryChips(related)}
-      ${showAutoplay ? autoplayToggle() : ''}
+      <div class="upnext-head-bar">
+        ${upNextCategoryChips(related)}
+        ${showAutoplay ? `
+          <label class="autoplay-compact-toggle" title="Autoplay next video">
+            <span class="ap-text">Autoplay</span>
+            <input type="checkbox" ${vstate.settings.autoplay?'checked':''} onchange="toggleAutoplaySetting(this.checked)"/>
+            <div class="switch-track-sm"></div>
+          </label>
+        ` : ''}
+      </div>
       <div class="upnext-list" id="upNextList">
         ${related.map(upNextCard).join("")}
       </div>
@@ -184,8 +192,6 @@ function playerOverlayDesktop(v){
 
 function actionBar(v, live, hasCreator){
   // Compact primary set — like/dislike, share, save, fav, download.
-  // Initial on/off state mirrors vstate so re-renders stay in sync without
-  // waiting for markToggleStates (which targets card data-* buttons).
   const laterOn = vstate.later.includes(v.id);
   const favOn = vstate.favorites.includes(v.id);
   return `
@@ -224,6 +230,27 @@ function creatorRow(c, hasCreator, subbed){
     </div>`;
 }
 
+function creatorRowMobile(c, hasCreator, subbed){
+  return `
+    <div class="watch-creator-row-mobile">
+      <div class="creator-mobile-id" onclick="openCreator('${jsq(c.id)}')">
+        <div class="avatar avatar-md">${esc((c.name||"?")[0])}</div>
+        <div class="creator-mobile-meta">
+          <div class="creator-name-row">
+            <span class="creator-mobile-name">${esc(c.name)}</span>
+            ${c.verified ? `<span class="watch-creator-verified-sm">✓</span>` : ''}
+          </div>
+          <span class="creator-mobile-subs">${fmt(c.subs)} subscribers</span>
+        </div>
+      </div>
+      ${hasCreator
+        ? `<button class="subscribe-btn-sm ${subbed?'subscribed':''}" onclick="subscribe('${jsq(c.id)}')" id="subscribeBtnV2">
+             <span id="subscribeTextV2">${subbed?'Subscribed':'Subscribe'}</span>
+           </button>`
+        : ''}
+    </div>`;
+}
+
 function blogStoryChip(v){
   const posts = postsForVideoId(v.id);
   if(!posts.length) return "";
@@ -238,12 +265,14 @@ function titleBlockMobile(v, catList, tagList, live, c, hasCreator, subbed){
         <h1 class="watch-title-v2">${esc(v.title)}</h1>
         <button class="desc-chevron-btn" onclick="toggleDescSheetMobile()" id="descChevron" aria-label="More details"><svg class="ico"><use href="#icon-chevron-down"/></svg></button>
       </div>
-      <div class="watch-stats-row">
-        <div class="stats-left"><span class="views-count" id="watchViewsCount">${fmt(displayViews(v))} views</span><span class="dot-sep">•</span><span>${esc(v.uploaded)}</span></div>
-        ${tagList.length ? `<div class="stats-tags">${tagList.slice(0,2).map(t=>`<span onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}</div>` : ''}
+      <div class="watch-stats-inline">
+        <span class="views-count" id="watchViewsCount">${fmt(displayViews(v))} views</span>
+        <span class="dot-sep">•</span>
+        <span>${esc(v.uploaded)}</span>
+        ${tagList.length ? `<span class="dot-sep">•</span><span class="stats-tags">${tagList.slice(0,2).map(t=>`<span onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join(" ")}</span>` : ''}
       </div>
+      ${creatorRowMobile(c, hasCreator, subbed)}
       ${actionBar(v, live, hasCreator)}
-      ${creatorRow(c, hasCreator, subbed)}
       ${blogStoryChip(v)}
       ${(catList.length || tagList.length || v.desc) ? `
       <div class="quick-desc-box" id="quickDescBox" hidden>
@@ -272,19 +301,17 @@ function metadataBlockDesktop(v, catList, tagList, live, hasCreator){
 }
 
 function descriptionBoxDesktop(v, catList, tagList){
-  if(!v.desc && !catList.length && !tagList.length) return '';
   return `
-    <div class="desc-box-v2" id="descBoxV2">
-      <p class="desc-text-v2 clamped" id="descTextV2">${v.desc ? esc(v.desc) : 'No description provided.'}</p>
-      <button class="desc-expand-btn" onclick="toggleDescExpandDesktop()" id="descExpandBtn">
-        <span id="descExpandText">Show More</span>
-        <svg class="ico" id="descChevronDesktop"><use href="#icon-chevron-down"/></svg>
+    <div class="desc-box-v2">
+      <p class="desc-text-v2 clamped" id="descTextV2">${esc(v.desc || "No description provided.")}</p>
+      <button class="desc-expand-btn" id="descExpandBtn" onclick="toggleDescExpand()" aria-expanded="false">
+        <span>Show more</span><svg class="ico"><use href="#icon-chevron-down"/></svg>
       </button>
-      ${(catList.length || tagList.length) ? `
       <div class="desc-extra-details" id="descExtraDetails" hidden>
-        ${catList.length ? `<div><span class="label">Category</span><div class="video-tags">${catList.map(c=>`<span class="vtag vtag-cat" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</span>`).join("")}</div></div>` : ''}
-        ${tagList.length ? `<div><span class="label">Tags</span><div class="video-tags">${tagList.map(t=>`<span class="vtag vtag-tag" onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join("")}</div></div>` : ''}
-      </div>` : ''}
+        <div><span class="label">Duration</span><span>${esc(v.duration||"—")}</span></div>
+        <div><span class="label">Categories</span><span>${catList.length?catList.map(c=>`<span class="vtag vtag-cat" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</span>`).join(" "):"—"}</span></div>
+        <div><span class="label">Tags</span><span>${tagList.length?tagList.map(t=>`<span class="vtag vtag-tag" onclick="searchTag('${jsq(t)}')">#${esc(t)}</span>`).join(" "):"—"}</span></div>
+      </div>
     </div>`;
 }
 
@@ -373,8 +400,6 @@ export function renderWatch(){
       <section class="player-container-v2">
         <div class="player-nav-wrap">
           ${playerEmbed(v)}
-          <button class="player-nav player-nav-prev" onclick="stepWatch(-1)" aria-label="Previous video">‹</button>
-          <button class="player-nav player-nav-next" onclick="stepWatch(1)" aria-label="Next video">›</button>
         </div>
         ${playerOverlayMobile(v)}
       </section>
