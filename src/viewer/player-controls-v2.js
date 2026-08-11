@@ -428,7 +428,7 @@ export function changeSpeedV2(val){
 }
 
 export function copyVideoLinkV2(id){
-  const url = location.href.split("#")[0] + "#video/" + id;
+  const url = `${location.origin}/v/${id}`;
   if(navigator.clipboard) navigator.clipboard.writeText(url).then(()=>window.toast("Link copied"), ()=>window.toast("Link: "+url));
   else window.toast("Link: "+url);
   closeSheet("shareSheet");

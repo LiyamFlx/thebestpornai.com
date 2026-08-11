@@ -1,15 +1,56 @@
 {
-  "name": "thebestpornai",
+  "name": "thebestpornai — AI Adult Streaming",
   "short_name": "thebestpornai",
-  "description": "AI Porn & Community Videos — stream AI scenes, amateur uploads, full movies & clips.",
-  "start_url": "/",
+  "description": "Stream 5,000+ curated 4K AI adult scenes, amateur uploads, movies, and mobile Shorts.",
+  "start_url": "/?pwa=1",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#0a0a0a",
-  "theme_color": "#E50914",
+  "orientation": "any",
+  "background_color": "#0b0c10",
+  "theme_color": "#0b0c10",
+  "categories": ["entertainment"],
   "icons": [
-    { "src": "/src/shared/assets/favicon-32.png", "sizes": "32x32", "type": "image/png" },
-    { "src": "/src/shared/assets/favicon-64.png", "sizes": "64x64", "type": "image/png" }
+    {
+      "src": "/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Trending Videos",
+      "short_name": "Trending",
+      "url": "/#trending",
+      "description": "View trending 4K AI porn videos"
+    },
+    {
+      "name": "AI Pornstars",
+      "short_name": "Pornstars",
+      "url": "/#pornstars",
+      "description": "Browse verified AI pornstars"
+    },
+    {
+      "name": "Vertical Shorts",
+      "short_name": "Shorts",
+      "url": "/#feed",
+      "description": "Watch mobile vertical video stream"
+    }
   ]
 }

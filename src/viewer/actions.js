@@ -464,8 +464,8 @@ export function shareVideo(id){
   const v = DATA.videos.find((x) => x.id === id);
   const isShort = v && v.orientation === "vertical";
   const hash = isShort ? ("shorts/" + id) : ("video/" + id);
-  const url = location.href.split("#")[0] + "#" + hash;
-  const title = (v && v.title) ? v.title : "Watch on thebestpornai";
+  const url = `${location.origin}/v/${id}`;
+  const title = (v && v.title) ? `${v.title} — thebestpornai` : "Watch on thebestpornai";
 
   if(typeof navigator.share === "function"){
     navigator.share({ title, url, text: title }).then(() => {

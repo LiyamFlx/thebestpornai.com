@@ -1,5 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/v/:id", "destination": "/api/video-share?id=:id" },
+    { "source": "/watch/:id", "destination": "/api/video-share?id=:id" }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",

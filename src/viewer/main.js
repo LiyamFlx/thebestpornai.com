@@ -305,15 +305,5 @@ if (window.matchMedia) {
   else if (watchBreakpoint.addListener) watchBreakpoint.addListener(onWatchBreakpointChange); // Safari < 14
 }
 
-// Service worker: only register the kill-switch when something is already
-// controlling/registered (legacy caching SW). Avoid re-registering forever
-// just to install a no-op — that caused "Fetch event handler is recognized
-// as no-op" noise and extra navigation overhead.
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.getRegistrations().then((regs) => {
-      if(!regs || !regs.length) return;
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
-    }).catch(() => {});
-  });
-}
+import { initPwaInstall } from "./pwa-install.js";
+initPwaInstall();

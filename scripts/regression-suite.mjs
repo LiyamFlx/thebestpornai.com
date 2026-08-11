@@ -318,7 +318,65 @@ check("Sitemap contains all indexable static routes and valid XML", () => {
   assert(xml.includes("/blog/"), "Must include /blog/");
 });
 
-// --- SECTION 5: Tooling & CLI Scripts Non-Destructive Invariance ---
+// --- SECTION 5: Social Unfurl Gateway & PWA Validation ---
+await asyncCheck("Social unfurl gateway (api/video-share.js) generates complete OpenGraph & Twitter player metadata", async () => {
+  const { default: videoShareHandler } = await import("../api/video-share.js");
+  
+  let statusCode = 200;
+  let headers = {};
+  let body = "";
+  const res = {
+    status(s) { statusCode = s; return this; },
+    setHeader(k, v) { headers[k] = v; },
+    send(html) { body = html; }
+  };
+
+  // Test with valid video ID 1
+  videoShareHandler({ query: { id: "1" } }, res);
+  assert.equal(statusCode, 200);
+  assert(headers["Content-Type"].includes("text/html"));
+  assert(body.includes('property="og:title"'));
+  assert(body.includes('property="og:video"'));
+  assert(body.includes('name="twitter:card" content="player"'));
+  assert(body.includes('name="twitter:player"'));
+  assert(body.includes('https://schema.org'));
+  assert(body.includes('/#video/1'));
+
+  // Test with invalid ID (safe fallback)
+  videoShareHandler({ query: { id: "999999999" } }, res);
+  assert.equal(statusCode, 200);
+  assert(body.includes('thebestpornai'));
+});
+
+check("PWA manifest is valid JSON and contains all required icons and shortcuts", () => {
+  const manifestPath = path.join(REPO, "public", "site.webmanifest");
+  assert(fs.existsSync(manifestPath), "public/site.webmanifest must exist");
+  const raw = fs.readFileSync(manifestPath, "utf8");
+  let json;
+  assert.doesNotThrow(() => { json = JSON.parse(raw); }, "Manifest must be valid JSON");
+  assert.equal(json.display, "standalone");
+  assert(Array.isArray(json.icons) && json.icons.length >= 4, "Must have standard icons");
+  assert(Array.isArray(json.shortcuts) && json.shortcuts.length >= 1, "Must have shortcuts");
+  
+  // Verify all icon paths exist in public/
+  for (const icon of json.icons) {
+    const iconRel = icon.src.replace(/^\//, "");
+    const iconPath = path.join(REPO, "public", iconRel);
+    assert(fs.existsSync(iconPath), `Icon file ${iconRel} must exist in public/`);
+  }
+});
+
+check("Service worker (public/sw.js) contains required event listeners", () => {
+  const swPath = path.join(REPO, "public", "sw.js");
+  assert(fs.existsSync(swPath), "public/sw.js must exist");
+  const content = fs.readFileSync(swPath, "utf8");
+  assert(content.includes('addEventListener("install"'), "Must handle install event");
+  assert(content.includes('addEventListener("activate"'), "Must handle activate event");
+  assert(content.includes('addEventListener("fetch"'), "Must handle fetch event");
+  assert(content.includes('.mp4'), "Must bypass video media from cache");
+});
+
+// --- SECTION 6: Tooling & CLI Scripts Non-Destructive Invariance ---
 await asyncCheck("Publish doctor script runs with zero errors", async () => {
   const { execSync } = await import("node:child_process");
   const output = execSync("node scripts/publish-doctor.js", { cwd: REPO, encoding: "utf8" });
