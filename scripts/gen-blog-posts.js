@@ -160,8 +160,11 @@ function postCoverUrl(post) {
  */
 function postCoverThumbUrl(post) {
   if (!post.cover) return postCoverUrl(post);
-  const thumbRel = post.cover.replace(/\.(jpe?g|png)$/i, "-thumb.webp");
-  return mediaUrl(thumbRel);
+  if (post.cover.includes("media/blog/")) {
+    const thumbRel = post.cover.replace(/\.(jpe?g|png)$/i, "-thumb.webp");
+    return mediaUrl(thumbRel);
+  }
+  return mediaUrl(post.cover);
 }
 
 function postUrl(post) {

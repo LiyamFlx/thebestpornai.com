@@ -43,7 +43,7 @@ function collectCoverPaths() {
   const writerPostsPath = path.join(REPO, "src", "blog", "writer-posts.json");
   if (fs.existsSync(writerPostsPath)) {
     const data = JSON.parse(fs.readFileSync(writerPostsPath, "utf8"));
-    for (const e of data) if (e.cover) paths.add(e.cover);
+    for (const e of data) if (e.cover && e.cover.includes("media/blog/")) paths.add(e.cover);
   }
 
   const postsJsPath = path.join(REPO, "src", "blog", "posts.js");
@@ -51,7 +51,9 @@ function collectCoverPaths() {
     const src = fs.readFileSync(postsJsPath, "utf8");
     const re = /cover:\s*"([^"]+)"/g;
     let m;
-    while ((m = re.exec(src))) paths.add(m[1]);
+    while ((m = re.exec(src))) {
+      if (m[1].includes("media/blog/")) paths.add(m[1]);
+    }
   }
 
   return [...paths];

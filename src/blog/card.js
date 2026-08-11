@@ -26,8 +26,11 @@ export function postCoverUrl(post) {
  */
 export function postCoverThumbUrl(post) {
   if (!post.cover) return postCoverUrl(post);
-  const thumbRel = post.cover.replace(/\.(jpe?g|png)$/i, "-thumb.webp");
-  return mediaUrl(thumbRel);
+  if (post.cover.includes("media/blog/")) {
+    const thumbRel = post.cover.replace(/\.(jpe?g|png)$/i, "-thumb.webp");
+    return mediaUrl(thumbRel);
+  }
+  return mediaUrl(post.cover);
 }
 
 const ICON_CLOCK = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
