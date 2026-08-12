@@ -6,8 +6,8 @@
  *   - public/blog/rss.xml     RSS 2.0 for readers / automation
  *
  * Why static per-post pages: each needs its own URL, canonical, meta, OG,
- * Twitter, and BlogPosting JSON-LD in the first HTML response — better for
- * Google, social crawlers, and AI citation readiness.
+ * Twitter, and BlogPosting / VideoObject JSON-LD in the first HTML response —
+ * optimized for Google, social crawlers, and AI citation readiness.
  *
  * Run:  node scripts/gen-blog-posts.js
  * Auto: package.json "build" runs this before vite build.
@@ -24,6 +24,7 @@ const BLOG_DIR = path.join(REPO, "blog");
 const PUBLIC_BLOG = path.join(REPO, "public", "blog");
 const ORIGIN = "https://www.thebestpornai.com";
 const MEDIA_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media";
+const SUPABASE_ORIGIN = "https://dabfxysxcngijcxxekzc.supabase.co";
 const LOGO = `${ORIGIN}/logo.png`;
 
 function esc(s) {
@@ -36,16 +37,31 @@ function esc(s) {
     .replace(/'/g, "&#39;");
 }
 
+/**
+ * Clean naive title-case artifacts and strip trailing frame/numeric suffixes.
+ * - 'S -> 's, 'T -> 't, 'Re -> 're, 'Ve -> 've, 'Ll -> 'll, 'D -> 'd, 'M -> 'm
+ * - Trailing frame suffixes like 00001, 00002, _001 stripped from alt text.
+ */
+function cleanTitle(str) {
+  if (!str) return "";
+  let clean = String(str).replace(/(\d{4,}|_\d{2,}|\s+\d{4,})$/i, "").trim();
+  clean = clean.replace(/'([A-Z])\b/g, (_, char) => `'${char.toLowerCase()}`);
+  return clean;
+}
+
 function mediaUrl(src) {
   if (!src) return "";
   if (/^https?:\/\//i.test(src)) return src;
   const rel = src.replace(/^(\.\.\/)?media\//, "");
-  const path_ = rel.split("/").map(encodeURIComponent).join("/");
+  const path_ = rel
+    .split("/")
+    .map((seg) => encodeURIComponent(seg).replace(/'/g, "%27"))
+    .join("/");
   return MEDIA_BASE.replace(/\/$/, "") + "/" + path_;
 }
 
 function findVideo(id) {
-  return VIDEOS.find((v) => v.id === id);
+  return VIDEOS.find((v) => v.id === Number(id));
 }
 
 /** Canonical watch deep-link used site-wide (hash router on the main viewer). */
@@ -78,6 +94,21 @@ function fmtViews(n) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
   return String(n);
+}
+
+function toIsoDuration(dur) {
+  if (!dur || typeof dur !== "string") return undefined;
+  const parts = dur.split(":").map(Number);
+  if (parts.some(isNaN)) return undefined;
+  if (parts.length === 2) {
+    const [mins, secs] = parts;
+    return `PT${mins}M${secs}S`;
+  }
+  if (parts.length === 3) {
+    const [hrs, mins, secs] = parts;
+    return `PT${hrs}H${mins}M${secs}S`;
+  }
+  return undefined;
 }
 
 function siteHeader({ mode = "index" } = {}) {
@@ -147,6 +178,11 @@ function wordCount(html) {
   return t.split(/\s+/).filter(Boolean).length;
 }
 
+/** Derived reading time at ~200wpm, minimum 1 min. */
+function calcReadMins(words) {
+  return Math.max(1, Math.ceil((words || 0) / 200));
+}
+
 function postCoverUrl(post) {
   if (post.cover) return mediaUrl(post.cover);
   const v = findVideo(post.coverVideoId);
@@ -178,44 +214,95 @@ const ICON_PLAY = `<svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.92)" aria-h
 function postCardHtml(post, { eager = false } = {}) {
   const cover = postCoverThumbUrl(post);
   const loading = eager ? "eager" : "lazy";
+  const words = wordCount(post.body);
+  const readMins = calcReadMins(words);
+  const title = cleanTitle(post.title);
   return `
     <a class="blog-card" href="/blog/${esc(post.slug)}.html" data-category="${esc(post.category)}" data-slug="${esc(post.slug)}">
       <div class="blog-card-media">
-        <img src="${esc(cover)}" alt="${esc(post.title)}" loading="${loading}" width="640" height="400" decoding="async"/>
+        <img src="${esc(cover)}" alt="${esc(title)}" loading="${loading}" width="640" height="400" decoding="async"/>
         <span class="blog-card-pill">${esc(post.category)}</span>
       </div>
       <div class="blog-card-body">
-        <h3 class="blog-card-title">${esc(post.title)}</h3>
+        <h3 class="blog-card-title">${esc(title)}</h3>
         <p class="blog-card-excerpt">${esc(post.excerpt)}</p>
         <div class="blog-card-meta">
           <span>${ICON_CALENDAR}${esc(formatDate(post.date))}</span>
           <span class="dot"></span>
-          <span>${ICON_CLOCK}${post.readMins} min</span>
+          <span>${ICON_CLOCK}${readMins} min read</span>
+          <span class="blog-card-read-more">Read story →</span>
         </div>
       </div>
     </a>
   `;
 }
 
-function videoCardHtml(videoId) {
-  const v = findVideo(videoId);
+function videoCardHtml(v) {
   if (!v) return "";
   const thumb = v.thumb ? mediaUrl(v.thumb) : "";
   const views = typeof v.views === "number" ? fmtViews(v.views) + " views" : "";
+  const title = cleanTitle(v.title);
   return `
     <a class="blog-video-card" href="${videoWatchUrl(v.id)}">
       <div class="blog-video-card-media">
-        ${thumb ? `<img src="${esc(thumb)}" alt="${esc(v.title)}" loading="lazy" width="640" height="360" decoding="async"/>` : `<div class="blog-video-card-ph"></div>`}
+        ${thumb ? `<img src="${esc(thumb)}" alt="${esc(title)}" loading="lazy" width="640" height="360" decoding="async"/>` : `<div class="blog-video-card-ph"></div>`}
         <div class="blog-video-card-play">${ICON_PLAY}</div>
         ${v.duration ? `<span class="blog-video-card-duration">${esc(v.duration)}</span>` : ""}
       </div>
       <div class="blog-video-card-body">
         <span class="blog-video-card-label">Watch on thebestpornai</span>
-        <div class="blog-video-card-title">${esc(v.title)}</div>
+        <div class="blog-video-card-title">${esc(title)}</div>
         <div class="blog-video-card-meta">${[views, v.duration].filter(Boolean).join(" · ")}</div>
       </div>
     </a>
   `;
+}
+
+/**
+ * Deduplicate related videos so near-duplicate sequential fragment clips
+ * (e.g. dancing in the dark 00001, 00002, 00003) do not crowd out diverse scenes.
+ */
+function getDeduplicatedRelatedVideos(post) {
+  const pool = [];
+  const seenBases = new Set();
+
+  const getBase = (title) =>
+    cleanTitle(title)
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const addVid = (id) => {
+    const v = findVideo(id);
+    if (!v) return;
+    const base = getBase(v.title);
+    if (seenBases.has(base)) return;
+    seenBases.add(base);
+    pool.push(v);
+  };
+
+  (post.relatedVideoIds || []).forEach(addVid);
+
+  if (pool.length < 4) {
+    const catVideos = VIDEOS.filter(
+      (v) =>
+        (v.category === post.category || (v.categories || []).includes(post.category)) &&
+        v.id !== post.coverVideoId
+    );
+    for (const cv of catVideos) {
+      if (pool.length >= 4) break;
+      addVid(cv.id);
+    }
+  }
+
+  return pool.slice(0, 4);
+}
+
+function getRelatedPostsSpread(post) {
+  const sorted = [...POSTS].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const sameCat = sorted.filter((p) => p.slug !== post.slug && p.category === post.category);
+  const otherCat = sorted.filter((p) => p.slug !== post.slug && p.category !== post.category);
+  return [...sameCat, ...otherCat].slice(0, 6);
 }
 
 function faqHtml(faqs) {
@@ -239,7 +326,7 @@ function faqHtml(faqs) {
 
 function shareHtml(post) {
   const url = encodeURIComponent(postUrl(post));
-  const text = encodeURIComponent(`${post.title} — thebestpornai Blog`);
+  const text = encodeURIComponent(`${cleanTitle(post.title)} — thebestpornai Blog`);
   return `
   <div class="blog-share" role="group" aria-label="Share this article">
     <span class="blog-share-label">Share</span>
@@ -260,32 +347,34 @@ function prevNextHtml(post) {
   <nav class="blog-prevnext" aria-label="More articles">
     ${
       older
-        ? `<a class="blog-prevnext-link older" href="/blog/${esc(older.slug)}.html"><span class="lbl">Older</span><span class="ttl">${esc(older.title)}</span></a>`
+        ? `<a class="blog-prevnext-link older" href="/blog/${esc(older.slug)}.html"><span class="lbl">Older</span><span class="ttl">${esc(cleanTitle(older.title))}</span></a>`
         : `<span class="blog-prevnext-link empty"></span>`
     }
     ${
       newer
-        ? `<a class="blog-prevnext-link newer" href="/blog/${esc(newer.slug)}.html"><span class="lbl">Newer</span><span class="ttl">${esc(newer.title)}</span></a>`
+        ? `<a class="blog-prevnext-link newer" href="/blog/${esc(newer.slug)}.html"><span class="lbl">Newer</span><span class="ttl">${esc(cleanTitle(newer.title))}</span></a>`
         : `<span class="blog-prevnext-link empty"></span>`
     }
   </nav>`;
 }
 
-function jsonLdForPost(post, cover, words) {
+function jsonLdForPost(post, cover, words, relatedVideos = []) {
   const url = postUrl(post);
   const description = plainText(post.excerpt).slice(0, 160);
+  const cleanPostTitle = cleanTitle(post.title);
+
   const graph = [
     {
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Home", item: ORIGIN + "/" },
         { "@type": "ListItem", position: 2, name: "Blog", item: ORIGIN + "/blog/" },
-        { "@type": "ListItem", position: 3, name: post.title, item: url },
+        { "@type": "ListItem", position: 3, name: cleanPostTitle, item: url },
       ],
     },
     {
       "@type": "BlogPosting",
-      headline: post.title,
+      headline: cleanPostTitle,
       description,
       image: [cover],
       datePublished: post.date,
@@ -309,6 +398,7 @@ function jsonLdForPost(post, cover, words) {
       mainEntityOfPage: { "@type": "WebPage", "@id": url },
     },
   ];
+
   if (post.faqs && post.faqs.length) {
     graph.push({
       "@type": "FAQPage",
@@ -319,6 +409,24 @@ function jsonLdForPost(post, cover, words) {
       })),
     });
   }
+
+  // Add VideoObject schema for related videos
+  for (const v of relatedVideos) {
+    const vTitle = cleanTitle(v.title);
+    const vThumb = v.thumb ? mediaUrl(v.thumb) : LOGO;
+    const videoObj = {
+      "@type": "VideoObject",
+      name: vTitle,
+      description: `${vTitle} — Watch on thebestpornai`,
+      thumbnailUrl: [vThumb],
+      uploadDate: v.uploaded || post.date,
+      contentUrl: `${ORIGIN}/#video/${v.id}`,
+    };
+    const isoDur = toIsoDuration(v.duration);
+    if (isoDur) videoObj.duration = isoDur;
+    graph.push(videoObj);
+  }
+
   return {
     "@context": "https://schema.org",
     "@graph": graph,
@@ -329,18 +437,20 @@ function renderPost(post) {
   const cover = postCoverUrl(post);
   const url = postUrl(post);
   const description = plainText(post.excerpt).slice(0, 160);
-  const related = (post.relatedVideoIds || []).slice(0, 4);
-  const relatedPosts = POSTS.filter((p) => p.slug !== post.slug && p.category === post.category).slice(0, 3);
   const words = wordCount(post.body);
-  const primaryVideo = related[0] || post.coverVideoId;
-  const jsonLd = jsonLdForPost(post, cover, words);
+  const readMins = calcReadMins(words);
+  const relatedVideos = getDeduplicatedRelatedVideos(post);
+  const relatedPosts = getRelatedPostsSpread(post);
+  const primaryVideo = relatedVideos[0]?.id || post.coverVideoId;
+  const jsonLd = jsonLdForPost(post, cover, words, relatedVideos);
+  const cleanPostTitle = cleanTitle(post.title);
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>${esc(post.title)} | thebestpornai Blog</title>
+<title>${esc(cleanPostTitle)} | thebestpornai Blog</title>
 <meta name="description" content="${esc(description)}"/>
 <meta name="theme-color" content="#000000"/>
 <link rel="preconnect" href="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev" crossorigin/>
@@ -353,20 +463,20 @@ function renderPost(post) {
 <link rel="icon" type="image/png" href="/src/shared/assets/favicon-32.png"/>
 <meta property="og:type" content="article"/>
 <meta property="og:site_name" content="thebestpornai"/>
-<meta property="og:title" content="${esc(post.title)}"/>
+<meta property="og:title" content="${esc(cleanPostTitle)}"/>
 <meta property="og:description" content="${esc(description)}"/>
 <meta property="og:url" content="${url}"/>
 <meta property="og:image" content="${esc(cover)}"/>
-<meta property="og:image:alt" content="${esc(post.title)}"/>
+<meta property="og:image:alt" content="${esc(cleanPostTitle)}"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="${esc(post.title)}"/>
+<meta name="twitter:title" content="${esc(cleanPostTitle)}"/>
 <meta name="twitter:description" content="${esc(description)}"/>
 <meta name="twitter:image" content="${esc(cover)}"/>
 <meta name="robots" content="index,follow,max-image-preview:large"/>
 <script type="application/ld+json">
 ${JSON.stringify(jsonLd, null, 2)}
 </script>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' https:; frame-src 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; base-uri 'self'; form-action 'self' mailto:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' ${SUPABASE_ORIGIN} https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com;">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/src/shared/theme.css"/>
 </head>
@@ -382,28 +492,22 @@ ${siteHeader({ mode: "post" })}
         <span aria-current="page">${esc(post.category)}</span>
       </nav>
 
-      <!-- Magazine feature: portrait split, or landscape banner when coverLayout=landscape -->
+      <!-- Feature Header: Semantic responsive image with proper aspect & styling -->
       <header class="blog-feature${post.coverLayout === "landscape" ? " blog-feature--landscape" : ""}">
         <div class="blog-feature-media">
-          ${
-            post.coverLayout === "landscape"
-              ? `<div class="blog-post-hero-frame blog-post-hero-frame--banner">
-            <img class="blog-post-hero-photo" src="${esc(cover)}" alt="${esc(post.title)}" width="1856" height="576" decoding="async" fetchpriority="high"/>
-          </div>`
-              : `<div class="blog-post-hero-frame">
-            <div class="blog-post-hero-img" style="background-image:url('${esc(cover)}')" role="img" aria-label="${esc(post.title)}"></div>
-            <div class="blog-post-hero-shade" aria-hidden="true"></div>
-          </div>`
-          }
+          <div class="blog-post-hero-frame${post.coverLayout === "landscape" ? " blog-post-hero-frame--banner" : ""}">
+            <img class="blog-post-hero-photo${post.coverLayout === "landscape" ? "" : " blog-post-hero-photo--cover"}" src="${esc(cover)}" alt="${esc(cleanPostTitle)}" width="${post.coverLayout === "landscape" ? "1856" : "640"}" height="${post.coverLayout === "landscape" ? "576" : "853"}" decoding="async" fetchpriority="high"/>
+            ${post.coverLayout === "landscape" ? "" : `<div class="blog-post-hero-shade" aria-hidden="true"></div>`}
+          </div>
         </div>
         <div class="blog-feature-copy">
           <span class="blog-article-pill">${esc(post.category)}</span>
-          <h1 class="blog-article-title" itemprop="headline">${esc(post.title)}</h1>
+          <h1 class="blog-article-title" itemprop="headline">${esc(cleanPostTitle)}</h1>
           <p class="blog-article-microcopy">${esc(post.microcopy)}</p>
           <div class="blog-article-meta">
             <span>By <a href="${esc(BLOG_AUTHOR.url)}" rel="author">${esc(BLOG_AUTHOR.name)}</a></span>
             <span class="dot"></span>
-            <span>${ICON_CLOCK}${post.readMins} min read</span>
+            <span>${ICON_CLOCK}${readMins} min read</span>
             <span class="dot"></span>
             <span>${ICON_CALENDAR}<time datetime="${esc(post.date)}" itemprop="datePublished">${esc(formatDateLong(post.date))}</time></span>
           </div>
@@ -428,13 +532,13 @@ ${siteHeader({ mode: "post" })}
       ${faqHtml(post.faqs)}
 
       ${
-        related.length
+        relatedVideos.length
           ? `
       <section class="blog-related" aria-labelledby="watch-heading">
         <h2 id="watch-heading">Ready to watch the real thing?</h2>
         <p class="blog-related-sub">Companion clips from the thebestpornai catalog — opens the main player.</p>
         <div class="blog-related-grid">
-          ${related.map(videoCardHtml).join("")}
+          ${relatedVideos.map(videoCardHtml).join("")}
         </div>
       </section>
       `
@@ -445,9 +549,22 @@ ${siteHeader({ mode: "post" })}
         relatedPosts.length
           ? `
       <section class="blog-related" aria-labelledby="related-heading">
-        <h2 id="related-heading">Related stories</h2>
-        <div class="blog-related-posts">
+        <div class="blog-section-head">
+          <h2 id="related-heading">More Stories &amp; Articles</h2>
+          <div class="blog-section-rule" aria-hidden="true"></div>
+        </div>
+        <p class="blog-related-sub">Explore uncensored fantasies, in-depth guides, and creator deep-dives.</p>
+        <div class="blog-cards blog-related-cards">
           ${relatedPosts.map((p) => postCardHtml(p)).join("")}
+        </div>
+        <div class="blog-topic-bar">
+          <span class="blog-topic-label">Browse Topics:</span>
+          <a href="/blog/" class="blog-topic-pill">All</a>
+          <a href="/blog/#guides" class="blog-topic-pill">Guides</a>
+          <a href="/blog/#fantasies" class="blog-topic-pill">Fantasies</a>
+          <a href="/blog/#stories" class="blog-topic-pill">Stories</a>
+          <a href="/blog/#confessions" class="blog-topic-pill">Confessions</a>
+          <a href="/blog/#kink-lab" class="blog-topic-pill">Kink Lab</a>
         </div>
       </section>
       `
@@ -458,14 +575,14 @@ ${siteHeader({ mode: "post" })}
 
       <section class="blog-confession">
         <h3>Anonymous confession</h3>
-        <p>Tell us what you can't tell anyone else. Opens your email client — no account required. Don't name real people without consent.</p>
-        <form id="blog-confession-form" action="mailto:contact@thebestpornai.com?subject=Blog%20confession" method="post" enctype="text/plain">
+        <p>Tell us what you can't tell anyone else. Submitted securely &amp; anonymously — no account required.</p>
+        <form id="blog-confession-form" action="/api/confession" method="post">
           <div class="blog-confession-field">
             <label class="blog-confession-label" for="blog-confession-input">Your confession</label>
             <textarea id="blog-confession-input" name="body" placeholder="Type your confession…" maxlength="2000" required></textarea>
           </div>
           <button type="submit" class="blog-cta blog-cta-primary blog-confession-submit" id="blog-confession-submit">Send confession</button>
-          <p class="blog-confession-note">Nothing is stored in the browser beyond what you type.</p>
+          <p class="blog-confession-note">Nothing is stored in your browser. Submissions are moderated for safety.</p>
         </form>
       </section>
     </div>
@@ -498,7 +615,7 @@ function jsonLdForIndex(sorted) {
         },
         blogPost: sorted.map((p) => ({
           "@type": "BlogPosting",
-          headline: p.title,
+          headline: cleanTitle(p.title),
           url: postUrl(p),
           datePublished: p.date,
           dateModified: p.dateModified || p.date,
@@ -512,7 +629,7 @@ function jsonLdForIndex(sorted) {
           "@type": "ListItem",
           position: i + 1,
           url: postUrl(p),
-          name: p.title,
+          name: cleanTitle(p.title),
         })),
       },
       {
@@ -528,24 +645,24 @@ function jsonLdForIndex(sorted) {
 
 function renderIndex() {
   const sorted = [...POSTS].sort((a, b) => new Date(b.date) - new Date(a.date));
-  // Pinned main story: FEATURED_BLOG_SLUG / post.featured (generators guide).
-  // Always hero on /blog/ — not “newest non-Guide”.
   const hub = postsForHub(sorted);
   const featured = getFeaturedPost(sorted) || hub[0];
   const rest = hub.filter((p) => p.slug !== featured?.slug);
   const cover = postCoverUrl(featured);
-  // JSON-LD / crawl list: featured first so AI/search see the pillar on top.
-  const listForSeo = hub;
-  const jsonLd = jsonLdForIndex(listForSeo);
+  const jsonLd = jsonLdForIndex(hub);
   const categories = ["All", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
 
   const staticCards = rest.map((p, i) => postCardHtml(p, { eager: i < 3 })).join("");
-  const allLinks = listForSeo
+  const allLinks = hub
     .map(
       (p) =>
-        `<li><a href="/blog/${esc(p.slug)}.html">${esc(p.title)}</a> — ${esc(p.category)} · ${esc(formatDate(p.date))}</li>`
+        `<li><a href="/blog/${esc(p.slug)}.html">${esc(cleanTitle(p.title))}</a> — ${esc(p.category)} · ${esc(formatDate(p.date))}</li>`
     )
     .join("\n");
+
+  const featuredWords = wordCount(featured.body);
+  const featuredReadMins = calcReadMins(featuredWords);
+  const featuredTitle = cleanTitle(featured.title);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -574,7 +691,7 @@ function renderIndex() {
 <script type="application/ld+json">
 ${JSON.stringify(jsonLd, null, 2)}
 </script>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' https:; frame-src 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; base-uri 'self'; form-action 'self' mailto:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' ${SUPABASE_ORIGIN} https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com;">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/src/shared/theme.css"/>
 </head>
@@ -598,16 +715,16 @@ ${siteHeader({ mode: "index" })}
   </nav>
 
   <div id="blog-hero">
-    <a href="/blog/${esc(featured.slug)}.html" class="blog-hero" aria-label="Featured: ${esc(featured.title)}">
+    <a href="/blog/${esc(featured.slug)}.html" class="blog-hero" aria-label="Featured: ${esc(featuredTitle)}">
       <div class="blog-hero-img" style="background-image:url('${esc(cover)}')"></div>
       <div class="blog-hero-overlay">
         <span class="blog-hero-eyebrow">Featured · ${esc(featured.category)}</span>
-        <h2 class="blog-hero-title">${esc(featured.title)}</h2>
+        <h2 class="blog-hero-title">${esc(featuredTitle)}</h2>
         <p class="blog-hero-excerpt">${esc(featured.excerpt)}</p>
         <div class="blog-hero-footer">
           <span class="blog-cta blog-cta-primary">Read guide</span>
           <div class="blog-hero-meta">
-            <span>${ICON_CLOCK}${featured.readMins} min</span>
+            <span>${ICON_CLOCK}${featuredReadMins} min read</span>
             <span class="dot"></span>
             <span>${ICON_CALENDAR}${esc(formatDate(featured.date))}</span>
           </div>
@@ -651,7 +768,7 @@ function renderRss(sorted) {
       const desc = esc(plainText(p.excerpt));
       const body = esc(plainText(p.body).slice(0, 500)) + "…";
       return `    <item>
-      <title>${esc(p.title)}</title>
+      <title>${esc(cleanTitle(p.title))}</title>
       <link>${postUrl(p)}</link>
       <guid isPermaLink="true">${postUrl(p)}</guid>
       <pubDate>${new Date(p.date + "T12:00:00Z").toUTCString()}</pubDate>
@@ -684,8 +801,10 @@ function main() {
 
   for (const post of POSTS) {
     const outPath = path.join(BLOG_DIR, `${post.slug}.html`);
+    const words = wordCount(post.body);
+    const readMins = calcReadMins(words);
     fs.writeFileSync(outPath, renderPost(post));
-    console.log(`wrote blog/${post.slug}.html (${wordCount(post.body)} words)`);
+    console.log(`wrote blog/${post.slug}.html (${words} words, ${readMins} min read)`);
   }
 
   fs.writeFileSync(path.join(BLOG_DIR, "index.html"), renderIndex());

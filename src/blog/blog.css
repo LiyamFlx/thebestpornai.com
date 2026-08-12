@@ -576,13 +576,28 @@ a { color: inherit; }
 }
 
 .blog-card-meta {
-  margin-top: 4px;
+  margin-top: auto;
+  padding-top: 6px;
   color: var(--dim);
-  font-size: 11px;
+  font-size: 11.5px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
 }
 
-.blog-card-read {
-  display: none; /* cleaner cards; hover state carries CTA */
+.blog-card-read-more {
+  margin-left: auto;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--red-hot);
+  letter-spacing: 0.02em;
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.blog-card:hover .blog-card-read-more {
+  color: #fff;
+  transform: translateX(3px);
 }
 
 /* Skeleton */
@@ -822,6 +837,16 @@ a { color: inherit; }
   background-size: cover;
   background-position: center top;
   image-rendering: auto;
+}
+
+.blog-post-hero-photo--cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
 }
 
 .blog-post-hero-shade {
@@ -1557,10 +1582,69 @@ a { color: inherit; }
 }
 
 /* Related posts grid (reuse cards) */
-.blog-related-posts {
+.blog-related-posts,
+.blog-related-cards {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 18px 16px;
+  margin: 16px 0 24px;
+}
+
+@media (max-width: 960px) {
+  .blog-cards,
+  .blog-related-posts,
+  .blog-related-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .blog-cards,
+  .blog-related-posts,
+  .blog-related-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.blog-topic-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin: 24px 0 0;
+  padding: 16px 20px;
+  background: var(--black-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+}
+
+.blog-topic-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+  margin-right: 4px;
+}
+
+.blog-topic-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  background: var(--black-elev);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  text-decoration: none;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.blog-topic-pill:hover {
+  color: var(--white);
+  border-color: var(--red);
+  background: var(--black-soft);
 }
 
 /* Prev / next */

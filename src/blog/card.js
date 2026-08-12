@@ -42,22 +42,45 @@ export function formatDate(iso) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
+export function cleanTitle(str) {
+  if (!str) return "";
+  let clean = String(str).replace(/(\d{4,}|_\d{2,}|\s+\d{4,})$/i, "").trim();
+  clean = clean.replace(/'([A-Z])\b/g, (_, char) => `'${char.toLowerCase()}`);
+  return clean;
+}
+
+function wordCount(html) {
+  const t = String(html || "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&mdash;/g, "—")
+    .replace(/&hellip;/g, "…")
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+  return t ? t.split(/\s+/).filter(Boolean).length : 0;
+}
+
 /* Grid / related post card */
 export function postCardHtml(post) {
   const cover = postCoverThumbUrl(post);
+  const words = wordCount(post.body);
+  const readMins = Math.max(1, Math.ceil(words / 200));
+  const title = cleanTitle(post.title);
   return `
     <a class="blog-card" href="/blog/${esc(post.slug)}.html" data-category="${esc(post.category)}" data-slug="${esc(post.slug)}">
       <div class="blog-card-media">
-        <img src="${esc(cover)}" alt="${esc(post.title)}" loading="lazy" width="640" height="400" decoding="async"/>
+        <img src="${esc(cover)}" alt="${esc(title)}" loading="lazy" width="640" height="400" decoding="async"/>
         <span class="blog-card-pill">${esc(post.category)}</span>
       </div>
       <div class="blog-card-body">
-        <h3 class="blog-card-title">${esc(post.title)}</h3>
+        <h3 class="blog-card-title">${esc(title)}</h3>
         <p class="blog-card-excerpt">${esc(post.excerpt)}</p>
         <div class="blog-card-meta">
           <span>${ICON_CALENDAR}${esc(formatDate(post.date))}</span>
           <span class="dot"></span>
-          <span>${ICON_CLOCK}${post.readMins} min</span>
+          <span>${ICON_CLOCK}${readMins} min read</span>
+          <span class="blog-card-read-more">Read story →</span>
         </div>
       </div>
     </a>

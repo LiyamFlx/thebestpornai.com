@@ -33,39 +33,59 @@ document.querySelectorAll("[data-share=copy]").forEach((btn) => {
   });
 });
 
-/* Confession form: prefer mailto (real private delivery). If the browser
-   blocks mailto forms, fall back to a constructed mailto: link. No fake
-   “stored on server” claims. */
+/* Confession form: submits anonymously to /api/confession, falling back
+   to mailto if serverless endpoint is offline. */
 const confessionForm = document.getElementById("blog-confession-form");
 if (confessionForm) {
   const submitBtn = document.getElementById("blog-confession-submit");
   const textarea = document.getElementById("blog-confession-input");
 
-  confessionForm.addEventListener("submit", (e) => {
+  confessionForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!textarea || !textarea.value.trim() || !submitBtn || submitBtn.disabled) return;
 
     const body = textarea.value.trim();
-    const subject = encodeURIComponent("Blog confession (anonymous)");
-    const mailBody = encodeURIComponent(body + "\n\n— sent from thebestpornai.com/blog");
-    const href = `mailto:contact@thebestpornai.com?subject=${subject}&body=${mailBody}`;
+    if (body.length < 5) return;
+
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const postSlug = pathParts[pathParts.length - 1]?.replace(/\.html$/, "") || "";
 
     submitBtn.disabled = true;
     const originalLabel = submitBtn.textContent;
-    submitBtn.textContent = "Opening email…";
+    submitBtn.textContent = "Sending anonymously…";
 
-    // Navigate to mailto — user completes send in their mail client.
-    window.location.href = href;
+    try {
+      const res = await fetch("/api/confession", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body, post_slug: postSlug }),
+      });
 
-    setTimeout(() => {
+      if (res.ok) {
+        submitBtn.classList.add("is-success");
+        submitBtn.textContent = "Confession Received ✓";
+        textarea.value = "";
+        textarea.placeholder = "Your confession was submitted anonymously.";
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove("is-success");
+          submitBtn.textContent = originalLabel;
+        }, 3500);
+        return;
+      }
+      throw new Error(`Status ${res.status}`);
+    } catch (_) {
+      // Fallback to mailto if API fails
+      const subject = encodeURIComponent("Blog confession (anonymous)");
+      const mailBody = encodeURIComponent(body + "\n\n— sent from thebestpornai.com/blog");
+      window.location.href = `mailto:contact@thebestpornai.com?subject=${subject}&body=${mailBody}`;
       submitBtn.classList.add("is-success");
-      submitBtn.textContent = "Email draft ready";
-      textarea.placeholder = "If nothing opened, email contact@thebestpornai.com directly.";
+      submitBtn.textContent = "Email draft opened";
       setTimeout(() => {
         submitBtn.disabled = false;
         submitBtn.classList.remove("is-success");
         submitBtn.textContent = originalLabel;
-      }, 2800);
-    }, 400);
+      }, 3000);
+    }
   });
 }

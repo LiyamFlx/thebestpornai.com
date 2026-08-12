@@ -65,7 +65,7 @@ function mediaUrl(src){
   if(!/^https?:\/\//i.test(src) && !src.startsWith("blob:") && !src.startsWith("data:")) {
     if(MEDIA_BASE) {
       const rel = src.replace(/^(\.\.\/)?media\//, "");
-      const path = rel.split("/").map(encodeURIComponent).join("/");
+      const path = rel.split("/").map(seg => encodeURIComponent(seg).replace(/'/g, "%27")).join("/");
       result = MEDIA_BASE.replace(/\/$/,"") + "/" + path;
     }
   }
