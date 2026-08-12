@@ -207,6 +207,7 @@ export function setHomeFilter(f){
   render();
 }
 export function setHomeSort(s){ vstate.homeSort = s; render(); }
+export function setSearchSort(s){ vstate.searchSort = s; render(); }
 export function setHomeExpandCats(on){
   vstate.homeExpandCats = !!on;
   vstate.page = "home";

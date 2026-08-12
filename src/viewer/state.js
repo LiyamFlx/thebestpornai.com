@@ -32,7 +32,8 @@ export const vstate = {
   subs:["c1","c2"],
   homeFilter:"all",   // "all" | "movies" | "scenes" | "clips" | "pornstars"
   homeCategory:"",    // "" = no category filter, else a category name from taxonomy
-  homeSort:"none",    // "none" | "latest" | "likes" | "views"
+  homeSort:"none",    // "none" | "latest" | "views" | "likes" | "longest" | "shortest" | "trending"
+  searchSort:"none",  // "none" | "latest" | "views" | "likes" | "longest" | "shortest" | "trending"
   homeExpandCats:false, // show secondary category/act rows on home
   libraryTab:"later", // "later" | "favorites" | "history" | "downloads"
   commentPage: 1,     // comments paginated at COMMENTS_PER_PAGE

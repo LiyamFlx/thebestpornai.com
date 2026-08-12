@@ -52,6 +52,42 @@ const ROW_MAX = 18;
 // How many category rows show before "Browse more categories".
 const PRIMARY_CAT_ROWS = 2;
 
+export const SORT_OPTIONS = [
+  { key: "none", label: "Featured", icon: "✨" },
+  { key: "latest", label: "Latest Releases", icon: "🕒" },
+  { key: "views", label: "Most Viewed", icon: "👁️" },
+  { key: "likes", label: "Top Rated", icon: "❤️" },
+  { key: "longest", label: "Longest Duration", icon: "⏳" },
+  { key: "shortest", label: "Shortest Clips", icon: "⚡" },
+  { key: "trending", label: "Trending Now", icon: "🔥" },
+];
+
+export function renderSortControl(currentSort = "none", onSelectFn = "setHomeSort"){
+  const activeOpt = SORT_OPTIONS.find(s => s.key === currentSort) || SORT_OPTIONS[0];
+  return `
+    <div class="sort-control-wrap">
+      <button type="button" class="sort-trigger-btn ${currentSort !== 'none' ? 'is-sorted' : ''}" onclick="this.parentElement.classList.toggle('open')" aria-label="Sort videos: ${activeOpt.label}">
+        <svg class="ico sort-ico" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg>
+        <span class="sort-btn-label">${esc(activeOpt.label)}</span>
+        <span class="sort-btn-arrow">▾</span>
+      </button>
+      <div class="sort-menu-popover">
+        <div class="sort-menu-header">Sort By</div>
+        ${SORT_OPTIONS.map(s => {
+          const isSelected = currentSort === s.key;
+          return `
+            <button type="button" class="sort-menu-item ${isSelected ? 'active' : ''}" onclick="this.closest('.sort-control-wrap').classList.remove('open'); ${onSelectFn}('${s.key}')">
+              <span class="sort-item-icon">${s.icon}</span>
+              <span class="sort-item-title">${esc(s.label)}</span>
+              ${isSelected ? '<span class="sort-item-check">✓</span>' : ''}
+            </button>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
 function homeFilterBar(){
   const filters = [
     ["all","All"],
@@ -60,21 +96,29 @@ function homeFilterBar(){
     ["clips","Clips"],
     ["pornstars","Pornstars"],
   ];
-  const sorts = [["none","Default"],["latest","Latest"],["likes","Most Liked"],["views","Most Viewed"]];
   const activeCat = vstate.homeCategory;
-  // Hide sort when browsing stars (not a video list)
   const showSort = vstate.homeFilter !== "pornstars";
-  return `<div class="pill-row home-combined-bar mchrome-scroll">
-    ${filters.map(([key,label])=>`<button class="filter-pill ${(vstate.homeFilter===key && !activeCat)?'active':''}" onclick="setHomeFilter('${key}')">${label}</button>`).join("")}
-    <span class="cat-more">
-      <button class="filter-pill ${activeCat?'active':''}" onclick="this.parentNode.classList.toggle('open')">${activeCat ? esc(activeCat) : 'Filters'} ▾</button>
-      <div class="cat-more-menu">
-        ${CATEGORIES.map(c=>`<button class="cat-more-item ${activeCat===c?'active':''}" onclick="setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
+  return `<div class="home-toolbar-v2">
+    <div class="home-chips-strip mchrome-scroll">
+      ${filters.map(([key,label])=>`<button type="button" class="filter-pill ${(vstate.homeFilter===key && !activeCat)?'active':''}" onclick="setHomeFilter('${key}')">${label}</button>`).join("")}
+      <span class="cat-more">
+        <button type="button" class="filter-pill cat-picker-btn ${activeCat?'active':''}" onclick="this.parentNode.classList.toggle('open')">
+          <span class="cat-pill-label">${activeCat ? esc(activeCat) : 'Categories'}</span>
+          <span class="cat-pill-caret">▾</span>
+        </button>
+        <div class="cat-more-menu">
+          <div class="cat-more-menu-header">All Categories (${CATEGORIES.length})</div>
+          <div class="cat-more-grid">
+            ${CATEGORIES.map(c=>`<button type="button" class="cat-more-item ${activeCat===c?'active':''}" onclick="this.closest('.cat-more').classList.remove('open'); setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
+          </div>
+        </div>
+      </span>
+    </div>
+    ${showSort ? `
+      <div class="home-sort-wrap">
+        ${renderSortControl(vstate.homeSort, "setHomeSort")}
       </div>
-    </span>
-    ${showSort ? `<select class="sort-select sort-select-inline" onchange="setHomeSort(this.value)" aria-label="Sort videos">
-      ${sorts.map(([key,label])=>`<option value="${key}" ${vstate.homeSort===key?'selected':''}>Sort: ${label}</option>`).join("")}
-    </select>` : ""}
+    ` : ""}
   </div>`;
 }
 
@@ -267,12 +311,14 @@ function _renderHomeBody(){
   }
 
   if(sort!=="none"){
-    const label = sort==="latest" ? "Latest" : sort==="likes" ? "Most Liked" : "Most Viewed";
+    const sortObj = SORT_OPTIONS.find(s => s.key === sort);
+    const label = sortObj ? sortObj.label : "Sorted Videos";
+    const icon = sortObj ? sortObj.icon : "⚡";
     const all = sortedVideos(sort).slice(0, vstate.limit);
     const html = `
       ${homeFilterBar()}
       ${all.length
-        ? `<h3 class="row-heading">${label}</h3><div class="video-list">${all.map(v=>videoCard(v,{layout:'row'})).join("")}</div>`
+        ? `<h3 class="row-heading">${icon} ${label} <span class="small">(${pub.length} videos)</span></h3><div class="video-list">${all.map(v=>videoCard(v,{layout:'row'})).join("")}</div>`
         : emptyState("No videos match this sort yet.", POPULAR_TAGS.slice(0, 8), { emoji: "📭" })}
       ${pub.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
     `;

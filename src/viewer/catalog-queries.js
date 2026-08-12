@@ -134,11 +134,24 @@ export function relatedTo(video, limit=12){
     .map(x=>x.u);
 }
 
-export function sortedVideos(sort){
-  const vids = pubVideos().slice();
-  if(sort==="latest") return vids.sort((a,b)=>(b.uploaded||"").localeCompare(a.uploaded||""));
-  if(sort==="likes") return vids.sort((a,b)=>b.likes-a.likes);
-  if(sort==="views") return vids.sort((a,b)=>b.views-a.views);
+export function parseDurationSec(dur){
+  if(!dur || typeof dur !== "string") return 0;
+  const parts = dur.split(":").map(Number);
+  if(parts.some(isNaN)) return 0;
+  if(parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
+  if(parts.length === 2) return parts[0]*60 + parts[1];
+  return parts[0] || 0;
+}
+
+export function sortedVideos(sort, sourceList = null){
+  const vids = (sourceList || pubVideos()).slice();
+  if(sort==="latest" || sort==="newest") return vids.sort((a,b)=>(b.uploaded||"").localeCompare(a.uploaded||"") || ((b.id||0)-(a.id||0)));
+  if(sort==="oldest") return vids.sort((a,b)=>(a.uploaded||"").localeCompare(b.uploaded||"") || ((a.id||0)-(b.id||0)));
+  if(sort==="likes" || sort==="rating") return vids.sort((a,b)=>(b.likes||0)-(a.likes||0));
+  if(sort==="views" || sort==="popular") return vids.sort((a,b)=>(b.views||0)-(a.views||0));
+  if(sort==="longest") return vids.sort((a,b)=>parseDurationSec(b.duration)-parseDurationSec(a.duration));
+  if(sort==="shortest") return vids.sort((a,b)=>parseDurationSec(a.duration)-parseDurationSec(b.duration));
+  if(sort==="trending") return vids.sort((a,b)=>((b.likes||0)*1.2+(b.views||0)*0.01)-((a.likes||0)*1.2+(a.views||0)*0.01));
   return vids;
 }
 

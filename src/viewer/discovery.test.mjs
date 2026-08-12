@@ -41,3 +41,34 @@ test("relatedTo - ranks by shared tag/category overlap, excludes self", () => {
     assert.ok(!rel.includes(4), "zero-overlap excluded");
   } finally { DATA.videos = orig; }
 });
+
+test("parseDurationSec & sortedVideos - handles all sort modes including duration and trending", async () => {
+  const { parseDurationSec, sortedVideos } = await import("./catalog-queries.js");
+  
+  assert.equal(parseDurationSec("0:08"), 8);
+  assert.equal(parseDurationSec("12:34"), 754);
+  assert.equal(parseDurationSec("1:05:20"), 3920);
+  assert.equal(parseDurationSec(null), 0);
+  assert.equal(parseDurationSec("invalid"), 0);
+
+  const sample = [
+    { id: 1, status: "published", duration: "1:00", views: 50, likes: 10, uploaded: "2026-01-01" },
+    { id: 2, status: "published", duration: "10:00", views: 500, likes: 100, uploaded: "2026-05-01" },
+    { id: 3, status: "published", duration: "0:30", views: 10, likes: 5, uploaded: "2026-03-01" },
+  ];
+
+  const longest = sortedVideos("longest", sample).map(v => v.id);
+  assert.deepEqual(longest, [2, 1, 3]);
+
+  const shortest = sortedVideos("shortest", sample).map(v => v.id);
+  assert.deepEqual(shortest, [3, 1, 2]);
+
+  const latest = sortedVideos("latest", sample).map(v => v.id);
+  assert.deepEqual(latest, [2, 3, 1]);
+
+  const views = sortedVideos("views", sample).map(v => v.id);
+  assert.deepEqual(views, [2, 1, 3]);
+
+  const likes = sortedVideos("likes", sample).map(v => v.id);
+  assert.deepEqual(likes, [2, 1, 3]);
+});

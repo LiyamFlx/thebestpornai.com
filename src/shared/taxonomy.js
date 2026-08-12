@@ -11,12 +11,13 @@
 /* ---------- CATEGORIES (homepage rows, sidebar, filter bar) ---------- */
 /* "All" is a UI pseudo-category handled by the filter bar, not stored here. */
 export const CATEGORIES = [
-  "AI Generated", "Lesbian", "MILF", "18+", "Big Ass", "Big Tits", "Anal", "Blowjob",
-  "Creampie", "Cumshot", "Gangbang", "Threesome", "Interracial", "Ebony", "Asian",
-  "Latina", "Amateur", "Homemade", "POV", "Public", "BDSM", "Fetish", "VR Porn",
-  "Hentai / Anime", "Mature", "Foot Fetish", "Massage", "Orgy", "Squirt",
-  "Step Fantasy", "Casting", "Romantic", "Hardcore", "Softcore", "PAWG", "Deepthroat",
-  "Titjob", "Compilation", "Blonde", "Rough Sex",
+  "AI Generated", "POV", "Amateur", "Homemade", "Big Ass", "Big Tits", "MILF", "Mature",
+  "18+", "Anal", "Blowjob", "Deepthroat", "Creampie", "Cumshot", "Facial", "Gangbang",
+  "Threesome", "Interracial", "BBC", "Ebony", "Asian", "Latina", "Blonde", "Brunette",
+  "Redhead", "Babe", "Lesbian", "Squirt", "Massage", "BDSM", "Fetish", "Foot Fetish",
+  "Cosplay", "Hentai / Anime", "VR Porn", "Public", "Outdoor", "Rough Sex", "Romantic",
+  "Step Fantasy", "Casting", "Hardcore", "Softcore", "PAWG", "Titjob", "Compilation",
+  "Stockings / Lingerie", "Female Orgasm", "Curvy", "Petite", "BBW", "House Originals",
 ];
 
 /* Premium / House Originals sub-categories (badged separately in the UI). */
@@ -28,31 +29,33 @@ export const PREMIUM_CATEGORIES = [
 /* ---------- TAGS (grouped for the picker; flattened for search) ---------- */
 export const TAG_GROUPS = {
   "Body / Appearance": [
-    "Big Ass", "Big Tits", "Big Boobs", "Small Tits", "Natural Tits", "Fake Tits",
-    "Huge Ass", "PAWG", "Bubble Butt", "Thick Thighs", "Curvy", "Petite", "Skinny",
+    "Big Ass", "Big Tits", "Big Boobs", "Huge Tits", "Small Tits", "Natural Tits", "Fake Tits",
+    "Huge Ass", "PAWG", "Bubble Butt", "Thick Thighs", "Curvy", "Petite", "Skinny", "Slim",
     "Tall", "Short", "Blonde", "Brunette", "Redhead", "Ebony", "Asian", "Latina",
-    "Indian", "Arab", "MILF", "18+", "Barely Legal (18+)", "Young", "Mature",
-    "Granny", "BBW", "Chubby", "Fit", "Athletic", "Tattooed", "Pierced",
+    "Indian", "Arab", "Japanese", "Korean", "MILF", "18+", "Barely Legal (18+)", "Young", "Mature",
+    "Granny", "BBW", "Chubby", "Fit", "Athletic", "Tattooed", "Pierced", "Goth", "E-Girl",
   ],
-  "Action / Fetish": [
-    "Blowjob", "Deepthroat", "Swallow", "Cumshot", "Facial", "Creampie", "Anal",
-    "Double Penetration", "Gangbang", "Threesome", "Lesbian", "FFM", "MMF", "BDSM",
-    "Bondage", "Spanking", "Footjob", "Handjob", "Titjob", "Rimjob", "Squirting",
-    "Orgasm", "Female Orgasm", "Male Orgasm", "Public", "Outdoor", "Car Sex",
-    "Kitchen", "Shower", "Massage", "Roleplay", "Cosplay", "Maid", "Teacher",
-    "Step Sister", "Step Mom", "Cuckold", "Hotwife",
+  "Action / Sex": [
+    "Blowjob", "Deepthroat", "Sloppy Blowjob", "Swallow", "Gagging", "Face Fuck", "Cumshot",
+    "Facial", "Creampie", "Anal", "Double Penetration", "Double Anal", "Gangbang", "Threesome",
+    "Lesbian", "FFM", "MMF", "Scissoring", "Tribbing", "Strap On", "BDSM", "Bondage",
+    "Spanking", "Domination", "Submission", "Footjob", "Handjob", "Titjob", "Rimjob", "Squirting",
+    "Orgasm", "Female Orgasm", "Male Orgasm", "Multi-Orgasm", "Public", "Outdoor", "Car Sex",
+    "Kitchen", "Shower", "Pool", "Massage", "Roleplay", "Cosplay", "Maid", "Teacher", "Nurse",
+    "Step Sister", "Step Mom", "Cuckold", "Hotwife", "Raw / Bareback",
   ],
-  "Niches": [
-    "Amateur", "Homemade", "POV", "VR", "4K", "8K", "Slow Motion", "ASMR", "JOI",
-    "CEI", "Femdom", "Pegging", "Chastity", "Latex", "Leather", "Hentai", "Anime",
-    "Cartoon", "Pregnant", "Lactating", "Fisting", "Gaping", "Double Anal", "BBC",
-    "Interracial", "Lesbian Scissoring", "Tribbing", "Strap On",
+  "Niches & Styles": [
+    "Amateur", "Homemade", "POV", "VR", "4K", "8K", "60FPS", "Slow Motion", "ASMR", "JOI",
+    "CEI", "Femdom", "Pegging", "Chastity", "Latex", "Leather", "Stockings", "Lingerie",
+    "High Heels", "Fishnets", "Panties", "Hentai", "Anime", "3D Render", "Cartoon",
+    "Pregnant", "Lactating", "Fisting", "Gaping", "BBC", "Interracial", "Taboo", "Fantasy",
   ],
-  "Trending & Viral": [
-    "OnlyFans", "TikTok", "Instagram", "Gone Wild", "Public Agent", "Casting",
-    "Audition", "First Time", "Creampie Surprise", "Cum In Mouth", "Cum Swallow",
-    "Deep Fake", "AI Generated", "Realistic", "Passionate", "Rough Sex", "Gentle",
-    "Romantic", "Hardcore", "Softcore",
+  "Trending & AI": [
+    "AI Generated", "Photorealistic", "Ultra Realistic", "Deepfake", "Synthetic Lust",
+    "Virtual Model", "Digital Star", "OnlyFans", "Fansly", "TikTok", "Instagram", "Gone Wild",
+    "Public Agent", "Casting", "Audition", "First Time", "Creampie Surprise", "Cum In Mouth",
+    "Cum Swallow", "Passionate", "Sensual", "Rough Sex", "Gentle", "Romantic", "Hardcore",
+    "Softcore", "Tease & Denial", "Edging",
   ],
 };
 
@@ -73,9 +76,9 @@ export const ALL_CATEGORIES = [...CATEGORIES, ...PREMIUM_CATEGORIES];
 
 /* Top tags auto-suggested first in the upload picker (high-traffic terms). */
 export const POPULAR_TAGS = [
-  "Big Ass", "Big Tits", "MILF", "Anal", "Blowjob", "Creampie", "Amateur", "POV",
-  "Lesbian", "Threesome", "Cumshot", "Ebony", "Asian", "Latina", "Squirt",
-  "Public", "Rough Sex", "Step Mom", "PAWG", "Interracial",
+  "Big Ass", "Big Tits", "MILF", "Anal", "Blowjob", "Deepthroat", "Creampie", "Amateur",
+  "POV", "Lesbian", "Threesome", "Cumshot", "Facial", "Ebony", "Asian", "Latina", "Blonde",
+  "Redhead", "Squirt", "Public", "Rough Sex", "Step Mom", "PAWG", "Interracial", "4k", "ai",
 ];
 
 /* Case-insensitive membership test used to boost popular tags in the picker. */

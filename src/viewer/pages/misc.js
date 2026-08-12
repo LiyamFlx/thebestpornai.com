@@ -6,8 +6,9 @@ import { POPULAR_TAGS, CATEGORIES } from "../../shared/taxonomy.js";
 import { ShAuth } from "../../shared/streamhub-api.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
-import { pubVideos, byCat, videoById, trending, pornstars, searchCatalog } from "../catalog-queries.js";
+import { pubVideos, byCat, videoById, trending, pornstars, searchCatalog, sortedVideos } from "../catalog-queries.js";
 import { pagedGrid } from "../grid-window.js";
+import { renderSortControl } from "./home.js";
 
 // Horizontal category rows never need more than a screenful of cards.
 const CAT_ROW_MAX = 24;
@@ -282,7 +283,7 @@ export function renderSearch(){
   const raw = (vstate.searchQuery||"").trim();
   if(!raw) return renderSearchHub();
 
-  const vids = searchCatalog(raw);
+  let vids = searchCatalog(raw);
   const qLower = raw.toLowerCase();
   const crs = DATA.creators.filter(c =>
     (c.name||"").toLowerCase().includes(qLower) ||
@@ -298,6 +299,10 @@ export function renderSearch(){
   const related = Object.entries(tagFreq).sort((a,b)=>b[1]-a[1]).slice(0, 12).map(x=>x[0]);
   const fallback = !vids.length ? trending().slice(0, SEARCH_HUB_TRENDING) : [];
 
+  if(vstate.searchSort && vstate.searchSort !== "none"){
+    vids = sortedVideos(vstate.searchSort, vids);
+  }
+
   return `
     <div class="search-page">
       <div class="search-results-head">
@@ -305,7 +310,10 @@ export function renderSearch(){
           <h2>Results for “${esc(raw)}”</h2>
           <p class="sub">${vids.length} video${vids.length!==1?'s':''}${crs.length ? ` · ${crs.length} creator${crs.length!==1?'s':''}` : ''}</p>
         </div>
-        <button type="button" class="btn ghost sm" onclick="clearSearch()">Clear</button>
+        <div class="search-head-actions">
+          ${vids.length ? renderSortControl(vstate.searchSort, "setSearchSort") : ""}
+          <button type="button" class="btn ghost sm" onclick="clearSearch()">Clear</button>
+        </div>
       </div>
       ${related.length ? `
         <div class="pill-row related-tags" aria-label="Related tags">

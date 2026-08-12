@@ -1030,39 +1030,88 @@ iframe.player{object-fit:contain}
    flow inline in .watch-actions exactly as before this pass. */
 .act-overflow,.act-menu{display:contents}
 
-/* Combined type-filter + category bar with "More ▾" dropdown. Desktop wraps
-   to multiple lines as needed; mobile forces it into one scrollable strip
-   (.mchrome-scroll, in the max-width:760px block below). */
-.home-combined-bar{flex-wrap:wrap;gap:4px;margin:4px 0;align-items:center}
-.home-combined-bar .filter-pill.active{background:var(--accent);color:#fff}
-.cat-more{position:relative;display:inline-block}
-/* Sort select, styled to match the filter-pill chips it sits alongside
-   (pushed to the row's end on desktop where the row wraps; on mobile the
-   row scrolls instead, so it just trails the last chip in scroll order). */
-.sort-select-inline{
-  background:var(--surface2);border:none;color:var(--muted);
-  font-size:12.5px;font-weight:500;padding:6px 26px 6px 12px;border-radius:7px;
-  flex:0 0 auto;margin-left:auto;
-  -webkit-appearance:none;appearance:none;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23A0A0A0' stroke-width='1.5'/></svg>");
-  background-repeat:no-repeat;background-position:right 10px center;
-}
-.sort-select-inline:hover{color:var(--text)}
-.sort-select-inline:focus{outline:2px solid var(--accent);outline-offset:1px}
+/* Combined type-filter + category bar and modern Sort By Toolbar (v2) */
+.home-toolbar-v2{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:6px 0 16px 0;width:100%}
+.home-chips-strip{display:flex;align-items:center;gap:6px;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.home-chips-strip::-webkit-scrollbar{display:none}
+
+.cat-picker-btn{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);font-weight:600}
+.cat-picker-btn:hover{background:var(--surface);border-color:var(--accent)}
+.cat-picker-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cat-pill-caret{font-size:10px;opacity:0.8;transition:transform .2s ease}
+.cat-more.open .cat-pill-caret{transform:rotate(180deg)}
+
+.cat-more{position:relative;display:inline-block;flex-shrink:0}
 .cat-more-menu{
-  display:none;position:absolute;z-index:40;top:100%;left:0;margin-top:6px;
-  min-width:200px;max-height:340px;overflow-y:auto;padding:6px;
-  background:var(--surface);border:1px solid var(--border);border-radius:10px;
-  box-shadow:0 12px 32px rgba(0,0,0,.4);
-  grid-template-columns:1fr 1fr;gap:2px;
+  display:none;position:absolute;z-index:150;top:calc(100% + 6px);left:0;
+  width:340px;max-height:380px;overflow-y:auto;
+  background:rgba(22,22,28,0.98);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border:1px solid rgba(255,255,255,0.14);border-radius:14px;
+  box-shadow:0 16px 48px rgba(0,0,0,0.7);
+  animation:fadeInMenu .16s cubic-bezier(0.16,1,0.3,1);
 }
-.cat-more.open .cat-more-menu{display:grid}
+.cat-more.open .cat-more-menu{display:block}
+.cat-more-menu-header{
+  padding:10px 14px 8px;font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.6px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.cat-more-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;padding:6px}
 .cat-more-item{
   background:transparent;border:none;color:var(--text);text-align:left;
-  font-size:12.5px;padding:7px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;
+  font-size:12.5px;font-weight:500;padding:8px 10px;border-radius:7px;
+  cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:all .14s ease;
 }
-.cat-more-item:hover{background:var(--surface2)}
-.cat-more-item.active{background:var(--accent);color:#fff;font-weight:600}
+.cat-more-item:hover{background:rgba(255,255,255,0.08);color:#fff}
+.cat-more-item.active{background:var(--accent);color:#fff;font-weight:700}
+
+/* ---- Modern Sort By Control ---- */
+.home-sort-wrap{flex-shrink:0}
+.sort-control-wrap{position:relative;display:inline-block}
+.sort-trigger-btn{
+  display:inline-flex;align-items:center;gap:7px;background:var(--surface2);
+  border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:20px;
+  font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;
+  transition:all .16s ease;user-select:none;
+}
+.sort-trigger-btn:hover{background:var(--surface);border-color:rgba(255,255,255,0.25);box-shadow:0 2px 10px rgba(0,0,0,0.25)}
+.sort-trigger-btn.is-sorted{background:rgba(255,75,110,0.12);border-color:rgba(255,75,110,0.5);color:#fff}
+.sort-ico{opacity:0.85;flex-shrink:0}
+.sort-btn-label{font-size:12.5px;color:inherit}
+.sort-btn-label b{font-weight:700;color:var(--accent-light,#ff7597)}
+.sort-trigger-btn.is-sorted .sort-btn-label b{color:#fff}
+.sort-btn-arrow{font-size:10px;opacity:0.7;transition:transform .2s ease}
+.sort-control-wrap.open .sort-btn-arrow{transform:rotate(180deg)}
+
+.sort-menu-popover{
+  display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:220px;
+  background:rgba(22,22,28,0.98);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border:1px solid rgba(255,255,255,0.14);border-radius:14px;
+  box-shadow:0 16px 44px rgba(0,0,0,0.7);padding:6px;z-index:160;
+  animation:fadeInMenu .16s cubic-bezier(0.16,1,0.3,1);
+}
+.sort-control-wrap.open .sort-menu-popover{display:flex;flex-direction:column}
+.sort-menu-header{
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;
+  color:var(--muted);padding:8px 12px 6px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:4px;
+}
+.sort-menu-item{
+  display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;
+  background:transparent;border:none;border-radius:8px;color:var(--text);
+  font-size:13px;font-weight:500;text-align:left;cursor:pointer;
+  transition:background .12s,color .12s;
+}
+.sort-menu-item:hover{background:rgba(255,255,255,0.08);color:#fff}
+.sort-menu-item.active{background:rgba(255,75,110,0.16);color:var(--accent-light,#ff7597);font-weight:700}
+.sort-item-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.sort-item-title{flex:1 1 auto;white-space:nowrap}
+.sort-item-check{color:var(--accent);font-weight:700;font-size:13px}
+
+.search-head-actions{display:flex;align-items:center;gap:8px}
+
+@keyframes fadeInMenu{
+  from{opacity:0;transform:translateY(-4px) scale(0.98)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
 
 /* Clickable tag chips under video cards — tight under the title, not pushed
    to the card's bottom edge; a stretched grid row just leaves blank space
@@ -1656,21 +1705,23 @@ iframe.player{object-fit:contain}
     display:inline-flex;align-items:center;padding:6px 14px;
     font-size:12px;font-weight:600;border-radius:999px;
   }
-  /* .cat-more stays visible on mobile (it's now the only way to reach
-     categories — the old inline-pill overflow escape hatch is gone). Its
-     menu switches to position:fixed here since .mchrome-scroll's
-     overflow-x:auto would otherwise clip an absolutely-positioned dropdown. */
-  .home-combined-bar .cat-more-menu{
-    position:fixed;left:16px;right:16px;top:112px;margin-top:0;
-    width:auto;min-width:0;max-height:60vh;
+  .home-toolbar-v2{
+    display:flex;flex-direction:row;align-items:center;justify-content:space-between;
+    gap:8px;margin:4px 0 12px 0;width:100%;
   }
-  /* Inside the scrolling row, not pushed right (no room to "end" a scroll
-     strip) — trails the last chip, min-height bumped to match touch target
-     sizing used by the pills around it. */
-  .home-combined-bar .sort-select-inline{
-    min-height:36px !important;margin-left:0 !important;
-    flex:0 0 auto !important;position:static !important;
-    max-width:130px;white-space:nowrap;
+  .home-chips-strip{
+    display:flex;align-items:center;gap:6px;flex:1 1 auto;min-width:0;
+    overflow-x:auto;padding-bottom:2px;
+  }
+  .home-sort-wrap{flex:0 0 auto}
+  .sort-trigger-btn{min-height:36px;padding:6px 12px;font-size:12px}
+  .cat-more .cat-more-menu{
+    position:fixed;left:12px;right:12px;top:110px;margin-top:0;
+    width:auto;min-width:0;max-height:60vh;z-index:999;
+  }
+  .sort-control-wrap .sort-menu-popover{
+    position:fixed;left:12px;right:12px;top:auto;bottom:65px;
+    width:auto;min-width:0;max-height:60vh;z-index:999;
   }
 
   /* ---- Cards (Row vs 2-Up Grid) ---- */

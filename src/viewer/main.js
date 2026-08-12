@@ -17,6 +17,7 @@ import {
   setHomeFilter,
   setHomeCategory,
   setHomeSort,
+  setSearchSort,
   setHomeExpandCats,
   setLibraryTab,
   searchTag,
@@ -122,6 +123,7 @@ Object.assign(window, {
   setHomeFilter,
   setHomeCategory,
   setHomeSort,
+  setSearchSort,
   setHomeExpandCats,
   setLibraryTab,
   searchTag,
@@ -297,15 +299,23 @@ document.addEventListener("keydown", (e) => {
 
 // The watch page renders two genuinely different layouts (mobile tabs vs.
 // desktop full stack — see pages/watch.js), decided once per render() call
-// via a matchMedia check. Without this listener, dragging a desktop window
-// narrow (or rotating a tablet) across the 760px breakpoint would leave the
-// wrong layout on screen until the user navigated away and back.
+// via a matchMedia check.
 if (window.matchMedia) {
   const watchBreakpoint = window.matchMedia("(max-width:760px)");
   const onWatchBreakpointChange = () => { if (vstate.page === "watch") render(); };
   if (watchBreakpoint.addEventListener) watchBreakpoint.addEventListener("change", onWatchBreakpointChange);
-  else if (watchBreakpoint.addListener) watchBreakpoint.addListener(onWatchBreakpointChange); // Safari < 14
+  else if (watchBreakpoint.addListener) watchBreakpoint.addListener(onWatchBreakpointChange);
 }
+
+// Close category and sort dropdown popovers when clicking outside
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".cat-more")) {
+    document.querySelectorAll(".cat-more.open").forEach(el => el.classList.remove("open"));
+  }
+  if (!e.target.closest(".sort-control-wrap")) {
+    document.querySelectorAll(".sort-control-wrap.open").forEach(el => el.classList.remove("open"));
+  }
+});
 
 import { initPwaInstall } from "./pwa-install.js";
 initPwaInstall();
