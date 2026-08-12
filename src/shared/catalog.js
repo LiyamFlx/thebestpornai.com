@@ -34,12 +34,24 @@ function creatorVerified(id){ const c = DATA.creators.find(x=>x.id===id); return
 /* Format a number compactly: 1.2M / 3.4K / 567. */
 function fmt(n){ return n>=1000000 ? (n/1000000).toFixed(1)+"M" : n>=1000 ? (n/1000).toFixed(1)+"K" : ""+n; }
 
-/* Transient toast notification. Expects a #toast element on the page. */
+/* Transient toast notification. Expects a #toast element on the page.
+   Supports an optional interactive action button (e.g. "View in Library"). */
 let _toastTimer;
-function toast(msg){
+function toast(msg, actionLabel, actionFn){
   const t=document.getElementById("toast"); if(!t) return;
-  t.textContent=msg; t.classList.add("show");
-  clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>t.classList.remove("show"),2400);
+  if(actionLabel && typeof actionFn === "function"){
+    t.innerHTML = `<span>${esc(msg)}</span><button type="button" class="toast-act-btn">${esc(actionLabel)} →</button>`;
+    const btn = t.querySelector(".toast-act-btn");
+    if(btn) btn.onclick = (e) => {
+      e.stopPropagation();
+      actionFn();
+      t.classList.remove("show");
+    };
+  } else {
+    t.textContent=msg;
+  }
+  t.classList.add("show");
+  clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>t.classList.remove("show"), actionLabel ? 3800 : 2400);
 }
 
 /* Rewrite a "../media/x.mp4" path to the CDN when MEDIA_BASE is set and HTML-escape it. */

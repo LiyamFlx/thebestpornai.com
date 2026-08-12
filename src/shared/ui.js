@@ -97,6 +97,7 @@ export function videoCard(v, opts={}){
   const isRow = opts.layout === 'row';
   const cName = creatorName(v.creator);
   const isVerified = creatorVerified(v.creator);
+  const qualityBadge = v.src ? `<span class="quality-badge">4K</span>` : '';
   // Creator (+ verified badge) on the left, views (+ eye icon) on the right,
   // one row — then the title directly underneath. Same shape for every card
   // regardless of row/grid layout, so cards read consistently site-wide
@@ -116,7 +117,7 @@ export function videoCard(v, opts={}){
   return `
     <article class="card${isRow ? ' card--row' : ''}" data-action="open-video" data-video-id="${v.id}" onclick="${opts.onClick || `openVideo(${v.id})`}">
       <div class="video-thumb ${v.type==='original'?'original':''}">
-        ${badge?`<span class="corner-badge">${esc(badge)}</span>`:``}
+        ${badge?`<span class="corner-badge">${esc(badge)}</span>`:qualityBadge}
         ${thumb}
         ${hoverSrc}
         ${quickActions}

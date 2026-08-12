@@ -95,6 +95,9 @@ export function toggleFeedMute(){
   document.querySelectorAll(".feed-sound-label").forEach(l => {
     l.textContent = feedMuted ? "Muted" : "Sound";
   });
+  document.querySelectorAll(".feed-unmute-banner").forEach(el => {
+    el.classList.toggle("hidden", !feedMuted);
+  });
 }
 
 /* Heavy inner content for a single feed item — only injected into shells that
@@ -112,6 +115,11 @@ function feedItemInner(d){
 
     <!-- Video element -->
     <video class="feed-video" playsinline preload="none" ${feedMuted ? 'muted' : ''} data-src="${mediaUrl(v.src)}" poster="${mediaUrl(v.thumb)}"></video>
+
+    <!-- Floating Tap for Sound banner (visible when muted) -->
+    <button type="button" class="feed-unmute-banner ${feedMuted ? '' : 'hidden'}" onclick="event.stopPropagation();toggleFeedMute()" aria-label="Tap for sound">
+      <span class="ico-sound">🔊</span> Tap for Sound
+    </button>
 
     <!-- Play / Pause / Playback State Toast Badge Overlay -->
     <div class="feed-state-badge" aria-hidden="true"></div>

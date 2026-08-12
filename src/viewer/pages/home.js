@@ -96,14 +96,17 @@ function homeFilterBar(){
     ["clips","Clips"],
     ["pornstars","Pornstars"],
   ];
+  const POPULAR_QUICK_CATS = ["Latina", "MILF", "POV", "Big Tits", "Blonde", "Amateur"];
   const activeCat = vstate.homeCategory;
   const showSort = vstate.homeFilter !== "pornstars";
   return `<div class="home-toolbar-v2">
     <div class="home-chips-strip mchrome-scroll">
-      ${filters.map(([key,label])=>`<button type="button" class="filter-pill ${(vstate.homeFilter===key && !activeCat)?'active':''}" onclick="setHomeFilter('${key}')">${label}</button>`).join("")}
+      ${filters.map(([key,label])=>`<button type="button" class="filter-pill ${(vstate.homeFilter===key && !activeCat)?'active':''}" onclick="setHomeCategory(''); setHomeFilter('${key}')">${label}</button>`).join("")}
+      <span class="filter-divider"></span>
+      ${POPULAR_QUICK_CATS.map(c=>`<button type="button" class="filter-pill ${activeCat===c?'active':''}" onclick="setHomeFilter('all'); setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
       <span class="cat-more">
-        <button type="button" class="filter-pill cat-picker-btn ${activeCat?'active':''}" onclick="this.parentNode.classList.toggle('open')">
-          <span class="cat-pill-label">${activeCat ? esc(activeCat) : 'Categories'}</span>
+        <button type="button" class="filter-pill cat-picker-btn ${activeCat && !POPULAR_QUICK_CATS.includes(activeCat)?'active':''}" onclick="this.parentNode.classList.toggle('open')">
+          <span class="cat-pill-label">${activeCat && !POPULAR_QUICK_CATS.includes(activeCat) ? esc(activeCat) : 'More Categories (' + CATEGORIES.length + ')'}</span>
           <span class="cat-pill-caret">▾</span>
         </button>
         <div class="cat-more-menu">
@@ -207,12 +210,17 @@ function homeHero(hero){
     <section class="home-hero" aria-label="Featured video" data-hero-id="${hero.id}">
       <div class="home-hero-media">${media}</div>
       <div class="home-hero-body">
-        <span class="home-hero-tag">Featured</span>
-        <span class="home-hero-count">${liveCount} videos and counting</span>
+        <div class="home-hero-badge-row">
+          <span class="home-hero-tag">✨ Featured</span>
+          <span class="home-hero-count">4K Ultra HD · ${liveCount} Videos</span>
+          <span class="home-hero-free-pill">100% Free · No Signup</span>
+        </div>
         <h1 class="home-hero-title">${esc(hero.title)}</h1>
         <p class="home-hero-meta">${esc(creatorName(hero.creator))} · ${fmt(displayViews(hero))} views${hero.uploaded ? ` · ${esc(relativeTime(hero.uploaded))}` : ''}</p>
         <div class="home-hero-actions">
-          <button type="button" class="btn home-hero-play" onclick="openVideo(${hero.id})">▶ Play</button>
+          <button type="button" class="btn home-hero-play" onclick="openVideo(${hero.id})">
+            <span class="play-ico">▶</span> Play Now
+          </button>
           <button type="button" class="hero-later-btn ${laterOn?'on':''}" data-later-id="${hero.id}" aria-pressed="${laterOn?'true':'false'}" onclick="toggleLater(${hero.id})" aria-label="${laterOn?'Remove from Watch Later':'Add to Watch Later'}" title="Watch Later"><svg class="ico"><use href="#icon-save"/></svg></button>
         </div>
       </div>

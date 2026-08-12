@@ -96,6 +96,17 @@ export function attachPlayerControlsV2(){
   video.addEventListener("play", setPlayIcon);
   video.addEventListener("pause", setPlayIcon);
 
+  const triggerSeekRipple = (secs) => {
+    const isForward = secs > 0;
+    const existing = wrap.querySelector(".seek-ripple");
+    if(existing) existing.remove();
+    const ripple = document.createElement("div");
+    ripple.className = `seek-ripple ${isForward ? 'forward' : 'rewind'}`;
+    ripple.innerHTML = `<span class="seek-ripple-icon">${isForward ? '▶▶' : '◀◀'}</span><span class="seek-ripple-text">${isForward ? '+10s' : '-10s'}</span>`;
+    wrap.appendChild(ripple);
+    setTimeout(() => { if(ripple.isConnected) ripple.remove(); }, 650);
+  };
+
   window.togglePlayPauseV2 = () => {
     if(video.paused || video.ended) video.play().catch(()=>{});
     else video.pause();
@@ -103,6 +114,7 @@ export function attachPlayerControlsV2(){
   window.skipTime = (secs) => {
     if(!isFinite(video.duration)) return;
     video.currentTime = Math.min(Math.max(video.currentTime + secs, 0), video.duration);
+    triggerSeekRipple(secs);
   };
   window.seekToPercent = (pct) => {
     if(!isFinite(video.duration)) return;

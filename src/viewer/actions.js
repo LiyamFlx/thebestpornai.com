@@ -286,7 +286,11 @@ export function toggleFav(id){
   const on = vstate.favorites.includes(id);
   on ? vstate.favorites=vstate.favorites.filter(x=>x!==id) : vstate.favorites.push(id);
   persistState();
-  toast(!on?"Added to Favorites":"Removed from Favorites");
+  if(!on){
+    toast("Added to Favorites", "View Favorites", () => go("favorites"));
+  } else {
+    toast("Removed from Favorites");
+  }
   persist(()=> on ? ShAPI.removeFavorite(id) : ShAPI.addFavorite(id));
   reflectSetToggle("fav", id, !on);
 }
@@ -296,7 +300,11 @@ export function toggleLater(id){
   const on = vstate.later.includes(id);
   on ? vstate.later=vstate.later.filter(x=>x!==id) : vstate.later.push(id);
   persistState();
-  toast(!on?"Saved to Watch Later":"Removed");
+  if(!on){
+    toast("Saved to Watch Later", "View Watch Later", () => go("later"));
+  } else {
+    toast("Removed from Watch Later");
+  }
   reflectSetToggle("later", id, !on);
 }
 

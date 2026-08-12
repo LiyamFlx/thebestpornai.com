@@ -59,7 +59,22 @@ export function renderLibrary(){
         <p class="sub library-count">${list.length} item${list.length!==1?'s':''}</p>
         ${list.length
           ? pagedGrid(list, v => videoCard(v, { layout: "row" }), { cls: "video-list" })
-          : `<div class="empty">${esc(meta.empty)} <button type="button" class="btn ghost sm" style="margin-top:12px" onclick="go('home')">Browse Home</button></div>`}
+          : `
+            <div class="library-empty-box">
+              <div class="empty-emoji">🎬</div>
+              <div class="empty-msg">${esc(meta.empty)}</div>
+              <div class="library-empty-actions">
+                <button type="button" class="btn" onclick="go('home')">🔥 Browse Trending</button>
+                <button type="button" class="btn ghost" onclick="go('categories')">Browse Categories</button>
+              </div>
+              <div class="library-empty-recs">
+                <h3 class="row-heading">Recommended For You</h3>
+                <div class="row-scroll">
+                  ${trending().slice(0, 8).map(v => videoCard(v)).join("")}
+                </div>
+              </div>
+            </div>
+          `}
       </div>
     </div>`;
 }
