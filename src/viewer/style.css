@@ -1018,6 +1018,7 @@ iframe.player{object-fit:contain}
    re-enabled inside the max-width:760px block further down. */
 .topbar-search-toggle{display:none}   /* collapsed-header search icon (mobile only) */
 .topbar-drawer-toggle{display:none}   /* hamburger drawer trigger (mobile only — desktop uses the icon rail) */
+.topbar-back-btn{display:none}        /* mobile watch back button */
 .mobile-topbar-brand{display:none}    /* duplicate logo next to the sidebar's own brand mark (mobile only, sidebar is hidden there) */
 .topbar .left{display:none}           /* plain-text wordmark, superseded by the icon-rail's <img> brand on desktop */
 .mobile-hero{display:none}            /* mobile-only featured banner — .hero (above) is its desktop equivalent; only .hero{display:none} was ever added for mobile, this element never had the matching desktop-side hide, so both heroes rendered stacked together on every viewport until now */
@@ -1537,7 +1538,7 @@ iframe.player{object-fit:contain}
   h1{font-size:20px;letter-spacing:-.2px}
   h2{font-size:18px;letter-spacing:-.2px}
 
-  /* ---- Top bar & Hamburger button ---- */
+  /* ---- Top bar & Hamburger / Back button ---- */
   .topbar-drawer-toggle {
     display: inline-flex !important;
     align-items: center;
@@ -1552,6 +1553,31 @@ iframe.player{object-fit:contain}
     background: transparent;
     border: none;
     color: var(--text);
+  }
+  .topbar-back-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .topbar-back-btn .ico {
+    width: 20px;
+    height: 20px;
+  }
+  .page-watch .topbar-drawer-toggle {
+    display: none !important;
+  }
+  .page-watch .topbar-back-btn {
+    display: inline-flex !important;
   }
   .mobile-topbar-brand {
     display: inline-flex;
@@ -2135,6 +2161,7 @@ iframe.player{object-fit:contain}
 .sheet{
   width:100%;max-width:480px;background:var(--surface);border:1px solid var(--border);
   border-radius:18px 18px 0 0;padding:20px;
+  padding-bottom:calc(20px + env(safe-area-inset-bottom));
 }
 .sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .sheet-head h3{margin:0;font-size:15px;font-weight:800}
@@ -2156,7 +2183,7 @@ iframe.player{object-fit:contain}
 
 @media(min-width:761px){
   .sheet-backdrop{align-items:center}
-  .sheet{border-radius:18px}
+  .sheet{border-radius:18px;padding-bottom:20px}
 }
 
 /* ============================================================
@@ -2165,6 +2192,11 @@ iframe.player{object-fit:contain}
    tabs, single-column stack) visible only below the breakpoint.
    ============================================================ */
 @media(max-width:760px){
+  /* Prevent iOS Safari input zoom */
+  .composer-input, .search-input, input, select, textarea {
+    font-size: 16px !important;
+  }
+
   /* Hide bottom navigation bar on mobile watch screen so user gets uninterrupted full-height view */
   .page-watch .bottom-nav{display:none !important}
   .page-watch .content{padding-bottom:calc(20px + env(safe-area-inset-bottom)) !important}
