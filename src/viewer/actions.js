@@ -217,12 +217,13 @@ export function setHomeExpandCats(on){
 /* Filter the home feed to a single category (from the filter bar "More" menu). */
 export function setHomeCategory(c){
   c = jsdec(c);
+  document.querySelectorAll(".cat-more.open").forEach(el => el.classList.remove("open"));
   vstate.homeCategory = (vstate.homeCategory === c) ? "" : c;   // toggle off if same
   vstate.page = "home";
   vstate.homeFilter = "all";
   setHash(vstate.homeCategory ? "category/"+encodeURIComponent(vstate.homeCategory) : "");
   render();
-  scrollToTop();
+  if (window.scrollY > 400) scrollToTop();
 }
 
 /* Clicking a tag chip (card / watch page) runs a search for that tag. */

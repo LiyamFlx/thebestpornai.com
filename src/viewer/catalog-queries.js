@@ -39,6 +39,7 @@ let _byIdDesc = null, _byViewsDesc = null, _byUploadedDesc = null;
 let _videoById = null;
 let _searchIndex = null;
 const _byCat = new Map();
+const _byCatFilter = new Map();
 const _clipsByAct = new Map();
 function _ensure(){
   // Invalidate when: the array is replaced wholesale (tests, hot reload), OR
@@ -47,7 +48,7 @@ function _ensure(){
   // generation counter after an in-place field mutation.
   if(DATA.videos !== _cacheRef || DATA.videos.length !== _cacheLen || _generation !== _cacheGen){
     _cacheRef = DATA.videos; _cacheLen = DATA.videos.length; _cacheGen = _generation;
-    _pub = null; _pubVert = null; _trending = null; _byCat.clear();
+    _pub = null; _pubVert = null; _trending = null; _byCat.clear(); _byCatFilter.clear();
     _movies = null; _actNames = null; _highlights = null; _originals = null; _clipsByAct.clear();
     _byIdDesc = null; _byViewsDesc = null; _byUploadedDesc = null;
     _videoById = null;
@@ -107,12 +108,17 @@ export const byUploadedDesc = ()=> { _ensure(); return _byUploadedDesc || (_byUp
    primary category, its categories[] list, OR its tags contain the term
    (case-insensitive). Lets "Big Ass" surface videos merely tagged "Big Ass". */
 export function byCategoryFilter(cat){
+  _ensure();
   const c = String(cat||"").toLowerCase();
-  return pubVideos().filter(v=>
+  if(!c) return pubVideos();
+  if(_byCatFilter.has(c)) return _byCatFilter.get(c);
+  const res = pubVideos().filter(v=>
     (v.category||"").toLowerCase()===c ||
     (v.categories||[]).some(x=>String(x).toLowerCase()===c) ||
     (v.tags||[]).some(t=>String(t).toLowerCase()===c)
   );
+  _byCatFilter.set(c, res);
+  return res;
 }
 
 /* Tag-weighted recommendations: rank other public videos by how many tags /

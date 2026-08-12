@@ -88,6 +88,44 @@ export function renderSortControl(currentSort = "none", onSelectFn = "setHomeSor
   `;
 }
 
+export function toggleCatMenu(btn, ev) {
+  if (ev) ev.stopPropagation();
+  if (!btn) return;
+  const wrap = btn.closest(".cat-more");
+  if (!wrap) return;
+  const menu = wrap.querySelector(".cat-more-menu");
+  const wasOpen = wrap.classList.contains("open");
+
+  // Close any other open popovers
+  document.querySelectorAll(".cat-more.open, .sort-control-wrap.open").forEach((el) => el.classList.remove("open"));
+
+  if (!wasOpen && menu) {
+    wrap.classList.add("open");
+    const rect = btn.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 760;
+    if (isMobile) {
+      menu.style.position = "fixed";
+      menu.style.left = "12px";
+      menu.style.right = "12px";
+      menu.style.top = Math.max(10, Math.min(rect.bottom + 8, window.innerHeight - 340)) + "px";
+      menu.style.width = "auto";
+      menu.style.maxHeight = "60vh";
+    } else {
+      const menuWidth = 360;
+      let left = rect.left;
+      if (left + menuWidth > window.innerWidth - 16) {
+        left = Math.max(16, window.innerWidth - menuWidth - 16);
+      }
+      menu.style.position = "fixed";
+      menu.style.top = (rect.bottom + 6) + "px";
+      menu.style.left = left + "px";
+      menu.style.width = menuWidth + "px";
+      menu.style.maxHeight = "400px";
+    }
+    menu.style.zIndex = "99999";
+  }
+}
+
 function homeFilterBar(){
   const filters = [
     ["all","All"],
@@ -105,14 +143,14 @@ function homeFilterBar(){
       <span class="filter-divider"></span>
       ${POPULAR_QUICK_CATS.map(c=>`<button type="button" class="filter-pill ${activeCat===c?'active':''}" onclick="setHomeFilter('all'); setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
       <span class="cat-more">
-        <button type="button" class="filter-pill cat-picker-btn ${activeCat && !POPULAR_QUICK_CATS.includes(activeCat)?'active':''}" onclick="this.parentNode.classList.toggle('open')">
+        <button type="button" class="filter-pill cat-picker-btn ${activeCat && !POPULAR_QUICK_CATS.includes(activeCat)?'active':''}" onclick="toggleCatMenu(this, event)">
           <span class="cat-pill-label">${activeCat && !POPULAR_QUICK_CATS.includes(activeCat) ? esc(activeCat) : 'More Categories (' + CATEGORIES.length + ')'}</span>
           <span class="cat-pill-caret">▾</span>
         </button>
         <div class="cat-more-menu">
           <div class="cat-more-menu-header">All Categories (${CATEGORIES.length})</div>
           <div class="cat-more-grid">
-            ${CATEGORIES.map(c=>`<button type="button" class="cat-more-item ${activeCat===c?'active':''}" onclick="this.closest('.cat-more').classList.remove('open'); setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
+            ${CATEGORIES.map(c=>`<button type="button" class="cat-more-item ${activeCat===c?'active':''}" onclick="setHomeCategory('${jsq(c)}'); event.stopPropagation();">${esc(c)}</button>`).join("")}
           </div>
         </div>
       </span>

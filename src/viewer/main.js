@@ -42,6 +42,7 @@ import {
 } from "./actions.js";
 import { refreshManifest, syncManifestOnLoad } from "./manifest-sync.js";
 import { initMobileChrome } from "./mobile-chrome.js";
+import { toggleCatMenu } from "./pages/home.js";
 import {
   switchWatchTab,
   filterUpNext,
@@ -122,6 +123,7 @@ Object.assign(window, {
   toast,
   setHomeFilter,
   setHomeCategory,
+  toggleCatMenu,
   setHomeSort,
   setSearchSort,
   setHomeExpandCats,
