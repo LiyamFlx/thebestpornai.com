@@ -61,6 +61,20 @@ for (const post of POSTS) {
   });
 }
 
+// Every static video landing page — rank individual scene queries on Google/Bing
+const videoDir = path.join(REPO, "video");
+if (fs.existsSync(videoDir)) {
+  const videoFiles = fs.readdirSync(videoDir).filter(f => f.endsWith(".html"));
+  for (const vf of videoFiles) {
+    pages.push({
+      loc: `/video/${vf}`,
+      changefreq: "weekly",
+      priority: "0.7",
+      lastmod: today,
+    });
+  }
+}
+
 const urls = pages
   .map(
     (p) => `  <url>

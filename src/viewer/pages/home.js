@@ -387,6 +387,21 @@ function _renderHomeBody(){
   const cats = DATA.categories || CATEGORIES;
   const acts = actNames();
 
+function homeAffiliatePromoStrip(){
+  return `
+    <div class="home-affiliate-strip">
+      <div class="home-affiliate-left">
+        <div class="home-affiliate-badge">⚡ AI Studio Partner</div>
+        <div class="home-affiliate-title">Create Custom AI Adult Videos &amp; 4K Scenes</div>
+        <div class="home-affiliate-sub">Use <strong>OurDream.ai</strong> to generate high-fidelity photoreal AI babes, uncensored fantasies, and cinematic videos with zero restrictions.</div>
+      </div>
+      <a href="https://ourdream.ai/?ref=thebestpornai" target="_blank" rel="noopener nofollow" class="home-affiliate-cta">
+        <span>Start Generating Free</span>
+        <span class="cta-arrow">→</span>
+      </a>
+    </div>`;
+}
+
   const html = `
     ${homeFilterBar()}
     ${homeHero(hero)}
@@ -394,6 +409,7 @@ function _renderHomeBody(){
     ${continueWatching.length ? rowSection("Continue Watching", continueWatching, { layout: "row" }) : ""}
     ${becauseYouWatchedRow()}
     ${rowSection("Fresh Uploads", byIdDesc().slice(0, ROW_MAX), { layout: "row" })}
+    ${homeAffiliatePromoStrip()}
     ${rowSection("Recommended for you", recommended, { layout: "row" })}
     ${rowSection("Trending now", byViewsDesc().slice(0, ROW_MAX), { layout: "row" })}
     ${fromTheBlogRow()}

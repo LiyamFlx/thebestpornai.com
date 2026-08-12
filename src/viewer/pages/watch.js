@@ -258,6 +258,26 @@ function blogStoryChip(v){
   return `<a class="watch-blog-chip" href="/blog/${esc(p.slug)}.html">📖 Story behind this scene</a>`;
 }
 
+function affiliatePromoBanner(v){
+  return `
+    <div class="watch-affiliate-banner">
+      <div class="affiliate-banner-inner">
+        <div class="affiliate-badge-row">
+          <span class="affiliate-badge-pill">⚡ AI Video Generator</span>
+          <span class="affiliate-partner-name">OurDream.ai</span>
+        </div>
+        <div class="affiliate-text-block">
+          <div class="affiliate-title">Create Videos Like This in Seconds</div>
+          <div class="affiliate-desc">Generate custom photoreal AI models, deepfakes, and 4K scenes with full prompt control.</div>
+        </div>
+      </div>
+      <a href="https://ourdream.ai/?ref=thebestpornai" target="_blank" rel="noopener nofollow" class="affiliate-cta-btn">
+        <span>Try OurDream.ai Free</span>
+        <svg class="ico" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42L16.86 11H5v2z"/></svg>
+      </a>
+    </div>`;
+}
+
 function titleBlockMobile(v, catList, tagList, live, c, hasCreator, subbed){
   return `
     <div class="watch-title-block">
@@ -273,6 +293,7 @@ function titleBlockMobile(v, catList, tagList, live, c, hasCreator, subbed){
       </div>
       ${creatorRowMobile(c, hasCreator, subbed)}
       ${actionBar(v, live, hasCreator)}
+      ${affiliatePromoBanner(v)}
       ${blogStoryChip(v)}
       ${(catList.length || tagList.length || v.desc) ? `
       <div class="quick-desc-box" id="quickDescBox" hidden>
@@ -296,6 +317,7 @@ function metadataBlockDesktop(v, catList, tagList, live, hasCreator){
         </div>
         ${actionBar(v, live, hasCreator)}
       </div>
+      ${affiliatePromoBanner(v)}
       ${blogStoryChip(v)}
     </div>`;
 }

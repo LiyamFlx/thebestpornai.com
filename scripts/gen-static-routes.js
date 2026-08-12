@@ -20,12 +20,28 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
 const PORNSTARS_DIR = path.join(REPO, "pornstars");
 const CATEGORIES_DIR = path.join(REPO, "categories");
+const VIDEO_DIR = path.join(REPO, "video");
 const ORIGIN = "https://www.thebestpornai.com";
 const MEDIA_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media";
 const LOGO = `${ORIGIN}/logo.png`;
 
 fs.mkdirSync(PORNSTARS_DIR, { recursive: true });
 fs.mkdirSync(CATEGORIES_DIR, { recursive: true });
+fs.mkdirSync(VIDEO_DIR, { recursive: true });
+
+function isoDuration(dur) {
+  if (!dur) return "PT2M30S";
+  const parts = String(dur).split(":").map(Number);
+  if (parts.length === 2) {
+    const [m, s] = parts;
+    return `PT${m || 0}M${s || 0}S`;
+  }
+  if (parts.length === 3) {
+    const [h, m, s] = parts;
+    return `PT${h || 0}H${m || 0}M${s || 0}S`;
+  }
+  return "PT2M30S";
+}
 
 function esc(s) {
   if (s === null || s === undefined) return "";
@@ -430,10 +446,154 @@ function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, active
     .site-footer-col strong { color: #fff; margin-bottom: 6px; }
     .site-footer-col a { color: var(--muted); text-decoration: none; }
     .site-footer-col a:hover { color: #fff; }
+    /* Video Detail Page styles */
+    .video-view-wrap { max-width: 1000px; margin: 0 auto; padding: 24px 20px; }
+    .video-player-hero {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.6);
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .video-player-hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .video-hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.4) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px;
+    }
+    .video-top-badges { display: flex; align-items: center; gap: 8px; }
+    .quality-pill {
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: .05em;
+    }
+    .duration-pill {
+      background: rgba(0,0,0,0.75);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .video-play-center {
+      align-self: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+    .big-play-btn {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 30px rgba(255,45,85,0.6);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .video-play-center:hover .big-play-btn {
+      transform: scale(1.1);
+      box-shadow: 0 0 45px rgba(255,45,85,0.8);
+    }
+    .video-play-label {
+      font-size: 15px;
+      font-weight: 700;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+    }
+    .video-info-box { margin-bottom: 24px; }
+    .video-page-title { font-size: 26px; font-weight: 800; color: #fff; margin: 0 0 10px; line-height: 1.3; }
+    .video-meta-row { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13.5px; margin-bottom: 16px; flex-wrap: wrap; }
+    .video-desc { font-size: 14.5px; color: #cbd5e1; line-height: 1.6; margin: 0 0 16px; }
+    .video-tags-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+    .tag-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .tag-chip:hover { border-color: var(--accent); color: #fff; }
+
+    /* Video Affiliate Conversion Card */
+    .video-affiliate-box {
+      margin: 28px 0;
+      padding: 20px 24px;
+      border-radius: 16px;
+      background: radial-gradient(120% 160% at 100% 50%, rgba(255,45,85,0.15), rgba(19,21,27,0.96) 65%);
+      border: 1px solid rgba(255,45,85,0.35);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .aff-left { flex: 1; min-width: 260px; }
+    .aff-badge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .aff-badge-pill {
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .aff-partner { font-size: 12px; font-weight: 700; color: #fff; }
+    .aff-title { font-size: 17px; font-weight: 800; color: #fff; margin: 0 0 6px; }
+    .aff-desc { font-size: 13px; color: var(--muted); line-height: 1.45; margin: 0; }
+    .aff-cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, var(--accent), #d10034);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 10px 22px;
+      border-radius: 999px;
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(255,45,85,0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+      flex: none;
+    }
+    .aff-cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(255,45,85,0.6);
+    }
+
     @media(max-width: 768px) {
       .site-nav { display: none; }
       .page-hero h1 { font-size: 26px; }
       .v-grid { grid-template-columns: 1fr; }
+      .video-affiliate-box { flex-direction: column; align-items: flex-start; }
+      .aff-cta-btn { width: 100%; justify-content: center; }
     }
   </style>
   <script type="application/ld+json">
@@ -726,10 +886,145 @@ function genCategoryPages() {
   }
 }
 
+// 5. Generate /video/<id>.html for top curated & popular scenes with rich Schema VideoObject and OurDream.ai affiliate conversion
+function genVideoPages() {
+  const seenIds = new Set();
+  const prioritized = [];
+
+  // Priority 1: All new batch / recent uploads (id >= 5142)
+  for (const v of VIDEOS) {
+    if (v.id >= 5142 && !seenIds.has(v.id)) {
+      seenIds.add(v.id);
+      prioritized.push(v);
+    }
+  }
+
+  // Priority 2: All pornstar scenes
+  for (const ps of PORNSTARS) {
+    const starVideos = VIDEOS.filter(v => (v.tags || []).some(t => t.toLowerCase() === ps.name.toLowerCase()));
+    for (const v of starVideos) {
+      if (!seenIds.has(v.id)) {
+        seenIds.add(v.id);
+        prioritized.push(v);
+      }
+    }
+  }
+
+  // Priority 3: Top viewed from all categories
+  const sortedByViews = [...VIDEOS].sort((a, b) => (b.views || 0) - (a.views || 0));
+  for (const v of sortedByViews) {
+    if (prioritized.length >= 350) break;
+    if (!seenIds.has(v.id)) {
+      seenIds.add(v.id);
+      prioritized.push(v);
+    }
+  }
+
+  console.log(`Generating static landing pages for ${prioritized.length} top videos...`);
+
+  for (const v of prioritized) {
+    const title = `${v.title} — 4K AI Porn Video | thebestpornai`;
+    const description = v.desc || `Watch ${v.title} in 4K Ultra HD on thebestpornai. Free AI adult video stream featuring ${v.category || 'curated'} scenes with instant playback and no signups.`;
+    const canonical = `${ORIGIN}/video/${v.id}.html`;
+    const thumbUrl = v.thumb ? mediaUrl(v.thumb) : LOGO;
+    const catSlug = slugify(v.category || "ai");
+
+    // Related 6 videos in same category or overall
+    const related = VIDEOS.filter(other => other.id !== v.id && (other.category === v.category || !v.category)).slice(0, 6);
+    const relatedCards = related.map(videoCardHtml).join("\n");
+
+    const bodyContent = `
+      <main class="video-view-wrap">
+        <div class="video-player-hero">
+          ${thumbUrl ? `<img src="${thumbUrl}" alt="${esc(v.title)}" loading="eager"/>` : `<div class="v-ph"></div>`}
+          <div class="video-hero-overlay">
+            <div class="video-top-badges">
+              <span class="quality-pill">4K Ultra HD</span>
+              ${v.duration ? `<span class="duration-pill">${esc(v.duration)}</span>` : ""}
+            </div>
+            <a class="video-play-center" href="/#video/${v.id}" title="Play ${esc(v.title)}">
+              <div class="big-play-btn" aria-hidden="true">▶</div>
+              <div class="video-play-label">Play 4K Scene in Full Player</div>
+            </a>
+            <div style="font-size:12px;color:rgba(255,255,255,0.7)">100% Free · No Registration Required</div>
+          </div>
+        </div>
+
+        <div class="video-info-box">
+          <h1 class="video-page-title">${esc(v.title)}</h1>
+          <div class="video-meta-row">
+            <span><strong>${fmtViews(v.views || 2400)}</strong> views</span>
+            <span>•</span>
+            <span>Published ${esc(v.uploaded || "Recently")}</span>
+            <span>•</span>
+            <span>Category: <a href="/categories/${catSlug}.html" style="color:var(--accent);text-decoration:none;font-weight:700">${esc(v.category || "AI")}</a></span>
+          </div>
+          ${v.desc ? `<p class="video-desc">${esc(v.desc)}</p>` : ""}
+          <div class="video-tags-list">
+            ${(v.categories || [v.category]).filter(Boolean).map(c => `<a class="tag-chip" href="/categories/${slugify(c)}.html">${esc(c)}</a>`).join("")}
+            ${(v.tags || []).slice(0, 8).map(t => `<a class="tag-chip" href="/#search/${encodeURIComponent(t)}">#${esc(t)}</a>`).join("")}
+          </div>
+        </div>
+
+        <div class="video-affiliate-box">
+          <div class="aff-left">
+            <div class="aff-badge-row">
+              <span class="aff-badge-pill">⚡ AI Video Generator</span>
+              <span class="aff-partner">OurDream.ai</span>
+            </div>
+            <h2 class="aff-title">Want to create adult videos like this?</h2>
+            <p class="aff-desc">This scene was generated using <strong>OurDream.ai</strong>. Try the #1 rated uncensored AI generator to create your own custom photoreal models, deepfakes, and 4K scenes in seconds.</p>
+          </div>
+          <a href="https://ourdream.ai/?ref=thebestpornai" target="_blank" rel="noopener nofollow" class="aff-cta-btn">
+            <span>Try OurDream.ai Free →</span>
+          </a>
+        </div>
+
+        <div style="margin-top:40px">
+          <h3 style="font-size:18px;font-weight:700;margin-bottom:20px;color:#fff">Related 4K Scenes</h3>
+          <div class="v-grid">
+            ${relatedCards}
+          </div>
+        </div>
+      </main>`;
+
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      "name": v.title,
+      "description": description,
+      "thumbnailUrl": [thumbUrl],
+      "uploadDate": v.uploaded || "2026-05-01",
+      "duration": isoDuration(v.duration),
+      "contentUrl": v.src ? mediaUrl(v.src) : `${ORIGIN}/#video/${v.id}`,
+      "embedUrl": `${ORIGIN}/#video/${v.id}`,
+      "interactionStatistic": {
+        "@type": "InteractionCounter",
+        "interactionType": { "@type": "WatchAction" },
+        "userInteractionCount": v.views || 2500
+      }
+    };
+
+    const html = renderHtmlPage({
+      title,
+      description,
+      canonical,
+      ogImage: thumbUrl,
+      jsonLd,
+      activeNav: "home",
+      bodyContent,
+    });
+
+    fs.writeFileSync(path.join(VIDEO_DIR, `${v.id}.html`), html);
+  }
+  console.log(`✔ Generated ${prioritized.length} static video pages in video/`);
+}
+
 // Run generators
 genPornstarsHub();
 genPornstarProfiles();
 genCategoriesHub();
 genCategoryPages();
+genVideoPages();
 
 console.log("🎉 All static routes generated successfully.");

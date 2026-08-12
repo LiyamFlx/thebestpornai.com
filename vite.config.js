@@ -50,6 +50,15 @@ const categoryInputs = existsSync(categoriesDir)
     )
   : {};
 
+const videoDir = resolve(__dirname, "video");
+const videoInputs = existsSync(videoDir)
+  ? Object.fromEntries(
+      readdirSync(videoDir)
+        .filter((f) => f.endsWith(".html"))
+        .map((f) => [`video-${f.replace(/\.html$/, "")}`, resolve(videoDir, f)])
+    )
+  : {};
+
 export default defineConfig({
   root: ".",
   define: {
@@ -72,6 +81,7 @@ export default defineConfig({
         ...blogPostInputs,
         ...pornstarInputs,
         ...categoryInputs,
+        ...videoInputs,
       },
       output: {
         // Split the huge catalog data (500+ videos) into its own chunk.
