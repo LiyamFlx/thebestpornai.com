@@ -318,16 +318,33 @@ function attachAutoAdvance(overlay, video, wrap){
 
   const pickNext = () => {
     const cards = [...document.querySelectorAll(".upnext-card[data-video-id]")];
-    // Only visible cards — never fall back to a filtered-out (display:none) item.
-    const nextCard = cards.find((c) => c.style.display !== "none");
-    if(!nextCard) return null;
-    const nextId = +nextCard.dataset.videoId;
-    if(!Number.isFinite(nextId)) return null;
+    const visibleCards = cards.filter((c) => c.style.display !== "none");
+    if (!visibleCards.length) return null;
+
+    // Check recent history to prevent looping between recently seen videos
+    const recentIds = new Set((vstate.history || []).slice(0, 8));
+
+    // Try finding the first visible Up Next card that hasn't been watched recently
+    let candidate = visibleCards.find((c) => {
+      const vid = +c.dataset.videoId;
+      return Number.isFinite(vid) && !recentIds.has(vid);
+    });
+
+    // If all visible recommendations have been watched recently, pick the first visible card that is not the current video
+    if (!candidate) {
+      candidate = visibleCards.find((c) => {
+        const vid = +c.dataset.videoId;
+        return Number.isFinite(vid) && vid !== vstate.current?.id;
+      });
+    }
+
+    if (!candidate) return null;
+    const nextId = +candidate.dataset.videoId;
     return {
       id: nextId,
-      title: nextCard.dataset.title || "Next video",
-      creator: nextCard.dataset.creator || "",
-      thumb: nextCard.dataset.thumb || "",
+      title: candidate.dataset.title || "Next video",
+      creator: candidate.dataset.creator || "",
+      thumb: candidate.dataset.thumb || "",
     };
   };
 

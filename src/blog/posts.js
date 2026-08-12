@@ -638,6 +638,7 @@ export const SEED_POSTS = [
     date: "2026-08-02",
     dateModified: "2026-08-02",
     readMins: 5,
+    cover: "../media/blog/ai-dance-striptease-1.jpg",
     coverVideoId: 4283,
     relatedVideoIds: [4283, 4259, 4260, 4261, 4262, 4265],
     tags: ["dance", "amateur", "fantasy", "tease", "Emily"],

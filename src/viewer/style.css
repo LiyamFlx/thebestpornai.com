@@ -889,19 +889,17 @@ video.player{object-fit:contain}
 iframe.player{object-fit:contain}
 .player-nav-wrap{position:relative}
 .player-nav{
-  position:absolute;top:50%;transform:translateY(-50%);z-index:5;
-  width:40px;height:40px;border-radius:50%;border:none;
-  background:rgba(10,10,10,.55);color:#fff;font-size:22px;line-height:1;
+  position:absolute;top:50%;transform:translateY(-50%);z-index:20;pointer-events:auto;
+  width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,0.18);
+  background:rgba(12,12,16,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  color:#fff;font-size:24px;line-height:1;
   display:flex;align-items:center;justify-content:center;cursor:pointer;
-  opacity:0;transition:opacity .15s;
+  opacity:0;transition:opacity .2s ease, background .15s ease, transform .15s ease;
 }
 .player-nav-wrap:hover .player-nav,.player-nav:focus-visible{opacity:1}
 .player-nav-prev{left:14px}
 .player-nav-next{right:14px}
-.player-nav:hover{background:var(--accent)}
-/* Touch devices have no :hover, so opacity:0 above left these permanently
-   invisible on every phone with no other way to step prev/next (no swipe
-   gesture exists) — the buttons were undiscoverable, not just unstyled. */
+.player-nav:hover{background:var(--accent);border-color:var(--accent);transform:translateY(-50%) scale(1.08)}
 @media(hover:none){
   .player-nav{opacity:.85}
 }
@@ -2327,7 +2325,7 @@ iframe.player{object-fit:contain}
   .page-watch .content{padding-bottom:calc(20px + env(safe-area-inset-bottom)) !important}
 
   .watch-main-v2{padding:10px 12px}
-  .watch-v2-mobile .player-nav{display:none !important}
+  .watch-v2-mobile .player-nav{width:36px;height:36px;font-size:20px;z-index:20;opacity:0.85}
   .ov-center{gap:20px}
   .ov-playpause{width:48px;height:48px}
   .ov-skip{width:36px;height:36px;background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);border-radius:50%}

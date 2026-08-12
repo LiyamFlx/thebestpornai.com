@@ -157,11 +157,47 @@ export function stepWatch(dir){
   const overlay = typeof document !== "undefined" ? document.querySelector(".pc-upnext") : null;
   if(overlay) overlay.remove();
 
-  // If stepping forward (+1), prioritize the top Up Next recommendation
+  if(dir === -1){
+    // If stepping back (-1): if we have history (index 1 is the previous video), go back to it!
+    if(vstate.history && vstate.history.length > 1){
+      const prevId = vstate.history[1];
+      if(prevId && prevId !== vstate.current?.id && DATA.videos.some(v => v.id === prevId)){
+        openVideo(prevId);
+        return;
+      }
+    }
+    // Fallback: previous in pubVideos()
+    const list = pubVideos();
+    if(!list.length) return;
+    const currentIdx = list.findIndex(v => v.id === vstate.current?.id);
+    const prevIdx = (currentIdx - 1 + list.length) % list.length;
+    openVideo(list[prevIdx].id);
+    return;
+  }
+
+  // If stepping forward (+1):
   if(dir === 1 && typeof document !== "undefined"){
-    const firstCard = document.querySelector(".upnext-card[data-video-id]");
-    const nextId = firstCard ? parseInt(firstCard.dataset.videoId, 10) : null;
-    if(nextId && nextId !== vstate.current?.id && DATA.videos.some(v => v.id === nextId)){
+    const cards = [...document.querySelectorAll(".upnext-card[data-video-id]")];
+    const visibleCards = cards.filter(c => c.style.display !== "none");
+    // Look back at recent history to prevent 2-video ping-pong loops
+    const recentIds = new Set(vstate.history.slice(0, 8));
+
+    // Try finding the first visible recommendation not watched recently
+    let candidate = visibleCards.find(c => {
+      const vid = parseInt(c.dataset.videoId, 10);
+      return vid && !recentIds.has(vid) && DATA.videos.some(v => v.id === vid);
+    });
+
+    // If all recommendations in Up Next were recently seen, pick the first visible recommendation that isn't the current video
+    if(!candidate){
+      candidate = visibleCards.find(c => {
+        const vid = parseInt(c.dataset.videoId, 10);
+        return vid && vid !== vstate.current?.id && DATA.videos.some(v => v.id === vid);
+      });
+    }
+
+    if(candidate){
+      const nextId = parseInt(candidate.dataset.videoId, 10);
       openVideo(nextId);
       return;
     }
