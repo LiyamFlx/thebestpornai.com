@@ -108,11 +108,49 @@ export function attachPlayerControlsV2(){
   };
 
   window.togglePlayPauseV2 = () => {
+    if(advanceOverlay || document.querySelector(".pc-upnext")){
+      const nextCard = document.querySelector(".upnext-card[data-video-id]");
+      const nextId = nextCard ? +nextCard.dataset.videoId : null;
+      clearAutoAdvance();
+      if(nextId){ openVideo(nextId); return; }
+    }
     if(video.paused || video.ended) video.play().catch(()=>{});
     else video.pause();
   };
+
   window.skipTime = (secs) => {
+    // If Up Next banner is active, right arrow/forward immediately advances to next video with no barrier!
+    if(advanceOverlay || document.querySelector(".pc-upnext")){
+      if(secs > 0){
+        clearAutoAdvance();
+        const nextCard = document.querySelector(".upnext-card[data-video-id]");
+        const nextId = nextCard ? +nextCard.dataset.videoId : null;
+        if(nextId){ openVideo(nextId); return; }
+        window.stepWatch?.(1);
+        return;
+      } else {
+        clearAutoAdvance();
+        if(isFinite(video.duration)){
+          video.currentTime = Math.max(0, (video.duration || 0) + secs);
+          video.play().catch(()=>{});
+        }
+        return;
+      }
+    }
+
     if(!isFinite(video.duration)) return;
+
+    // If seeking forward to/past the end of the video, smoothly advance to the next video immediately!
+    if(secs > 0 && video.currentTime + secs >= video.duration - 0.25){
+      triggerSeekRipple(secs);
+      clearAutoAdvance();
+      const nextCard = document.querySelector(".upnext-card[data-video-id]");
+      const nextId = nextCard ? +nextCard.dataset.videoId : null;
+      if(nextId){ openVideo(nextId); return; }
+      window.stepWatch?.(1);
+      return;
+    }
+
     video.currentTime = Math.min(Math.max(video.currentTime + secs, 0), video.duration);
     triggerSeekRipple(secs);
   };
@@ -354,6 +392,11 @@ function attachAutoAdvance(overlay, video, wrap){
     mount.appendChild(advanceOverlay);
     overlay.classList.remove("visible");
 
+    advanceOverlay.querySelector(".pc-upnext-card")?.addEventListener("click", (e) => {
+      if(e.target.closest("#pcUpNextCancel") || e.target.closest("#pcUpNextReplay")) return;
+      e.stopPropagation();
+      window.playUpNextNow(next.id);
+    });
     advanceOverlay.querySelector("#pcUpNextCancel")?.addEventListener("click", (e) => {
       e.stopPropagation();
       cancelAdvance();
