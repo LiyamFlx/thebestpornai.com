@@ -79,15 +79,18 @@ export function render(){
   const pending = takePendingHydrate();
   if(pending!=null) hydrateWatch(pending);
 
-  // Deferred to next frame: both force synchronous layout reads
-  // (scrollWidth/clientWidth, structured-data DOM churn) that aren't needed
-  // for first paint, so keeping them out of the click-handling task lets the
-  // browser paint the new page before doing this bookkeeping — avoids a long
-  // blocking task on nav taps (INP).
+  // Deferred to next frame / idle: keeps rAF under 2ms to eliminate animation frame violations
   requestAnimationFrame(() => {
-    refreshChipRows();          // recompute horizontal chip-row edge fades (mobile)
-    addStructuredData();        // structured data for search engines and AI
+    refreshChipRows(); // recompute horizontal chip-row edge fades (mobile)
   });
+
+  if (typeof window !== "undefined") {
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(() => addStructuredData(), { timeout: 1500 });
+    } else {
+      setTimeout(() => addStructuredData(), 60);
+    }
+  }
 }
 
 /* Reflect the current Favorites / Watch-Later membership on every card

@@ -1,40 +1,55 @@
-/* thebestpornai Production Service Worker (v2)
+/* thebestpornai Production Service Worker (v3)
  * Ensures high-speed shell caching while guaranteeing 100% catalog freshness.
  */
 
-const CACHE_NAME = "streamhub-pwa-v2";
+const CACHE_NAME = "streamhub-pwa-v3";
 
 const STATIC_PRECACHE = [
   "/",
   "/favicon-32.png",
   "/favicon-64.png",
   "/apple-touch-icon.png",
+  "/icon-192.png",
+  "/icon-512.png",
   "/site.webmanifest",
   "/logo.png"
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_PRECACHE)).then(() => self.skipWaiting())
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(STATIC_PRECACHE))
+      .then(() => self.skipWaiting())
+      .catch((err) => console.warn("SW precache failed:", err))
   );
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      );
-    }).then(() => self.clients.claim())
+    caches
+      .keys()
+      .then((keys) => {
+        return Promise.all(
+          keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        );
+      })
+      .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
-  const url = new URL(req.url);
+  let url;
+  try {
+    url = new URL(req.url);
+  } catch (_) {
+    return;
+  }
 
-  // 1. Only handle GET requests
+  // 1. Only handle GET requests with http or https protocol (ignore chrome-extension:, moz-extension:, blob:, etc.)
   if (req.method !== "GET") return;
+  if (url.protocol !== "http:" && url.protocol !== "https:") return;
 
   // 2. Never cache video streams or Range requests (R2 / .mp4 media)
   if (
@@ -51,9 +66,9 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(req)
         .then((networkRes) => {
-          if (networkRes && networkRes.status === 200) {
+          if (networkRes && networkRes.status === 200 && (url.protocol === "http:" || url.protocol === "https:")) {
             const copy = networkRes.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy).catch(() => {})).catch(() => {});
           }
           return networkRes;
         })
@@ -75,9 +90,9 @@ self.addEventListener("fetch", (event) => {
       caches.match(req).then((cached) => {
         if (cached) return cached;
         return fetch(req).then((networkRes) => {
-          if (networkRes && networkRes.status === 200) {
+          if (networkRes && networkRes.status === 200 && (url.protocol === "http:" || url.protocol === "https:")) {
             const copy = networkRes.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy).catch(() => {})).catch(() => {});
           }
           return networkRes;
         });
