@@ -2062,6 +2062,9 @@ iframe.player{object-fit:contain}
 }
 .affiliate-cta-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(229,9,20,0.6)}
 .affiliate-cta-btn:active{transform:scale(0.96)}
+@media(max-width:760px){
+  .watch-affiliate-banner{display:none !important}
+}
 
 /* ---- Home Feed Affiliate Promo Strip ---- */
 .home-affiliate-strip{

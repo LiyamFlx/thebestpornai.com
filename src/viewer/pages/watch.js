@@ -293,7 +293,6 @@ function titleBlockMobile(v, catList, tagList, live, c, hasCreator, subbed){
       </div>
       ${creatorRowMobile(c, hasCreator, subbed)}
       ${actionBar(v, live, hasCreator)}
-      ${affiliatePromoBanner(v)}
       ${blogStoryChip(v)}
       ${(catList.length || tagList.length || v.desc) ? `
       <div class="quick-desc-box" id="quickDescBox" hidden>
