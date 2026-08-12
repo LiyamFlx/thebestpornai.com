@@ -105,19 +105,19 @@ function commentsPanel(v){
     </div>`;
 }
 
-function upNextPanel(related, showAutoplay){
+function upNextPanel(related, showHead = false){
   return `
     <div class="upnext-panel">
-      <div class="upnext-head-bar">
-        ${upNextCategoryChips(related)}
-        ${showAutoplay ? `
+      ${showHead ? `
+        <div class="upnext-head-bar">
+          ${upNextCategoryChips(related)}
           <label class="autoplay-compact-toggle" title="Autoplay next video">
             <span class="ap-text">Autoplay</span>
             <input type="checkbox" ${vstate.settings.autoplay?'checked':''} onchange="toggleAutoplaySetting(this.checked)"/>
             <div class="switch-track-sm"></div>
           </label>
-        ` : ''}
-      </div>
+        </div>
+      ` : ''}
       <div class="upnext-list" id="upNextList">
         ${related.map(upNextCard).join("")}
       </div>
@@ -317,12 +317,19 @@ function descriptionBoxDesktop(v, catList, tagList){
 
 function watchTabsNav(commentCount){
   return `
-    <nav class="watch-tabs">
-      <button class="watch-tab ${vstate.watchTab==='upnext'?'active':''}" onclick="switchWatchTab('upnext')" id="tab-upnext">Up Next</button>
-      <button class="watch-tab ${vstate.watchTab==='comments'?'active':''}" onclick="switchWatchTab('comments')" id="tab-comments">
-        Comments <span class="tab-badge" id="cCount">${commentCount}</span>
-      </button>
-    </nav>`;
+    <div class="watch-tabs-row-mobile">
+      <nav class="watch-tabs">
+        <button class="watch-tab ${vstate.watchTab==='upnext'?'active':''}" onclick="switchWatchTab('upnext')" id="tab-upnext">Up Next</button>
+        <button class="watch-tab ${vstate.watchTab==='comments'?'active':''}" onclick="switchWatchTab('comments')" id="tab-comments">
+          Comments <span class="tab-badge" id="cCount">${commentCount}</span>
+        </button>
+      </nav>
+      <label class="autoplay-compact-toggle" title="Autoplay next video">
+        <span class="ap-text">Autoplay</span>
+        <input type="checkbox" ${vstate.settings.autoplay?'checked':''} onchange="toggleAutoplaySetting(this.checked)"/>
+        <div class="switch-track-sm"></div>
+      </label>
+    </div>`;
 }
 
 function sheetsAndModals(v, c){
@@ -407,7 +414,7 @@ export function renderWatch(){
         ${titleBlockMobile(v, catList, tagList, live, c, hasCreator, subbed)}
         ${watchTabsNav(cms.length)}
         <div class="watch-tab-panel" id="tabPanelUpNext" ${vstate.watchTab!=='upnext'?'hidden':''}>
-          ${upNextPanel(related, true)}
+          ${upNextPanel(related, false)}
         </div>
         <div class="watch-tab-panel" id="tabPanelComments" ${vstate.watchTab!=='comments'?'hidden':''}>
           ${commentsPanel(v)}
