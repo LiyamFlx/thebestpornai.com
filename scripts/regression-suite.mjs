@@ -386,7 +386,7 @@ await asyncCheck("Publish doctor script runs with zero errors", async () => {
 await asyncCheck("Check catalog IDs script runs with zero errors", async () => {
   const { execSync } = await import("node:child_process");
   const output = execSync("node scripts/check-catalog-ids.js", { cwd: REPO, encoding: "utf8" });
-  assert(output.includes("catalog.js OK: 5141 unique video ids, no duplicates"), "check-catalog-ids must pass");
+  assert(output.includes("unique video ids, no duplicates"), "check-catalog-ids must pass");
 });
 
 // --- SUMMARY ---

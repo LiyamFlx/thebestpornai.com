@@ -238,25 +238,53 @@ async function processOne(fp, i) {
         uploaded++;
       }
     }
-    // Poster thumbnail — best-effort; a video without one still renders (the
-    // client falls back to a lazy <video> thumb). Never fails the publish.
+    // Poster thumbnail — best-effort; check for companion image first, else ffmpeg
     let thumb;
     if (postersEnabled && !dryRun) {
       try {
-        const pp = posterPaths(src);
-        const outJpg = path.join(REPO, "media", "thumbs", pp.relJpg);
-        if (!fs.existsSync(outJpg) || fs.statSync(outJpg).size === 0) generatePoster(fp, outJpg, { width: 480, seek: 1 });
-        if (!(await existsOnR2(pp.key))) {
-          await s3.send(new PutObjectCommand({
-            Bucket: R2_BUCKET, Key: pp.key,
-            Body: fs.createReadStream(outJpg),
-            ContentLength: fs.statSync(outJpg).size,
-            ContentType: "image/jpeg",
-            CacheControl: "public, max-age=31536000, immutable",
-          }));
+        const ext = path.extname(fp);
+        const baseWithoutExt = fp.slice(0, -ext.length);
+        const companionJpg = baseWithoutExt + ".jpg";
+        const companionPng = baseWithoutExt + ".png";
+        let posterSource = null;
+        let posterKey = null;
+        let posterThumb = null;
+
+        if (fs.existsSync(companionJpg) && fs.statSync(companionJpg).size > 0) {
+          posterSource = companionJpg;
+          const { key, src: companionSrc } = srcFor(companionJpg);
+          posterKey = key;
+          posterThumb = companionSrc;
+        } else if (fs.existsSync(companionPng) && fs.statSync(companionPng).size > 0) {
+          posterSource = companionPng;
+          const { key, src: companionSrc } = srcFor(companionPng);
+          posterKey = key;
+          posterThumb = companionSrc;
+        } else {
+          const pp = posterPaths(src);
+          const outJpg = path.join(REPO, "media", "thumbs", pp.relJpg);
+          if (!fs.existsSync(outJpg) || fs.statSync(outJpg).size === 0) generatePoster(fp, outJpg, { width: 480, seek: 1 });
+          if (fs.existsSync(outJpg) && fs.statSync(outJpg).size > 0) {
+            posterSource = outJpg;
+            posterKey = pp.key;
+            posterThumb = pp.thumb;
+          }
         }
-        thumb = pp.thumb;
-        postersMade++;
+
+        if (posterSource && posterKey) {
+          if (!(await existsOnR2(posterKey))) {
+            const imgExt = path.extname(posterSource).toLowerCase();
+            await s3.send(new PutObjectCommand({
+              Bucket: R2_BUCKET, Key: posterKey,
+              Body: fs.createReadStream(posterSource),
+              ContentLength: fs.statSync(posterSource).size,
+              ContentType: imgExt === ".png" ? "image/png" : "image/jpeg",
+              CacheControl: "public, max-age=31536000, immutable",
+            }));
+          }
+          thumb = posterThumb;
+          postersMade++;
+        }
       } catch (e) { /* poster optional — leave thumb undefined */ }
     }
 
