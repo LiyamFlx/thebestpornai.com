@@ -20,7 +20,7 @@ import { relativeTime } from "./util.js";
 import { hydrateWatch } from "./hydrate.js";
 import { attachPlayerControlsV2 } from "./player-controls-v2.js";
 import { renderHome, nextHero } from "./pages/home.js";
-import { renderWatch } from "./pages/watch.js";
+import { renderWatch, attachWatchHandlers } from "./pages/watch.js";
 import { renderMovieDetail } from "./pages/movie.js";
 import { renderCreatorPage } from "./pages/creator.js";
 import { renderFeed, attachFeedObserver } from "./pages/feed.js";
@@ -75,6 +75,9 @@ export function render(){
   attachHeroRotation(p === "home");
   if (p === "feed") {
     attachFeedObserver();
+  }
+  if (p === "watch") {
+    attachWatchHandlers();
   }
 
   const pending = takePendingHydrate();

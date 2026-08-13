@@ -150,6 +150,7 @@ Object.assign(window, {
   copyEmbedCodeV2,
   downloadWithFeedback,
   toggleDescSheetMobile,
+  toggleDescExpand: toggleDescExpandDesktop,
   toggleDescExpandDesktop,
   cancelUpNextAdvance: () => window.cancelUpNextAdvance?.(),
   playUpNextNow: (id) => window.playUpNextNow?.(id),
