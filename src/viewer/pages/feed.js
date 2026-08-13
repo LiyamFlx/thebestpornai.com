@@ -152,7 +152,7 @@ function feedItemInner(d){
 
       <!-- Like Button -->
       <div class="feed-action">
-        <button class="feed-btn feed-like-btn" onclick="likeVideo(${v.id})" aria-label="Like video"><svg class="ico"><use href="#icon-heart"/></svg></button>
+        <button class="feed-btn feed-like-btn ${(live && live.like > 0) ? 'liked' : ''}" onclick="likeVideo(${v.id})" aria-label="Like video"><svg class="ico"><use href="#icon-heart"/></svg></button>
         <span class="feed-label" id="feedLike_${v.id}">${fmt(v.likes + live.like)}</span>
       </div>
 
@@ -539,6 +539,7 @@ if (typeof window !== "undefined") {
     `;
 
     drawer.classList.add("open");
+    drawer.dataset.videoId = String(v.id);
     if (backdrop) backdrop.classList.add("show");
     // Pull server comments into the drawer (same source as watch page).
     hydrateFeedComments(v).catch(() => {});

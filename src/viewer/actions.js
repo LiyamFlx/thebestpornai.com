@@ -489,7 +489,14 @@ export function likeComment(id){
     vstate.commentLikeCounts[id] = (vstate.commentLikeCounts[id]||0) + 1;
   }
   persistState();
-  if(vstate.current) patchComments(vstate.current);
+  if(onWatch() && vstate.current) patchComments(vstate.current);
+  const feedBody = document.getElementById("feedCommentsBody");
+  const drawer = document.getElementById("feedCommentsDrawer");
+  if(feedBody && drawer && drawer.classList.contains("open")){
+    const vidId = Number(drawer.dataset.videoId);
+    const v = Number.isFinite(vidId) ? DATA.videos.find(x => x.id === vidId) : vstate.current;
+    if(v) feedBody.innerHTML = renderCommentList(v);
+  }
 }
 
 export function setCommentSort(val){
@@ -500,7 +507,16 @@ export function setCommentSort(val){
 
 export function loadMoreComments(){
   vstate.commentPage++;
-  if(onWatch() && vstate.current) patchComments(vstate.current); else render();
+  if(onWatch() && vstate.current) patchComments(vstate.current);
+  const feedBody = document.getElementById("feedCommentsBody");
+  const drawer = document.getElementById("feedCommentsDrawer");
+  if(feedBody && drawer && drawer.classList.contains("open")){
+    const vidId = Number(drawer.dataset.videoId);
+    const v = Number.isFinite(vidId) ? DATA.videos.find(x => x.id === vidId) : vstate.current;
+    if(v) feedBody.innerHTML = renderCommentList(v);
+  } else if(!onWatch()){
+    render();
+  }
 }
 
 /* Report a video. Records the report locally (persistent, honest — the user's
