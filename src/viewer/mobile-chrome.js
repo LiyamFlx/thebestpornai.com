@@ -86,6 +86,19 @@ function closeOpenMenus(except){
   });
 }
 
+function closeDrawer(){
+  const drawer = document.getElementById("mobileDrawer");
+  const backdrop = document.getElementById("drawerBackdrop");
+  if(drawer){
+    drawer.classList.remove("open");
+    drawer.setAttribute("aria-hidden", "true");
+  }
+  if(backdrop) backdrop.classList.remove("show");
+  document.body.classList.remove("drawer-open");
+  const toggleBtn = document.querySelector('[data-mobile-action="toggle-drawer"]');
+  if(toggleBtn) toggleBtn.setAttribute("aria-expanded", "false");
+}
+
 function onClick(e){
   const trigger = e.target.closest("[data-mobile-action]");
   // Any click that isn't a menu's own trigger closes open menus.
@@ -101,12 +114,16 @@ function onClick(e){
     const open = drawer ? drawer.classList.toggle("open") : false;
     if(backdrop) backdrop.classList.toggle("show", open);
     document.body.classList.toggle("drawer-open", open);
+    if(drawer) drawer.setAttribute("aria-hidden", open ? "false" : "true");
+    trigger.setAttribute("aria-expanded", open ? "true" : "false");
+    if(open){
+      const closeBtn = drawer ? drawer.querySelector('[data-mobile-action="close-drawer"]') : null;
+      if(closeBtn) closeBtn.focus();
+    }
   } else if(action === "close-drawer"){
-    const drawer = document.getElementById("mobileDrawer");
-    const backdrop = document.getElementById("drawerBackdrop");
-    if(drawer) drawer.classList.remove("open");
-    if(backdrop) backdrop.classList.remove("show");
-    document.body.classList.remove("drawer-open");
+    closeDrawer();
+    const toggleBtn = document.querySelector('[data-mobile-action="toggle-drawer"]');
+    if(toggleBtn) toggleBtn.focus();
   } else if(action === "toggle-search"){
     const topbar = trigger.closest(".topbar");
     if(!topbar) return;
@@ -130,17 +147,46 @@ function onClick(e){
   
   // Close drawer if clicking any navigation link inside mobile-drawer
   if(e.target.closest("#mobileDrawer button, #mobileDrawer a")){
+    closeDrawer();
+  }
+}
+
+function onKeydown(e){
+  if(e.key === "Escape"){
     const drawer = document.getElementById("mobileDrawer");
-    const backdrop = document.getElementById("drawerBackdrop");
-    if(drawer) drawer.classList.remove("open");
-    if(backdrop) backdrop.classList.remove("show");
-    document.body.classList.remove("drawer-open");
+    if(drawer && drawer.classList.contains("open")){
+      closeDrawer();
+      const toggleBtn = document.querySelector('[data-mobile-action="toggle-drawer"]');
+      if(toggleBtn) toggleBtn.focus();
+      return;
+    }
+    closeOpenMenus();
+    return;
+  }
+
+  // Focus trap for open drawer
+  if(e.key === "Tab"){
+    const drawer = document.getElementById("mobileDrawer");
+    if(drawer && drawer.classList.contains("open")){
+      const focusables = drawer.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if(focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if(e.shiftKey && document.activeElement === first){
+        e.preventDefault();
+        last.focus();
+      } else if(!e.shiftKey && document.activeElement === last){
+        e.preventDefault();
+        first.focus();
+      }
+    }
   }
 }
 
 export function initMobileChrome(){
   document.addEventListener("scroll", onScrollCapture, { capture: true, passive: true });
   document.addEventListener("click", onClick);
+  document.addEventListener("keydown", onKeydown);
 
   if(window.matchMedia){
     const mq = window.matchMedia(MOBILE);

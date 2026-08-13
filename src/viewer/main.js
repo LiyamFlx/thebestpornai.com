@@ -319,5 +319,45 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// Delegated navigation and action listeners for data-nav, data-lib-tab, data-action
+let searchDebounceTimer = null;
+document.addEventListener("click", (e) => {
+  const navEl = e.target.closest("[data-nav]");
+  if (navEl) {
+    const p = navEl.getAttribute("data-nav");
+    if (p) go(p);
+    return;
+  }
+  const tabEl = e.target.closest("[data-lib-tab]");
+  if (tabEl) {
+    const t = tabEl.getAttribute("data-lib-tab");
+    if (t) setLibraryTab(t);
+    return;
+  }
+  const actionEl = e.target.closest("[data-action]");
+  if (!actionEl) return;
+  const act = actionEl.getAttribute("data-action");
+  if (act === "search-go") {
+    clearTimeout(searchDebounceTimer);
+    doSearch();
+  } else if (act === "search-nav") {
+    goSearch();
+  } else if (act === "back") {
+    if (history.length > 1) history.back();
+    else go("home");
+  } else if (act === "upload") {
+    window.location.href = "/creator/index.html?page=upload";
+  }
+});
+
+document.addEventListener("input", (e) => {
+  if (e.target && e.target.matches && e.target.matches('[data-action="search-input"]')) {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => {
+      doSearch();
+    }, 250);
+  }
+});
+
 import { initPwaInstall } from "./pwa-install.js";
 initPwaInstall();

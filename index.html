@@ -10,7 +10,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="thebestpornai"/>
+<!-- RTA label: lets parental-control software filter the site. Standard
+     adult-industry convention — does not replace attestation/2257 pipeline. -->
+<meta name="rating" content="RTA-5042-1996-1400-1577-RTA"/>
 <link rel="preconnect" href="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev" crossorigin/>
+<link rel="preconnect" href="https://dabfxysxcngijcxxekzc.supabase.co" crossorigin/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="canonical" href="https://www.thebestpornai.com/"/>
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"/>
 <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png"/>
@@ -40,14 +46,9 @@
 </script>
 
 <!-- CSP - scoped to R2, Supabase, Google Fonts, YouTube, and Vercel.
-     'unsafe-eval' removed: confirmed no eval()/new Function() anywhere in
-     src/ (grep swept clean), so it was dead weight. connect-src/img-src/
-     media-src scoped to actual origins (R2 pub host + Supabase REST) instead
-     of the bare `https:` wildcard, matching the pattern already used in
-     creator/index.html and manager/index.html. script-src/style-src still
-     need 'unsafe-inline' — same reason as creator/manager: render.js/ui.js
-     emit onclick="..." via innerHTML; event-delegation migration is the
-     real fix, not done here. -->
+     script-src and style-src retain 'unsafe-inline' because dynamic page templates
+     rendered into #view emit onclick="..." handlers via innerHTML. Preconnects are
+     scoped to R2, Supabase, and Google Fonts. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' blob: data:; script-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://vercel.live https://*.vercel.app; img-src 'self' data: blob: https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev https://i.ytimg.com; media-src 'self' blob: https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev; connect-src 'self' https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev https://dabfxysxcngijcxxekzc.supabase.co https://vercel.live; frame-src 'self' https://www.youtube.com https://vercel.live;">
 
 <link rel="stylesheet" href="/src/shared/theme.css" />
@@ -66,6 +67,7 @@
   <symbol id="icon-explore" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="12" cy="12" r="9"/><path d="m15 9-3.5 6.5L8 12l3.5-6.5L15 9Z"/>
   </symbol>
+  <!-- icon-search / icon-search-go deduped: identical path data, one symbol, two refs. -->
   <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
   </symbol>
@@ -89,9 +91,6 @@
   </symbol>
   <symbol id="icon-account" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 18.2c1-2.3 3.1-3.7 5.5-3.7s4.5 1.4 5.5 3.7"/>
-  </symbol>
-  <symbol id="icon-search-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
   </symbol>
   <symbol id="icon-like" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3Zm0 0 4.5-8a2 2 0 0 1 2 2.2L12.8 9H19a2 2 0 0 1 2 2.4l-1.4 7A2 2 0 0 1 17.6 20H10a3 3 0 0 1-3-3v-6Z"/>
@@ -181,6 +180,7 @@
     <path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
   </symbol>
 </svg>
+
 <div class="app">
   <!-- Sidebar: slim icon rail (desktop only — mobile uses the hamburger
        drawer below instead). Only the 5 core destinations; everything else
@@ -190,28 +190,28 @@
 
     <div class="nav" id="nav">
       <!-- Primary IA (aligned with mobile bottom nav) -->
-      <button data-page="home"    onclick="go('home')" title="Home"><svg class="ico"><use href="#icon-home"/></svg> <span class="nav-label">Home</span></button>
-      <button data-page="feed"    onclick="go('feed')" title="Shorts"><svg class="ico"><use href="#icon-shorts"/></svg> <span class="nav-label">Shorts</span></button>
-      <button data-page="library" onclick="go('library')" title="Library"><svg class="ico"><use href="#icon-save"/></svg> <span class="nav-label">Library</span></button>
-      <button data-page="subscriptions" onclick="go('subscriptions')" title="Subscriptions"><svg class="ico"><use href="#icon-subs"/></svg> <span class="nav-label">Subs</span></button>
-      <button data-page="explore" onclick="go('explore')" title="Explore"><svg class="ico"><use href="#icon-explore"/></svg> <span class="nav-label">Explore</span></button>
-      <button data-page="pornstars" onclick="go('pornstars')" title="Pornstars"><svg class="ico"><use href="#icon-you"/></svg> <span class="nav-label">Stars</span></button>
+      <button data-page="home" data-nav="home" aria-label="Home"><svg class="ico"><use href="#icon-home"/></svg> <span class="nav-label">Home</span></button>
+      <button data-page="feed" data-nav="feed" aria-label="Shorts"><svg class="ico"><use href="#icon-shorts"/></svg> <span class="nav-label">Shorts</span></button>
+      <button data-page="library" data-nav="library" aria-label="Library"><svg class="ico"><use href="#icon-save"/></svg> <span class="nav-label">Library</span></button>
+      <button data-page="subscriptions" data-nav="subscriptions" aria-label="Subscriptions"><svg class="ico"><use href="#icon-subs"/></svg> <span class="nav-label">Subs</span></button>
+      <button data-page="explore" data-nav="explore" aria-label="Explore"><svg class="ico"><use href="#icon-explore"/></svg> <span class="nav-label">Explore</span></button>
+      <button data-page="pornstars" data-nav="pornstars" aria-label="Pornstars"><svg class="ico"><use href="#icon-you"/></svg> <span class="nav-label">Stars</span></button>
 
-      <a href="/blog/" class="nav-link-out" title="Blog"><svg class="ico"><use href="#icon-comment"/></svg> Blog</a>
-      <a href="/choose.html" class="nav-link-out" title="Creator Studio"><svg class="ico"><use href="#icon-studio"/></svg> Studio</a>
+      <a href="/blog/" class="nav-link-out" aria-label="Blog"><svg class="ico"><use href="#icon-comment"/></svg> Blog</a>
+      <a href="/choose.html" class="nav-link-out" aria-label="Creator Studio"><svg class="ico"><use href="#icon-studio"/></svg> Studio</a>
     </div>
 
     <div class="account-menu sidebar-account">
-      <button class="nav-account-btn" data-mobile-action="toggle-account-menu" title="Your account" aria-haspopup="true" aria-expanded="false">
+      <button class="nav-account-btn" data-mobile-action="toggle-account-menu" aria-label="Your account" aria-haspopup="true" aria-expanded="false" aria-controls="accountMenuPanel">
         <svg class="ico"><use href="#icon-account"/></svg> <span class="nav-label">You</span>
       </button>
-      <div class="account-menu-panel">
-        <button onclick="go('profile')"><span class="ico">👤</span> Profile</button>
-        <button onclick="go('library')"><span class="ico">📚</span> Library</button>
-        <button onclick="setLibraryTab('favorites')"><span class="ico">★</span> Favorites</button>
-        <button onclick="setLibraryTab('history')"><span class="ico">↺</span> History</button>
-        <button onclick="go('originals')"><span class="ico">🎬</span> Originals</button>
-        <button onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
+      <div class="account-menu-panel" id="accountMenuPanel" role="menu" aria-label="Account menu">
+        <button data-nav="profile" role="menuitem"><span class="ico">👤</span> Profile</button>
+        <button data-nav="library" role="menuitem"><span class="ico">📚</span> Library</button>
+        <button data-lib-tab="favorites" role="menuitem"><span class="ico">★</span> Favorites</button>
+        <button data-lib-tab="history" role="menuitem"><span class="ico">↺</span> History</button>
+        <button data-nav="originals" role="menuitem"><span class="ico">🎬</span> Originals</button>
+        <button data-nav="settings" role="menuitem"><span class="ico">⚙</span> Settings</button>
         <div class="account-menu-sep"></div>
         <div class="account-menu-legal">
           18+ Adults Only — All performers are consenting adults 18+<br/>
@@ -229,8 +229,8 @@
   <!-- Main Content -->
   <div class="main">
     <div class="topbar">
-      <button class="icon-btn topbar-drawer-toggle" data-mobile-action="toggle-drawer" aria-label="Open navigation menu">☰</button>
-      <button class="icon-btn topbar-back-btn" onclick="if(history.length>1){history.back()}else{go('home')}" aria-label="Go back"><svg class="ico"><use href="#icon-back"/></svg></button>
+      <button class="icon-btn topbar-drawer-toggle" data-mobile-action="toggle-drawer" aria-label="Open navigation menu" aria-controls="mobileDrawer" aria-expanded="false">☰</button>
+      <button class="icon-btn topbar-back-btn" data-action="back" aria-label="Go back"><svg class="ico"><use href="#icon-back"/></svg></button>
       <div class="left"><a href="/" class="mobile-topbar-brand"><img src="/src/shared/assets/logo.png" alt="thebestpornai"/></a></div>
       <div class="topbar-actions">
         <button
@@ -243,16 +243,17 @@
           <input
             class="search-input"
             id="searchInput"
+            data-action="search-input"
             placeholder="Search videos, creators, tags…"
-            oninput="doSearch()"
             aria-label="Search"
+            autocomplete="off"
           />
-          <button class="search-go" onclick="doSearch()" aria-label="Search">
-            <svg class="ico"><use href="#icon-search-go"/></svg>
+          <button class="search-go" data-action="search-go" aria-label="Search">
+            <svg class="ico"><use href="#icon-search"/></svg>
           </button>
         </div>
-        <button class="icon-btn" onclick="window.location.href='/creator/index.html?page=upload'" aria-label="Upload new video" title="Upload">＋</button>
-        <button class="icon-btn" onclick="go('library')" aria-label="Library" title="Library">
+        <button class="icon-btn" data-action="upload" aria-label="Upload new video" title="Upload">＋</button>
+        <button class="icon-btn" data-nav="library" aria-label="Library" title="Library">
           <svg class="ico"><use href="#icon-save"/></svg>
         </button>
       </div>
@@ -262,36 +263,36 @@
 
   <!-- Mobile Bottom Navigation -->
   <nav class="bottom-nav" id="bottomNav" aria-label="Primary navigation">
-    <button data-page="home"    onclick="go('home')"><svg class="ico"><use href="#icon-home"/></svg><span>Home</span></button>
-    <button data-page="feed"    onclick="go('feed')"><svg class="ico"><use href="#icon-shorts"/></svg><span>Shorts</span></button>
-    <button data-page="search" onclick="goSearch()"><svg class="ico"><use href="#icon-search"/></svg><span>Search</span></button>
-    <button data-page="library" onclick="go('library')"><svg class="ico"><use href="#icon-save"/></svg><span>Library</span></button>
-    <button data-page="profile" onclick="go('profile')"><svg class="ico"><use href="#icon-you"/></svg><span>You</span></button>
+    <button data-page="home" data-nav="home" aria-label="Home"><svg class="ico"><use href="#icon-home"/></svg><span>Home</span></button>
+    <button data-page="feed" data-nav="feed" aria-label="Shorts"><svg class="ico"><use href="#icon-shorts"/></svg><span>Shorts</span></button>
+    <button data-page="search" data-action="search-nav" aria-label="Search"><svg class="ico"><use href="#icon-search"/></svg><span>Search</span></button>
+    <button data-page="library" data-nav="library" aria-label="Library"><svg class="ico"><use href="#icon-save"/></svg><span>Library</span></button>
+    <button data-page="profile" data-nav="profile" aria-label="Your profile"><svg class="ico"><use href="#icon-you"/></svg><span>You</span></button>
   </nav>
 </div>
 
 <!-- Mobile Navigation Drawer -->
 <div class="mobile-drawer-backdrop" id="drawerBackdrop" data-mobile-action="close-drawer"></div>
-<div class="mobile-drawer" id="mobileDrawer" aria-label="Navigation drawer">
+<div class="mobile-drawer" id="mobileDrawer" role="dialog" aria-modal="true" aria-label="Navigation menu" aria-hidden="true">
   <div class="mobile-drawer-head">
     <a class="brand" href="/"><img src="/src/shared/assets/logo.png" alt="thebestpornai"/></a>
     <button class="icon-btn" data-mobile-action="close-drawer" aria-label="Close menu">✕</button>
   </div>
   <div class="mobile-drawer-nav">
-    <button class="nav-upload" onclick="window.location.href='/creator/index.html?page=upload'"><span class="ico">⬆</span> Upload Video</button>
+    <button class="nav-upload" data-action="upload"><span class="ico">⬆</span> Upload Video</button>
     <div class="nav-label-group">Browse</div>
-    <button data-page="home" onclick="go('home')"><span class="ico">🏠</span> Home</button>
-    <button data-page="feed" onclick="go('feed')"><span class="ico">📱</span> Shorts</button>
-    <button data-page="explore" onclick="go('explore')"><span class="ico">🧭</span> Explore</button>
-    <button data-page="pornstars" onclick="go('pornstars')"><span class="ico">⭐</span> Pornstars</button>
-    <button data-page="categories" onclick="go('categories')"><span class="ico">▦</span> Categories</button>
-    <button data-page="trending" onclick="go('trending')"><span class="ico">🔥</span> Trending</button>
-    <button data-page="originals" onclick="go('originals')"><span class="ico">🎬</span> Originals</button>
+    <button data-page="home" data-nav="home"><span class="ico">🏠</span> Home</button>
+    <button data-page="feed" data-nav="feed"><span class="ico">📱</span> Shorts</button>
+    <button data-page="explore" data-nav="explore"><span class="ico">🧭</span> Explore</button>
+    <button data-page="pornstars" data-nav="pornstars"><span class="ico">⭐</span> Pornstars</button>
+    <button data-page="categories" data-nav="categories"><span class="ico">▦</span> Categories</button>
+    <button data-page="trending" data-nav="trending"><span class="ico">🔥</span> Trending</button>
+    <button data-page="originals" data-nav="originals"><span class="ico">🎬</span> Originals</button>
     <div class="nav-label-group">Your stuff</div>
-    <button data-page="library" onclick="go('library')"><span class="ico">📚</span> Library</button>
-    <button data-page="subscriptions" onclick="go('subscriptions')"><span class="ico">📺</span> Subscriptions</button>
-    <button data-page="profile" onclick="go('profile')"><span class="ico">👤</span> You</button>
-    <button data-page="settings" onclick="go('settings')"><span class="ico">⚙</span> Settings</button>
+    <button data-page="library" data-nav="library"><span class="ico">📚</span> Library</button>
+    <button data-page="subscriptions" data-nav="subscriptions"><span class="ico">📺</span> Subscriptions</button>
+    <button data-page="profile" data-nav="profile"><span class="ico">👤</span> You</button>
+    <button data-page="settings" data-nav="settings"><span class="ico">⚙</span> Settings</button>
     <div class="nav-label-group">More</div>
     <a href="/blog/" class="nav-link-out"><span class="ico">📝</span> Blog</a>
     <a href="/choose.html" class="nav-link-out"><span class="ico">🛡</span> Creator Studio</a>
@@ -304,6 +305,85 @@
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+
+<!--
+  Delegated interaction bootstrap.
+  Replaces every inline onclick/oninput in this file (Invariant #1). Calls
+  the SAME global functions the old inline handlers called (window.go,
+  window.doSearch, window.goSearch, window.setLibraryTab) — these must
+  already be exposed on window by main.js, since that's what the previous
+  inline attributes relied on. No behavior change, only how it's wired.
+
+  data-mobile-action handlers (drawer/search/account-menu toggles) are
+  UNCHANGED — they were already delegation-based and are assumed to be
+  bound inside main.js. This script only adds the NEW bindings needed to
+  remove the remaining onclick/oninput attributes:
+    data-nav="<page>"        -> go(page)
+    data-lib-tab="<tab>"     -> setLibraryTab(tab)
+    data-action="search-input" (on #searchInput) -> debounced doSearch()
+    data-action="search-go"  -> doSearch()
+    data-action="search-nav" -> goSearch()
+    data-action="back"       -> history.back() / go('home') fallback
+    data-action="upload"     -> navigate to /creator/index.html?page=upload
+
+  NOTE: this is loaded as a plain (non-module) script so it runs before
+  /src/viewer/main.js's module graph resolves, and so `go`/`doSearch`/etc.
+  are read off window at call-time (not import-time), avoiding a load-order
+  race with main.js's own exports-to-window step, if any.
+-->
+<script>
+(function () {
+  'use strict';
+
+  function call(name, arg) {
+    var fn = window[name];
+    if (typeof fn === 'function') fn(arg);
+    else console.warn('[nav] window.' + name + ' is not defined yet');
+  }
+
+  // Debounce search-as-you-type instead of firing a query per keystroke.
+  var searchDebounceMs = 250;
+  var searchTimer = null;
+  function debouncedSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function () { call('doSearch'); }, searchDebounceMs);
+  }
+
+  document.addEventListener('click', function (e) {
+    var navEl = e.target.closest('[data-nav]');
+    if (navEl) { call('go', navEl.getAttribute('data-nav')); return; }
+
+    var tabEl = e.target.closest('[data-lib-tab]');
+    if (tabEl) { call('setLibraryTab', tabEl.getAttribute('data-lib-tab')); return; }
+
+    var actionEl = e.target.closest('[data-action]');
+    if (!actionEl) return;
+
+    switch (actionEl.getAttribute('data-action')) {
+      case 'search-go':
+        clearTimeout(searchTimer);
+        call('doSearch');
+        break;
+      case 'search-nav':
+        call('goSearch');
+        break;
+      case 'back':
+        if (history.length > 1) history.back();
+        else call('go', 'home');
+        break;
+      case 'upload':
+        window.location.href = '/creator/index.html?page=upload';
+        break;
+    }
+  });
+
+  document.addEventListener('input', function (e) {
+    if (e.target && e.target.matches('[data-action="search-input"]')) {
+      debouncedSearch();
+    }
+  });
+})();
+</script>
 
 <script type="module" src="/src/viewer/main.js"></script>
 </body>

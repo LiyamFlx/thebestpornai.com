@@ -56,8 +56,9 @@ export function render(){
 
   // Active nav: Library button stays lit for any library tab/legacy alias
   const navPage = LIBRARY_PAGES.has(p) ? "library" : p;
-  document.querySelectorAll("#nav button, #bottomNav button, .mobile-drawer-nav button[data-page]").forEach(b=>{
-    const bp = b.dataset.page;
+  document.querySelectorAll("#nav button, #bottomNav button, .mobile-drawer-nav button").forEach(b=>{
+    const bp = b.dataset.page || b.dataset.nav;
+    if (!bp) return;
     b.classList.toggle("active", bp === navPage || bp === p);
   });
   // Keep the topbar search box in sync with routed query (hash / tag chips).
