@@ -32,7 +32,7 @@ export const SEED_POSTS = [
     date: "2026-07-28",
     dateModified: "2026-07-31",
     readMins: 5,
-    coverVideoId: 24,
+    coverVideoId: 15,
     relatedVideoIds: [24, 25, 21, 22],
     tags: ["AI", "fantasy", "synthetic", "desire"],
     body: `
@@ -89,7 +89,7 @@ export const SEED_POSTS = [
     date: "2026-07-26",
     dateModified: "2026-07-31",
     readMins: 4,
-    coverVideoId: 181,
+    coverVideoId: 1,
     relatedVideoIds: [181, 182, 183, 184],
     tags: ["power", "confession", "office", "after-hours"],
     body: `
@@ -413,13 +413,14 @@ export const SEED_POSTS = [
     slug: "the-best-porn-ai-2026",
     title: "The Best Porn AI in 2026 — Ranked for Watching & Creating",
     category: "Guides",
+    cover: "/blog-assets/best-ai-adult-content-platforms-in-2026.jpg",
     excerpt:
       "The best porn AI in 2026 ranked by real quality: curated watching platforms vs generators. Clear winners for video, images, companions, and who each option is for.",
     microcopy: "Ranked by what actually matters: watchability, consistency, motion quality, and control. Clear winners for watching finished scenes vs creating your own.",
     date: "2026-07-31",
     dateModified: "2026-08-14",
     readMins: 11,
-    coverVideoId: 2,
+    coverVideoId: 5168,
     relatedVideoIds: [2, 4, 7, 12, 5168, 5248, 5257],
     tags: [
       "the best porn ai",
@@ -700,7 +701,7 @@ export const SEED_POSTS = [
     date: "2026-07-31",
     dateModified: "2026-07-31",
     readMins: 4,
-    coverVideoId: 4,
+    coverVideoId: 3,
     relatedVideoIds: [4, 2, 7, 14],
     tags: ["AI", "guide", "quality", "curation"],
     body: `
@@ -753,7 +754,7 @@ export const SEED_POSTS = [
     date: "2026-07-31",
     dateModified: "2026-07-31",
     readMins: 4,
-    coverVideoId: 7,
+    coverVideoId: 5,
     relatedVideoIds: [7, 2, 4, 19],
     tags: ["AI", "guide", "comparison", "decision"],
     body: `
@@ -808,7 +809,7 @@ export const SEED_POSTS = [
     date: "2026-08-02",
     dateModified: "2026-08-02",
     readMins: 5,
-    coverVideoId: 4301,
+    coverVideoId: 14,
     relatedVideoIds: [4301, 4302, 4303, 4304, 4305, 4308],
     tags: ["Latina", "fantasy", "AI", "heat", "Perfect Latin"],
     body: `
@@ -856,8 +857,7 @@ export const SEED_POSTS = [
     date: "2026-08-02",
     dateModified: "2026-08-02",
     readMins: 5,
-    cover: "../media/blog/ai-dance-striptease-1.jpg",
-    coverVideoId: 4283,
+    coverVideoId: 4259,
     relatedVideoIds: [4283, 4259, 4260, 4261, 4262, 4265],
     tags: ["dance", "amateur", "fantasy", "tease", "Emily"],
     body: `
@@ -1935,13 +1935,14 @@ export const SEED_POSTS = [
     slug: "best-ai-porn-sites-2026",
     title: "The Best Porn AI Platforms in 2026: Ranked & Reviewed",
     category: "Guides",
+    cover: "/blog-assets/best-ai-adult-content-platforms-2026-hero.jpg",
     excerpt:
       "We tested the top AI porn platforms of 2026 on video quality, creator authenticity, privacy, and value. See the full ranked comparison.",
     microcopy: "Ranked across 5 core dimensions: content quality, creator authenticity, library depth, privacy, and real value.",
     date: "2026-08-14",
     dateModified: "2026-08-14",
     readMins: 10,
-    coverVideoId: 2,
+    coverVideoId: 5257,
     relatedVideoIds: [2, 4, 7, 12, 5168, 5248, 5257],
     tags: [
       "best ai porn sites 2026",
@@ -2035,7 +2036,7 @@ export const SEED_POSTS = [
         <li><strong>Content quality &amp; realism</strong> — video/image fidelity, consistency, artifact rate.</li>
         <li><strong>Creator authenticity</strong> — is this AI-assisted content from real creators, or pure prompt-to-output generation with no human behind it?</li>
         <li><strong>Library depth &amp; update cadence</strong> — how much content, how often it grows.</li>
-        <li><strong>Privacy &amp; security</strong> — signed/expiring URLs vs. public buckets, data retention policy, no unnecessary metadata exposure.</li>
+        <li><strong>Privacy &amp; security</strong> — signed/expiring URLs vs. public bucket links, data retention policy, no unnecessary metadata exposure.</li>
         <li><strong>Value</strong> — free tier generosity, pricing transparency, no hidden recurring fees.</li>
       </ol>
 
@@ -2157,13 +2158,14 @@ export const SEED_POSTS = [
     slug: "best-free-ai-porn-2026",
     title: "Best Free AI Porn in 2026 — What’s Actually Free vs What’s a Trap",
     category: "Guides",
+    cover: "/blog-assets/best-free-ai-porn-wet-night-penthouse.jpg",
     excerpt:
       "Best free AI porn in 2026: real free watching options, free generator tiers worth using, and the traps that demand a card before you see anything. Clear ranking.",
     microcopy: "What’s actually free to watch or generate — and the traps that demand a card before you see a single usable frame.",
     date: "2026-08-14",
     dateModified: "2026-08-14",
     readMins: 9,
-    coverVideoId: 2,
+    coverVideoId: 5248,
     relatedVideoIds: [2, 4, 7, 12, 5168, 5248, 5257],
     tags: [
       "best free ai porn",
@@ -2404,13 +2406,14 @@ export const SEED_POSTS = [
     slug: "best-ai-character-generators-2026",
     title: "Best AI Adult & Character Generators in 2026: Quality, Speed & Features",
     category: "Guides",
+    cover: "/blog-assets/best-ai-porn-sites-2026-crew.jpg",
     excerpt:
       "A comprehensive breakdown of the top-performing AI character and adult generators in 2026 evaluated for prompt accuracy, speed, and privacy.",
     microcopy: "Tested for prompt adherence, anatomical rendering speed, and zero-log privacy safeguards.",
     date: "2026-08-14",
     dateModified: "2026-08-14",
     readMins: 8,
-    coverVideoId: 2,
+    coverVideoId: 5257,
     relatedVideoIds: [2, 4, 7, 12, 5168, 5248, 5257],
     tags: [
       "ai character generator",
@@ -2607,13 +2610,14 @@ export const SEED_POSTS = [
     slug: "best-ai-image-generators-2026",
     title: "Best AI Adult & Character Image Generators in 2026: Quality, Speed & Features",
     category: "Guides",
+    cover: "/blog-assets/best-ai-character-generators-workout-raw.jpg",
     excerpt:
       "A complete 2026 review and guide to the best AI adult image and character generators. Compare rendering speed, character consistency, batch prompts, and free tiers.",
     microcopy: "Tested for photorealistic skin textures, anime fidelity, 4K upscaling, and prompt adherence.",
     date: "2026-08-14",
     dateModified: "2026-08-14",
     readMins: 8,
-    coverVideoId: 2,
+    coverVideoId: 5168,
     relatedVideoIds: [2, 4, 7, 12, 5168, 5248, 5257],
     tags: [
       "best ai image generators 2026",

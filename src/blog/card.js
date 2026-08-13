@@ -72,16 +72,18 @@ export function postCardHtml(post, { eager = false, fetchpriority } = {}) {
   return `
     <a class="blog-card" href="/blog/${esc(post.slug)}.html" data-category="${esc(post.category)}" data-slug="${esc(post.slug)}">
       <div class="blog-card-media">
-        <img src="${esc(cover)}" alt="${esc(title)}" loading="${loading}"${fpAttr} width="640" height="400" decoding="async"/>
+        <img src="${esc(cover)}" alt="${esc(title)}" loading="${loading}"${fpAttr} width="640" height="380" decoding="async"/>
+        <div class="blog-card-media-gradient"></div>
         <span class="blog-card-pill">${esc(post.category)}</span>
+        <span class="blog-card-badge-read">${ICON_CLOCK}${readMins} min</span>
       </div>
       <div class="blog-card-body">
         <h3 class="blog-card-title">${esc(title)}</h3>
         <p class="blog-card-excerpt">${esc(post.excerpt)}</p>
         <div class="blog-card-meta">
-          <span>${ICON_CALENDAR}${esc(formatDate(post.date))}</span>
+          <span class="blog-card-byline">Editorial</span>
           <span class="dot"></span>
-          <span>${ICON_CLOCK}${readMins} min read</span>
+          <span>${ICON_CALENDAR}${esc(formatDate(post.date))}</span>
           <span class="blog-card-read-more">Read story →</span>
         </div>
       </div>

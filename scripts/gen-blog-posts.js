@@ -223,16 +223,18 @@ function postCardHtml(post, { eager = false, fetchpriority } = {}) {
   return `
     <a class="blog-card" href="/blog/${esc(post.slug)}.html" data-category="${esc(post.category)}" data-slug="${esc(post.slug)}">
       <div class="blog-card-media">
-        <img src="${esc(cover)}" alt="${esc(title)}" loading="${loading}"${fpAttr} width="640" height="400" decoding="async"/>
+        <img src="${esc(cover)}" alt="${esc(title)}" loading="${loading}"${fpAttr} width="640" height="380" decoding="async"/>
+        <div class="blog-card-media-gradient"></div>
         <span class="blog-card-pill">${esc(post.category)}</span>
+        <span class="blog-card-badge-read">${ICON_CLOCK}${readMins} min</span>
       </div>
       <div class="blog-card-body">
         <h3 class="blog-card-title">${esc(title)}</h3>
         <p class="blog-card-excerpt">${esc(post.excerpt)}</p>
         <div class="blog-card-meta">
-          <span>${ICON_CALENDAR}${esc(formatDate(post.date))}</span>
+          <span class="blog-card-byline">Editorial</span>
           <span class="dot"></span>
-          <span>${ICON_CLOCK}${readMins} min read</span>
+          <span>${ICON_CALENDAR}${esc(formatDate(post.date))}</span>
           <span class="blog-card-read-more">Read story →</span>
         </div>
       </div>
@@ -710,31 +712,40 @@ ${siteHeader({ mode: "index" })}
 
 <main class="blog-shell">
   <header class="blog-masthead">
-    <h1>Editorial</h1>
-    <p>Cinematic adult stories, AI fantasies, confessions &amp; kink craft — then stream the matching scenes on thebestpornai.</p>
+    <div class="blog-masthead-badge">
+      <span class="pulse-dot"></span>
+      <span>THEBESTPORNAI EDITORIAL &amp; RESEARCH</span>
+    </div>
+    <h1>AI Adult Intelligence, Rankings &amp; Stories</h1>
+    <p class="blog-masthead-sub">In-depth platform reviews, technical prompt benchmarks, and curated 1080p AI creator cinema — read the fantasy, stream the reality.</p>
   </header>
 
-  <nav class="blog-pillnav" id="blog-pillnav" aria-label="Blog categories">
-    ${categories
-      .map((cat) => {
-        const active = cat === "All" ? " active" : "";
-        const data = cat === "All" ? "all" : cat;
-        return `<button type="button" class="blog-pill${active}" data-category="${esc(data)}">${esc(cat)}</button>`;
-      })
-      .join("")}
-  </nav>
+  <div class="blog-filter-bar">
+    <nav class="blog-pillnav" id="blog-pillnav" aria-label="Blog categories">
+      ${categories
+        .map((cat) => {
+          const active = cat === "All" ? " active" : "";
+          const data = cat === "All" ? "all" : cat;
+          return `<button type="button" class="blog-pill${active}" data-category="${esc(data)}">${esc(cat)}</button>`;
+        })
+        .join("")}
+    </nav>
+  </div>
 
   <div id="blog-hero">
     <a href="/blog/${esc(featured.slug)}.html" class="blog-hero" aria-label="Featured: ${esc(featuredTitle)}">
       <div class="blog-hero-img" style="background-image:url('${esc(cover)}')"></div>
       <div class="blog-hero-overlay">
-        <span class="blog-hero-eyebrow">Featured · ${esc(featured.category)}</span>
+        <div class="blog-hero-badge-row">
+          <span class="blog-hero-eyebrow">🔥 FEATURED GUIDE · ${esc(featured.category)}</span>
+          <span class="blog-hero-stat">${ICON_CLOCK}${featuredReadMins} min read</span>
+        </div>
         <h2 class="blog-hero-title">${esc(featuredTitle)}</h2>
         <p class="blog-hero-excerpt">${esc(featured.excerpt)}</p>
         <div class="blog-hero-footer">
-          <span class="blog-cta blog-cta-primary">Read guide</span>
+          <span class="blog-cta blog-cta-primary">Read Complete Guide →</span>
           <div class="blog-hero-meta">
-            <span>${ICON_CLOCK}${featuredReadMins} min read</span>
+            <span class="blog-card-byline">thebestpornai Editorial</span>
             <span class="dot"></span>
             <span>${ICON_CALENDAR}${esc(formatDate(featured.date))}</span>
           </div>
@@ -744,7 +755,7 @@ ${siteHeader({ mode: "index" })}
   </div>
 
   <div class="blog-section-head">
-    <h2>Latest desires</h2>
+    <h2>Latest Desires &amp; In-Depth Guides</h2>
     <div class="blog-section-rule" aria-hidden="true"></div>
   </div>
 
@@ -753,14 +764,31 @@ ${siteHeader({ mode: "index" })}
   </div>
 
   <div class="blog-loadmore-wrap">
-    <button class="blog-loadmore" id="blog-loadmore" type="button" hidden>Load more</button>
+    <button class="blog-loadmore" id="blog-loadmore" type="button" hidden>Load more articles</button>
   </div>
 
   <section class="blog-crawl-index" aria-label="All blog posts">
-    <h2>All posts</h2>
-    <ol>
-      ${allLinks}
-    </ol>
+    <div class="blog-crawl-head">
+      <div class="blog-crawl-title">
+        <h2>Complete Editorial Archive</h2>
+        <span class="blog-crawl-count">${sorted.length} Articles</span>
+      </div>
+      <p class="blog-crawl-desc">Full archive of in-depth reviews, generator benchmarks, and creator stories.</p>
+    </div>
+    <div class="blog-crawl-grid">
+      ${hub
+        .map(
+          (p) =>
+            `<a class="blog-crawl-card" href="/blog/${esc(p.slug)}.html">
+              <div class="blog-crawl-card-header">
+                <span class="blog-crawl-card-cat">${esc(p.category)}</span>
+                <span class="blog-crawl-card-date">${esc(formatDate(p.date))}</span>
+              </div>
+              <span class="blog-crawl-card-title">${esc(cleanTitle(p.title))}</span>
+            </a>`
+        )
+        .join("\n")}
+    </div>
   </section>
 </main>
 
