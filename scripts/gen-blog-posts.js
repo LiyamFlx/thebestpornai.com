@@ -413,6 +413,13 @@ function jsonLdForPost(post, cover, words, relatedVideos = []) {
     });
   }
 
+  if (post.itemList && post.itemList.length) {
+    graph.push({
+      "@type": "ItemList",
+      itemListElement: post.itemList,
+    });
+  }
+
   // Add VideoObject schema for related videos
   for (const v of relatedVideos) {
     const vTitle = cleanTitle(v.title);
