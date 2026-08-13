@@ -111,6 +111,8 @@ function toIsoDuration(dur) {
   return undefined;
 }
 
+const SEARCH_ICON_SVG = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:16px;height:16px;margin:0;opacity:1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`;
+
 function siteHeader({ mode = "index" } = {}) {
   const search =
     mode === "index"
@@ -118,7 +120,7 @@ function siteHeader({ mode = "index" } = {}) {
       <div class="blog-search-wrap" id="blog-search-wrap">
         <input class="blog-search-input" id="blog-search-input" type="search" placeholder="Search stories…" aria-label="Search posts"/>
       </div>
-      <button class="blog-icon-btn" id="blog-search-toggle" aria-label="Search" aria-expanded="false" type="button">⌕</button>`
+      <button class="blog-icon-btn" id="blog-search-toggle" aria-label="Search" aria-expanded="false" type="button">${SEARCH_ICON_SVG}</button>`
       : "";
   return `
 <header class="blog-topbar">
@@ -211,16 +213,17 @@ const ICON_CLOCK = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="cu
 const ICON_CALENDAR = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="1.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>`;
 const ICON_PLAY = `<svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.92)" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.45)"/><path d="M9.5 8v8l7-4-7-4Z"/></svg>`;
 
-function postCardHtml(post, { eager = false } = {}) {
+function postCardHtml(post, { eager = false, fetchpriority } = {}) {
   const cover = postCoverThumbUrl(post);
   const loading = eager ? "eager" : "lazy";
+  const fpAttr = fetchpriority ? ` fetchpriority="${fetchpriority}"` : "";
   const words = wordCount(post.body);
   const readMins = calcReadMins(words);
   const title = cleanTitle(post.title);
   return `
     <a class="blog-card" href="/blog/${esc(post.slug)}.html" data-category="${esc(post.category)}" data-slug="${esc(post.slug)}">
       <div class="blog-card-media">
-        <img src="${esc(cover)}" alt="${esc(title)}" loading="${loading}" width="640" height="400" decoding="async"/>
+        <img src="${esc(cover)}" alt="${esc(title)}" loading="${loading}"${fpAttr} width="640" height="400" decoding="async"/>
         <span class="blog-card-pill">${esc(post.category)}</span>
       </div>
       <div class="blog-card-body">
@@ -652,7 +655,7 @@ function renderIndex() {
   const jsonLd = jsonLdForIndex(hub);
   const categories = ["All", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
 
-  const staticCards = rest.map((p, i) => postCardHtml(p, { eager: i < 3 })).join("");
+  const staticCards = rest.map((p, i) => postCardHtml(p, { eager: i < 3, fetchpriority: i === 0 ? "high" : undefined })).join("");
   const allLinks = hub
     .map(
       (p) =>
@@ -669,8 +672,8 @@ function renderIndex() {
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Blog | thebestpornai — Stories, Fantasies, Confessions &amp; Kink Lab</title>
-<meta name="description" content="Cinematic adult stories, AI fantasies, confessions and kink deep-dives from thebestpornai. Read the fantasy, then watch it on the main player."/>
+<title>Blog | thebestpornai — AI Porn Guides, Fantasies &amp; Stories</title>
+<meta name="description" content="AI porn guides, generator rankings, cinematic fantasies and confessions from thebestpornai. Read the story, then watch the matching scenes."/>
 <meta name="theme-color" content="#000000"/>
 <link rel="preconnect" href="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev" crossorigin/>
 <link rel="canonical" href="${ORIGIN}/blog/"/>
@@ -678,13 +681,13 @@ function renderIndex() {
 <link rel="icon" type="image/png" href="/src/shared/assets/favicon-32.png"/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="thebestpornai"/>
-<meta property="og:title" content="Blog | thebestpornai"/>
+<meta property="og:title" content="Blog | thebestpornai — AI Porn Guides &amp; Fantasies"/>
 <meta property="og:description" content="Cinematic adult stories, AI fantasies, confessions and kink deep-dives. Read the fantasy, then watch it."/>
 <meta property="og:url" content="${ORIGIN}/blog/"/>
 <meta property="og:image" content="${esc(cover)}"/>
 <meta property="og:image:alt" content="thebestpornai Blog"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="Blog | thebestpornai"/>
+<meta name="twitter:title" content="Blog | thebestpornai — AI Porn Guides &amp; Fantasies"/>
 <meta name="twitter:description" content="Cinematic adult stories, AI fantasies, confessions and kink deep-dives."/>
 <meta name="twitter:image" content="${esc(cover)}"/>
 <meta name="robots" content="index,follow,max-image-preview:large"/>

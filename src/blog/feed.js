@@ -24,24 +24,27 @@ const rest = postsForHub(sorted).filter((p) => p.slug !== featured?.slug);
 function renderHero() {
   const el = document.getElementById("blog-hero");
   if (!el || !featured) return;
-  // Keep featured hero on "All" and when filtering its own category (Guides).
-  if (activeCategory !== "all" && featured.category !== activeCategory) {
+  // Keep featured hero on "All" and when filtering its own category (Guides), but hide when searching
+  if (searchQuery || (activeCategory !== "all" && featured.category !== activeCategory)) {
     el.hidden = true;
     el.innerHTML = "";
     return;
   }
+  const words = plain(featured.body).split(/\s+/).filter(Boolean).length;
+  const readMins = featured.readMins || Math.max(1, Math.ceil(words / 200));
+  const title = featured.title || "";
   el.hidden = false;
   el.innerHTML = `
-    <a href="/blog/${esc(featured.slug)}.html" class="blog-hero" aria-label="Featured: ${esc(featured.title)}">
+    <a href="/blog/${esc(featured.slug)}.html" class="blog-hero" aria-label="Featured: ${esc(title)}">
       <div class="blog-hero-img" style="background-image:url('${postCoverUrl(featured)}')"></div>
       <div class="blog-hero-overlay">
         <span class="blog-hero-eyebrow">Featured · ${esc(featured.category)}</span>
-        <h2 class="blog-hero-title">${esc(featured.title)}</h2>
+        <h2 class="blog-hero-title">${esc(title)}</h2>
         <p class="blog-hero-excerpt">${esc(featured.excerpt)}</p>
         <div class="blog-hero-footer">
           <span class="blog-cta blog-cta-primary">Read guide</span>
           <div class="blog-hero-meta">
-            <span>${ICON_CLOCK}${featured.readMins} min</span>
+            <span>${ICON_CLOCK}${readMins} min read</span>
             <span class="dot"></span>
             <span>${ICON_CALENDAR}${esc(formatDate(featured.date))}</span>
           </div>
@@ -53,10 +56,11 @@ function renderHero() {
 
 function filteredPosts() {
   // Grid excludes featured when it is shown in the hero (avoids duplicate cards).
+  const isHeroVisible = !searchQuery && (activeCategory === "all" || featured?.category === activeCategory);
   let list =
     activeCategory === "all"
-      ? rest
-      : sorted.filter((p) => p.category === activeCategory && p.slug !== featured?.slug);
+      ? (isHeroVisible ? rest : sorted)
+      : sorted.filter((p) => p.category === activeCategory && (!isHeroVisible || p.slug !== featured?.slug));
 
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
@@ -70,8 +74,6 @@ function filteredPosts() {
         (p.tags || []).some((t) => String(t).toLowerCase().includes(q)) ||
         plain(p.body).toLowerCase().includes(q)
     );
-    const hero = document.getElementById("blog-hero");
-    if (hero) hero.hidden = true;
   }
 
   return list;
@@ -81,11 +83,24 @@ function plain(html) {
   return String(html || "").replace(/<[^>]+>/g, " ");
 }
 
+function updateSectionHead(count) {
+  const headTitle = document.querySelector(".blog-section-head h2");
+  if (!headTitle) return;
+  if (searchQuery) {
+    headTitle.textContent = `Search: "${searchQuery}" (${count})`;
+  } else if (activeCategory !== "all") {
+    headTitle.textContent = `${activeCategory} (${count})`;
+  } else {
+    headTitle.textContent = "Latest desires";
+  }
+}
+
 function renderCards() {
   const el = document.getElementById("blog-cards");
   const loadMoreBtn = document.getElementById("blog-loadmore");
   if (!el) return;
   const list = filteredPosts();
+  updateSectionHead(list.length);
   const visible = list.slice(0, visibleCount);
   if (!visible.length) {
     el.innerHTML = `<div class="blog-empty-state">No stories match. <button type="button" class="blog-text-btn" id="blog-clear-filters">Clear filters</button></div>`;
@@ -100,7 +115,7 @@ function renderCards() {
       renderCards();
     });
   } else {
-    el.innerHTML = visible.map(postCardHtml).join("");
+    el.innerHTML = visible.map((p, idx) => postCardHtml(p, { eager: idx < 3, fetchpriority: idx === 0 ? "high" : undefined })).join("");
   }
   if (loadMoreBtn) loadMoreBtn.hidden = visibleCount >= list.length;
 }
@@ -144,15 +159,27 @@ function initSearch() {
     }
   });
 
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      wrap.classList.remove("open");
+      toggleBtn.setAttribute("aria-expanded", "false");
+      input.value = "";
+      searchQuery = "";
+      visibleCount = PAGE_SIZE;
+      renderHero();
+      renderCards();
+    }
+  });
+
   let debounceTimer;
   input.addEventListener("input", () => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       searchQuery = input.value.trim();
       visibleCount = PAGE_SIZE;
-      if (!searchQuery) renderHero();
+      renderHero();
       renderCards();
-    }, 200);
+    }, 180);
   });
 }
 
