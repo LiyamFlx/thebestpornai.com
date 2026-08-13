@@ -52,6 +52,7 @@ function cleanTitle(str) {
 function mediaUrl(src) {
   if (!src) return "";
   if (/^https?:\/\//i.test(src)) return src;
+  if (src.startsWith("/")) return src;
   const rel = src.replace(/^(\.\.\/)?media\//, "");
   const path_ = rel
     .split("/")
@@ -186,7 +187,10 @@ function calcReadMins(words) {
 }
 
 function postCoverUrl(post) {
-  if (post.cover) return mediaUrl(post.cover);
+  if (post.cover) {
+    if (post.cover.startsWith("/") || /^https?:\/\//i.test(post.cover)) return post.cover;
+    return mediaUrl(post.cover);
+  }
   const v = findVideo(post.coverVideoId);
   return v && v.thumb ? mediaUrl(v.thumb) : LOGO;
 }
@@ -198,6 +202,7 @@ function postCoverUrl(post) {
  */
 function postCoverThumbUrl(post) {
   if (!post.cover) return postCoverUrl(post);
+  if (post.cover.startsWith("/") || /^https?:\/\//i.test(post.cover)) return post.cover;
   if (post.cover.includes("media/blog/")) {
     const thumbRel = post.cover.replace(/\.(jpe?g|png)$/i, "-thumb.webp");
     return mediaUrl(thumbRel);

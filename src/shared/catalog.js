@@ -62,6 +62,9 @@ function mediaUrl(src){
     return "";
   }
   let result = src;
+  if(src.startsWith("/")) {
+    return esc(src);
+  }
   if(!/^https?:\/\//i.test(src) && !src.startsWith("blob:") && !src.startsWith("data:")) {
     if(MEDIA_BASE) {
       const rel = src.replace(/^(\.\.\/)?media\//, "");
