@@ -189,14 +189,16 @@ function sharedFooterHtml() {
   </footer>`;
 }
 
-function videoCardHtml(v) {
+function videoCardHtml(v, { eager = false, fetchpriority } = {}) {
   const thumbUrl = v.thumb ? mediaUrl(v.thumb) : "";
   const dur = v.duration ? `<span class="card-dur">${esc(v.duration)}</span>` : "";
   const views = fmtViews(v.views || 1200);
+  const loading = eager ? "eager" : "lazy";
+  const fpAttr = fetchpriority ? ` fetchpriority="${fetchpriority}"` : "";
   return `
     <article class="v-card">
       <a class="v-card-media" href="/#video/${v.id}" title="${esc(v.title)}">
-        ${thumbUrl ? `<img src="${thumbUrl}" alt="${esc(v.title)}" loading="lazy" decoding="async"/>` : `<div class="v-ph"></div>`}
+        ${thumbUrl ? `<img src="${thumbUrl}" alt="${esc(v.title)}" width="320" height="180" loading="${loading}"${fpAttr} decoding="async"/>` : `<div class="v-ph"></div>`}
         ${dur}
         <span class="v-play-btn" aria-hidden="true">▶</span>
       </a>
@@ -220,6 +222,11 @@ function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, active
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(description)}"/>
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"/>
+  <meta name="theme-color" content="#0b0c10"/>
+  <meta name="rating" content="RTA-5042-1996-1400-1577-RTA"/>
+  <link rel="preconnect" href="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev" crossorigin/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link rel="canonical" href="${canonical}"/>
   <meta property="og:type" content="website"/>
   <meta property="og:site_name" content="thebestpornai"/>
@@ -691,12 +698,12 @@ function genPornstarProfiles() {
       v.creator === ps.id || (v.tags && v.tags.includes(ps.name))
     ).slice(0, 36);
 
-    const videoCards = creatorVideos.map(videoCardHtml).join("\n");
+    const videoCards = creatorVideos.map((v, i) => videoCardHtml(v, { eager: i < 4, fetchpriority: i === 0 ? "high" : undefined })).join("\n");
 
     const bodyContent = `
       <section class="page-hero" style="background-image: linear-gradient(rgba(11,12,16,0.8), rgba(11,12,16,0.95)), url('${bannerUrl}'); background-size: cover; background-position: center;">
         <div class="page-hero-inner">
-          <img src="${avatarUrl}" alt="${esc(ps.name)}" style="width:100px;height:100px;border-radius:50%;border:3px solid var(--accent);margin-bottom:16px;object-fit:cover;"/>
+          <img src="${avatarUrl}" alt="${esc(ps.name)}" width="100" height="100" loading="eager" fetchpriority="high" decoding="async" style="width:100px;height:100px;border-radius:50%;border:3px solid var(--accent);margin-bottom:16px;object-fit:cover;"/>
           <h1>${esc(ps.name)}</h1>
           <p>${esc(ps.bio)}</p>
           <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
@@ -827,7 +834,7 @@ function genCategoryPages() {
       (v.categories && v.categories.some((c) => c.toLowerCase() === cat.name.toLowerCase()))
     ).slice(0, 36);
 
-    const videoCards = categoryVideos.map(videoCardHtml).join("\n");
+    const videoCards = categoryVideos.map((v, i) => videoCardHtml(v, { eager: i < 4, fetchpriority: i === 0 ? "high" : undefined })).join("\n");
     const sampleThumb = categoryVideos[0]?.thumb ? mediaUrl(categoryVideos[0].thumb) : LOGO;
 
     const bodyContent = `
@@ -931,12 +938,12 @@ function genVideoPages() {
 
     // Related 6 videos in same category or overall
     const related = VIDEOS.filter(other => other.id !== v.id && (other.category === v.category || !v.category)).slice(0, 6);
-    const relatedCards = related.map(videoCardHtml).join("\n");
+    const relatedCards = related.map((r) => videoCardHtml(r, { eager: false })).join("\n");
 
     const bodyContent = `
       <main class="video-view-wrap">
         <div class="video-player-hero">
-          ${thumbUrl ? `<img src="${thumbUrl}" alt="${esc(v.title)}" loading="eager"/>` : `<div class="v-ph"></div>`}
+          ${thumbUrl ? `<img src="${thumbUrl}" alt="${esc(v.title)}" width="960" height="540" loading="eager" fetchpriority="high" decoding="async"/>` : `<div class="v-ph"></div>`}
           <div class="video-hero-overlay">
             <div class="video-top-badges">
               <span class="quality-pill">4K Ultra HD</span>
