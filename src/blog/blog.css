@@ -1332,6 +1332,110 @@ a { color: inherit; }
 }
 .blog-embed-meta { font-size: 12px; color: var(--dim); }
 
+/* Compatibility and utility aliases for rich reviews */
+.verdict {
+  background: var(--black-card, #111111);
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 12px;
+  padding: 18px 18px 16px;
+  margin: 24px 0 28px;
+}
+.verdict-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--red-hot, #FF2800);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+.verdict p { margin: 0 0 10px; font-size: 15.5px; }
+.verdict p:last-child { margin-bottom: 0; }
+
+.callout {
+  background: var(--black-card, #111111);
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-left: 3px solid var(--red-hot, #FF2800);
+  border-radius: 0 10px 10px 0;
+  padding: 16px 18px;
+  margin: 26px 0;
+  font-size: 15px;
+  color: var(--muted, #A0A0A0);
+}
+.callout strong { display: block; color: var(--white, #FFFFFF); margin-bottom: 4px; }
+
+.rank-card {
+  background: var(--black-card, #111111);
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 12px;
+  padding: 20px 18px 18px;
+  margin: 22px 0;
+  transition: border-color 0.2s;
+}
+.rank-card:hover {
+  border-color: rgba(255, 40, 0, 0.35);
+}
+.rank-card .rank-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--red-hot, #FF2800);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.rank-card h3 { margin: 0 0 10px; font-size: 18px; line-height: 1.3; color: var(--white, #FFFFFF); }
+.rank-card p { margin-bottom: 12px; font-size: 15.5px; }
+.rank-card .best-for { font-size: 14px; color: var(--muted, #A0A0A0); margin-bottom: 12px; }
+.rank-card .best-for strong { color: var(--white, #FFFFFF); }
+.rank-card ul { margin: 0 0 8px 18px; font-size: 15px; }
+.rank-card .takeaway {
+  background: var(--black-elev, #161616);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 12px;
+  font-size: 14.5px;
+  color: var(--muted, #A0A0A0);
+}
+.rank-card .takeaway strong { color: var(--white, #FFFFFF); }
+.rank-card .links { font-size: 13.5px; margin-top: 12px; }
+.rank-card .links a {
+  color: var(--red-hot, #FF2800);
+  margin-right: 14px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 24px 0 28px;
+  border-radius: 10px;
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+}
+.table-wrap table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: var(--black-card, #111111); }
+.table-wrap th, .table-wrap td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border, rgba(255,255,255,0.08)); }
+.table-wrap th { background: var(--black-elev, #161616); color: var(--muted, #A0A0A0); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; }
+.table-wrap td { color: #D0D0D0; }
+.table-wrap td a { color: var(--red-hot, #FF2800); text-decoration: underline; text-underline-offset: 2px; }
+.table-wrap tr:last-child td { border-bottom: none; }
+
+.embed {
+  display: flex;
+  gap: 14px;
+  background: var(--black-card, #111111);
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 12px;
+  padding: 12px;
+  margin: 28px 0;
+  transition: border-color 0.2s;
+  text-decoration: none !important;
+  color: inherit;
+}
+.embed:hover { border-color: rgba(255,40,0,0.4); }
+.embed-thumb { width: 140px; height: 79px; border-radius: 8px; object-fit: cover; background: linear-gradient(135deg,#1a1a1a,#2a1010); flex-shrink: 0; }
+.embed-info { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.embed-label { font-size: 11px; font-weight: 700; color: var(--red-hot, #FF2800); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+.embed-title { font-size: 14px; font-weight: 650; line-height: 1.3; margin-bottom: 3px; color: var(--white, #FFFFFF); }
+.embed-meta { font-size: 12px; color: var(--dim, #666666); }
+
 @media (max-width: 600px) {
   .blog-rank-head {
     grid-template-columns: 72px minmax(0, 1fr);
