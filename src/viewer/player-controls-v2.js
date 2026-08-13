@@ -248,12 +248,18 @@ export function attachPlayerControlsV2(){
   // silently did nothing on iOS — no error, no fallback, just no fullscreen.
   window.toggleFullscreenV2 = () => {
     const target = wrap.closest(".player-container-v2") || wrap;
-    if(typeof target.requestFullscreen !== "function"){
+    if(typeof target.requestFullscreen !== "function" && typeof target.webkitRequestFullscreen !== "function"){
       if(typeof video.webkitEnterFullscreen === "function") video.webkitEnterFullscreen();
       return;
     }
-    if(!document.fullscreenElement) target.requestFullscreen().catch(()=>{});
-    else document.exitFullscreen?.().catch(()=>{});
+    const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+    if(!isFs){
+      if(target.requestFullscreen) target.requestFullscreen().catch(()=>{});
+      else if(target.webkitRequestFullscreen) target.webkitRequestFullscreen();
+    } else {
+      if(document.exitFullscreen) document.exitFullscreen().catch(()=>{});
+      else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
   };
 
   // Theater mode (desktop only): widen the content column.
@@ -507,8 +513,8 @@ export function copyVideoLinkV2(id){
 }
 
 export function copyEmbedCodeV2(id){
-  const url = location.origin + "/viewer/index.html#video/" + id;
-  const code = `<iframe src="${url}" frameborder="0" allowfullscreen></iframe>`;
+  const url = `${location.origin}/#video/${id}`;
+  const code = `<iframe src="${url}" width="640" height="360" frameborder="0" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>`;
   if(navigator.clipboard) navigator.clipboard.writeText(code).then(()=>window.toast("Embed code copied"), ()=>window.toast("Embed copy failed"));
   else window.toast("Embed copy failed");
   closeSheet("shareSheet");
