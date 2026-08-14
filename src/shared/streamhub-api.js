@@ -34,19 +34,28 @@ function shClientId(){
   return id;
 }
 
-/* Low-level fetch with a short timeout so a hung request can't freeze the UI. */
-async function _req(path, opts={}){
-  if(!_REST || !SUPABASE_KEY) return null;
+/* Low-level fetch with a short timeout so a hung request can't freeze the UI.
+   `_reqRaw` exposes status so callers can tell 409 (unique) / 401 (RLS) from
+   a network miss. `_req` stays the old "body or null" helper. */
+async function _reqRaw(path, opts={}){
+  if(!_REST || !SUPABASE_KEY) return { ok: false, status: 0, data: null };
   const ctrl = new AbortController();
   const t = setTimeout(()=>ctrl.abort(), 6000);
   try {
     const r = await fetch(_REST + path, { ...opts, headers:{ ..._HEADERS, ...(opts.headers||{}) }, signal: ctrl.signal }).catch(()=>null);
-    if(!r || !r.ok) return null;
+    if(!r) return { ok: false, status: 0, data: null };
     const txt = await r.text().catch(()=>null);
-    return txt ? JSON.parse(txt) : null;
+    let data = null;
+    if(txt){ try { data = JSON.parse(txt); } catch(_){ data = null; } }
+    return { ok: r.ok, status: r.status, data };
   } catch(_) {
-    return null;
+    return { ok: false, status: 0, data: null };
   } finally { clearTimeout(t); }
+}
+
+async function _req(path, opts={}){
+  const r = await _reqRaw(path, opts);
+  return r.ok ? r.data : null;
 }
 
 /* Exact row count via PostgREST's Prefer: count=exact + a HEAD request —
@@ -227,7 +236,35 @@ const ShAPI = {
     return { like, dislike };
   },
   async addLike(videoId, kind="like"){
-    await _req(`/likes`, { method:"POST", body: JSON.stringify({ video_id: videoId, kind, client_id: shClientId() }) });
+    // Unique (video_id, client_id, kind) — a plain POST 409s on a second
+    // click (and the browser logs it). ignore-duplicates matches views:
+    // same vote is a no-op, not an error.
+    const r = await _reqRaw(
+      `/likes?on_conflict=video_id,client_id,kind`,
+      {
+        method: "POST",
+        headers: { "Prefer": "resolution=ignore-duplicates,return=minimal" },
+        body: JSON.stringify({ video_id: videoId, kind, client_id: shClientId() }),
+      }
+    );
+    return r.ok || r.status === 409;
+  },
+  async removeLike(videoId, kind="like"){
+    const cid = encodeURIComponent(shClientId());
+    const r = await _reqRaw(
+      `/likes?video_id=eq.${Number(videoId)}&client_id=eq.${cid}&kind=eq.${kind}`,
+      { method: "DELETE", headers: { "Prefer": "return=minimal" } }
+    );
+    return r.ok;
+  },
+  async myVote(videoId){
+    const cid = encodeURIComponent(shClientId());
+    const rows = await _req(`/likes?video_id=eq.${Number(videoId)}&client_id=eq.${cid}&select=kind`) || [];
+    if (!Array.isArray(rows) || !rows.length) return null;
+    // Prefer like if a stale pair exists (pre-toggle schema allowed both).
+    if (rows.some(r => r.kind === "like")) return "like";
+    if (rows.some(r => r.kind === "dislike")) return "dislike";
+    return null;
   },
 
   /* ---- COMMENTS ---- */
@@ -235,12 +272,25 @@ const ShAPI = {
     return (await _req(`/comments?video_id=eq.${videoId}&select=*&order=created_at.desc`)) || [];
   },
   async addComment(videoId, author, body){
-    const rows = await _req(`/comments`, {
+    const r = await _reqRaw(`/comments`, {
       method:"POST",
       headers:{ "Prefer":"return=representation" },
       body: JSON.stringify({ video_id: videoId, author: author||"Guest", body, client_id: shClientId() }),
     });
-    return rows && rows[0];
+    if(r.ok){
+      const row = Array.isArray(r.data) ? r.data[0] : r.data;
+      return { ok: true, row: row || null, status: r.status };
+    }
+    // RLS 1-comment-per-minute (schema-comments-favorites-fix.sql) typically
+    // surfaces as 401/403; unique collisions would be 409.
+    const rateLimited = r.status === 401 || r.status === 403 || r.status === 409;
+    return { ok: false, row: null, status: r.status, rateLimited };
+  },
+  commentAuthor(){
+    const sess = ShAuth.session();
+    const email = sess && sess.user && sess.user.email;
+    if(email && email.includes("@")) return email.split("@")[0];
+    return "Guest";
   },
 
   /* ---- VIEWS ----

@@ -959,12 +959,14 @@ a { color: inherit; }
   border-bottom: 1px solid var(--border);
 }
 
+.blog-feature-hero,
 .blog-feature-media {
   position: relative;
   width: 100%;
   max-width: 420px;
   margin: 0 auto;
 }
+.blog-feature-hero { margin: 0; }
 
 .blog-feature-copy {
   display: flex;
@@ -981,7 +983,8 @@ a { color: inherit; }
   align-items: stretch;
   padding-top: 8px;
 }
-.blog-feature--landscape .blog-feature-media {
+.blog-feature--landscape .blog-feature-media,
+.blog-feature--landscape .blog-feature-hero {
   max-width: none;
   width: 100%;
 }
@@ -1641,21 +1644,27 @@ a { color: inherit; }
 .embed-title { font-size: 14px; font-weight: 650; line-height: 1.3; margin-bottom: 3px; color: var(--white, #FFFFFF); }
 .embed-meta { font-size: 12px; color: var(--dim, #666666); }
 
-.blog-feature-media {
-  margin: 32px 0 28px;
+/* In-article figures only — never target the header hero (that collision
+   forced landscape covers into a 3/4 frame with a black void under the photo). */
+.blog-article-body .blog-feature-media,
+.blog-article-body .blog-inline-figure {
+  margin: 28px 0;
+  max-width: 100%;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   background: var(--black-card, #111111);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
-.blog-feature-media img {
+.blog-article-body .blog-feature-media img,
+.blog-article-body .blog-inline-figure img {
   width: 100%;
   height: auto;
   display: block;
-  object-fit: cover;
-  max-height: 520px;
+  object-fit: contain;
+  max-height: none;
 }
+.blog-feature-hero > .blog-media-caption,
 .blog-media-caption {
   font-size: 13px;
   color: var(--muted, #a0a0a0);
@@ -1664,6 +1673,11 @@ a { color: inherit; }
   border-top: 1px solid var(--border, rgba(255, 255, 255, 0.06));
   line-height: 1.4;
   text-align: center;
+}
+.blog-feature--landscape .blog-feature-hero {
+  border-radius: calc(var(--r-lg) + 2px);
+  overflow: hidden;
+  border: 1px solid rgba(229, 9, 20, 0.18);
 }
 
 @media (max-width: 600px) {
@@ -2207,7 +2221,8 @@ a { color: inherit; }
     gap: 22px;
     align-items: start;
   }
-  .blog-feature-media { max-width: 340px; }
+  .blog-feature-media,
+  .blog-feature:not(.blog-feature--landscape) .blog-feature-hero { max-width: 340px; }
   .blog-article-title { max-width: none; font-size: clamp(24px, 4vw, 34px); }
 }
 
@@ -2232,13 +2247,17 @@ a { color: inherit; }
     padding: 8px 0 28px;
     text-align: left;
   }
-  .blog-feature-media {
+  .blog-feature-media,
+  .blog-feature:not(.blog-feature--landscape) .blog-feature-hero {
     max-width: min(100%, 380px);
     margin: 0 auto;
   }
-  .blog-post-hero-frame {
+  .blog-feature:not(.blog-feature--landscape) .blog-post-hero-frame {
     aspect-ratio: 3 / 4;
     max-height: min(58vh, 520px);
+  }
+  .blog-feature--landscape .blog-feature-hero {
+    max-width: none;
   }
   .blog-feature-copy {
     align-items: stretch;

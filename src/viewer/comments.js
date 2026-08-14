@@ -22,7 +22,11 @@ import { vstate, COMMENTS_PER_PAGE } from "./state.js";
 export function commentsFor(v){
   const base = DATA.comments.filter(m=>m.video===v.id);
   const overlay = (vstate.live[v.id] && vstate.live[v.id].comments) || [];
-  return overlay.length ? base.concat(overlay) : base;
+  if (!overlay.length) return base;
+  // Hide optimistic rows once hydrate has the same body+author from the DB.
+  const seen = new Set(base.map(m => `${m.user || ""}\n${m.text || ""}`));
+  const extra = overlay.filter(o => !seen.has(`${o.user || ""}\n${o.text || ""}`));
+  return extra.length ? base.concat(extra) : base;
 }
 
 /* Sort comments by real timestamp. DB comments carry `ts` parsed from

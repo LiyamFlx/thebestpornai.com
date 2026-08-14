@@ -57,9 +57,11 @@
       "@type": "BlogPosting",
       "headline": "I Came in Front of Everyone and It Was Beautiful",
       "description": "Public. Shameless. And somehow still elegant. A story about orgasm as performance — the room, the gaze, the strange beauty of not stopping when people are alrea",
-      "image": [
-        "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/blog/party-orgasm-1.jpg"
-      ],
+      "image": {
+        "@type": "ImageObject",
+        "url": "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/blog/party-orgasm-1.jpg",
+        "caption": "I Came in Front of Everyone and It Was Beautiful"
+      },
       "datePublished": "2026-07-30",
       "dateModified": "2026-07-31",
       "articleSection": "Stories",
@@ -203,14 +205,15 @@
         <span aria-current="page">Stories</span>
       </nav>
 
-      <!-- Feature Header: Semantic responsive image with proper aspect & styling -->
-      <header class="blog-feature">
-        <div class="blog-feature-media">
-          <div class="blog-post-hero-frame">
-            <img class="blog-post-hero-photo blog-post-hero-photo--cover" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/blog/party-orgasm-1.jpg" alt="I Came in Front of Everyone and It Was Beautiful" width="640" height="853" decoding="async" fetchpriority="high"/>
-            <div class="blog-post-hero-shade" aria-hidden="true"></div>
+      <!-- One hero only: body no longer repeats this image. -->
+      <header class="blog-feature blog-feature--landscape">
+        <figure class="blog-feature-hero">
+          <div class="blog-post-hero-frame blog-post-hero-frame--banner">
+            <img class="blog-post-hero-photo" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/blog/party-orgasm-1.jpg" alt="I Came in Front of Everyone and It Was Beautiful — editorial cover" width="1856" height="576" decoding="async" fetchpriority="high"/>
+            
           </div>
-        </div>
+          
+        </figure>
         <div class="blog-feature-copy">
           <span class="blog-article-pill">Stories</span>
           <h1 class="blog-article-title" itemprop="headline">I Came in Front of Everyone and It Was Beautiful</h1>
@@ -238,10 +241,9 @@
       </header>
     </div>
 
-    <div class="blog-read">
+    <div class="blog-read blog-read--wide">
       <div class="blog-article-body" itemprop="articleBody">
-        
-      <p>There's a special kind of filth that only works when other people are watching.</p>
+        <p>There's a special kind of filth that only works when other people are watching.</p>
       <p>The party is already loud. Music. Drinks. Bodies. She's in the middle of the room, costume half-undone, working herself like she's forgotten anyone else exists. People are staring. Some are smiling.</p>
       <p>She doesn't stop.</p>
       <h2>When climax becomes choreography</h2>

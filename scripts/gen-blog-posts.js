@@ -17,6 +17,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { POSTS, BLOG_AUTHOR, getFeaturedPost, postsForHub } from "../src/blog/posts.js";
 import { VIDEOS } from "../src/shared/catalog-videos.js";
+import {
+  isLandscapeCover,
+  stripLeadingHeroDup,
+  toInlineFigures,
+  absoluteUrl,
+} from "./lib/blog-body.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
@@ -386,7 +392,11 @@ function jsonLdForPost(post, cover, words, relatedVideos = []) {
       "@type": "BlogPosting",
       headline: cleanPostTitle,
       description,
-      image: [cover],
+      image: {
+        "@type": "ImageObject",
+        url: cover,
+        caption: post._heroCaption || cleanPostTitle,
+      },
       datePublished: post.date,
       dateModified: post.dateModified || post.date,
       articleSection: post.category,
@@ -451,16 +461,31 @@ function jsonLdForPost(post, cover, words, relatedVideos = []) {
 }
 
 function renderPost(post) {
-  const cover = postCoverUrl(post);
+  const coverRel = postCoverUrl(post);
+  const cover = absoluteUrl(ORIGIN, coverRel);
+  const stripped = stripLeadingHeroDup(post.body);
+  const articleBody = toInlineFigures(stripped.body);
+  const landscape = isLandscapeCover(post);
   const url = postUrl(post);
   const description = plainText(post.excerpt).slice(0, 160);
-  const words = wordCount(post.body);
+  const words = wordCount(articleBody);
   const readMins = calcReadMins(words);
   const relatedVideos = getDeduplicatedRelatedVideos(post);
   const relatedPosts = getRelatedPostsSpread(post);
   const primaryVideo = relatedVideos[0]?.id || post.coverVideoId;
-  const jsonLd = jsonLdForPost(post, cover, words, relatedVideos);
+  const jsonLd = jsonLdForPost(
+    { ...post, _heroCaption: stripped.caption },
+    cover,
+    words,
+    relatedVideos
+  );
   const cleanPostTitle = cleanTitle(post.title);
+  const heroAlt = stripped.caption
+    ? `${cleanPostTitle}. ${plainText(stripped.caption)}`
+    : `${cleanPostTitle} — editorial cover`;
+  const figcaption = stripped.caption
+    ? `<figcaption class="blog-media-caption">${stripped.caption}</figcaption>`
+    : "";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -509,14 +534,15 @@ ${siteHeader({ mode: "post" })}
         <span aria-current="page">${esc(post.category)}</span>
       </nav>
 
-      <!-- Feature Header: Semantic responsive image with proper aspect & styling -->
-      <header class="blog-feature${post.coverLayout === "landscape" ? " blog-feature--landscape" : ""}">
-        <div class="blog-feature-media">
-          <div class="blog-post-hero-frame${post.coverLayout === "landscape" ? " blog-post-hero-frame--banner" : ""}">
-            <img class="blog-post-hero-photo${post.coverLayout === "landscape" ? "" : " blog-post-hero-photo--cover"}" src="${esc(cover)}" alt="${esc(cleanPostTitle)}" width="${post.coverLayout === "landscape" ? "1856" : "640"}" height="${post.coverLayout === "landscape" ? "576" : "853"}" decoding="async" fetchpriority="high"/>
-            ${post.coverLayout === "landscape" ? "" : `<div class="blog-post-hero-shade" aria-hidden="true"></div>`}
+      <!-- One hero only: body no longer repeats this image. -->
+      <header class="blog-feature${landscape ? " blog-feature--landscape" : ""}">
+        <figure class="blog-feature-hero">
+          <div class="blog-post-hero-frame${landscape ? " blog-post-hero-frame--banner" : ""}">
+            <img class="blog-post-hero-photo${landscape ? "" : " blog-post-hero-photo--cover"}" src="${esc(coverRel)}" alt="${esc(heroAlt)}" width="${landscape ? "1856" : "640"}" height="${landscape ? "576" : "853"}" decoding="async" fetchpriority="high"/>
+            ${landscape ? "" : `<div class="blog-post-hero-shade" aria-hidden="true"></div>`}
           </div>
-        </div>
+          ${figcaption}
+        </figure>
         <div class="blog-feature-copy">
           <span class="blog-article-pill">${esc(post.category)}</span>
           <h1 class="blog-article-title" itemprop="headline">${esc(cleanPostTitle)}</h1>
@@ -537,9 +563,9 @@ ${siteHeader({ mode: "post" })}
       </header>
     </div>
 
-    <div class="blog-read${post.coverLayout === "landscape" || post.wide === true ? " blog-read--wide" : ""}">
+    <div class="blog-read${landscape || post.wide === true ? " blog-read--wide" : ""}">
       <div class="blog-article-body" itemprop="articleBody">
-        ${post.body}
+        ${articleBody}
       </div>
       <div class="blog-article-cta-wrap">
         <a class="blog-cta blog-cta-primary" href="${videoWatchUrl(primaryVideo)}">Watch this fantasy →</a>

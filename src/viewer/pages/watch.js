@@ -4,6 +4,8 @@
    HTML — same pattern as feed.js's attachFeedObserver(). Idempotent. */
 import { DATA, esc, creatorName, fmt, mediaUrl, ytId } from "../../shared/catalog.js";
 import { playerEmbed } from "../../shared/ui.js";
+import { ShAPI } from "../../shared/streamhub-api.js";
+import { storedVoteFor } from "../../shared/vote-logic.js";
 import { vstate } from "../state.js";
 import { jsq } from "../util.js";
 import { displayViews } from "../display-metrics.js";
@@ -73,9 +75,10 @@ function autoplayToggle(compact = true){
 }
 
 function commentComposer(v){
+  const who = (typeof ShAPI !== "undefined" && ShAPI.commentAuthor) ? ShAPI.commentAuthor() : "Guest";
   return `
     <div class="comment-composer">
-      <div class="avatar avatar-sm">${esc((DATA.user.name||'?')[0])}</div>
+      <div class="avatar avatar-sm">${esc((who||'?')[0])}</div>
       <div class="composer-body">
         <input class="composer-input" id="cbox" data-act="comment-input" data-video="${v.id}" placeholder="Add a public comment…"/>
         <div class="composer-footer">
@@ -196,9 +199,9 @@ function actionBar(v, live, hasCreator){
   return `
     <div class="watch-action-bar mchrome-scroll" role="toolbar" aria-label="Video actions">
       <div class="vote-pill">
-        <button type="button" id="btnLike" class="vote-btn" data-act="like" data-id="${v.id}" aria-label="Like this video"><svg class="ic ico"><use href="#icon-like"/></svg> <span id="likeNum">${fmt(v.likes + live.like)}</span></button>
+        <button type="button" id="btnLike" class="vote-btn ${live.myVote==="like"?"on":""}" data-act="like" data-id="${v.id}" aria-pressed="${live.myVote==="like"?"true":"false"}" aria-label="Like this video"><svg class="ic ico"><use href="#icon-like"/></svg> <span id="likeNum">${fmt(v.likes + live.like)}</span></button>
         <span class="vote-div" aria-hidden="true"></span>
-        <button type="button" id="btnDislike" class="vote-btn" data-act="dislike" data-id="${v.id}" aria-label="Dislike this video"><svg class="ic ico"><use href="#icon-dislike"/></svg></button>
+        <button type="button" id="btnDislike" class="vote-btn ${live.myVote==="dislike"?"on":""}" data-act="dislike" data-id="${v.id}" aria-pressed="${live.myVote==="dislike"?"true":"false"}" aria-label="Dislike this video"><svg class="ic ico"><use href="#icon-dislike"/></svg></button>
       </div>
       <button type="button" class="act-pill" data-act="open-sheet" data-sheet="shareSheet"><svg class="ic ico"><use href="#icon-share"/></svg><span>Share</span></button>
       <button type="button" class="act-pill ${laterOn?'on':''}" id="btnLater" data-act="toggle-later" data-id="${v.id}" aria-pressed="${laterOn?'true':'false'}"><svg class="ic ico"><use href="#icon-save"/></svg><span>Save</span></button>
@@ -419,7 +422,8 @@ export function renderWatch(){
   const subbed = vstate.subs.includes(v.creator);
 
   const cms = commentsFor(v);
-  const live = vstate.live[v.id] || {like:0, dislike:0};
+  const live = vstate.live[v.id] = vstate.live[v.id] || {like:0, dislike:0};
+  if (!live.myVote) live.myVote = storedVoteFor(v.id);
   const catList = [v.category, ...(v.categories||[])].filter((x,i,a)=>x && a.indexOf(x)===i).slice(0,5);
   const catSet = new Set(catList.map(c=>String(c).toLowerCase()));
   const tagList = (v.tags||[]).filter(t=>!catSet.has(String(t).toLowerCase())).slice(0,8);

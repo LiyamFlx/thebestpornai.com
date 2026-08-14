@@ -6,6 +6,7 @@
    refresh. */
 import { DATA, toast, fmt, mediaUrl } from "../shared/catalog.js";
 import { ShAPI } from "../shared/streamhub-api.js";
+import { applyVote, storedVoteFor, writeStoredVote } from "../shared/vote-logic.js";
 import { vstate, pushHistory, onWatch, persistState, COMMENT_MAX_LEN } from "./state.js";
 import { jsdec } from "./util.js";
 import { setHash, scrollToTop, saveScrollPosition, takeSavedReturn } from "./router.js";
@@ -374,36 +375,64 @@ export async function download(id){
 
 const _voting = new Set();
 
-/* Single vote path for like/dislike. Optimistic delta lives in vstate.live
-   (never mutates seed v.likes — see hydrateWatch). The _voting lock holds
-   until the persist promise settles, because persist() returns it. */
+function patchVoteUi(v, L){
+  const likeVal = fmt((v.likes || 0) + (L.like || 0));
+  const likeNum = document.getElementById("likeNum");
+  if(likeNum) likeNum.textContent = likeVal;
+  const btnLike = document.getElementById("btnLike");
+  if(btnLike){
+    btnLike.classList.toggle("on", L.myVote === "like");
+    btnLike.setAttribute("aria-pressed", L.myVote === "like" ? "true" : "false");
+  }
+  const btnDis = document.getElementById("btnDislike");
+  if(btnDis){
+    btnDis.classList.toggle("on", L.myVote === "dislike");
+    btnDis.setAttribute("aria-pressed", L.myVote === "dislike" ? "true" : "false");
+  }
+  const feedLabel = document.getElementById("feedLike_"+v.id);
+  if(feedLabel) feedLabel.textContent = likeVal;
+  const feedBtn = document.querySelector(`.feed-item[data-video-id="${v.id}"] .feed-like-btn`);
+  if(feedBtn) feedBtn.classList.toggle("liked", L.myVote === "like");
+}
+
+/* Like/dislike is a single reaction per browser. A second like unlikes
+   (DB unique (video, client, kind) used to 409 and the counter still
+   climbed). Overlay math lives in applyVote(); this function only talks
+   to the API and patches the DOM. */
 function vote(id, kind){
-  id = +id;                            // coerce: onclick passes number literal, but be safe
-  const key = String(id);             // single lock per video — prevents simultaneous like+dislike
+  id = +id;
+  const key = String(id);
   if (_voting.has(key)) return;
   _voting.add(key);
-  const v=DATA.videos.find(x=>x.id===id); if(!v){ _voting.delete(key); return; }
-  const L = vstate.live[id] = vstate.live[id] || {like:0, dislike:0};
-  L[kind]++; toast(kind==="like"?"Liked":"Disliked");
-  persist(()=> ShAPI.addLike(id, kind)).finally(()=> _voting.delete(key));
-  // Patch every on-screen counter for this video in place. Like counts only
-  // ever appear on the watch page (#likeNum/#disNum) and the vertical feed
-  // (#feedLike_<id>); nothing else in any layout changes on a vote, so we never
-  // need a full render() — which on the feed would rebuild the whole scroller,
-  // tear down the autoplay observer, and interrupt playback.
-  const base = kind==="like" ? v.likes : v.dislikes;
-  const val = fmt(base + L[kind]);
-  const watchNum = document.getElementById(kind==="like"?"likeNum":"disNum");
-  if(watchNum) watchNum.textContent = val;
-  if(kind==="like"){
-    const feedLabel = document.getElementById("feedLike_"+id);
-    if(feedLabel) feedLabel.textContent = val;
-    // A plain class selector here (not the onclick-attribute substring match
-    // this used to do) — that scanned every <button> in the DOM comparing
-    // attribute text, real avoidable work on a page with hundreds of cards.
-    const feedBtn = document.querySelector(`.feed-item[data-video-id="${id}"] .feed-like-btn`);
-    if(feedBtn) feedBtn.classList.add("liked");
-  }
+  const v = DATA.videos.find(x=>x.id===id);
+  if(!v){ _voting.delete(key); return; }
+  const L = vstate.live[id] = vstate.live[id] || { like: 0, dislike: 0 };
+  if(!L.myVote) L.myVote = storedVoteFor(id);
+  const before = { like: L.like, dislike: L.dislike, myVote: L.myVote };
+  const { live: next, action, from, to } = applyVote(L, kind);
+  Object.assign(L, next);
+  writeStoredVote(id, L.myVote);
+  patchVoteUi(v, L);
+  toast(action === "remove" ? "Removed" : (to === "dislike" ? "Disliked" : "Liked"));
+
+  const persistVote = async () => {
+    if (typeof ShAPI === "undefined" || !ShAPI.enabled) return true;
+    if (action === "remove") return ShAPI.removeLike(id, from);
+    if (action === "switch") {
+      const removed = await ShAPI.removeLike(id, from);
+      const added = await ShAPI.addLike(id, to);
+      return removed && added;
+    }
+    return ShAPI.addLike(id, to);
+  };
+
+  persist(() => persistVote().then((ok) => {
+    if (ok !== false) return;
+    Object.assign(L, before);
+    writeStoredVote(id, before.myVote);
+    patchVoteUi(v, L);
+    toast("Couldn’t save that vote — try again");
+  })).finally(() => _voting.delete(key));
 }
 export const likeVideo    = id => vote(id, "like");
 export const dislikeVideo = id => vote(id, "dislike");
@@ -444,14 +473,31 @@ export function addComment(id, textOpt){
     return false;
   }
   // vstate.live overlay, not DATA.comments — see comments.js's commentsFor()
-  const author = (DATA.user && DATA.user.name) || "Guest";
+  const author = (typeof ShAPI !== "undefined" && ShAPI.commentAuthor)
+    ? ShAPI.commentAuthor()
+    : "Guest";
   const comment = { id: "m" + Date.now(), video: id, user: author, text: t, time: "now", ts: Date.now() };
   const L = vstate.live[id] = vstate.live[id] || { like: 0, dislike: 0 };
   L.comments = L.comments || [];
   L.comments.push(comment);
   if (cbox) cbox.value = "";
   if (feedCbox) feedCbox.value = "";
-  persist(() => ShAPI.addComment(id, author, t));
+  persist(() => ShAPI.addComment(id, author, t).then((res) => {
+    if (res && res.ok) {
+      if (res.row && res.row.id) comment.id = "db" + res.row.id;
+      return;
+    }
+    L.comments = (L.comments || []).filter((c) => c !== comment);
+    if (onWatch() && vstate.current && vstate.current.id === id) patchComments(vstate.current);
+    const feedBody = document.getElementById("feedCommentsBody");
+    if (feedBody) {
+      const vv = DATA.videos.find((x) => x.id === id);
+      if (vv) feedBody.innerHTML = renderCommentList(vv);
+    }
+    toast(res && res.rateLimited
+      ? "Wait a minute before posting another comment"
+      : "Comment didn’t save — try again");
+  }));
 
   // Watch page: patch list only — full render() would tear down the player.
   if (onWatch() && vstate.current && vstate.current.id === id) {

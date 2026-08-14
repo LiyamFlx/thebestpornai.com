@@ -16,7 +16,7 @@
     "publish:doctor": "node scripts/publish-doctor.js",
     "sitemap": "node scripts/gen-sitemap.js",
     "check-catalog-ids": "node scripts/check-catalog-ids.js",
-    "test": "node scripts/check-catalog-ids.js && node scripts/publish-doctor.js && node --test src/ && node scripts/regression-suite.mjs",
+    "test": "node scripts/check-catalog-ids.js && node scripts/publish-doctor.js && node --test src/ scripts/lib/*.test.mjs && node scripts/regression-suite.mjs",
     "test:regression": "node scripts/regression-suite.mjs",
     "writer": "node tools/content-manager/server.mjs",
     "writer:test": "node --test tools/content-manager/lib/*.test.mjs"

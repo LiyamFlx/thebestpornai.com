@@ -2,6 +2,7 @@
    Any failure leaves the seeded catalog values in place. */
 import { DATA, fmt } from "../shared/catalog.js";
 import { ShAPI } from "../shared/streamhub-api.js";
+import { storedVoteFor, writeStoredVote } from "../shared/vote-logic.js";
 import { vstate, onWatch } from "./state.js";
 import { patchComments } from "./comments.js";
 import { displayViews } from "./display-metrics.js";
@@ -39,8 +40,8 @@ export async function hydrateWatch(id){
     await persist(()=> ShAPI.addView(id));
   }
   try {
-    const [counts, comments, serverViews] = await Promise.all([
-      ShAPI.likeCounts(id), ShAPI.listComments(id), ShAPI.viewCount(id)
+    const [counts, comments, serverViews, serverVote] = await Promise.all([
+      ShAPI.likeCounts(id), ShAPI.listComments(id), ShAPI.viewCount(id), ShAPI.myVote(id)
     ]);
     const seed = DATA.videos.find(x => x.id === id) || vstate.current;
     const seedViews = seed && Number.isFinite(Number(seed.views)) ? Number(seed.views) : 0;
@@ -52,11 +53,23 @@ export async function hydrateWatch(id){
     L.like = counts.like || 0;
     L.dislike = counts.dislike || 0;
     L.views = totalViews;
+    L.myVote = serverVote || storedVoteFor(id);
+    if (L.myVote) writeStoredVote(id, L.myVote);
 
     if(vstate.current && vstate.current.id===id && onWatch()){
       const v = vstate.current;
       const likeNum=document.getElementById("likeNum");
       if(likeNum) likeNum.textContent = fmt((v.likes||0) + L.like);
+      const btnLike = document.getElementById("btnLike");
+      if(btnLike){
+        btnLike.classList.toggle("on", L.myVote === "like");
+        btnLike.setAttribute("aria-pressed", L.myVote === "like" ? "true" : "false");
+      }
+      const btnDis = document.getElementById("btnDislike");
+      if(btnDis){
+        btnDis.classList.toggle("on", L.myVote === "dislike");
+        btnDis.setAttribute("aria-pressed", L.myVote === "dislike" ? "true" : "false");
+      }
       const viewsEl=document.getElementById("watchViewsCount");
       if(viewsEl) viewsEl.textContent = fmt(displayViews(v)) + " views";
       if(comments && comments.length){
@@ -64,6 +77,13 @@ export async function hydrateWatch(id){
           const key = "db"+c.id;
           if(!DATA.comments.some(m=>m.id===key))
             DATA.comments.push({ id:key, video:id, user:c.author, text:c.body, time:"", ts: Date.parse(c.created_at)||0 });
+        }
+        // Drop optimistic overlay rows now confirmed on the server so the
+        // same comment doesn't render twice (commentsFor concatenates both).
+        if (L.comments && L.comments.length) {
+          L.comments = L.comments.filter((o) =>
+            !comments.some((c) => c.body === o.text && (c.author || "Guest") === (o.user || "Guest"))
+          );
         }
         if(vstate.current && vstate.current.id===id && onWatch()) patchComments(v);
       }

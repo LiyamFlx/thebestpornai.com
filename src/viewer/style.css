@@ -2127,6 +2127,7 @@ iframe.player{object-fit:contain}
 .watch-title-block .watch-action-bar{margin-top:12px}
 .watch-title-block .watch-creator-row{margin-bottom:10px}
 .vote-pill{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:999px;overflow:hidden;flex:none}
+.vote-btn.on{color:var(--accent)}
 .vote-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text);
   min-height:44px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
 .vote-btn:hover{background:var(--surface3)}
