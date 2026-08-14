@@ -231,27 +231,95 @@ const RAW = [
     category: "Guides",
     cover: "/blog-assets/ourdream-studio-athlete.jpg",
     excerpt:
-      "Image and video generation live inside OurDream.ai on the same character you chat with. No export to a second tool. Paid with dreamcoins.",
-    microcopy: "Same face in chat, stills, and clips — one platform.",
+      "Yes — OurDream.ai generates stills and short videos of the same character you chat with. How consistency works, coin costs, no-upload rules, and when to stream instead.",
+    microcopy: "Same face in chat, portraits, and short clips — without exporting to a second app.",
     date: "2026-08-14",
     dateModified: "2026-08-14",
-    readMins: 4,
+    readMins: 7,
     coverVideoId: 12,
     relatedVideoIds: [12, 5168, 5257],
-    tags: ["ai video generator", "ourdream ai", "ai character images", "nsfw video"],
+    tags: [
+      "generate images of ai character",
+      "ourdream ai video",
+      "consistent ai character",
+      "ai character portraits",
+      "dreamcoins",
+      "nsfw video",
+    ],
     body: `
-      <p>Yes. Image generation and video generation are both built directly into ${od("OurDream.ai")} and use the same character you created for chat and voice.</p>
-      ${fig("/blog-assets/ourdream-studio-athlete.jpg", "Consistent AI character for stills and video", "You do not export the character to another generator.")}
-      <p>You do not need to export your character to another tool. Once appearance and personality are defined, you can generate stills or videos that match that character while staying inside OurDream.ai. All generation is paid for with <a href="/blog/ourdream-dreamcoins-explained.html">dreamcoins</a>.</p>
-      ${yt("WN2Iy4RWKSw", "OurDream.ai image and video generation")}
-      ${fig("/blog-assets/ai-boobs-generate.webp", "In-platform AI adult image generation example", "Stills and clips both spend dreamcoins against the same balance.")}
-      <p>This integration is one of the platform’s main advantages. The character stays consistent across text, voice, images, and videos — more coherent than using separate services for each format. If you only want to watch finished scenes, stream free on <a href="/">thebestpornai</a>.</p>
+      <p>Text chat is enough until it isn’t. Once you have built a persona on ${od("OurDream.ai")}, the next question is almost always the same: <strong>can you generate images and videos of that exact character</strong>, or do you have to hop to another tool and hope the face matches?</p>
+      <p>The short answer is <strong>yes</strong>. Stills and short clips are built into the same product as chat and voice. You do not export a character card to Midjourney, a separate video app, or a face-swap site. You stay on OurDream, spend <a href="/blog/ourdream-dreamcoins-explained.html">dreamcoins</a>, and the generation is supposed to follow the persona you already defined.</p>
+
+      <h2>Why visual consistency is the real product</h2>
+      <p>Most “AI girlfriend” stacks fail the second picture. Prompt one café scene, then a bedroom scene, and you get two different people who share a hair color at best. That <em>visual drift</em> kills immersion faster than a weak reply.</p>
+      <p>OurDream’s pitch is consistent character rendering:</p>
+      <ul>
+        <li><strong>Unified facial features</strong> — core structure, hair, and distinguishing marks are meant to persist across prompts instead of being rolled from scratch each time.</li>
+        <li><strong>Recognizable identity in new settings</strong> — a modern gym, a kitchen, a staged portrait — the same person, not a random model who “kind of looks like her.”</li>
+      </ul>
+      <p>It will not be pixel-perfect every frame. No consumer model is. Treat it as “recognizable companion,” not a locked VFX hero. If a render drifts, tighten the base profile (eyes, hair, baseline style) before you burn more coins on video.</p>
+
+      <h2>What you can actually generate</h2>
+      <h3>1. Consistent character portraits</h3>
+      <p>Turn a chat beat into a still: expression, outfit, lighting, location. That is how a text thread becomes a visual gallery tied to one storyline instead of a folder of strangers.</p>
+      ${fig("/blog-assets/ai-boobs-generate.webp", "In-platform AI adult portrait generated on OurDream.ai", "Portraits spend dreamcoins. NSFW stills unlock with an 18+ subscription.")}
+      <h3>2. Short video animation</h3>
+      <p>Beyond stills, you can animate a portrait into a brief clip — micro-expression, a little body motion, something closer to presence than a JPEG. These are short clips, not ten-minute movies. Use them as punctuation on a scene, not as a replacement for a watch library.</p>
+      ${yt("WN2Iy4RWKSw", "OurDream.ai image and video generation of a custom character")}
+      <h3>3. Community content packs</h3>
+      <p>Subscribers can browse community-curated packs: shared stills and clips around popular characters. Useful for a faster start or for seeing what the engine actually looks like before you spend coins on your own persona. Same rule as <a href="/blog/create-ai-sex-chat-character-ourdream.html">character creation</a> — packs and custom characters share the generation tools once they are set up.</p>
+
+      <h2>Rules that matter before you hit generate</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Rule</th><th>What it means in practice</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>No external photo uploads</strong></td>
+              <td>You cannot drop in a real selfie or a celebrity still to clone a living person. Characters are built from prompts and presets. That is a deepfake / consent guardrail, not a missing filter.</td>
+            </tr>
+            <tr>
+              <td><strong>Coins and subscription</strong></td>
+              <td>Chat may be easy to start. High-res stills, video, and premium packs consume <a href="/blog/ourdream-dreamcoins-explained.html">dreamcoins</a> and typically need an <a href="/blog/ourdream-nsfw-ai-chat-requirements.html">active plan</a> for uncensored output. Coins do not expire.</td>
+            </tr>
+            <tr>
+              <td><strong>18+ NSFW gate</strong></td>
+              <td>Without a subscription, generated media stays blurred. Age plus a paid plan unlocks the uncensored path. Details: <a href="/blog/is-ourdream-ai-free.html">is OurDream free?</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>How to get better stills and clips</h2>
+      <ol>
+        <li><strong>Lock visual anchors first.</strong> In the character profile, be specific: eye shape, hair, body type, photoreal vs anime. Vague bases drift.</li>
+        <li><strong>Prompt the scene, not a new person.</strong> Lighting, room, wardrobe, mood. Do not rewrite the face in every request.</li>
+        <li><strong>Spend video on highlights.</strong> Stills are cheaper. Save clips for the moment the scene actually needs motion.</li>
+        <li><strong>Know when to stop generating.</strong> If you only want to <em>watch</em> finished AI video with no coin meter, that is a different product — stream free on <a href="/">thebestpornai</a>.</li>
+      </ol>
+      <p>OurDream is for people who want one character across text, ${od("voice")}, stills, and short video. thebestpornai is for people who want the scene already cut. Use the first when you are building; use the second when you are done prompting.</p>
       ${CTA}
       ${SERIES}
     `,
     faqs: [
-      { q: "Do I need another app for video?", a: "No. Video generation is in OurDream.ai on the same character." },
-      { q: "What pays for generations?", a: "Dreamcoins. They do not expire." },
+      {
+        q: "Can I generate both images and videos of my OurDream character?",
+        a: "Yes. Portraits and short video clips are generated inside OurDream.ai on the same character you use for chat and voice. You do not export to another app.",
+      },
+      {
+        q: "Will my character look the same in every image?",
+        a: "The platform is built to keep core facial features and identity consistent across scenes. Some drift still happens. A precise character profile reduces it.",
+      },
+      {
+        q: "Can I upload a real photo to make the character look like someone I know?",
+        a: "No. External photo uploads are blocked to prevent non-consensual likenesses and deepfakes. Build the look with prompts and presets.",
+      },
+      {
+        q: "Do image and video generations cost extra?",
+        a: "They consume dreamcoins, which do not expire. Uncensored output generally requires an 18+ subscription. Extra coin packs can be bought while a plan is active.",
+      },
     ],
   },
   {
