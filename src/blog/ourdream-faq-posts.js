@@ -199,37 +199,91 @@ const RAW = [
     category: "Guides",
     cover: "/blog-assets/ourdream-gym-pink.jpg",
     excerpt:
-      "Dreamcoins pay for images, video, voice, and packs on OurDream.ai. Rates: ~5–10 per still, 100 per 5s of video, 50/min for voice. Unused coins stay.",
-    microcopy: "Unused coins stay. Paid chat is free; images, video, and voice are the spend.",
+      "Dreamcoins power OurDream.ai chat, images, video, and voice. They do not expire — but the 1,000 monthly plan coins do not roll over. Top-ups stay.",
+    microcopy: "No hard expiry date. Monthly grant coins still reset on renewal. Bought packs do not.",
     date: "2026-08-14",
     dateModified: "2026-08-14",
-    readMins: 6,
+    readMins: 7,
     coverVideoId: 4,
     relatedVideoIds: [4, 7, 12],
     tags: ["dreamcoins", "ourdream ai", "ai credits", "ourdream pricing"],
     body: `
-      <p>Dreamcoins are the in-platform currency used on ${od("OurDream.ai")}. They power image generation, video generation, voice calls, audio messages, and other premium features.</p>
-      ${fig("/blog-assets/ourdream-gym-pink.jpg", "High-energy AI character used as a generation example", "Each still, clip, or call draws from the same coin balance.")}
-      <p>Unused Dreamcoins <strong>stay in the balance until you spend them</strong>. Subscribers get 1,000 coins on each renewal; annual also adds 2,000 at the start (1,000 base + 1,000 bonus). Top-up packs (for example 1,000 for $11.99 or 5,000 for $49.99) need an active plan.</p>
+      <p>On ${od("OurDream.ai")}, almost everything that is not a paid member’s standard text message is priced in <strong>Dreamcoins</strong>. Free trial or annual plan, the same wallet pays for GPU work. Get the expiry rules wrong and you will either hoard coins that reset, or panic-buy packs you did not need.</p>
+      <p>Official wording lives in the <a href="https://help.ourdream.ai" target="_blank" rel="noopener nofollow">OurDream Help Center</a>. Confirm rates there before a big spend — they can move. Plans and checkout: <a href="/blog/is-ourdream-ai-free.html">free vs paid</a>.</p>
+
+      <h2>What Dreamcoins actually are</h2>
+      <p>They are internal credits, not cash you withdraw. Light work (plain text) barely touches the servers. Images, video, and voice eat GPU time. OurDream meters that with coins so you are not hitting a card on every render.</p>
       <ul>
-        <li>Standard text: <strong>0 coins</strong> if you are subscribed; <strong>1 coin/message</strong> on free</li>
-        <li>Genius / Lively Genius chat: <strong>1 coin per reply</strong></li>
-        <li>Stills: <strong>10 coins per 2 images</strong> (or 5 for in-chat auto-gens)</li>
-        <li>Enhance / edit: <strong>10–20 coins</strong> (Spark vs Eclipse)</li>
-        <li>Video: <strong>100 coins per 5 seconds</strong> (up to 1,200 for 60s; 200 extra for Ultra)</li>
-        <li>Voice calls: <strong>50 coins per minute</strong></li>
-        <li>Narration: 0 on standard voices; 5 per paragraph on premium</li>
-        <li>New character: <strong>10 coins</strong> (includes first two avatars)</li>
-        <li>Community packs: <strong>250 / 750 / 1,000</strong> by size</li>
+        <li><strong>Text</strong> — cheap or free if you subscribe</li>
+        <li><strong>Stills, video, voice</strong> — the real drain</li>
       </ul>
-      <p>Cancel and leftover coins remain, but the account drops to free rules — chat costs coins again, media can blur. Full plans: <a href="/blog/is-ourdream-ai-free.html">free vs paid</a>.</p>
+
+      <h2>What each feature costs</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Action</th><th>Free user</th><th>Paid subscriber</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Standard text</td><td>1 coin / message</td><td>Unlimited (0)</td></tr>
+            <tr><td>Genius / Lively Genius chat</td><td>1 / reply</td><td>1 / reply</td></tr>
+            <tr><td>Image generation</td><td>~10 / image (or 10 per 2; 5 for in-chat auto-gen)</td><td>Same</td></tr>
+            <tr><td>Enhance / edit</td><td>10–20 (Spark vs Eclipse)</td><td>Same</td></tr>
+            <tr><td>Video</td><td>100 / 5 seconds (up to 1,200 for 60s; +200 Ultra)</td><td>Same</td></tr>
+            <tr><td>Voice call</td><td>50 / minute</td><td>Same</td></tr>
+            <tr><td>Narration</td><td>0 standard; 5 / paragraph premium</td><td>Same</td></tr>
+            <tr><td>New character (first 2 avatars)</td><td>10</td><td>10</td></tr>
+            <tr><td>Community pack unlock</td><td>250 / 750 / 1,000</td><td>Same</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Paid chat is the only “unlimited” line that matters. Everything visual still burns the grant. A 60-second clip can wipe a month of coins; a hundred stills will too if you treat auto-gen as free.</p>
+
+      <h2>How you get coins</h2>
+      <ol>
+        <li><strong>Monthly plan — $19.99 / month.</strong> 1,000 Dreamcoins on each billing date.</li>
+        <li><strong>Annual plan — $119.88 / year (~$9.99 / month).</strong> 2,000 coins up front, then 1,000 every following month.</li>
+        <li><strong>Top-up packs.</strong> Extra tokens in the store if the grant is gone. Example bundles: 1,000 for $11.99, 5,000 for $49.99. Usually requires an active subscription.</li>
+        <li><strong>Referrals.</strong> Invite links can add a free buffer when the live program is on.</li>
+      </ol>
+
+      <h2>Do they expire? Rollover vs “never expire”</h2>
+      <p>People mix up a hard expiry date with a monthly reset. The Help Center’s line is: <strong>Dreamcoins do not expire</strong>. The catch is <em>which</em> coins, and how you got them.</p>
+      <h3>Rule 1 — monthly plan coins do not roll over</h3>
+      <p>The <strong>1,000 subscription coins do not carry into the next cycle</strong>. On renewal the grant resets to the new 1,000. Use 400, and the leftover 600 are gone. You start the next month at 1,000 — not 1,600.</p>
+      <h3>Rule 2 — purchased top-ups stay</h3>
+      <p>Cash packs sit in the account until you spend them. No clock. If you need a stash that survives renewal, buy a pack; do not hoard the monthly grant.</p>
+      <h3>Rule 3 — cancel does not wipe the wallet</h3>
+      <p>Remaining coins are not deleted. The account just becomes free again: text costs 1 coin per message, unblurred / NSFW media can lock. Spend or accept the sandbox. More on that gate: <a href="/blog/ourdream-nsfw-ai-chat-requirements.html">NSFW access</a>.</p>
+
+      <h2>How to stop wasting the grant</h2>
+      <ul>
+        <li><strong>Burn the monthly 1,000 before renewal</strong> — stills or a short clip, not leftover guilt.</li>
+        <li><strong>Chat on a paid plan</strong> — text is already paid for. Save coins for images, audio, and video.</li>
+        <li><strong>Annual if you are staying</strong> — half the monthly cash rate plus the 2,000-coin start.</li>
+        <li><strong>Referrals</strong> — a buffer that is not a top-up.</li>
+        <li><strong>Don’t generate to watch.</strong> Finished scenes with no coin meter live on <a href="/">thebestpornai</a>.</li>
+      </ul>
       ${CTA}
       ${SERIES}
     `,
     faqs: [
-      { q: "Do dreamcoins expire?", a: "No. Unused coins stay in the account until spent." },
-      { q: "How many coins do I get?", a: "Paid plans grant 1,000 coins each renewal month. Annual also adds 2,000 at signup (1,000 base + 1,000 bonus)." },
-      { q: "How many coins is an image?", a: "10 coins per two images, or 5 for in-chat auto-generations. Video is 100 coins per 5 seconds; voice is 50 per minute." },
+      {
+        q: "Do Dreamcoins expire?",
+        a: "There is no hard expiry date. Monthly subscription coins do not roll over — unused grant coins are replaced by the next 1,000 on renewal. Purchased top-up packs stay until spent.",
+      },
+      {
+        q: "Do monthly plan coins roll over?",
+        a: "No. If you use 400 of 1,000, you start the next billing cycle at 1,000, not 1,600.",
+      },
+      {
+        q: "How much is an image or a video?",
+        a: "About 10 coins per image (sometimes 10 per two, or 5 for in-chat auto-gen). Video is about 100 coins per 5 seconds. Voice calls are about 50 coins per minute.",
+      },
+      {
+        q: "What happens to coins if I cancel?",
+        a: "The balance is not deleted. The account reverts to free rules: 1 coin per text message, and unblurred/NSFW generation can lock.",
+      },
     ],
   },
   {
@@ -402,7 +456,7 @@ const RAW = [
       <p>Accepted at the time of writing: Visa, Mastercard, Amex, Discover; major crypto; G2A Pay. <strong>PayPal is not accepted.</strong> Confirm on the live checkout — gateways change.</p>
 
       <h2>Exact Dreamcoin rates</h2>
-      <p>Dreamcoins are GPU / model tokens. Unused coins <strong>stay in the wallet until spent</strong>. The dedicated explainer is <a href="/blog/ourdream-dreamcoins-explained.html">how Dreamcoins work</a>.</p>
+      <p>Dreamcoins are GPU / model tokens. There is <strong>no hard expiry date</strong>, but the 1,000 monthly <em>grant</em> coins <strong>do not roll over</strong> — leftover grant is replaced on renewal. Bought top-ups stay. Full rules: <a href="/blog/ourdream-dreamcoins-explained.html">how Dreamcoins work</a>.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -446,7 +500,7 @@ const RAW = [
       },
       {
         q: "Do Dreamcoins expire if I don't use them?",
-        a: "No. Unused Dreamcoins stay in the account until spent.",
+        a: "No hard expiry date. Monthly subscription grant coins do not roll over (unused grant is replaced on renewal). Purchased top-up packs stay until spent.",
       },
       {
         q: "What happens if I cancel my subscription?",
