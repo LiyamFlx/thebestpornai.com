@@ -66,7 +66,7 @@ const RAW = [
     `,
     faqs: [
       { q: "What is AI sex chat on OurDream.ai?", a: "A multi-modal partner: text chat, image and video generation, and voice/audio, all tied to one custom character." },
-      { q: "Do I need dreamcoins?", a: "Dreamcoins pay for images, video, voice calls, and audio. They do not expire." },
+      { q: "Do I need dreamcoins?", a: "Dreamcoins pay for images, video, voice, and (on the free tier) text. Bought coins stay; monthly grant coins do not roll over." },
       { q: "Is NSFW included by default?", a: "NSFW unlocks with an 18+ account and an active subscription. Without a plan, visuals stay blurred." },
     ],
   },
@@ -199,29 +199,30 @@ const RAW = [
     category: "Guides",
     cover: "/blog-assets/ourdream-gym-pink.jpg",
     excerpt:
-      "Dreamcoins pay for images, video, and voice on OurDream.ai. They never expire. Monthly plans grant 1,000 coins; annual starts with 2,000.",
-    microcopy: "Coins do not expire. Spend them when you want the render.",
+      "Dreamcoins pay for images (~10 each), video, and voice. Bought coins stay. The 1,000 monthly subscription coins do not roll over.",
+    microcopy: "Bought coins stay. Monthly grant coins reset on billing day.",
     date: "2026-08-14",
     dateModified: "2026-08-14",
-    readMins: 4,
+    readMins: 6,
     coverVideoId: 4,
     relatedVideoIds: [4, 7, 12],
     tags: ["dreamcoins", "ourdream ai", "ai credits", "ourdream pricing"],
     body: `
       <p>Dreamcoins are the in-platform currency used on ${od("OurDream.ai")}. They power image generation, video generation, voice calls, audio messages, and other premium features.</p>
       ${fig("/blog-assets/ourdream-gym-pink.jpg", "High-energy AI character used as a generation example", "Each still, clip, or call draws from the same coin balance.")}
-      <p>Importantly, dreamcoins <strong>do not expire</strong>. Once they are in your account, they remain available until you use them.</p>
+      <p>Two different piles sit in the same wallet. Mix them up and the “do they expire?” answer sounds like a lie.</p>
       <ul>
-        <li><strong>Monthly</strong> subscribers receive 1,000 dreamcoins on sign-up and another 1,000 coins every month.</li>
-        <li><strong>Annual</strong> subscribers receive 2,000 dreamcoins upfront, followed by 1,000 coins each subsequent month.</li>
+        <li><strong>Purchased / top-up coins</strong> stay in the account until you spend them. They do not expire.</li>
+        <li><strong>Monthly subscription coins</strong> (1,000 each billing cycle; annual also adds 2,000 up front) <strong>do not roll over</strong>. Unused grant coins reset on the next bill date.</li>
       </ul>
-      <p>If you need more coins while you have an active subscription, additional packs can be purchased. Because the coins never expire, you can accumulate them or use them at your own pace. The subscription unlocks NSFW and the ongoing grant; coins are how you spend on the specific content you want.</p>
+      <p>Rough spend: about <strong>10 coins per still</strong>. Video and voice cost more and vary by length. Paid members get unlimited standard text. On the free tier, text costs <strong>1 coin per message</strong> after the signup bonus. After you cancel, leftover coins remain, but the account drops back to free rules — chat burns coins again, media can blur. Full pricing: <a href="/blog/is-ourdream-ai-free.html">free vs paid</a>.</p>
       ${CTA}
       ${SERIES}
     `,
     faqs: [
-      { q: "Do dreamcoins expire?", a: "No. They remain until used." },
-      { q: "How many coins do I get?", a: "Monthly plans start at 1,000 plus 1,000/month. Annual starts at 2,000, then 1,000/month." },
+      { q: "Do dreamcoins expire?", a: "Purchased coins stay until spent. The 1,000 monthly subscription coins do not roll over — they reset on the billing date." },
+      { q: "How many coins do I get?", a: "Paid plans include 1,000 dreamcoins per month. Annual also grants 2,000 extra coins up front." },
+      { q: "How many coins is an image?", a: "About 10 dreamcoins per still. Video and voice cost more." },
     ],
   },
   {
@@ -282,7 +283,7 @@ const RAW = [
             </tr>
             <tr>
               <td><strong>Coins and subscription</strong></td>
-              <td>Chat may be easy to start. High-res stills, video, and premium packs consume <a href="/blog/ourdream-dreamcoins-explained.html">dreamcoins</a> and typically need an <a href="/blog/ourdream-nsfw-ai-chat-requirements.html">active plan</a> for uncensored output. Coins do not expire.</td>
+              <td>Chat may be easy to start. High-res stills (~10 coins), video, and premium packs consume <a href="/blog/ourdream-dreamcoins-explained.html">dreamcoins</a> and typically need an <a href="/blog/ourdream-nsfw-ai-chat-requirements.html">active plan</a> for uncensored output. Bought coins stay; monthly grant coins do not roll over.</td>
             </tr>
             <tr>
               <td><strong>18+ NSFW gate</strong></td>
@@ -318,7 +319,7 @@ const RAW = [
       },
       {
         q: "Do image and video generations cost extra?",
-        a: "They consume dreamcoins, which do not expire. Uncensored output generally requires an 18+ subscription. Extra coin packs can be bought while a plan is active.",
+        a: "They consume dreamcoins — about 10 per still, more for video. Bought coins stay; monthly grant coins reset. Uncensored output generally needs an 18+ subscription.",
       },
     ],
   },
@@ -329,32 +330,114 @@ const RAW = [
     category: "Guides",
     cover: "/blog-assets/07-lilith-dream-portrait.jpg",
     excerpt:
-      "OurDream.ai is not fully free. A subscription unlocks NSFW, community packs, and unblurred media. Monthly $19.99 or annual $119.88. No PayPal.",
-    microcopy: "Paid plan for the real product. Annual cuts the monthly rate in half.",
+      "OurDream.ai review: free vs paid, $19.99 monthly vs $119.88 yearly, what 50 free messages actually get you, and how Dreamcoins reset. PayPal is not accepted.",
+    microcopy: "Browse for free. Unblurred media, NSFW, unlimited chat, and voice sit behind a plan.",
     date: "2026-08-14",
     dateModified: "2026-08-14",
-    readMins: 4,
+    readMins: 8,
     coverVideoId: 7,
     relatedVideoIds: [7, 2, 5168],
-    tags: ["ourdream pricing", "ourdream free", "ai sex chat cost", "dreamcoins"],
+    tags: [
+      "ourdream pricing",
+      "is ourdream ai free",
+      "ourdream subscription",
+      "dreamcoins",
+      "ourdream annual plan",
+    ],
     body: `
-      <p>${od("OurDream.ai")} requires a subscription to access its full feature set.</p>
-      ${fig("/blog-assets/07-lilith-dream-portrait.jpg", "OurDream-style AI character portrait", "The annual plan is the cheaper way to stay if you already know you want the full toolkit.")}
-      <p>Without a subscription, image and video content remains blurred, community packs are unavailable, and NSFW capabilities are locked. An active plan is needed to unlock these features.</p>
+      <p>Search “is ${od("OurDream.ai")} free” and you get two answers that are both half-true. You can open the site, browse characters, and send a handful of test messages without paying. You cannot run the product — uncensored roleplay, unblurred stills and video, priority replies, or voice — without a subscription.</p>
+      <p>Treat the free tier as a demo of the UI. Treat the paid plan as the actual tool. If you only want finished AI video and no coin meter, skip the generator and stream on <a href="/">thebestpornai</a>.</p>
+
+      <h2>Free tier vs paid membership</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Feature</th><th>Free / basic</th><th>Paid membership</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Text chat</strong></td><td>~50 messages/day at 1 coin each after the signup bonus</td><td>Unlimited standard chatting</td></tr>
+            <tr><td><strong>Images &amp; video</strong></td><td>Blurred or hidden previews</td><td>Unblurred HD generation</td></tr>
+            <tr><td><strong>NSFW / mature</strong></td><td>Locked or filtered</td><td>Uncensored roleplay (18+)</td></tr>
+            <tr><td><strong>Speed &amp; memory</strong></td><td>Standard queues</td><td>Priority latency, longer memory</td></tr>
+            <tr><td><strong>Dreamcoins</strong></td><td>Signup bonus only</td><td>1,000 / month; annual also gets 2,000 extra up front</td></tr>
+            <tr><td><strong>Community packs</strong></td><td>Restricted / read-only</td><td>Full access to templates and packs</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>What the free tier actually is</h2>
+      <p>Free accounts can poke at public feeds and learn how dialogue feels. The walls go up fast:</p>
       <ul>
-        <li><strong>Monthly plan:</strong> $19.99 per month</li>
-        <li><strong>Annual plan:</strong> $119.88 per year (equivalent to $9.99 per month), which also includes a larger upfront dreamcoin allocation of 2,000 coins</li>
+        <li><strong>1 dreamcoin per message</strong> once the trial tokens are gone — chat itself becomes a spend, not a default.</li>
+        <li><strong>Blurred media</strong> — stills, short clips, and visual albums stay obscured.</li>
+        <li><strong>Filtered modes</strong> — mature toggles and the uncensored model stay off. See <a href="/blog/ourdream-nsfw-ai-chat-requirements.html">NSFW access</a>.</li>
+        <li><strong>Packs stay locked</strong> — you cannot fully use or clone community persona decks.</li>
       </ul>
-      <p>Accepted payment methods include credit or debit card, cryptocurrency, and G2A. <strong>PayPal is not currently accepted.</strong></p>
-      ${fig("/blog-assets/sex-chat-cta-banner.webp", "OurDream.ai call to action", "The subscription funds NSFW access, regular coin grants, and the full generation toolkit.")}
-      <p>The model funds ongoing NSFW access, regular dreamcoin grants, and the full range of generation and interaction tools. The platform is not free, but the annual option significantly lowers the effective monthly cost for users who plan to stay. If you want finished AI video with no credits, watch on <a href="/">thebestpornai</a> — see <a href="/blog/free-ai-porn-what-is-free-vs-trap.html">free vs trap</a>.</p>
+      <p>That is a sandbox, not a membership with a watermark. If you want continuous chat plus unblurred multimedia, you upgrade.</p>
+
+      <h2>Plans, price, and how you pay</h2>
+      ${fig("/blog-assets/sex-chat-cta-banner.webp", "OurDream.ai subscription call to action", "Annual is half the monthly rate if you already know you will stay.")}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th></th><th>Monthly</th><th>Annual</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Price</strong></td><td>$19.99 / month</td><td>$119.88 / year (~$9.99 / month)</td></tr>
+            <tr><td><strong>Uncensored access</strong></td><td>Yes</td><td>Yes</td></tr>
+            <tr><td><strong>Standard chat</strong></td><td>Unlimited</td><td>Unlimited</td></tr>
+            <tr><td><strong>Dreamcoins</strong></td><td>1,000 / month</td><td>1,000 / month + 2,000 bonus at start</td></tr>
+            <tr><td><strong>Effective discount</strong></td><td>—</td><td>~50% vs paying monthly all year</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Checkout listed at the time of writing:</p>
+      <ul>
+        <li><strong>Cards:</strong> Visa, Mastercard, American Express, Discover</li>
+        <li><strong>Crypto</strong> for a quieter statement</li>
+        <li><strong>G2A Pay</strong> as a third-party gateway</li>
+        <li><strong>No PayPal</strong> — confirm on the live checkout; that can change</li>
+      </ul>
+
+      <h2>Dreamcoins: spend rates and the rollover trap</h2>
+      <p>Dreamcoins are compute tokens for images, voice, and video. The deep dive is <a href="/blog/ourdream-dreamcoins-explained.html">how Dreamcoins work</a>. The parts that change whether the annual plan is “worth it”:</p>
+      <ul>
+        <li><strong>~10 coins per still.</strong> Video and voice cost more and scale with length.</li>
+        <li><strong>Paid text is included.</strong> Free-tier text is 1 coin per message.</li>
+        <li><strong>Bought coins stay</strong> until you spend them.</li>
+        <li><strong>The 1,000 monthly grant does not roll over.</strong> Unused subscription coins reset on the billing date. They are not a savings account.</li>
+        <li><strong>After cancel:</strong> remaining coins stay, but the profile reverts to free rules — chat costs coins again, media can blur.</li>
+        <li><strong>Referrals</strong> can add extra coins if the live program is active.</li>
+      </ul>
+      <p>A thousand coins is roughly a hundred stills if you spend nothing else. Mix in video or voice and the grant disappears in a weekend. That is why the subscription is the unlock, and extra packs are for people who generate past the monthly allotment.</p>
+
+      <h2>Verdict</h2>
+      <p>Free is enough to decide if the interface annoys you. It is not enough to live in. For continuous roleplay, unblurred generation, video, and voice, the <strong>annual plan at $119.88</strong> is the only number that makes sense if you already know you will stay — half the monthly rate plus the 2,000-coin kickstart.</p>
+      <p>If you do not want to generate at all, do not buy coins to watch. Use <a href="/">thebestpornai</a> for finished scenes, and read <a href="/blog/free-ai-porn-what-is-free-vs-trap.html">free vs trap</a> before you put a card on any “free AI porn” page.</p>
       ${CTA}
       ${SERIES}
     `,
     faqs: [
-      { q: "Is OurDream.ai free?", a: "Not for NSFW or unblurred generation. Those need a paid plan." },
-      { q: "What does annual cost?", a: "$119.88 per year (~$9.99/month) with 2,000 dreamcoins up front." },
-      { q: "Can I pay with PayPal?", a: "No. Card, crypto, and G2A are listed. Confirm on checkout." },
+      {
+        q: "Can you use OurDream.ai completely for free?",
+        a: "You can browse characters and send a limited number of test messages with signup tokens. Sustained chat, unblurred media, NSFW, and voice need a subscription or coin top-ups.",
+      },
+      {
+        q: "Do Dreamcoins roll over each month?",
+        a: "No. The 1,000 monthly subscription coins reset on the billing date. Coins you buy as top-ups stay until you spend them.",
+      },
+      {
+        q: "Is OurDream.ai uncensored?",
+        a: "Yes, for paid 18+ members. Uncensored roleplay and mature modes require an active plan. Free accounts stay filtered and blurred.",
+      },
+      {
+        q: "What does the annual plan cost?",
+        a: "$119.88 per year (about $9.99/month) with 1,000 coins each month plus 2,000 bonus coins up front.",
+      },
+      {
+        q: "Can I pay with PayPal?",
+        a: "Not at the time of writing. Checkout lists cards, crypto, and G2A. Confirm on the live payment page.",
+      },
     ],
   },
 ];
