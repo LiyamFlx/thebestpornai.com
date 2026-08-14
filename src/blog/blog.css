@@ -1468,6 +1468,12 @@ a { color: inherit; }
   border-left: none;
   padding: 0;
 }
+.blog-pc{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0 16px;
+}
+.blog-pc h4{margin:0 0 6px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--dim)}
+.blog-pc ul{margin:0;padding-left:18px;font-size:14px}
+@media(max-width:640px){.blog-pc{grid-template-columns:1fr}}
 .blog-rank-card ul {
   margin: 0 0 4px 18px;
   font-size: 15px;

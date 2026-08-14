@@ -16,6 +16,7 @@
 import { WRITER_POSTS } from "./writer-posts.js";
 import { OURDREAM_FAQ_POSTS } from "./ourdream-faq-posts.js";
 import { ETHICS_POSTS } from "./ethics-posts.js";
+import { GENERATORS_2026_POST } from "./generators-2026-post.js";
 
 export const BLOG_AUTHOR = {
   name: "thebestpornai Editorial",
@@ -2815,7 +2816,14 @@ export const SEED_POSTS = [
 export const FEATURED_BLOG_SLUG = "best-ai-porn-generators-2026";
 
 /** Newest first so hub + RSS lead with fresh posts. */
-export const POSTS = [...WRITER_POSTS, ...OURDREAM_FAQ_POSTS, ...ETHICS_POSTS, ...SEED_POSTS].sort((a, b) => {
+const WRITER_NO_DUP = WRITER_POSTS.filter((p) => p.slug !== GENERATORS_2026_POST.slug);
+export const POSTS = [
+  ...WRITER_NO_DUP,
+  GENERATORS_2026_POST,
+  ...OURDREAM_FAQ_POSTS,
+  ...ETHICS_POSTS,
+  ...SEED_POSTS,
+].sort((a, b) => {
   const d = String(b.date || "").localeCompare(String(a.date || ""));
   if (d !== 0) return d;
   return (Number(b.id) || 0) - (Number(a.id) || 0);
