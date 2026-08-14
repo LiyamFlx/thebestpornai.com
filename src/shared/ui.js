@@ -59,7 +59,7 @@ export function playerEmbed(v){
       <div class="player-status-loading" aria-hidden="true"><div class="player-spinner"></div></div>
       <div class="player-status-error" style="display:none" role="alert">
         <div class="player-error-msg">This video couldn't be loaded.</div>
-        <button class="btn sm" onclick="event.stopPropagation();this.closest('.player-wrap').querySelector('video.player').load()">Retry</button>
+        <button type="button" class="player-retry-btn" onclick="event.stopPropagation();this.closest('.player-wrap').querySelector('video.player').load()">Tap to retry</button>
       </div>
     </div>`;
   }

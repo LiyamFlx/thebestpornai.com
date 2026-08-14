@@ -128,11 +128,7 @@ function upNextPanel(related, showHead = false){
 
 function playerOverlayMobile(v){
   return `
-    <div class="player-overlay-v2" id="playerOverlayV2">
-      <div class="ov-top">
-        <button type="button" class="ov-icon-btn" data-act="toggle-pip" id="pipBtn" title="Picture-in-Picture" aria-label="Picture-in-Picture"><svg class="ico" id="pipIcon"><use href="#icon-compress"/></svg></button>
-        <button type="button" class="ov-icon-btn" data-act="open-sheet" data-sheet="settingsSheet" title="Playback settings" aria-label="Playback settings"><svg class="ico"><use href="#icon-gear"/></svg></button>
-      </div>
+    <div class="player-overlay-v2 player-overlay-v2--mobile" id="playerOverlayV2">
       <div class="ov-center">
         <button type="button" class="ov-skip" data-act="skip" data-sec="-10" aria-label="Rewind 10 seconds"><svg class="ico"><use href="#icon-rewind10"/></svg><span>-10s</span></button>
         <button type="button" class="ov-playpause" data-act="toggle-playpause" id="playPauseBtnV2" aria-label="Play / Pause"><svg class="ico" id="playIconV2"><use href="#icon-play"/></svg></button>
@@ -146,6 +142,7 @@ function playerOverlayMobile(v){
           <div class="ov-time"><span id="ovCurrentTime">0:00</span><span class="dot-sep">/</span><span id="ovDuration">0:00</span></div>
           <div class="ov-right">
             <button type="button" class="ov-icon-btn sm" data-act="toggle-mute" id="ovMuteBtn" aria-label="Mute/Unmute"><svg class="ico" id="ovVolumeIcon"><use href="#icon-unmute"/></svg></button>
+            <button type="button" class="ov-icon-btn sm" data-act="open-sheet" data-sheet="settingsSheet" aria-label="Playback settings"><svg class="ico"><use href="#icon-gear"/></svg></button>
             <button type="button" class="ov-icon-btn sm" data-act="toggle-fullscreen" aria-label="Fullscreen"><svg class="ico"><use href="#icon-expand"/></svg></button>
           </div>
         </div>
@@ -192,10 +189,20 @@ function playerOverlayDesktop(v){
     </div>`;
 }
 
-function actionBar(v, live, hasCreator){
-  // Compact primary set — like/dislike, share, save, fav, download.
+function actionBar(v, live, hasCreator, { compact = false } = {}){
   const laterOn = vstate.later.includes(v.id);
   const favOn = vstate.favorites.includes(v.id);
+  if (compact) {
+    return `
+    <div class="watch-action-bar watch-action-bar--icons" role="toolbar" aria-label="Video actions">
+      <button type="button" id="btnLike" class="act-ico ${live.myVote==="like"?"on":""}" data-act="like" data-id="${v.id}" aria-pressed="${live.myVote==="like"?"true":"false"}" aria-label="Like this video"><svg class="ic ico"><use href="#icon-like"/></svg><span id="likeNum">${fmt(v.likes + live.like)}</span></button>
+      <button type="button" id="btnDislike" class="act-ico ${live.myVote==="dislike"?"on":""}" data-act="dislike" data-id="${v.id}" aria-pressed="${live.myVote==="dislike"?"true":"false"}" aria-label="Dislike this video"><svg class="ic ico"><use href="#icon-dislike"/></svg></button>
+      <button type="button" class="act-ico" data-act="switch-tab" data-tab="comments" aria-label="Comments"><svg class="ic ico"><use href="#icon-comment"/></svg></button>
+      <button type="button" class="act-ico" data-act="open-sheet" data-sheet="shareSheet" aria-label="Share"><svg class="ic ico"><use href="#icon-share"/></svg></button>
+      <button type="button" class="act-ico ${laterOn?'on':''}" id="btnLater" data-act="toggle-later" data-id="${v.id}" aria-pressed="${laterOn?'true':'false'}" aria-label="Save"><svg class="ic ico"><use href="#icon-save"/></svg></button>
+      <button type="button" class="act-ico ${favOn?'on':''}" id="btnFav" data-act="toggle-fav" data-id="${v.id}" aria-pressed="${favOn?'true':'false'}" aria-label="Favorite"><svg class="ic ico"><use href="#icon-heart"/></svg></button>
+    </div>`;
+  }
   return `
     <div class="watch-action-bar mchrome-scroll" role="toolbar" aria-label="Video actions">
       <div class="vote-pill">
@@ -239,14 +246,9 @@ function creatorRowMobile(c, hasCreator, subbed){
   return `
     <div class="watch-creator-row-mobile">
       <button type="button" class="creator-mobile-id" data-act="open-creator" data-creator="${jsq(c.id)}" aria-label="Open ${esc(c.name)}'s channel">
-        <div class="avatar avatar-md">${esc((c.name||"?")[0])}</div>
-        <div class="creator-mobile-meta">
-          <div class="creator-name-row">
-            <span class="creator-mobile-name">${esc(c.name)}</span>
-            ${c.verified ? `<span class="watch-creator-verified-sm">✓</span>` : ''}
-          </div>
-          <span class="creator-mobile-subs">${fmt(c.subs)} subscribers</span>
-        </div>
+        <span class="creator-mobile-name">${esc(c.name)}</span>
+        ${c.verified ? `<span class="watch-creator-verified-sm">✓</span>` : ''}
+        <span class="creator-mobile-subs">${fmt(c.subs)}</span>
       </button>
       ${hasCreator
         ? `<button type="button" class="subscribe-btn-sm ${subbed?'subscribed':''}" data-act="subscribe" data-creator="${jsq(c.id)}" id="subscribeBtnV2" aria-pressed="${subbed?'true':'false'}">
@@ -288,6 +290,13 @@ function tagChipsInline(tagList){
   return tagList.slice(0,2).map(t=>`<button type="button" class="tag-chip-inline" data-act="search-tag" data-tag="${jsq(t)}">#${esc(t)}</button>`).join(" ");
 }
 
+function fmtWatchDate(iso){
+  if(!iso) return "";
+  const d = new Date(String(iso).length <= 10 ? iso + "T00:00:00Z" : iso);
+  if(Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+}
+
 function titleBlockMobile(v, catList, tagList, live, c, hasCreator, subbed){
   return `
     <div class="watch-title-block">
@@ -298,11 +307,11 @@ function titleBlockMobile(v, catList, tagList, live, c, hasCreator, subbed){
       <div class="watch-stats-inline">
         <span class="views-count" id="watchViewsCount">${fmt(displayViews(v))} views</span>
         <span class="dot-sep">•</span>
-        <span>${esc(v.uploaded)}</span>
+        <span>${esc(fmtWatchDate(v.uploaded))}</span>
         ${tagList.length ? `<span class="dot-sep">•</span><span class="stats-tags">${tagChipsInline(tagList)}</span>` : ''}
       </div>
       ${creatorRowMobile(c, hasCreator, subbed)}
-      ${actionBar(v, live, hasCreator)}
+      ${actionBar(v, live, hasCreator, { compact: true })}
       ${blogStoryChip(v)}
       ${(catList.length || tagList.length || v.desc) ? `
       <div class="quick-desc-box" id="quickDescBox" hidden>
@@ -439,8 +448,6 @@ export function renderWatch(){
       <section class="player-container-v2">
         <div class="player-nav-wrap">
           ${playerEmbed(v)}
-          <button type="button" class="player-nav player-nav-prev" data-act="step" data-dir="-1" aria-label="Previous video">‹</button>
-          <button type="button" class="player-nav player-nav-next" data-act="step" data-dir="1" aria-label="Next video">›</button>
         </div>
         ${playerOverlayMobile(v)}
       </section>

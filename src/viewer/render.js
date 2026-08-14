@@ -177,28 +177,39 @@ function attachPlayerStatus(wrap, activePlayer){
   const error = wrap.querySelector(".player-status-error");
   if(!loading && !error) return;
 
+  const hideError = () => { if(error) error.style.display = "none"; };
   const showLoading = () => {
     if(loading) loading.style.display = "flex";
-    if(error) error.style.display = "none";
+    hideError();
   };
   const hideLoading = () => { if(loading) loading.style.display = "none"; };
   const showError = () => {
+    // Never paint Retry over a clip that's actually playing — mobile Safari
+    // fires `stalled` during ordinary startup and left a red button on the
+    // poster while the video ran underneath (see watch-page screenshot).
+    if(!activePlayer.error && (!activePlayer.paused || activePlayer.readyState >= 3)){
+      return;
+    }
     if(loading) loading.style.display = "none";
     if(error) error.style.display = "flex";
   };
 
   activePlayer.addEventListener("loadstart", showLoading);
   activePlayer.addEventListener("waiting", showLoading);
-  activePlayer.addEventListener("playing", hideLoading);
-  activePlayer.addEventListener("canplay", hideLoading);
+  activePlayer.addEventListener("playing", () => { hideLoading(); hideError(); });
+  activePlayer.addEventListener("canplay", () => { hideLoading(); hideError(); });
   activePlayer.addEventListener("error", showError);
-  // A stall under 4s is normal buffering; only surface it as an error if it hangs.
+  // A stall under 4s is normal buffering; only surface it as an error if it hangs
+  // AND the element is not making progress.
   let stallTimer = null;
   activePlayer.addEventListener("stalled", () => {
     clearTimeout(stallTimer);
     stallTimer = setTimeout(showError, 4000);
   });
   activePlayer.addEventListener("playing", () => clearTimeout(stallTimer));
+  activePlayer.addEventListener("timeupdate", () => {
+    if(!activePlayer.paused && activePlayer.currentTime > 0) hideError();
+  });
 }
 
 /* Hover-to-preview: on desktop, hovering a card plays its muted thumb/preview

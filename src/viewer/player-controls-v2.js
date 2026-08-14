@@ -278,7 +278,8 @@ export function attachPlayerControlsV2(){
   // so Play remains tappable. Do NOT cancel the timer on full-overlay
   // mouseenter — the overlay covers the whole player, so that left controls
   // stuck on forever whenever the cursor was over the video.
-  const HIDE_MS = 1000;
+  const isMobilePlayer = !!(window.matchMedia && window.matchMedia("(max-width:760px)").matches);
+  const HIDE_MS = isMobilePlayer ? 3000 : 1400;
   const container = wrap.closest(".player-container-v2") || wrap;
   const hide = () => {
     if(advanceOverlay) return; // end-card owns the surface
@@ -307,9 +308,58 @@ export function attachPlayerControlsV2(){
   // Click on the video surface (empty overlay space passes through): toggle.
   video.addEventListener("click", (e) => {
     if(e.target !== video) return;
+    if(isMobilePlayer) return; // mobile uses touchend (single / double / swipe)
     window.togglePlayPauseV2();
     show();
   });
+
+  if(isMobilePlayer){
+    let touchStartX = 0, touchStartY = 0, touchStartT = 0, lastTapAt = 0, lastTapX = 0, tapGen = 0;
+    const TAP_MS = 280;
+    const SWIPE_X = 56;
+    const SWIPE_Y_MAX = 48;
+    container.addEventListener("touchstart", (e) => {
+      const t = e.changedTouches && e.changedTouches[0];
+      if(!t) return;
+      if(e.target.closest("button, input, select, label, a")) return;
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+      touchStartT = Date.now();
+    }, { passive: true });
+    container.addEventListener("touchend", (e) => {
+      const t = e.changedTouches && e.changedTouches[0];
+      if(!t) return;
+      if(e.target.closest("button, input, select, label, a")) return;
+      const dx = t.clientX - touchStartX;
+      const dy = t.clientY - touchStartY;
+      const dt = Date.now() - touchStartT;
+      if(Math.abs(dx) > SWIPE_X && Math.abs(dy) < SWIPE_Y_MAX && dt < 500){
+        tapGen++;
+        window.stepWatch?.(dx < 0 ? 1 : -1);
+        return;
+      }
+      if(Math.abs(dx) > 18 || Math.abs(dy) > 18) return;
+      const now = Date.now();
+      const rect = container.getBoundingClientRect();
+      if(now - lastTapAt < TAP_MS && Math.abs(t.clientX - lastTapX) < 80){
+        tapGen++;
+        lastTapAt = 0;
+        const left = t.clientX < rect.left + rect.width / 2;
+        window.skipTime(left ? -10 : 10);
+        show();
+        return;
+      }
+      lastTapAt = now;
+      lastTapX = t.clientX;
+      const mine = ++tapGen;
+      setTimeout(() => {
+        if(mine !== tapGen) return;
+        window.togglePlayPauseV2();
+        show();
+      }, TAP_MS);
+    }, { passive: true });
+  }
+
   show();
 
   attachAutoAdvance(overlay, video, wrap);
