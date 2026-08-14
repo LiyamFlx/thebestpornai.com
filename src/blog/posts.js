@@ -15,6 +15,7 @@
 
 import { WRITER_POSTS } from "./writer-posts.js";
 import { OURDREAM_FAQ_POSTS } from "./ourdream-faq-posts.js";
+import { ETHICS_POSTS } from "./ethics-posts.js";
 
 export const BLOG_AUTHOR = {
   name: "thebestpornai Editorial",
@@ -2814,7 +2815,7 @@ export const SEED_POSTS = [
 export const FEATURED_BLOG_SLUG = "best-ai-porn-generators-2026";
 
 /** Newest first so hub + RSS lead with fresh posts. */
-export const POSTS = [...WRITER_POSTS, ...OURDREAM_FAQ_POSTS, ...SEED_POSTS].sort((a, b) => {
+export const POSTS = [...WRITER_POSTS, ...OURDREAM_FAQ_POSTS, ...ETHICS_POSTS, ...SEED_POSTS].sort((a, b) => {
   const d = String(b.date || "").localeCompare(String(a.date || ""));
   if (d !== 0) return d;
   return (Number(b.id) || 0) - (Number(a.id) || 0);

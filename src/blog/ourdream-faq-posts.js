@@ -30,11 +30,21 @@ const SERIES = `
       <li><a href="/blog/ourdream-dreamcoins-explained.html">Dreamcoins</a></li>
       <li><a href="/blog/ourdream-generate-images-videos-same-character.html">Images &amp; videos</a></li>
       <li><a href="/blog/is-ourdream-ai-free.html">Free vs subscription</a></li>
+      <li><a href="/blog/building-your-fantasy-from-scratch-ai-adult-ethics.html">Part 2 — Ethics of AI adult media</a></li>
     </ol>
   </nav>`;
 
+const PART2 = `
+  <aside class="blog-part2">
+    <p class="blog-series-label">Part 2</p>
+    <p class="blog-part2-title"><a href="/blog/building-your-fantasy-from-scratch-ai-adult-ethics.html">Building Your Fantasy From Scratch</a></p>
+    <p>Consent, likeness, privacy, and what happens when fantasy becomes programmable — a separate editorial, not another product FAQ.</p>
+    <a class="blog-cta blog-cta-ghost" href="/blog/building-your-fantasy-from-scratch-ai-adult-ethics.html">Read the ethics guide →</a>
+  </aside>`;
+
 const CTA = `
-  <p class="blog-takeaway"><strong>Want to try it:</strong> ${od("Open OurDream.ai")} (18+). Prefer finished scenes with no credits? Stream free on <a href="/">thebestpornai</a>.</p>`;
+  <p class="blog-takeaway"><strong>Want to try it:</strong> ${od("Open OurDream.ai")} (18+). Prefer finished scenes with no credits? Stream free on <a href="/">thebestpornai</a>.</p>
+  ${PART2}`;
 
 const RAW = [
   {
