@@ -18,7 +18,6 @@ import { fileURLToPath } from "url";
 import { POSTS, BLOG_AUTHOR, getFeaturedPost, postsForHub } from "../src/blog/posts.js";
 import { VIDEOS } from "../src/shared/catalog-videos.js";
 import {
-  isLandscapeCover,
   stripLeadingHeroDup,
   toInlineFigures,
   absoluteUrl,
@@ -321,6 +320,38 @@ function getRelatedPostsSpread(post) {
   return [...sameCat, ...otherCat].slice(0, 6);
 }
 
+function slugifyHeading(html) {
+  return plainText(html)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 64) || "section";
+}
+
+function withHeadingIds(html) {
+  const used = new Set();
+  return String(html || "").replace(/<h2([^>]*)>([\s\S]*?)<\/h2>/gi, (_, attrs, inner) => {
+    if (/\sid=/.test(attrs)) return `<h2${attrs}>${inner}</h2>`;
+    let id = slugifyHeading(inner);
+    let n = 2;
+    while (used.has(id)) id = `${slugifyHeading(inner)}-${n++}`;
+    used.add(id);
+    return `<h2${attrs} id="${esc(id)}">${inner}</h2>`;
+  });
+}
+
+function tocFromBody(html) {
+  const items = [];
+  const re = /<h2([^>]*)>([\s\S]*?)<\/h2>/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const idMatch = m[1].match(/\sid=["']([^"']+)["']/);
+    const id = idMatch ? idMatch[1] : slugifyHeading(m[2]);
+    items.push({ id, title: plainText(m[2]) });
+  }
+  return items;
+}
+
 function faqHtml(faqs) {
   if (!faqs || !faqs.length) return "";
   return `
@@ -483,8 +514,8 @@ function renderPost(post) {
   const coverRel = postCoverUrl(post);
   const cover = absoluteUrl(ORIGIN, coverRel);
   const stripped = stripLeadingHeroDup(post.body, coverRel);
-  const articleBody = toInlineFigures(stripped.body);
-  const landscape = isLandscapeCover(post);
+  const articleBody = withHeadingIds(toInlineFigures(stripped.body));
+  const toc = tocFromBody(articleBody);
   const url = postUrl(post);
   const description = plainText(post.excerpt).slice(0, 160);
   const words = wordCount(articleBody);
@@ -539,61 +570,98 @@ function renderPost(post) {
 ${JSON.stringify(jsonLd, null, 2)}
 </script>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; base-uri 'self'; form-action 'self' mailto:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' ${SUPABASE_ORIGIN} https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com;">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/src/shared/theme.css"/>
 </head>
 <body class="blog-body">
 ${siteHeader({ mode: "post" })}
 
-<main>
+<main class="bp-page">
   <article class="blog-post" itemscope itemtype="https://schema.org/BlogPosting">
-    <div class="blog-shell">
-      <nav class="blog-breadcrumbs" aria-label="Breadcrumb">
-        <a href="/">Home</a><span aria-hidden="true">/</span>
-        <a href="/blog/">Blog</a><span aria-hidden="true">/</span>
-        <span aria-current="page">${esc(post.category)}</span>
-      </nav>
-
-      <!-- One hero only: body no longer repeats this image. -->
-      <header class="blog-feature${landscape ? " blog-feature--landscape" : ""}">
-        <figure class="blog-feature-hero">
-          <div class="blog-post-hero-frame${landscape ? " blog-post-hero-frame--banner" : ""}">
-            <img class="blog-post-hero-photo${landscape ? "" : " blog-post-hero-photo--cover"}" src="${esc(coverRel)}" alt="${esc(heroAlt)}" width="${landscape ? "1856" : "640"}" height="${landscape ? "576" : "853"}" decoding="async" fetchpriority="high"/>
-            ${landscape ? "" : `<div class="blog-post-hero-shade" aria-hidden="true"></div>`}
+    <div class="bp-layout">
+      <div class="bp-main">
+        <header class="bp-header">
+          <nav class="blog-breadcrumbs" aria-label="Breadcrumb">
+            <a href="/">Home</a><span aria-hidden="true">/</span>
+            <a href="/blog/">Blog</a><span aria-hidden="true">/</span>
+            <span aria-current="page">${esc(post.category)}</span>
+          </nav>
+          <span class="blog-article-pill">${esc(post.category)}</span>
+          <h1 class="bp-title" itemprop="headline">${esc(cleanPostTitle)}</h1>
+          ${post.microcopy ? `<p class="bp-deck">${esc(post.microcopy)}</p>` : ""}
+          <div class="bp-meta">
+            <span class="bp-author"><span class="bp-avatar" aria-hidden="true">TB</span><a href="${esc(BLOG_AUTHOR.url)}" rel="author">${esc(BLOG_AUTHOR.name)}</a></span>
+            <span>${ICON_CALENDAR}<time datetime="${esc(post.date)}" itemprop="datePublished">${esc(formatDateLong(post.date))}</time></span>
+            <span>${ICON_CLOCK}${readMins} min read</span>
           </div>
+        </header>
+
+        <figure class="bp-featured">
+          <img src="${esc(coverRel)}" alt="${esc(heroAlt)}" width="1600" height="900" decoding="async" fetchpriority="high"/>
           ${figcaption}
         </figure>
-        <div class="blog-feature-copy">
-          <span class="blog-article-pill">${esc(post.category)}</span>
-          <h1 class="blog-article-title" itemprop="headline">${esc(cleanPostTitle)}</h1>
-          <p class="blog-article-microcopy">${esc(post.microcopy)}</p>
-          <div class="blog-article-meta">
-            <span>By <a href="${esc(BLOG_AUTHOR.url)}" rel="author">${esc(BLOG_AUTHOR.name)}</a></span>
-            <span class="dot"></span>
-            <span>${ICON_CLOCK}${readMins} min read</span>
-            <span class="dot"></span>
-            <span>${ICON_CALENDAR}<time datetime="${esc(post.date)}" itemprop="datePublished">${esc(formatDateLong(post.date))}</time></span>
-          </div>
-          ${shareHtml(post)}
-          <div class="blog-feature-cta">
-            <a class="blog-cta blog-cta-primary"${cta.external ? ' target="_blank" rel="noopener sponsored nofollow"' : ""} href="${esc(cta.href)}">${esc(cta.label)}</a>
-            <a class="blog-cta blog-cta-ghost" href="/blog/">More stories</a>
-          </div>
+        ${shareHtml(post)}
+
+        <div class="blog-article-body blog-article-body--plain" itemprop="articleBody">
+          ${articleBody}
         </div>
-      </header>
+
+        <div class="blog-article-cta-wrap">
+          <a class="blog-cta blog-cta-primary"${cta.external ? ' target="_blank" rel="noopener sponsored nofollow"' : ""} href="${esc(cta.href)}">${esc(cta.label)}</a>
+          <a class="blog-cta blog-cta-ghost" href="/blog/">More stories</a>
+        </div>
+
+        ${faqHtml(post.faqs)}
+
+        <aside class="bp-author-box">
+          <div class="bp-avatar bp-avatar--lg" aria-hidden="true">TB</div>
+          <div>
+            <h3>thebestpornai Editorial</h3>
+            <p>We review AI adult platforms and stream finished scenes. Read the guide, then watch on thebestpornai — or try the tool if you want to generate.</p>
+          </div>
+        </aside>
+      </div>
+
+      <aside class="bp-side">
+        ${
+          toc.length
+            ? `<nav class="bp-card" aria-label="In this article">
+          <h3>In this article</h3>
+          <div class="bp-toc">
+            ${toc.map((t) => `<a href="#${esc(t.id)}">${esc(t.title)}</a>`).join("")}
+            ${post.faqs && post.faqs.length ? `<a href="#faq">FAQ</a>` : ""}
+          </div>
+        </nav>`
+            : ""
+        }
+        <div class="bp-card bp-cta">
+          <h3>${esc(cta.external ? "Try this platform" : "Watch on thebestpornai")}</h3>
+          <p>${esc(cta.external ? "Open the reviewed tool in a new tab. 18+ only." : "Stream the matching scene on thebestpornai — free, no credits.")}</p>
+          <a class="blog-cta blog-cta-primary"${cta.external ? ' target="_blank" rel="noopener sponsored nofollow"' : ""} href="${esc(cta.href)}">${esc(cta.label)}</a>
+        </div>
+        ${
+          relatedPosts.length
+            ? `<div class="bp-card">
+          <h3>Related posts</h3>
+          <div class="bp-related">
+            ${relatedPosts.slice(0, 3).map((p) => {
+              const thumb = postCoverThumbUrl(p);
+              return `<a class="bp-related-item" href="/blog/${esc(p.slug)}.html">
+                <img class="bp-related-thumb" src="${esc(thumb)}" alt="" width="144" height="108" loading="lazy"/>
+                <span>
+                  <span class="bp-related-title">${esc(cleanTitle(p.title))}</span>
+                  <span class="bp-related-meta">${calcReadMins(wordCount(p.body))} min read</span>
+                </span>
+              </a>`;
+            }).join("")}
+          </div>
+        </div>`
+            : ""
+        }
+      </aside>
     </div>
 
-    <div class="blog-read${landscape || post.wide === true ? " blog-read--wide" : ""}">
-      <div class="blog-article-body${post.dropCap === false ? " blog-article-body--plain" : ""}" itemprop="articleBody">
-        ${articleBody}
-      </div>
-      <div class="blog-article-cta-wrap">
-        <a class="blog-cta blog-cta-primary"${cta.external ? ' target="_blank" rel="noopener sponsored nofollow"' : ""} href="${esc(cta.href)}">${esc(cta.label)}</a>
-        <a class="blog-cta blog-cta-ghost" href="/blog/">More stories</a>
-      </div>
-
-      ${faqHtml(post.faqs)}
-
+    <div class="bp-below">
       ${
         relatedVideos.length
           ? `
