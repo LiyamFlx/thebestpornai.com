@@ -36,7 +36,7 @@ const SERIES = `
 const CTA = `
   <p class="blog-takeaway"><strong>Want to try it:</strong> ${od("Open OurDream.ai")} (18+). Prefer finished scenes with no credits? Stream free on <a href="/">thebestpornai</a>.</p>`;
 
-export const OURDREAM_FAQ_POSTS = [
+const RAW = [
   {
     id: 40,
     slug: "what-is-ai-sex-chat-ourdream",
@@ -290,3 +290,10 @@ export const OURDREAM_FAQ_POSTS = [
     ],
   },
 ];
+
+export const OURDREAM_FAQ_POSTS = RAW.map((p) => ({
+  ...p,
+  coverLayout: "portrait",
+  dropCap: false,
+  wide: false,
+}));

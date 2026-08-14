@@ -1073,9 +1073,10 @@ a { color: inherit; }
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center top;
+  object-fit: contain;
+  object-position: center center;
   display: block;
+  background: #050505;
 }
 
 .blog-post-hero-shade {
@@ -1241,7 +1242,17 @@ a { color: inherit; }
 .blog-article-body p { margin: 0 0 1.2em; }
 
 /* Seductive drop-cap on opening paragraph */
-.blog-article-body > p:first-of-type::first-letter {
+.blog-article-body--plain > p:first-of-type::first-letter,
+.blog-article-body--plain > p:first-child::first-letter {
+  float: none;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  padding: 0;
+  color: inherit;
+  text-shadow: none;
+}
+.blog-article-body:not(.blog-article-body--plain) > p:first-child::first-letter {
   float: left;
   font-family: var(--font-display);
   font-size: 3.35em;

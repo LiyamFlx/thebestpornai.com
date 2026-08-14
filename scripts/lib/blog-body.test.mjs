@@ -30,9 +30,25 @@ test("stripLeadingHeroDup is a no-op when the body starts with copy", () => {
   assert.equal(body, "<p>Hello</p>");
 });
 
-test("isLandscapeCover treats /blog-assets/ covers as banners", () => {
-  assert.equal(isLandscapeCover({ cover: "/blog-assets/crew.jpg" }), true);
-  assert.equal(isLandscapeCover({ coverLayout: "portrait", cover: "/blog-assets/x.jpg" }), false);
+test("isLandscapeCover only banners named wide art, not every blog-asset", () => {
+  assert.equal(isLandscapeCover({ cover: "/blog-assets/best-ai-porn-sites-2026-crew.jpg" }), true);
+  assert.equal(isLandscapeCover({ cover: "/blog-assets/ourdream-privacy-halo.jpg" }), false);
+  assert.equal(isLandscapeCover({ coverLayout: "landscape", cover: "/blog-assets/x.jpg" }), true);
+});
+
+test("stripLeadingHeroDup removes a body figure that repeats the cover", () => {
+  const html = `<p>Lead.</p>
+    <figure class="blog-inline-figure">
+      <img src="/blog-assets/ourdream-privacy-halo.jpg" alt="x"/>
+      <figcaption class="blog-media-caption">Caption</figcaption>
+    </figure>
+    <p>More.</p>`;
+  const { body, stripped, caption } = stripLeadingHeroDup(html, "/blog-assets/ourdream-privacy-halo.jpg");
+  assert.equal(stripped, true);
+  assert.equal(caption, "Caption");
+  assert.match(body, /Lead/);
+  assert.match(body, /More/);
+  assert.doesNotMatch(body, /ourdream-privacy-halo/);
 });
 
 test("toInlineFigures makes remaining body images lazy figures", () => {

@@ -460,10 +460,29 @@ function jsonLdForPost(post, cover, words, relatedVideos = []) {
   };
 }
 
+function primaryCta(post, primaryVideo) {
+  if (post.ctaHref && post.ctaLabel) {
+    return {
+      href: post.ctaHref,
+      label: post.ctaLabel,
+      external: /^https?:\/\//i.test(post.ctaHref),
+    };
+  }
+  const blob = `${post.slug || ""} ${(post.tags || []).join(" ")}`;
+  if (/ourdream/i.test(blob)) {
+    return {
+      href: "https://ourdream.ai/?ref=thebestpornai",
+      label: "Try OurDream.ai →",
+      external: true,
+    };
+  }
+  return { href: videoWatchUrl(primaryVideo), label: "Watch this fantasy →", external: false };
+}
+
 function renderPost(post) {
   const coverRel = postCoverUrl(post);
   const cover = absoluteUrl(ORIGIN, coverRel);
-  const stripped = stripLeadingHeroDup(post.body);
+  const stripped = stripLeadingHeroDup(post.body, coverRel);
   const articleBody = toInlineFigures(stripped.body);
   const landscape = isLandscapeCover(post);
   const url = postUrl(post);
@@ -473,6 +492,7 @@ function renderPost(post) {
   const relatedVideos = getDeduplicatedRelatedVideos(post);
   const relatedPosts = getRelatedPostsSpread(post);
   const primaryVideo = relatedVideos[0]?.id || post.coverVideoId;
+  const cta = primaryCta(post, primaryVideo);
   const jsonLd = jsonLdForPost(
     { ...post, _heroCaption: stripped.caption },
     cover,
@@ -556,7 +576,7 @@ ${siteHeader({ mode: "post" })}
           </div>
           ${shareHtml(post)}
           <div class="blog-feature-cta">
-            <a class="blog-cta blog-cta-primary" href="${videoWatchUrl(primaryVideo)}">Watch this fantasy →</a>
+            <a class="blog-cta blog-cta-primary"${cta.external ? ' target="_blank" rel="noopener sponsored nofollow"' : ""} href="${esc(cta.href)}">${esc(cta.label)}</a>
             <a class="blog-cta blog-cta-ghost" href="/blog/">More stories</a>
           </div>
         </div>
@@ -564,11 +584,11 @@ ${siteHeader({ mode: "post" })}
     </div>
 
     <div class="blog-read${landscape || post.wide === true ? " blog-read--wide" : ""}">
-      <div class="blog-article-body" itemprop="articleBody">
+      <div class="blog-article-body${post.dropCap === false ? " blog-article-body--plain" : ""}" itemprop="articleBody">
         ${articleBody}
       </div>
       <div class="blog-article-cta-wrap">
-        <a class="blog-cta blog-cta-primary" href="${videoWatchUrl(primaryVideo)}">Watch this fantasy →</a>
+        <a class="blog-cta blog-cta-primary"${cta.external ? ' target="_blank" rel="noopener sponsored nofollow"' : ""} href="${esc(cta.href)}">${esc(cta.label)}</a>
         <a class="blog-cta blog-cta-ghost" href="/blog/">More stories</a>
       </div>
 
