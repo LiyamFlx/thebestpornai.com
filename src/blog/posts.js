@@ -17,6 +17,7 @@ import { WRITER_POSTS } from "./writer-posts.js";
 import { OURDREAM_FAQ_POSTS } from "./ourdream-faq-posts.js";
 import { ETHICS_POSTS } from "./ethics-posts.js";
 import { GENERATORS_2026_POST } from "./generators-2026-post.js";
+import { AI_SEX_CHATS_GUIDE_POST } from "./ai-sex-chats-guide-post.js";
 
 export const BLOG_AUTHOR = {
   name: "thebestpornai Editorial",
@@ -2820,6 +2821,7 @@ const WRITER_NO_DUP = WRITER_POSTS.filter((p) => p.slug !== GENERATORS_2026_POST
 export const POSTS = [
   ...WRITER_NO_DUP,
   GENERATORS_2026_POST,
+  AI_SEX_CHATS_GUIDE_POST,
   ...OURDREAM_FAQ_POSTS,
   ...ETHICS_POSTS,
   ...SEED_POSTS,
