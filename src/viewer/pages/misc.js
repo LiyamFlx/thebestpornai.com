@@ -1,6 +1,6 @@
 /* Simple list-style pages: categories, subscriptions, profile, settings,
    library hub, live/playlists (demoted), search, and generic listPage. */
-import { DATA, esc, fmt, creatorName, mediaUrl } from "../../shared/catalog.js";
+import { DATA, esc, fmt, mediaUrl } from "../../shared/catalog.js";
 import { videoCard, emptyState, rowSection } from "../../shared/ui.js";
 import { POPULAR_TAGS, CATEGORIES } from "../../shared/taxonomy.js";
 import { ShAuth } from "../../shared/streamhub-api.js";
@@ -222,41 +222,6 @@ export function renderPlaylists(){
       <div class="empty-msg">Custom playlists aren't available yet. Use Library for Watch Later, Favorites, and History.</div>
       <button type="button" class="btn" onclick="go('library')">Open Library</button>
     </div>`;
-}
-
-/* Fuzzy multi-term search: every whitespace-separated term must match somewhere
-   (title / category / categories / tags / creator). Results are ranked — tag &
-   category hits and title-start matches score highest. */
-// One map per search pass — creatorName() is a linear find; avoid N× lookups.
-function creatorNameMap(){
-  const m = new Map();
-  for(const c of DATA.creators || []) m.set(c.id, (c.name || "").toLowerCase());
-  return m;
-}
-
-function scoreVideo(v, terms, creatorMap){
-  const title = (v.title||"").toLowerCase();
-  // Multi-part uploads (movie/scene/clip convention) carry the human-readable
-  // title on movieTitle, not title — without this a search for the movie's
-  // name never matches its individual scene/clip entries.
-  const movieTitle = (v.movieTitle||"").toLowerCase();
-  const creator = creatorMap.get(v.creator) || creatorName(v.creator).toLowerCase();
-  const cats = [(v.category||""), ...(v.categories||[])].map(x=>String(x).toLowerCase());
-  const tags = (v.tags||[]).map(t=>String(t).toLowerCase());
-  let score = 0;
-  for(const term of terms){
-    let hit = 0;
-    if(tags.includes(term) || cats.includes(term)) hit = 10;          // exact tag/category
-    else if(tags.some(t=>t.includes(term)) || cats.some(c=>c.includes(term))) hit = 6;
-    else if(title.startsWith(term)) hit = 5;
-    else if(creator.includes(term)) hit = 4;
-    else if(title.includes(term)) hit = 3;
-    else if(movieTitle.includes(term)) hit = 2;
-    if(!hit) return -1;   // every term must match somewhere (AND)
-    score += hit;
-  }
-  score += (v.views||0) * 0.00001 + (v.likes||0) * 0.001;   // popularity tiebreaker
-  return score;
 }
 
 function searchCreatorCard(c){

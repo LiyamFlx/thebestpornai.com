@@ -117,17 +117,7 @@ function toIsoDuration(dur) {
   return undefined;
 }
 
-const SEARCH_ICON_SVG = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:16px;height:16px;margin:0;opacity:1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`;
-
 function siteHeader({ mode = "index" } = {}) {
-  const search =
-    mode === "index"
-      ? `
-      <div class="blog-search-wrap" id="blog-search-wrap">
-        <input class="blog-search-input" id="blog-search-input" type="search" placeholder="Search stories…" aria-label="Search posts"/>
-      </div>
-      <button class="blog-icon-btn" id="blog-search-toggle" aria-label="Search" aria-expanded="false" type="button">${SEARCH_ICON_SVG}</button>`
-      : "";
   return `
 <header class="blog-topbar">
   <div class="blog-topbar-inner">
@@ -141,7 +131,6 @@ function siteHeader({ mode = "index" } = {}) {
       <a href="/blog/rss.xml">RSS</a>
     </nav>
     <div class="blog-topbar-actions">
-      ${search}
       <a class="blog-cta-watch" href="/">Watch Now</a>
     </div>
   </div>
@@ -863,7 +852,7 @@ ${siteHeader({ mode: "index" })}
         <h2 class="blog-hero-title">${esc(featuredTitle)}</h2>
         <p class="blog-hero-excerpt">${esc(featured.excerpt)}</p>
         <div class="blog-hero-footer">
-          <span class="blog-cta blog-cta-primary">Read guide</span>
+          <span class="blog-cta blog-cta-primary">${featured.category === "Guides" ? "Read guide" : featured.category === "Stories" || featured.category === "Fantasies" ? "Read story" : "Read"}</span>
           <div class="blog-hero-meta">
             <span>${ICON_CLOCK}${featuredReadMins} min</span>
             <span class="dot"></span>

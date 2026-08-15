@@ -172,11 +172,8 @@ function clearFilters() {
   activeCategory = "all";
   searchQuery = "";
   visibleCount = PAGE_SIZE;
-  for (const input of document.querySelectorAll(".blog-search-input")) input.value = "";
-  const wrap = document.getElementById("blog-search-wrap");
-  const toggleBtn = document.getElementById("blog-search-toggle");
-  wrap?.classList.remove("open");
-  toggleBtn?.setAttribute("aria-expanded", "false");
+  const input = document.getElementById("blog-filter-search");
+  if (input) input.value = "";
   writeUrlState();
   renderPills();
   renderHero();
@@ -214,7 +211,8 @@ function renderPills() {
   });
 }
 
-function bindSearchInput(input, { toggleBtn, wrap } = {}) {
+function initSearch() {
+  const input = document.getElementById("blog-filter-search");
   if (!input) return;
 
   input.addEventListener("keydown", (e) => {
@@ -228,9 +226,6 @@ function bindSearchInput(input, { toggleBtn, wrap } = {}) {
         renderHero();
         renderCards();
       }
-      wrap?.classList.remove("open");
-      toggleBtn?.setAttribute("aria-expanded", "false");
-      toggleBtn?.focus();
     }
   });
 
@@ -242,29 +237,8 @@ function bindSearchInput(input, { toggleBtn, wrap } = {}) {
       writeUrlState();
       renderHero();
       renderCards();
-      const other = [...document.querySelectorAll(".blog-search-input")].filter((el) => el !== input);
-      for (const el of other) el.value = searchQuery;
     }, SEARCH_DEBOUNCE_MS);
   });
-}
-
-function initSearch() {
-  const toggleBtn = document.getElementById("blog-search-toggle");
-  const wrap = document.getElementById("blog-search-wrap");
-  const headerInput = document.getElementById("blog-search-input");
-  const filterInput = document.getElementById("blog-filter-search");
-
-  bindSearchInput(headerInput, { toggleBtn, wrap });
-  bindSearchInput(filterInput);
-
-  if (toggleBtn && wrap && headerInput) {
-    toggleBtn.addEventListener("click", () => {
-      const willOpen = !wrap.classList.contains("open");
-      wrap.classList.toggle("open", willOpen);
-      toggleBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
-      if (willOpen) headerInput.focus();
-    });
-  }
 }
 
 function initLoadMore() {
@@ -311,9 +285,8 @@ function readUrlState() {
     }
     if (q) {
       searchQuery = q;
-      for (const input of document.querySelectorAll(".blog-search-input")) input.value = q;
-      document.getElementById("blog-search-wrap")?.classList.add("open");
-      document.getElementById("blog-search-toggle")?.setAttribute("aria-expanded", "true");
+      const input = document.getElementById("blog-filter-search");
+      if (input) input.value = q;
     }
   } catch {
     /* ignore malformed URL */
