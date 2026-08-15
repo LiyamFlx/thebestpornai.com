@@ -783,7 +783,7 @@ function renderIndex() {
   const jsonLd = jsonLdForIndex(hub);
   const categories = ["All", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
 
-  const PAGE_SIZE = 9;
+  const PAGE_SIZE = 8;
   const preview = rest.slice(0, PAGE_SIZE);
   const staticCards = preview.map((p, i) => postCardHtml(p, { eager: i < 3, fetchpriority: i === 0 ? "high" : undefined })).join("");
   const hasMore = rest.length > PAGE_SIZE;
@@ -855,22 +855,24 @@ ${siteHeader({ mode: "index" })}
 
   <div id="blog-hero">
     <a href="/blog/${esc(featured.slug)}.html" class="blog-hero" aria-label="Featured: ${esc(featuredTitle)}">
-      <div class="blog-hero-img" style="background-image:url('${esc(cover)}')"></div>
-      <div class="blog-hero-overlay">
+      <div class="blog-hero-copy">
         <div class="blog-hero-badge-row">
-          <span class="blog-hero-eyebrow">Featured · ${esc(featured.category)}</span>
-          <span class="blog-hero-stat">${ICON_CLOCK}${featuredReadMins} min read</span>
+          <span class="blog-hero-eyebrow">Featured</span>
+          <span class="blog-hero-stat">${esc(featured.category)}</span>
         </div>
         <h2 class="blog-hero-title">${esc(featuredTitle)}</h2>
         <p class="blog-hero-excerpt">${esc(featured.excerpt)}</p>
         <div class="blog-hero-footer">
-          <span class="blog-cta blog-cta-primary">Read the guide</span>
+          <span class="blog-cta blog-cta-primary">Read guide</span>
           <div class="blog-hero-meta">
-            <span class="blog-card-byline">thebestpornai Editorial</span>
+            <span>${ICON_CLOCK}${featuredReadMins} min</span>
             <span class="dot"></span>
             <span>${ICON_CALENDAR}${esc(formatDate(featured.date))}</span>
           </div>
         </div>
+      </div>
+      <div class="blog-hero-visual">
+        <div class="blog-hero-img" style="background-image:url('${esc(cover)}')"></div>
       </div>
     </a>
   </div>

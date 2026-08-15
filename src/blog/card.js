@@ -80,7 +80,7 @@ export function postCardHtml(post, { eager = false, fetchpriority } = {}) {
           <span class="blog-card-byline">Editorial</span>
           <span class="dot"></span>
           <span>${ICON_CALENDAR}${esc(formatDate(post.date))}</span>
-          <span class="blog-card-read-more">Read story →</span>
+          <span class="blog-card-read-more">Read →</span>
         </div>
       </div>
     </a>

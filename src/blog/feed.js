@@ -7,7 +7,7 @@ import { esc } from "../shared/catalog.js";
 import { POSTS, getFeaturedPost, postsForHub } from "./posts.js";
 import { postCardHtml, postCardSkeletonHtml, postCoverUrl, formatDate } from "./card.js";
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 8;
 const CATEGORIES = ["All", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
 const SKELETON_DELAY_MS = 220;
 const SEARCH_DEBOUNCE_MS = 160;
@@ -92,19 +92,24 @@ function renderHero() {
   el.hidden = false;
   el.innerHTML = `
     <a href="/blog/${esc(featured.slug)}.html" class="blog-hero" aria-label="Featured: ${esc(title)}">
-      <div class="blog-hero-img" style="background-image:url('${postCoverUrl(featured)}')"></div>
-      <div class="blog-hero-overlay">
-        <span class="blog-hero-eyebrow">Featured · ${esc(featured.category)}</span>
+      <div class="blog-hero-copy">
+        <div class="blog-hero-badge-row">
+          <span class="blog-hero-eyebrow">Featured</span>
+          <span class="blog-hero-stat">${esc(featured.category)}</span>
+        </div>
         <h2 class="blog-hero-title">${esc(title)}</h2>
         <p class="blog-hero-excerpt">${esc(featured.excerpt)}</p>
         <div class="blog-hero-footer">
           <span class="blog-cta blog-cta-primary">${ctaLabel}</span>
           <div class="blog-hero-meta">
-            <span>${ICON_CLOCK}${readMinsFor(featured)} min read</span>
+            <span>${ICON_CLOCK}${readMinsFor(featured)} min</span>
             <span class="dot"></span>
             <span>${ICON_CALENDAR}${esc(formatDate(featured.date))}</span>
           </div>
         </div>
+      </div>
+      <div class="blog-hero-visual">
+        <div class="blog-hero-img" style="background-image:url('${postCoverUrl(featured)}')"></div>
       </div>
     </a>
   `;
