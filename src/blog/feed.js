@@ -7,7 +7,7 @@ import { esc } from "../shared/catalog.js";
 import { POSTS, getFeaturedPost, postsForHub } from "./posts.js";
 import { postCardHtml, postCardSkeletonHtml, postCoverUrl, formatDate } from "./card.js";
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 9;
 const CATEGORIES = ["All", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
 const SKELETON_DELAY_MS = 220;
 const SEARCH_DEBOUNCE_MS = 160;
@@ -119,7 +119,7 @@ function updateSectionHead(count) {
   } else if (activeCategory !== "all") {
     headTitle.textContent = `${activeCategory} (${count})`;
   } else {
-    headTitle.textContent = "Latest desires";
+    headTitle.textContent = "Latest";
   }
 }
 
@@ -167,8 +167,7 @@ function clearFilters() {
   activeCategory = "all";
   searchQuery = "";
   visibleCount = PAGE_SIZE;
-  const input = document.getElementById("blog-search-input");
-  if (input) input.value = "";
+  for (const input of document.querySelectorAll(".blog-search-input")) input.value = "";
   const wrap = document.getElementById("blog-search-wrap");
   const toggleBtn = document.getElementById("blog-search-toggle");
   wrap?.classList.remove("open");
@@ -179,6 +178,11 @@ function clearFilters() {
   renderCards();
 }
 
+function categoryCount(cat) {
+  if (cat === "All") return sorted.length;
+  return sorted.filter((p) => p.category === cat).length;
+}
+
 function renderPills() {
   const el = document.getElementById("blog-pillnav");
   if (!el) return;
@@ -186,7 +190,8 @@ function renderPills() {
   el.innerHTML = CATEGORIES.map((cat) => {
     const data = cat === "All" ? "all" : cat;
     const isActive = activeCategory === data;
-    return `<button type="button" class="blog-pill${isActive ? " active" : ""}" data-category="${esc(data)}" aria-pressed="${isActive ? "true" : "false"}">${esc(cat)}</button>`;
+    const n = categoryCount(cat);
+    return `<button type="button" class="blog-pill${isActive ? " active" : ""}" data-category="${esc(data)}" aria-pressed="${isActive ? "true" : "false"}">${esc(cat)} <span class="blog-pill-count">${n}</span></button>`;
   }).join("");
 
   el.querySelectorAll("[data-category]").forEach((btn) => {
@@ -204,41 +209,23 @@ function renderPills() {
   });
 }
 
-function initSearch() {
-  const toggleBtn = document.getElementById("blog-search-toggle");
-  const wrap = document.getElementById("blog-search-wrap");
-  const input = document.getElementById("blog-search-input");
-  if (!toggleBtn || !wrap || !input) return;
-
-  const closeSearch = () => {
-    wrap.classList.remove("open");
-    toggleBtn.setAttribute("aria-expanded", "false");
-    input.value = "";
-    if (searchQuery) {
-      searchQuery = "";
-      visibleCount = PAGE_SIZE;
-      writeUrlState();
-      renderHero();
-      renderCards();
-    }
-  };
-
-  toggleBtn.addEventListener("click", () => {
-    const willOpen = !wrap.classList.contains("open");
-    wrap.classList.toggle("open", willOpen);
-    toggleBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
-    if (willOpen) {
-      input.focus();
-    } else {
-      closeSearch();
-    }
-  });
+function bindSearchInput(input, { toggleBtn, wrap } = {}) {
+  if (!input) return;
 
   input.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       e.preventDefault();
-      closeSearch();
-      toggleBtn.focus();
+      input.value = "";
+      if (searchQuery) {
+        searchQuery = "";
+        visibleCount = PAGE_SIZE;
+        writeUrlState();
+        renderHero();
+        renderCards();
+      }
+      wrap?.classList.remove("open");
+      toggleBtn?.setAttribute("aria-expanded", "false");
+      toggleBtn?.focus();
     }
   });
 
@@ -250,8 +237,29 @@ function initSearch() {
       writeUrlState();
       renderHero();
       renderCards();
+      const other = [...document.querySelectorAll(".blog-search-input")].filter((el) => el !== input);
+      for (const el of other) el.value = searchQuery;
     }, SEARCH_DEBOUNCE_MS);
   });
+}
+
+function initSearch() {
+  const toggleBtn = document.getElementById("blog-search-toggle");
+  const wrap = document.getElementById("blog-search-wrap");
+  const headerInput = document.getElementById("blog-search-input");
+  const filterInput = document.getElementById("blog-filter-search");
+
+  bindSearchInput(headerInput, { toggleBtn, wrap });
+  bindSearchInput(filterInput);
+
+  if (toggleBtn && wrap && headerInput) {
+    toggleBtn.addEventListener("click", () => {
+      const willOpen = !wrap.classList.contains("open");
+      wrap.classList.toggle("open", willOpen);
+      toggleBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+      if (willOpen) headerInput.focus();
+    });
+  }
 }
 
 function initLoadMore() {
@@ -298,12 +306,9 @@ function readUrlState() {
     }
     if (q) {
       searchQuery = q;
-      const input = document.getElementById("blog-search-input");
-      const wrap = document.getElementById("blog-search-wrap");
-      const toggleBtn = document.getElementById("blog-search-toggle");
-      if (input) input.value = q;
-      wrap?.classList.add("open");
-      toggleBtn?.setAttribute("aria-expanded", "true");
+      for (const input of document.querySelectorAll(".blog-search-input")) input.value = q;
+      document.getElementById("blog-search-wrap")?.classList.add("open");
+      document.getElementById("blog-search-toggle")?.setAttribute("aria-expanded", "true");
     }
   } catch {
     /* ignore malformed URL */

@@ -783,13 +783,10 @@ function renderIndex() {
   const jsonLd = jsonLdForIndex(hub);
   const categories = ["All", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
 
-  const staticCards = rest.map((p, i) => postCardHtml(p, { eager: i < 3, fetchpriority: i === 0 ? "high" : undefined })).join("");
-  const allLinks = hub
-    .map(
-      (p) =>
-        `<li><a href="/blog/${esc(p.slug)}.html">${esc(cleanTitle(p.title))}</a> — ${esc(p.category)} · ${esc(formatDate(p.date))}</li>`
-    )
-    .join("\n");
+  const PAGE_SIZE = 9;
+  const preview = rest.slice(0, PAGE_SIZE);
+  const staticCards = preview.map((p, i) => postCardHtml(p, { eager: i < 3, fetchpriority: i === 0 ? "high" : undefined })).join("");
+  const hasMore = rest.length > PAGE_SIZE;
 
   const featuredWords = wordCount(featured.body);
   const featuredReadMins = calcReadMins(featuredWords);
@@ -833,10 +830,10 @@ ${siteHeader({ mode: "index" })}
   <header class="blog-masthead">
     <div class="blog-masthead-badge">
       <span class="pulse-dot"></span>
-      <span>THEBESTPORNAI EDITORIAL &amp; RESEARCH</span>
+      <span>Editorial</span>
     </div>
-    <h1>AI Adult Intelligence, Rankings &amp; Stories</h1>
-    <p class="blog-masthead-sub">In-depth platform reviews, technical prompt benchmarks, and curated 1080p AI creator cinema — read the fantasy, stream the reality.</p>
+    <h1>Guides, rankings &amp; stories</h1>
+    <p class="blog-masthead-sub">Honest reviews of AI porn tools, plus the fantasies and scenes they pair with. Read first — then watch.</p>
   </header>
 
   <div class="blog-filter-bar">
@@ -845,10 +842,15 @@ ${siteHeader({ mode: "index" })}
         .map((cat) => {
           const active = cat === "All" ? " active" : "";
           const data = cat === "All" ? "all" : cat;
-          return `<button type="button" class="blog-pill${active}" data-category="${esc(data)}">${esc(cat)}</button>`;
+          const n = cat === "All" ? sorted.length : sorted.filter((p) => p.category === cat).length;
+          return `<button type="button" class="blog-pill${active}" data-category="${esc(data)}">${esc(cat)} <span class="blog-pill-count">${n}</span></button>`;
         })
         .join("")}
     </nav>
+    <label class="blog-filter-search">
+      <span class="sr-only">Search the blog</span>
+      <input class="blog-search-input" id="blog-filter-search" type="search" placeholder="Search guides and stories…" autocomplete="off"/>
+    </label>
   </div>
 
   <div id="blog-hero">
@@ -856,13 +858,13 @@ ${siteHeader({ mode: "index" })}
       <div class="blog-hero-img" style="background-image:url('${esc(cover)}')"></div>
       <div class="blog-hero-overlay">
         <div class="blog-hero-badge-row">
-          <span class="blog-hero-eyebrow">🔥 FEATURED GUIDE · ${esc(featured.category)}</span>
+          <span class="blog-hero-eyebrow">Featured · ${esc(featured.category)}</span>
           <span class="blog-hero-stat">${ICON_CLOCK}${featuredReadMins} min read</span>
         </div>
         <h2 class="blog-hero-title">${esc(featuredTitle)}</h2>
         <p class="blog-hero-excerpt">${esc(featured.excerpt)}</p>
         <div class="blog-hero-footer">
-          <span class="blog-cta blog-cta-primary">Read Complete Guide →</span>
+          <span class="blog-cta blog-cta-primary">Read the guide</span>
           <div class="blog-hero-meta">
             <span class="blog-card-byline">thebestpornai Editorial</span>
             <span class="dot"></span>
@@ -874,7 +876,7 @@ ${siteHeader({ mode: "index" })}
   </div>
 
   <div class="blog-section-head">
-    <h2>Latest Desires &amp; In-Depth Guides</h2>
+    <h2>Latest</h2>
     <div class="blog-section-rule" aria-hidden="true"></div>
   </div>
 
@@ -883,18 +885,14 @@ ${siteHeader({ mode: "index" })}
   </div>
 
   <div class="blog-loadmore-wrap">
-    <button class="blog-loadmore" id="blog-loadmore" type="button" hidden>Load more articles</button>
+    <button class="blog-loadmore" id="blog-loadmore" type="button"${hasMore ? "" : " hidden"}>Load more</button>
   </div>
 
-  <section class="blog-crawl-index" aria-label="All blog posts">
-    <div class="blog-crawl-head">
-      <div class="blog-crawl-title">
-        <h2>Complete Editorial Archive</h2>
-        <span class="blog-crawl-count">${sorted.length} Articles</span>
-      </div>
-      <p class="blog-crawl-desc">Full archive of in-depth reviews, generator benchmarks, and creator stories.</p>
-    </div>
-    <div class="blog-crawl-grid">
+  <details class="blog-crawl-index">
+    <summary>All ${sorted.length} articles</summary>
+    <div class="blog-crawl-body">
+      <p class="blog-crawl-desc">Full title list for browsing and search engines.</p>
+      <div class="blog-crawl-grid">
       ${hub
         .map(
           (p) =>
@@ -907,8 +905,9 @@ ${siteHeader({ mode: "index" })}
             </a>`
         )
         .join("\n")}
+      </div>
     </div>
-  </section>
+  </details>
 </main>
 
 ${siteFooter()}
