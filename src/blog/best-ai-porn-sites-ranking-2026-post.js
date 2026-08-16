@@ -135,7 +135,7 @@ export const BEST_AI_PORN_SITES_RANKING_2026_POST = {
       name: "GPTGirlfriend",
       href: URLS.gptgf,
       best: "Long-term companions — chat, memory, voice, and a huge character floor.",
-      lead: `${ext(URLS.gptgf, "GPTGirlfriend")} is the closest thing to a real AI companion in this set: 25,000+ characters, voice chat, memory that actually sticks, and full NSFW. Start here if you want one place that talks, remembers, and does not fold the first time you get explicit.`,
+      lead: `${ext(URLS.gptgf, "GPTGirlfriend")} is the closest thing to a real AI companion in this set: 25,000+ characters, voice chat, memory that actually sticks, and full NSFW. Start here if you want one place that talks, remembers, and does not fold the first time you get explicit. Full write-up: <a href="/blog/gptgirlfriend-review-2026.html">GPTGirlfriend review 2026</a>.`,
     })}
     ${rank({
       n: 2,
