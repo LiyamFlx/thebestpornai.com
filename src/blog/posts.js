@@ -19,6 +19,7 @@ import { ETHICS_POSTS } from "./ethics-posts.js";
 import { GENERATORS_2026_POST } from "./generators-2026-post.js";
 import { AI_SEX_CHATS_GUIDE_POST } from "./ai-sex-chats-guide-post.js";
 import { NASTIA_AI_SEX_CHAT_FAQ_POST } from "./nastia-ai-sex-chat-faq-post.js";
+import { BEST_AI_PORN_SITES_RANKING_2026_POST } from "./best-ai-porn-sites-ranking-2026-post.js";
 
 export const BLOG_AUTHOR = {
   name: "thebestpornai Editorial",
@@ -2824,6 +2825,7 @@ export const POSTS = [
   GENERATORS_2026_POST,
   AI_SEX_CHATS_GUIDE_POST,
   NASTIA_AI_SEX_CHAT_FAQ_POST,
+  BEST_AI_PORN_SITES_RANKING_2026_POST,
   ...OURDREAM_FAQ_POSTS,
   ...ETHICS_POSTS,
   ...SEED_POSTS,
