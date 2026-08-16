@@ -48,7 +48,7 @@ export const AI_SEX_CHATS_GUIDE_POST = {
     "SpicyChat",
     "AI girlfriend",
   ],
-  cover: "/blog-assets/sex-chat-cta-banner.webp",
+  cover: "/blog-assets/ai-sex-chats-guide-2026-hero-wide.jpg",
   coverLayout: "landscape",
   wide: true,
   dropCap: false,
