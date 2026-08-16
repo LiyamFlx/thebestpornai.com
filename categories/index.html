@@ -26,8 +26,7 @@
 <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png"/>
 <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
 <link rel="manifest" href="/site.webmanifest"/>
-  <link rel="stylesheet" href="/site-chrome.css"/>
-  <link rel="stylesheet" href="/assets/blog.css"/>
+  <link rel="stylesheet" href="/app-shell.css"/>
   <style>
     :root {
       --bg: #0A0A0A;
@@ -428,148 +427,166 @@
 </head>
 <body>
   
-  <header class="site-header">
-    <div class="site-header-inner">
-      <a class="site-brand" href="/" aria-label="thebestpornai home">
-        <img class="site-brand-img" src="/logo-wordmark.png" alt="thebestpornai" width="160" height="24"/>
-      </a>
-      <nav class="site-nav" aria-label="Primary">
-        <a class="site-nav-link" href="/">Home</a>
-        <a class="site-nav-link" href="/pornstars/">AI Pornstars</a>
-        <a class="site-nav-link active" href="/categories/">Categories</a>
-        <a class="site-nav-link" href="/blog/">Editorial &amp; Guides</a>
-      </nav>
-      <div class="site-header-actions">
-        <a class="btn-primary" href="/#search">Search 5,000+ Videos</a>
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="thebestpornai home"><img src="/favicon-64.png" width="32" height="32" alt="thebestpornai"/></a>
+    <nav class="nav" aria-label="Primary">
+      <a href="/" class="" aria-label="Home"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg><span class="nav-label">Home</span></a>
+      <a href="/shorts" aria-label="Shorts"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z"/></svg><span class="nav-label">Shorts</span></a>
+      <a href="/library" aria-label="Library"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.5a1 1 0 0 1 1-1Z"/></svg><span class="nav-label">Library</span></a>
+      <a href="/subscriptions" aria-label="Subscriptions"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M8 3h8"/></svg><span class="nav-label">Subs</span></a>
+      <a href="/explore" aria-label="Explore"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m15 9-3.5 6.5L8 12l3.5-6.5L15 9Z"/></svg><span class="nav-label">Explore</span></a>
+      <a href="/pornstars/" class="" aria-label="Pornstars"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg><span class="nav-label">Stars</span></a>
+      <a href="/blog/" class="nav-link-out" aria-label="Blog"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg><span class="nav-label">Blog</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="left">
+        <a href="/" class="topbar-brand" aria-label="thebestpornai home">
+          <img src="/logo-wordmark.png" alt="thebestpornai" width="160" height="24"/>
+        </a>
+      </div>
+      <div class="topbar-actions">
+        <form class="search-wrap" action="/search" method="get" role="search">
+          <input class="search-input" type="search" name="q" placeholder="Search videos, creators, tags…" aria-label="Search" autocomplete="off"/>
+          <button class="search-go" type="submit" aria-label="Search"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+        </form>
       </div>
     </div>
-  </header>
-  
-    <section class="page-hero">
-      <div class="page-hero-inner">
-        <h1>AI Adult Categories</h1>
-        <p>Explore thousands of generated adult scenes sorted by your favorite kinks, niches, and performer types.</p>
-      </div>
-    </section>
-    <main class="main-wrap">
-      <div class="v-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))">
-        
-      <a class="ps-card" href="/categories/blonde.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">Blonde</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">Stunning AI blonde beauties, natural babes, and high-energy blonde scenes in 4K.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">89 Videos →</span>
-      </a>
-
-      <a class="ps-card" href="/categories/latina.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">Latina</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">Passionate AI Latina models, curvy perfection, and spicy erotic clips.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">272 Videos →</span>
-      </a>
-
-      <a class="ps-card" href="/categories/big-ass.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">Big Ass</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">Top-tier PAWG and big booty AI scenes featuring hypnotic twerk and doggystyle angles.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">254 Videos →</span>
-      </a>
-
-      <a class="ps-card" href="/categories/big-tits.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">Big Tits</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">Huge natural boobs, cleavage close-ups, and busty AI babes in HD clarity.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">151 Videos →</span>
-      </a>
-
-      <a class="ps-card" href="/categories/milf.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">MILF</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">Experienced mature women and confident AI MILFs embracing pure desire.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">85 Videos →</span>
-      </a>
-
-      <a class="ps-card" href="/categories/amateur.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">Amateur</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">Authentic, candid-style AI bedroom videos and homemade aesthetic clips.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">1040 Videos →</span>
-      </a>
-
-      <a class="ps-card" href="/categories/anal.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">Anal</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">Intense backdoor action, close-ups, and tight anal penetration scenes.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">47 Videos →</span>
-      </a>
-
-      <a class="ps-card" href="/categories/blowjob.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">Blowjob</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">Passionate oral pleasure, deepthroat clips, and wet blowjob scenes.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">163 Videos →</span>
-      </a>
-
-      <a class="ps-card" href="/categories/pov.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">POV</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">First-person perspective immersive adult scenes that put you directly in the action.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">86 Videos →</span>
-      </a>
-
-      <a class="ps-card" href="/categories/redhead.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">Redhead</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">Fiery ginger models, pale skin, and uninhibited AI redhead passion.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">31 Videos →</span>
-      </a>
-
-      <a class="ps-card" href="/categories/ebony.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">Ebony</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">Gorgeous black AI models, dark skin perfection, and sensual curves.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">41 Videos →</span>
-      </a>
-
-      <a class="ps-card" href="/categories/asian.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">Asian</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">Exquisite Asian AI babes, petite frames, and delicate erotic scenes.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">55 Videos →</span>
-      </a>
-
-      <a class="ps-card" href="/categories/babe.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">Babe</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">Gorgeous modern AI supermodels and flawless solo aesthetic clips.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">42 Videos →</span>
-      </a>
-
-      <a class="ps-card" href="/categories/lesbian.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">Lesbian</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">Sensual female-on-female romance, passionate kissing, and dual orgasms.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">54 Videos →</span>
-      </a>
-
-      <a class="ps-card" href="/categories/creampie.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">Creampie</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">Uncensored internal finishes, dripping climax shots, and intense breeding clips.</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">47 Videos →</span>
-      </a>
-      </div>
-    </main>
-  
-  <footer class="site-footer">
-    <div class="site-footer-inner">
-      <div class="site-footer-brand">
-        <img class="site-footer-logo" src="/logo-wordmark.png" alt="thebestpornai" width="160" height="24"/>
-        <p class="site-footer-tagline">Curated AI adult entertainment and high-definition streaming.</p>
-        <p class="site-footer-compliance">18+ only. All performers are 100% synthetically generated AI personas.</p>
-      </div>
-      <div class="site-footer-links">
-        <div class="site-footer-col">
-          <strong>Explore</strong>
-          <a href="/">Home</a>
-          <a href="/pornstars/">AI Pornstars</a>
-          <a href="/categories/">Categories</a>
-          <a href="/blog/">Editorial &amp; Guides</a>
+    <div class="content">
+      
+    <h3 class="row-heading">Categories</h3>
+    <p class="sub">Browse scenes by niche</p>
+    <div class="home-chips-strip"><a class="filter-pill" href="/categories/blonde.html">Blonde</a><a class="filter-pill" href="/categories/latina.html">Latina</a><a class="filter-pill" href="/categories/big-ass.html">Big Ass</a><a class="filter-pill" href="/categories/big-tits.html">Big Tits</a><a class="filter-pill" href="/categories/milf.html">MILF</a><a class="filter-pill" href="/categories/amateur.html">Amateur</a><a class="filter-pill" href="/categories/anal.html">Anal</a><a class="filter-pill" href="/categories/blowjob.html">Blowjob</a><a class="filter-pill" href="/categories/pov.html">POV</a><a class="filter-pill" href="/categories/redhead.html">Redhead</a><a class="filter-pill" href="/categories/ebony.html">Ebony</a><a class="filter-pill" href="/categories/asian.html">Asian</a><a class="filter-pill" href="/categories/babe.html">Babe</a><a class="filter-pill" href="/categories/lesbian.html">Lesbian</a><a class="filter-pill" href="/categories/creampie.html">Creampie</a></div>
+    <div class="v-grid">
+      <a class="card" href="/categories/blonde.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/Blonde%20Office%20Twerk%20video%20by%20ttt-ai%20on%20DeviantArt.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
         </div>
-        <div class="site-footer-col">
-          <strong>Legal &amp; trust</strong>
-          <a href="/legal/terms.html">Terms of Service</a>
-          <a href="/legal/privacy.html">Privacy Policy</a>
-          <a href="/legal/dmca.html">DMCA Notice</a>
-          <a href="/legal/2257.html">18 U.S.C. 2257</a>
+        <div class="title">Blonde</div>
+        <div class="card-meta">89 videos</div>
+      </a>
+
+      <a class="card" href="/categories/latina.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-3/Amazing%20Big%20Naturals00009.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
         </div>
-      </div>
+        <div class="title">Latina</div>
+        <div class="card-meta">272 videos</div>
+      </a>
+
+      <a class="card" href="/categories/big-ass.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass1.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        </div>
+        <div class="title">Big Ass</div>
+        <div class="card-meta">254 videos</div>
+      </a>
+
+      <a class="card" href="/categories/big-tits.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/HUge%20TITS%20PINK00005.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        </div>
+        <div class="title">Big Tits</div>
+        <div class="card-meta">151 videos</div>
+      </a>
+
+      <a class="card" href="/categories/milf.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-3/Amazing%20Big%20Naturals00006.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        </div>
+        <div class="title">MILF</div>
+        <div class="card-meta">85 videos</div>
+      </a>
+
+      <a class="card" href="/categories/amateur.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/Solo%20beach%20walk.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        </div>
+        <div class="title">Amateur</div>
+        <div class="card-meta">1040 videos</div>
+      </a>
+
+      <a class="card" href="/categories/anal.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/Perfect%20doggy%20cumming00001.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        </div>
+        <div class="title">Anal</div>
+        <div class="card-meta">47 videos</div>
+      </a>
+
+      <a class="card" href="/categories/blowjob.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/Sunscreen%20-G2718%20video%20by%20The-Satin-Pause%20on%20DeviantArt.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        </div>
+        <div class="title">Blowjob</div>
+        <div class="card-meta">163 videos</div>
+      </a>
+
+      <a class="card" href="/categories/pov.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/Solo%20beach%20walk%20-G2630%20video%20by%20The-Satin-Pause%20on%20DeviantArt%20(7).jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        </div>
+        <div class="title">POV</div>
+        <div class="card-meta">86 videos</div>
+      </a>
+
+      <a class="card" href="/categories/redhead.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/Redhead%20getting%20fuck%20COMPILATION/Redhead%20getting%20fuck.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        </div>
+        <div class="title">Redhead</div>
+        <div class="card-meta">31 videos</div>
+      </a>
+
+      <a class="card" href="/categories/ebony.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-3/Amazing%20Big%20Naturals00006.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        </div>
+        <div class="title">Ebony</div>
+        <div class="card-meta">41 videos</div>
+      </a>
+
+      <a class="card" href="/categories/asian.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-3/Amazing%20Big%20Naturals00008.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        </div>
+        <div class="title">Asian</div>
+        <div class="card-meta">55 videos</div>
+      </a>
+
+      <a class="card" href="/categories/babe.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/Perfect%20Pussy%20Twerk%20.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        </div>
+        <div class="title">Babe</div>
+        <div class="card-meta">42 videos</div>
+      </a>
+
+      <a class="card" href="/categories/lesbian.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/anazing%20girls%20on%20the%20beach.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        </div>
+        <div class="title">Lesbian</div>
+        <div class="card-meta">54 videos</div>
+      </a>
+
+      <a class="card" href="/categories/creampie.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-2/Amazing%20big%20natural%20shows%20off%20her%20skills8.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        </div>
+        <div class="title">Creampie</div>
+        <div class="card-meta">47 videos</div>
+      </a></div>
+      <p class="shell-legal">18+ only ·
+        <a href="/legal/terms.html">Terms</a>
+        <a href="/legal/privacy.html">Privacy</a>
+        <a href="/legal/dmca.html">DMCA</a>
+        <a href="/legal/2257.html">2257</a>
+      </p>
     </div>
-  </footer>
+  </div>
+</div>
 </body>
 </html>

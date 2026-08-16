@@ -16,7 +16,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { VIDEOS } from "../src/shared/catalog-videos.js";
 import { isoUploadDate } from "../src/shared/dates.js";
-import { FAVICON_LINKS, sharedFooterHtml, sharedHeaderHtml } from "./lib/site-chrome.mjs";
+import { FAVICON_LINKS, appShellHtml } from "./lib/site-chrome.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
@@ -148,21 +148,16 @@ function videoCardHtml(v, { eager = false, fetchpriority } = {}) {
   const loading = eager ? "eager" : "lazy";
   const fpAttr = fetchpriority ? ` fetchpriority="${fetchpriority}"` : "";
   return `
-    <article class="v-card">
-      <a class="v-card-media" href="/video/${v.id}.html" title="${esc(v.title)}">
-        ${thumbUrl ? `<img src="${thumbUrl}" alt="${esc(v.title)}" width="320" height="180" loading="${loading}"${fpAttr} decoding="async"/>` : `<div class="v-ph"></div>`}
-        ${dur}
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/${v.id}.html">${esc(v.title)}</a></h3>
-        <div class="v-card-meta">
-          <span>${esc(v.category || "AI")}</span>
-          <span>·</span>
-          <span>${views} views</span>
-        </div>
+    <a class="card" href="/watch/${v.id}" title="${esc(v.title)}">
+      <div class="video-thumb">
+        ${thumbUrl ? `<img class="thumb-video" src="${thumbUrl}" alt="" width="320" height="180" loading="${loading}"${fpAttr} decoding="async"/>` : ""}
+        <span class="quality-badge">4K</span>
+        ${dur ? `<span class="dur-badge">${dur.replace(/<[^>]+>/g, "")}</span>` : ""}
+        <span class="play-badge">▶</span>
       </div>
-    </article>`;
+      <div class="title">${esc(v.title)}</div>
+      <div class="card-meta">${esc(v.category || "AI")} · ${views} views</div>
+    </a>`;
 }
 
 function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, activeNav, bodyContent }) {
@@ -191,8 +186,7 @@ function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, active
   <meta name="twitter:description" content="${esc(description)}"/>
   <meta name="twitter:image" content="${ogImage || LOGO}"/>
   ${FAVICON_LINKS}
-  <link rel="stylesheet" href="/site-chrome.css"/>
-  <link rel="stylesheet" href="/assets/blog.css"/>
+  <link rel="stylesheet" href="/app-shell.css"/>
   <style>
     :root {
       --bg: #0A0A0A;
@@ -491,9 +485,7 @@ ${JSON.stringify(jsonLd, null, 2)}
   </script>
 </head>
 <body>
-  ${sharedHeaderHtml(activeNav)}
-  ${bodyContent}
-  ${sharedFooterHtml()}
+  ${appShellHtml(activeNav, bodyContent)}
 </body>
 </html>`;
 }
@@ -505,32 +497,21 @@ function genPornstarsHub() {
   const canonical = `${ORIGIN}/pornstars/`;
 
   const cardsHtml = PORNSTARS.map((ps) => {
-    const avatarUrl = mediaUrl(ps.avatar);
     const bannerUrl = mediaUrl(ps.banner);
     return `
-      <a class="ps-card" href="/pornstars/${ps.slug}.html">
-        <div class="ps-card-banner" style="background-image: url('${bannerUrl}')"></div>
-        <div class="ps-card-avatar" style="background-image: url('${avatarUrl}')"></div>
-        <div class="ps-card-info">
-          <h2 class="ps-card-name">${esc(ps.name)}</h2>
-          <p class="ps-card-bio">${esc(ps.bio)}</p>
-          <span class="btn-primary" style="display:inline-block;padding:6px 12px;font-size:12px">View Profile &amp; Videos</span>
+      <a class="card" href="/pornstars/${ps.slug}.html">
+        <div class="video-thumb">
+          <img class="thumb-video" src="${bannerUrl}" alt="" width="320" height="180" loading="lazy" decoding="async"/>
         </div>
+        <div class="title">${esc(ps.name)}</div>
+        <div class="card-meta">${esc((ps.bio || "").slice(0, 90))}${(ps.bio || "").length > 90 ? "…" : ""}</div>
       </a>`;
   }).join("\n");
 
   const bodyContent = `
-    <section class="page-hero">
-      <div class="page-hero-inner">
-        <h1>Verified AI Pornstars</h1>
-        <p>Top synthetic creators, face packs, and virtual adult performers with dedicated full scenes and viral Shorts.</p>
-      </div>
-    </section>
-    <main class="main-wrap">
-      <div class="v-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr))">
-        ${cardsHtml}
-      </div>
-    </main>`;
+    <h3 class="row-heading">Pornstars</h3>
+    <p class="sub">Intro + Shorts packs — tap a star to open their page</p>
+    <div class="v-grid">${cardsHtml}</div>`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -584,26 +565,11 @@ function genPornstarProfiles() {
     const videoCards = creatorVideos.map((v, i) => videoCardHtml(v, { eager: i < 4, fetchpriority: i === 0 ? "high" : undefined })).join("\n");
 
     const bodyContent = `
-      <section class="page-hero" style="background-image: linear-gradient(rgba(11,12,16,0.8), rgba(11,12,16,0.95)), url('${bannerUrl}'); background-size: cover; background-position: center;">
-        <div class="page-hero-inner">
-          <img src="${avatarUrl}" alt="${esc(ps.name)}" width="100" height="100" loading="eager" fetchpriority="high" decoding="async" style="width:100px;height:100px;border-radius:50%;border:3px solid var(--accent);margin-bottom:16px;object-fit:cover;"/>
-          <h1>${esc(ps.name)}</h1>
-          <p>${esc(ps.bio)}</p>
-          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-            <a class="btn-primary" href="/video/${ps.introVideoId}.html">Watch Intro Scene</a>
-            ${ps.blogSlug ? `<a class="btn-primary" style="background:var(--surface2);border:1px solid var(--border)" href="/blog/${ps.blogSlug}.html">Read Case Study</a>` : ''}
-          </div>
-        </div>
-      </section>
-      <main class="main-wrap">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-          <h2 style="font-size:20px;font-weight:700;margin:0">Featured Videos &amp; Scenes (${creatorVideos.length})</h2>
-          <a class="btn-primary" style="font-size:12px" href="/#creator/${ps.id}">Open in App Viewer</a>
-        </div>
-        <div class="v-grid">
-          ${videoCards.length ? videoCards : '<p style="color:var(--muted)">More videos coming soon.</p>'}
-        </div>
-      </main>`;
+      <h3 class="row-heading">${esc(ps.name)}</h3>
+      <p class="sub">${esc(ps.bio)}</p>
+      <div class="v-grid">
+        ${videoCards.length ? videoCards : '<p class="sub">More videos coming soon.</p>'}
+      </div>`;
 
     const jsonLd = {
       "@context": "https://schema.org",
@@ -649,31 +615,31 @@ function genCategoriesHub() {
 
   const cardsHtml = TOP_CATEGORIES.map((cat) => {
     const slug = slugify(cat.name);
-    const count = VIDEOS.filter((v) =>
+    const matches = VIDEOS.filter((v) =>
       (v.category && v.category.toLowerCase() === cat.name.toLowerCase()) ||
       (v.categories && v.categories.some((c) => c.toLowerCase() === cat.name.toLowerCase()))
-    ).length;
-
+    );
+    const thumb = matches.find((v) => v.thumb)?.thumb;
+    const thumbUrl = thumb ? mediaUrl(thumb) : "";
     return `
-      <a class="ps-card" href="/categories/${slug}.html" style="padding:20px">
-        <h2 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#fff">${esc(cat.name)}</h2>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;flex:1">${esc(cat.desc)}</p>
-        <span style="font-size:12px;color:var(--accent);font-weight:600">${count} Videos →</span>
+      <a class="card" href="/categories/${slug}.html">
+        <div class="video-thumb">
+          ${thumbUrl ? `<img class="thumb-video" src="${thumbUrl}" alt="" width="320" height="180" loading="lazy" decoding="async"/>` : ""}
+        </div>
+        <div class="title">${esc(cat.name)}</div>
+        <div class="card-meta">${matches.length} videos</div>
       </a>`;
   }).join("\n");
 
+  const chips = TOP_CATEGORIES.map((cat) =>
+    `<a class="filter-pill" href="/categories/${slugify(cat.name)}.html">${esc(cat.name)}</a>`
+  ).join("");
+
   const bodyContent = `
-    <section class="page-hero">
-      <div class="page-hero-inner">
-        <h1>AI Adult Categories</h1>
-        <p>Explore thousands of generated adult scenes sorted by your favorite kinks, niches, and performer types.</p>
-      </div>
-    </section>
-    <main class="main-wrap">
-      <div class="v-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))">
-        ${cardsHtml}
-      </div>
-    </main>`;
+    <h3 class="row-heading">Categories</h3>
+    <p class="sub">Browse scenes by niche</p>
+    <div class="home-chips-strip">${chips}</div>
+    <div class="v-grid">${cardsHtml}</div>`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -721,23 +687,17 @@ function genCategoryPages() {
     const videoCards = categoryVideos.map((v, i) => videoCardHtml(v, { eager: i < 4, fetchpriority: i === 0 ? "high" : undefined })).join("\n");
     const sampleThumb = categoryVideos[0]?.thumb ? mediaUrl(categoryVideos[0].thumb) : LOGO;
 
+    const chips = TOP_CATEGORIES.map((c) =>
+      `<a class="filter-pill${c.name === cat.name ? " active" : ""}" href="/categories/${slugify(c.name)}.html">${esc(c.name)}</a>`
+    ).join("");
+
     const bodyContent = `
-      <section class="page-hero">
-        <div class="page-hero-inner">
-          <h1>${esc(cat.name)} AI Porn Videos</h1>
-          <p>${esc(cat.desc)}</p>
-          <a class="btn-primary" href="/browse/${cat.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}">Open Category in Video Player</a>
-        </div>
-      </section>
-      <main class="main-wrap">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-          <h2 style="font-size:20px;font-weight:700;margin:0">Popular ${esc(cat.name)} Scenes (${categoryVideos.length})</h2>
-          <a class="btn-primary" style="font-size:12px" href="/browse/${cat.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}">Play All</a>
-        </div>
-        <div class="v-grid">
-          ${videoCards.length ? videoCards : '<p style="color:var(--muted)">New scenes being generated daily.</p>'}
-        </div>
-      </main>`;
+      <div class="home-chips-strip">${chips}</div>
+      <h3 class="row-heading">${esc(cat.name)}</h3>
+      <p class="sub">${esc(cat.desc)}</p>
+      <div class="v-grid">
+        ${videoCards.length ? videoCards : '<p class="sub">New scenes being generated daily.</p>'}
+      </div>`;
 
     const jsonLd = {
       "@context": "https://schema.org",

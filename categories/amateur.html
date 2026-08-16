@@ -26,8 +26,7 @@
 <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png"/>
 <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
 <link rel="manifest" href="/site.webmanifest"/>
-  <link rel="stylesheet" href="/site-chrome.css"/>
-  <link rel="stylesheet" href="/assets/blog.css"/>
+  <link rel="stylesheet" href="/app-shell.css"/>
   <style>
     :root {
       --bg: #0A0A0A;
@@ -518,639 +517,444 @@
 </head>
 <body>
   
-  <header class="site-header">
-    <div class="site-header-inner">
-      <a class="site-brand" href="/" aria-label="thebestpornai home">
-        <img class="site-brand-img" src="/logo-wordmark.png" alt="thebestpornai" width="160" height="24"/>
-      </a>
-      <nav class="site-nav" aria-label="Primary">
-        <a class="site-nav-link" href="/">Home</a>
-        <a class="site-nav-link" href="/pornstars/">AI Pornstars</a>
-        <a class="site-nav-link active" href="/categories/">Categories</a>
-        <a class="site-nav-link" href="/blog/">Editorial &amp; Guides</a>
-      </nav>
-      <div class="site-header-actions">
-        <a class="btn-primary" href="/#search">Search 5,000+ Videos</a>
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="thebestpornai home"><img src="/favicon-64.png" width="32" height="32" alt="thebestpornai"/></a>
+    <nav class="nav" aria-label="Primary">
+      <a href="/" class="" aria-label="Home"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg><span class="nav-label">Home</span></a>
+      <a href="/shorts" aria-label="Shorts"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z"/></svg><span class="nav-label">Shorts</span></a>
+      <a href="/library" aria-label="Library"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.5a1 1 0 0 1 1-1Z"/></svg><span class="nav-label">Library</span></a>
+      <a href="/subscriptions" aria-label="Subscriptions"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M8 3h8"/></svg><span class="nav-label">Subs</span></a>
+      <a href="/explore" aria-label="Explore"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m15 9-3.5 6.5L8 12l3.5-6.5L15 9Z"/></svg><span class="nav-label">Explore</span></a>
+      <a href="/pornstars/" class="" aria-label="Pornstars"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg><span class="nav-label">Stars</span></a>
+      <a href="/blog/" class="nav-link-out" aria-label="Blog"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg><span class="nav-label">Blog</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="left">
+        <a href="/" class="topbar-brand" aria-label="thebestpornai home">
+          <img src="/logo-wordmark.png" alt="thebestpornai" width="160" height="24"/>
+        </a>
+      </div>
+      <div class="topbar-actions">
+        <form class="search-wrap" action="/search" method="get" role="search">
+          <input class="search-input" type="search" name="q" placeholder="Search videos, creators, tags…" aria-label="Search" autocomplete="off"/>
+          <button class="search-go" type="submit" aria-label="Search"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+        </form>
       </div>
     </div>
-  </header>
-  
-      <section class="page-hero">
-        <div class="page-hero-inner">
-          <h1>Amateur AI Porn Videos</h1>
-          <p>Authentic, candid-style AI bedroom videos and homemade aesthetic clips.</p>
-          <a class="btn-primary" href="/browse/amateur">Open Category in Video Player</a>
-        </div>
-      </section>
-      <main class="main-wrap">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-          <h2 style="font-size:20px;font-weight:700;margin:0">Popular Amateur Scenes (36)</h2>
-          <a class="btn-primary" style="font-size:12px" href="/browse/amateur">Play All</a>
-        </div>
-        <div class="v-grid">
-          
-    <article class="v-card">
-      <a class="v-card-media" href="/video/8.html" title="Solo beach walk">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/Solo%20beach%20walk.jpg" alt="Solo beach walk" width="320" height="180" loading="eager" fetchpriority="high" decoding="async"/>
-        <span class="card-dur">0:27</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/8.html">Solo beach walk</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>10.5K views</span>
-        </div>
+    <div class="content">
+      
+      <div class="home-chips-strip"><a class="filter-pill" href="/categories/blonde.html">Blonde</a><a class="filter-pill" href="/categories/latina.html">Latina</a><a class="filter-pill" href="/categories/big-ass.html">Big Ass</a><a class="filter-pill" href="/categories/big-tits.html">Big Tits</a><a class="filter-pill" href="/categories/milf.html">MILF</a><a class="filter-pill active" href="/categories/amateur.html">Amateur</a><a class="filter-pill" href="/categories/anal.html">Anal</a><a class="filter-pill" href="/categories/blowjob.html">Blowjob</a><a class="filter-pill" href="/categories/pov.html">POV</a><a class="filter-pill" href="/categories/redhead.html">Redhead</a><a class="filter-pill" href="/categories/ebony.html">Ebony</a><a class="filter-pill" href="/categories/asian.html">Asian</a><a class="filter-pill" href="/categories/babe.html">Babe</a><a class="filter-pill" href="/categories/lesbian.html">Lesbian</a><a class="filter-pill" href="/categories/creampie.html">Creampie</a></div>
+      <h3 class="row-heading">Amateur</h3>
+      <p class="sub">Authentic, candid-style AI bedroom videos and homemade aesthetic clips.</p>
+      <div class="v-grid">
+        
+    <a class="card" href="/watch/8" title="Solo beach walk">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/Solo%20beach%20walk.jpg" alt="" width="320" height="180" loading="eager" fetchpriority="high" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:27</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Solo beach walk</div>
+      <div class="card-meta">Amateur · 10.5K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/10.html" title="Surrender to nature G2538">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/Surrender%20to%20nature%20-G2538%20video%20by%20The-Satin-Pause%20on%20DeviantArt.jpg" alt="Surrender to nature G2538" width="320" height="180" loading="eager" decoding="async"/>
-        <span class="card-dur">0:20</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/10.html">Surrender to nature G2538</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>13.3K views</span>
-        </div>
+    <a class="card" href="/watch/10" title="Surrender to nature G2538">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/Surrender%20to%20nature%20-G2538%20video%20by%20The-Satin-Pause%20on%20DeviantArt.jpg" alt="" width="320" height="180" loading="eager" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:20</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Surrender to nature G2538</div>
+      <div class="card-meta">Amateur · 13.3K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/20.html" title="Comming gitls">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/comming%20gitls.jpg" alt="Comming gitls" width="320" height="180" loading="eager" decoding="async"/>
-        <span class="card-dur">0:20</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/20.html">Comming gitls</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>13.9K views</span>
-        </div>
+    <a class="card" href="/watch/20" title="Comming gitls">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/comming%20gitls.jpg" alt="" width="320" height="180" loading="eager" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:20</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Comming gitls</div>
+      <div class="card-meta">Amateur · 13.9K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/27.html" title="She is comming">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/she%20is%20comming.jpg" alt="She is comming" width="320" height="180" loading="eager" decoding="async"/>
-        <span class="card-dur">0:20</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/27.html">She is comming</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>10.9K views</span>
-        </div>
+    <a class="card" href="/watch/27" title="She is comming">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/to%20upload/she%20is%20comming.jpg" alt="" width="320" height="180" loading="eager" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:20</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">She is comming</div>
+      <div class="card-meta">Amateur · 10.9K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/35.html" title="Best Cumshots 04">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/comshot%20compilation00004.jpg" alt="Best Cumshots 04" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:05</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/35.html">Best Cumshots 04</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>11.8K views</span>
-        </div>
+    <a class="card" href="/watch/35" title="Best Cumshots 04">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/comshot%20compilation00004.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:05</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Best Cumshots 04</div>
+      <div class="card-meta">Amateur · 11.8K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/38.html" title="Hot Load Comp 07">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/comshot%20compilation00007.jpg" alt="Hot Load Comp 07" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:05</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/38.html">Hot Load Comp 07</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>13.2K views</span>
-        </div>
+    <a class="card" href="/watch/38" title="Hot Load Comp 07">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/comshot%20compilation00007.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:05</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Hot Load Comp 07</div>
+      <div class="card-meta">Amateur · 13.2K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/43.html" title="Hot Load Comp 12">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/comshot%20compilation00012.jpg" alt="Hot Load Comp 12" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:10</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/43.html">Hot Load Comp 12</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>12.3K views</span>
-        </div>
+    <a class="card" href="/watch/43" title="Hot Load Comp 12">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/comshot%20compilation00012.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:10</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Hot Load Comp 12</div>
+      <div class="card-meta">Amateur · 12.3K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/45.html" title="Cumshot Mix 14">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/comshot%20compilation00014.jpg" alt="Cumshot Mix 14" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:05</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/45.html">Cumshot Mix 14</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>11.1K views</span>
-        </div>
+    <a class="card" href="/watch/45" title="Cumshot Mix 14">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/comshot%20compilation00014.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:05</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Cumshot Mix 14</div>
+      <div class="card-meta">Amateur · 11.1K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/53.html" title="Facial Finale 22">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/comshot%20compilation00025.jpg" alt="Facial Finale 22" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:05</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/53.html">Facial Finale 22</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14.6K views</span>
-        </div>
+    <a class="card" href="/watch/53" title="Facial Finale 22">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/comshot%20compilation00025.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:05</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Facial Finale 22</div>
+      <div class="card-meta">Amateur · 14.6K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/56.html" title="Perfect Curves">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass3.jpg" alt="Perfect Curves" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:06</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/56.html">Perfect Curves</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>10.9K views</span>
-        </div>
+    <a class="card" href="/watch/56" title="Perfect Curves">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass3.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:06</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Perfect Curves</div>
+      <div class="card-meta">Amateur · 10.9K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/59.html" title="Booty Heaven">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass6.jpg" alt="Booty Heaven" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:06</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/59.html">Booty Heaven</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14K views</span>
-        </div>
+    <a class="card" href="/watch/59" title="Booty Heaven">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass6.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:06</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Booty Heaven</div>
+      <div class="card-meta">Amateur · 14K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/62.html" title="Perfect Booty">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass9.jpg" alt="Perfect Booty" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:06</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/62.html">Perfect Booty</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14.8K views</span>
-        </div>
+    <a class="card" href="/watch/62" title="Perfect Booty">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass9.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:06</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Perfect Booty</div>
+      <div class="card-meta">Amateur · 14.8K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/65.html" title="Amazing Ass POV">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass12.jpg" alt="Amazing Ass POV" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:06</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/65.html">Amazing Ass POV</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>11K views</span>
-        </div>
+    <a class="card" href="/watch/65" title="Amazing Ass POV">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass12.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:06</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Amazing Ass POV</div>
+      <div class="card-meta">Amateur · 11K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/68.html" title="Big Ass Compilation">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass15.jpg" alt="Big Ass Compilation" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:06</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/68.html">Big Ass Compilation</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>13.1K views</span>
-        </div>
+    <a class="card" href="/watch/68" title="Big Ass Compilation">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass15.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:06</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Big Ass Compilation</div>
+      <div class="card-meta">Amateur · 13.1K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/71.html" title="Ass-tastic">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass20.jpg" alt="Ass-tastic" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:06</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/71.html">Ass-tastic</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>10.9K views</span>
-        </div>
+    <a class="card" href="/watch/71" title="Ass-tastic">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass20.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:06</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Ass-tastic</div>
+      <div class="card-meta">Amateur · 10.9K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/74.html" title="Curvy Cutie">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass23.jpg" alt="Curvy Cutie" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:06</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/74.html">Curvy Cutie</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>10.5K views</span>
-        </div>
+    <a class="card" href="/watch/74" title="Curvy Cutie">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass23.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:06</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Curvy Cutie</div>
+      <div class="card-meta">Amateur · 10.5K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/77.html" title="Thick Thighs">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass26.jpg" alt="Thick Thighs" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:06</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/77.html">Thick Thighs</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>12.7K views</span>
-        </div>
+    <a class="card" href="/watch/77" title="Thick Thighs">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass26.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:06</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Thick Thighs</div>
+      <div class="card-meta">Amateur · 12.7K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/81.html" title="Pool Vibes Babes ()">
-        <div class="v-ph"></div>
-        <span class="card-dur">0:20</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/81.html">Pool Vibes Babes ()</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>10.4K views</span>
-        </div>
+    <a class="card" href="/watch/81" title="Pool Vibes Babes ()">
+      <div class="video-thumb">
+        
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:20</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Pool Vibes Babes ()</div>
+      <div class="card-meta">Amateur · 10.4K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/82.html" title="Pool Vibes Babes">
-        <div class="v-ph"></div>
-        <span class="card-dur">0:05</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/82.html">Pool Vibes Babes</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>12.7K views</span>
-        </div>
+    <a class="card" href="/watch/82" title="Pool Vibes Babes">
+      <div class="video-thumb">
+        
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:05</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Pool Vibes Babes</div>
+      <div class="card-meta">Amateur · 12.7K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/83.html" title="Pool Vibes Babes">
-        <div class="v-ph"></div>
-        <span class="card-dur">0:06</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/83.html">Pool Vibes Babes</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>10.8K views</span>
-        </div>
+    <a class="card" href="/watch/83" title="Pool Vibes Babes">
+      <div class="video-thumb">
+        
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:06</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Pool Vibes Babes</div>
+      <div class="card-meta">Amateur · 10.8K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/257.html" title="More Uncensored Fuck Videos Sexy Girls #1">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/More%20uncensored%20fuck%20videos%20Sexy%20Girls00001.jpg" alt="More Uncensored Fuck Videos Sexy Girls #1" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:05</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/257.html">More Uncensored Fuck Videos Sexy Girls #1</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14.5K views</span>
-        </div>
+    <a class="card" href="/watch/257" title="More Uncensored Fuck Videos Sexy Girls #1">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/More%20uncensored%20fuck%20videos%20Sexy%20Girls00001.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:05</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">More Uncensored Fuck Videos Sexy Girls #1</div>
+      <div class="card-meta">Amateur · 14.5K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/258.html" title="More Uncensored Fuck Videos Sexy Girls #2">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/More%20uncensored%20fuck%20videos%20Sexy%20Girls00002.jpg" alt="More Uncensored Fuck Videos Sexy Girls #2" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:05</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/258.html">More Uncensored Fuck Videos Sexy Girls #2</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14.5K views</span>
-        </div>
+    <a class="card" href="/watch/258" title="More Uncensored Fuck Videos Sexy Girls #2">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/More%20uncensored%20fuck%20videos%20Sexy%20Girls00002.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:05</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">More Uncensored Fuck Videos Sexy Girls #2</div>
+      <div class="card-meta">Amateur · 14.5K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/259.html" title="More Uncensored Fuck Videos Sexy Girls #3">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/More%20uncensored%20fuck%20videos%20Sexy%20Girls00003.jpg" alt="More Uncensored Fuck Videos Sexy Girls #3" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:05</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/259.html">More Uncensored Fuck Videos Sexy Girls #3</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14.6K views</span>
-        </div>
+    <a class="card" href="/watch/259" title="More Uncensored Fuck Videos Sexy Girls #3">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/More%20uncensored%20fuck%20videos%20Sexy%20Girls00003.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:05</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">More Uncensored Fuck Videos Sexy Girls #3</div>
+      <div class="card-meta">Amateur · 14.6K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/260.html" title="More Uncensored Fuck Videos Sexy Girls #4">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/More%20uncensored%20fuck%20videos%20Sexy%20Girls00004.jpg" alt="More Uncensored Fuck Videos Sexy Girls #4" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:10</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/260.html">More Uncensored Fuck Videos Sexy Girls #4</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14.6K views</span>
-        </div>
+    <a class="card" href="/watch/260" title="More Uncensored Fuck Videos Sexy Girls #4">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/More%20uncensored%20fuck%20videos%20Sexy%20Girls00004.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:10</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">More Uncensored Fuck Videos Sexy Girls #4</div>
+      <div class="card-meta">Amateur · 14.6K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/261.html" title="More Uncensored Fuck Videos Sexy Girls #5">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/More%20uncensored%20fuck%20videos%20Sexy%20Girls00005.jpg" alt="More Uncensored Fuck Videos Sexy Girls #5" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:05</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/261.html">More Uncensored Fuck Videos Sexy Girls #5</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14.7K views</span>
-        </div>
+    <a class="card" href="/watch/261" title="More Uncensored Fuck Videos Sexy Girls #5">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/More%20uncensored%20fuck%20videos%20Sexy%20Girls00005.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:05</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">More Uncensored Fuck Videos Sexy Girls #5</div>
+      <div class="card-meta">Amateur · 14.7K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/262.html" title="More Uncensored Fuck Videos Sexy Girls #6">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/More%20uncensored%20fuck%20videos%20Sexy%20Girls00006.jpg" alt="More Uncensored Fuck Videos Sexy Girls #6" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:05</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/262.html">More Uncensored Fuck Videos Sexy Girls #6</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14.7K views</span>
-        </div>
+    <a class="card" href="/watch/262" title="More Uncensored Fuck Videos Sexy Girls #6">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/More%20uncensored%20fuck%20videos%20Sexy%20Girls00006.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:05</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">More Uncensored Fuck Videos Sexy Girls #6</div>
+      <div class="card-meta">Amateur · 14.7K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/263.html" title="Redhead Cumming Orgasm #1">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00001.jpg" alt="Redhead Cumming Orgasm #1" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:10</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/263.html">Redhead Cumming Orgasm #1</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14.7K views</span>
-        </div>
+    <a class="card" href="/watch/263" title="Redhead Cumming Orgasm #1">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00001.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:10</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Redhead Cumming Orgasm #1</div>
+      <div class="card-meta">Amateur · 14.7K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/264.html" title="Redhead Cumming Orgasm #2">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00002.jpg" alt="Redhead Cumming Orgasm #2" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:10</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/264.html">Redhead Cumming Orgasm #2</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14.8K views</span>
-        </div>
+    <a class="card" href="/watch/264" title="Redhead Cumming Orgasm #2">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00002.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:10</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Redhead Cumming Orgasm #2</div>
+      <div class="card-meta">Amateur · 14.8K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/265.html" title="Redhead Cumming Orgasm #3">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00003.jpg" alt="Redhead Cumming Orgasm #3" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:06</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/265.html">Redhead Cumming Orgasm #3</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14.8K views</span>
-        </div>
+    <a class="card" href="/watch/265" title="Redhead Cumming Orgasm #3">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00003.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:06</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Redhead Cumming Orgasm #3</div>
+      <div class="card-meta">Amateur · 14.8K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/266.html" title="Redhead Cumming Orgasm #4">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00004.jpg" alt="Redhead Cumming Orgasm #4" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:06</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/266.html">Redhead Cumming Orgasm #4</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14.8K views</span>
-        </div>
+    <a class="card" href="/watch/266" title="Redhead Cumming Orgasm #4">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00004.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:06</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Redhead Cumming Orgasm #4</div>
+      <div class="card-meta">Amateur · 14.8K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/267.html" title="Redhead Cumming Orgasm #5">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00005.jpg" alt="Redhead Cumming Orgasm #5" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:06</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/267.html">Redhead Cumming Orgasm #5</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14.9K views</span>
-        </div>
+    <a class="card" href="/watch/267" title="Redhead Cumming Orgasm #5">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00005.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:06</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Redhead Cumming Orgasm #5</div>
+      <div class="card-meta">Amateur · 14.9K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/268.html" title="Redhead Cumming Orgasm #6">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00006.jpg" alt="Redhead Cumming Orgasm #6" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:30</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/268.html">Redhead Cumming Orgasm #6</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>14.9K views</span>
-        </div>
+    <a class="card" href="/watch/268" title="Redhead Cumming Orgasm #6">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00006.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:30</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Redhead Cumming Orgasm #6</div>
+      <div class="card-meta">Amateur · 14.9K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/269.html" title="Redhead Cumming Orgasm #7">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00007.jpg" alt="Redhead Cumming Orgasm #7" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:20</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/269.html">Redhead Cumming Orgasm #7</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>15K views</span>
-        </div>
+    <a class="card" href="/watch/269" title="Redhead Cumming Orgasm #7">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00007.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:20</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Redhead Cumming Orgasm #7</div>
+      <div class="card-meta">Amateur · 15K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/270.html" title="Redhead Cumming Orgasm #8">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00008.jpg" alt="Redhead Cumming Orgasm #8" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:10</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/270.html">Redhead Cumming Orgasm #8</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>15K views</span>
-        </div>
+    <a class="card" href="/watch/270" title="Redhead Cumming Orgasm #8">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00008.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:10</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Redhead Cumming Orgasm #8</div>
+      <div class="card-meta">Amateur · 15K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/271.html" title="Redhead Cumming Orgasm #9">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00009.jpg" alt="Redhead Cumming Orgasm #9" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:06</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/271.html">Redhead Cumming Orgasm #9</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>10K views</span>
-        </div>
+    <a class="card" href="/watch/271" title="Redhead Cumming Orgasm #9">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00009.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:06</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
+      <div class="title">Redhead Cumming Orgasm #9</div>
+      <div class="card-meta">Amateur · 10K views</div>
+    </a>
 
-    <article class="v-card">
-      <a class="v-card-media" href="/video/272.html" title="Redhead Cumming Orgasm #10">
-        <img src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00010.jpg" alt="Redhead Cumming Orgasm #10" width="320" height="180" loading="lazy" decoding="async"/>
-        <span class="card-dur">0:06</span>
-        <span class="v-play-btn" aria-hidden="true">▶</span>
-      </a>
-      <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/video/272.html">Redhead Cumming Orgasm #10</a></h3>
-        <div class="v-card-meta">
-          <span>Amateur</span>
-          <span>·</span>
-          <span>10.1K views</span>
-        </div>
+    <a class="card" href="/watch/272" title="Redhead Cumming Orgasm #10">
+      <div class="video-thumb">
+        <img class="thumb-video" src="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/batch-1/Redhead%20cumming%20orgasem00010.jpg" alt="" width="320" height="180" loading="lazy" decoding="async"/>
+        <span class="quality-badge">4K</span>
+        <span class="dur-badge">0:06</span>
+        <span class="play-badge">▶</span>
       </div>
-    </article>
-        </div>
-      </main>
-  
-  <footer class="site-footer">
-    <div class="site-footer-inner">
-      <div class="site-footer-brand">
-        <img class="site-footer-logo" src="/logo-wordmark.png" alt="thebestpornai" width="160" height="24"/>
-        <p class="site-footer-tagline">Curated AI adult entertainment and high-definition streaming.</p>
-        <p class="site-footer-compliance">18+ only. All performers are 100% synthetically generated AI personas.</p>
+      <div class="title">Redhead Cumming Orgasm #10</div>
+      <div class="card-meta">Amateur · 10.1K views</div>
+    </a>
       </div>
-      <div class="site-footer-links">
-        <div class="site-footer-col">
-          <strong>Explore</strong>
-          <a href="/">Home</a>
-          <a href="/pornstars/">AI Pornstars</a>
-          <a href="/categories/">Categories</a>
-          <a href="/blog/">Editorial &amp; Guides</a>
-        </div>
-        <div class="site-footer-col">
-          <strong>Legal &amp; trust</strong>
-          <a href="/legal/terms.html">Terms of Service</a>
-          <a href="/legal/privacy.html">Privacy Policy</a>
-          <a href="/legal/dmca.html">DMCA Notice</a>
-          <a href="/legal/2257.html">18 U.S.C. 2257</a>
-        </div>
-      </div>
+      <p class="shell-legal">18+ only ·
+        <a href="/legal/terms.html">Terms</a>
+        <a href="/legal/privacy.html">Privacy</a>
+        <a href="/legal/dmca.html">DMCA</a>
+        <a href="/legal/2257.html">2257</a>
+      </p>
     </div>
-  </footer>
+  </div>
+</div>
 </body>
 </html>

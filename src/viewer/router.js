@@ -183,8 +183,9 @@ function applyPath(){
     return true;
   }
   if(p === "/search"){
+    const q = new URLSearchParams(location.search).get("q") || "";
     vstate.page = "search";
-    vstate.searchQuery = "";
+    vstate.searchQuery = q;
     vstate.feedFocusId = null;
     return true;
   }

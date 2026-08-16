@@ -28,6 +28,60 @@ export function sharedHeaderHtml(activeNav = "") {
   </header>`;
 }
 
+const ICO = {
+  home: `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg>`,
+  shorts: `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z"/></svg>`,
+  save: `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.5a1 1 0 0 1 1-1Z"/></svg>`,
+  subs: `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M8 3h8"/></svg>`,
+  explore: `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m15 9-3.5 6.5L8 12l3.5-6.5L15 9Z"/></svg>`,
+  you: `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>`,
+  comment: `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg>`,
+  search: `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>`,
+};
+
+export function appShellHtml(activeNav, bodyContent) {
+  const on = (id) => (activeNav === id ? " active" : "");
+  return `
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="thebestpornai home"><img src="/favicon-64.png" width="32" height="32" alt="thebestpornai"/></a>
+    <nav class="nav" aria-label="Primary">
+      <a href="/" class="${on("home")}" aria-label="Home">${ICO.home}<span class="nav-label">Home</span></a>
+      <a href="/shorts" aria-label="Shorts">${ICO.shorts}<span class="nav-label">Shorts</span></a>
+      <a href="/library" aria-label="Library">${ICO.save}<span class="nav-label">Library</span></a>
+      <a href="/subscriptions" aria-label="Subscriptions">${ICO.subs}<span class="nav-label">Subs</span></a>
+      <a href="/explore" aria-label="Explore">${ICO.explore}<span class="nav-label">Explore</span></a>
+      <a href="/pornstars/" class="${on("pornstars")}" aria-label="Pornstars">${ICO.you}<span class="nav-label">Stars</span></a>
+      <a href="/blog/" class="nav-link-out${on("blog")}" aria-label="Blog">${ICO.comment}<span class="nav-label">Blog</span></a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="left">
+        <a href="/" class="topbar-brand" aria-label="thebestpornai home">
+          <img src="/logo-wordmark.png" alt="thebestpornai" width="160" height="24"/>
+        </a>
+      </div>
+      <div class="topbar-actions">
+        <form class="search-wrap" action="/search" method="get" role="search">
+          <input class="search-input" type="search" name="q" placeholder="Search videos, creators, tags…" aria-label="Search" autocomplete="off"/>
+          <button class="search-go" type="submit" aria-label="Search">${ICO.search}</button>
+        </form>
+      </div>
+    </div>
+    <div class="content">
+      ${bodyContent}
+      <p class="shell-legal">18+ only ·
+        <a href="/legal/terms.html">Terms</a>
+        <a href="/legal/privacy.html">Privacy</a>
+        <a href="/legal/dmca.html">DMCA</a>
+        <a href="/legal/2257.html">2257</a>
+      </p>
+    </div>
+  </div>
+</div>`;
+}
+
 export function sharedFooterHtml() {
   return `
   <footer class="site-footer">
