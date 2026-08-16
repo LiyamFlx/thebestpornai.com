@@ -145,7 +145,7 @@ export const BEST_AI_PORN_SITES_RANKING_2026_POST = {
       name: "SpicyChat",
       href: URLS.spicy,
       best: "Endless exploration, community bots, group roleplay.",
-      lead: `${ext(URLS.spicy, "SpicyChat")} wins on volume: nearly a million community bots, Semantic Memory 2.0, lorebooks, group chats. Go here when you want options, not one wife. Memory is better than old SpicyChat — still not the same as a single companion who owns your whole history.`,
+      lead: `${ext(URLS.spicy, "SpicyChat")} wins on volume: nearly a million community bots, Semantic Memory 2.0, lorebooks, group chats. Go here when you want options, not one wife. Memory is better than old SpicyChat — still not the same as a single companion who owns your whole history. Full write-up: <a href="/blog/spicychat-review-2026.html">SpicyChat review 2026</a>.`,
     })}
     ${rank({
       n: 3,
