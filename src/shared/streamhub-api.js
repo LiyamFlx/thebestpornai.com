@@ -58,6 +58,27 @@ async function _req(path, opts={}){
   return r.ok ? r.data : null;
 }
 
+/* Same-origin write path — bypasses browser RLS / missing-column 400s.
+   status 0 means the function itself was unreachable; callers fall back to REST. */
+async function _engage(payload){
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    const r = await fetch("/api/engage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: ctrl.signal,
+    }).catch(() => null);
+    clearTimeout(t);
+    if (!r) return { ok: false, status: 0, data: null };
+    const data = await r.json().catch(() => null);
+    return { ok: r.ok && !!(data && data.ok !== false), status: r.status, data };
+  } catch (_) {
+    return { ok: false, status: 0, data: null };
+  }
+}
+
 /* Exact row count via PostgREST's Prefer: count=exact + a HEAD request —
    returns just the count from the Content-Range response header, never the
    matching rows themselves. Used instead of `select=id` + rows.length so
@@ -236,9 +257,9 @@ const ShAPI = {
     return { like, dislike };
   },
   async addLike(videoId, kind="like"){
-    // Unique (video_id, client_id, kind) — a plain POST 409s on a second
-    // click (and the browser logs it). ignore-duplicates matches views:
-    // same vote is a no-op, not an error.
+    const viaApi = await _engage({ action: "like", videoId, kind, clientId: shClientId() });
+    if (viaApi.status === 200) return true;
+    if (viaApi.status === 429) return false;
     const r = await _reqRaw(
       `/likes?on_conflict=video_id,client_id,kind`,
       {
@@ -247,9 +268,21 @@ const ShAPI = {
         body: JSON.stringify({ video_id: videoId, kind, client_id: shClientId() }),
       }
     );
-    return r.ok || r.status === 409;
+    if (r.ok || r.status === 409) return true;
+    if (r.status === 400) {
+      const retry = await _reqRaw(`/likes`, {
+        method: "POST",
+        headers: { "Prefer": "return=minimal" },
+        body: JSON.stringify({ video_id: videoId, kind, client_id: shClientId() }),
+      });
+      return retry.ok || retry.status === 409;
+    }
+    return false;
   },
   async removeLike(videoId, kind="like"){
+    const viaApi = await _engage({ action: "unlike", videoId, kind, clientId: shClientId() });
+    if (viaApi.status === 200) return true;
+    if (viaApi.status === 429) return false;
     const cid = encodeURIComponent(shClientId());
     const r = await _reqRaw(
       `/likes?video_id=eq.${Number(videoId)}&client_id=eq.${cid}&kind=eq.${kind}`,
@@ -272,18 +305,37 @@ const ShAPI = {
     return (await _req(`/comments?video_id=eq.${videoId}&select=*&order=created_at.desc`)) || [];
   },
   async addComment(videoId, author, body){
-    const r = await _reqRaw(`/comments`, {
-      method:"POST",
-      headers:{ "Prefer":"return=representation" },
-      body: JSON.stringify({ video_id: videoId, author: author||"Guest", body, client_id: shClientId() }),
+    const viaApi = await _engage({
+      action: "comment",
+      videoId,
+      author: author || "Guest",
+      body,
+      clientId: shClientId(),
     });
-    if(r.ok){
+    if (viaApi.status === 200) {
+      return { ok: true, row: viaApi.data?.row || null, status: 200 };
+    }
+    if (viaApi.status === 429) {
+      return { ok: false, row: null, status: 429, rateLimited: true };
+    }
+    const payload = { video_id: videoId, author: author || "Guest", body, client_id: shClientId() };
+    let r = await _reqRaw(`/comments`, {
+      method: "POST",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok && r.status === 400) {
+      r = await _reqRaw(`/comments`, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({ video_id: videoId, author: author || "Guest", body }),
+      });
+    }
+    if (r.ok) {
       const row = Array.isArray(r.data) ? r.data[0] : r.data;
       return { ok: true, row: row || null, status: r.status };
     }
-    // RLS 1-comment-per-minute (schema-comments-favorites-fix.sql) typically
-    // surfaces as 401/403; unique collisions would be 409.
-    const rateLimited = r.status === 401 || r.status === 403 || r.status === 409;
+    const rateLimited = r.status === 401 || r.status === 403 || r.status === 409 || r.status === 429;
     return { ok: false, row: null, status: r.status, rateLimited };
   },
   commentAuthor(){
