@@ -78,6 +78,8 @@ export const AI_SEX_CHATS_GUIDE_POST = {
   cover: "/blog-assets/ai-sex-chats-guide-2026-hero-wide.jpg",
   coverLayout: "landscape",
   wide: true,
+  ctaHref: "https://ourdream.ai/?ref=thebestpornai",
+  ctaLabel: "Try OurDream.ai →",
   dropCap: false,
   body: `
     <p>I know that you’ve got at least a couple of fantasies that are too wild and out there to use in real life. I know because I’m in the same position as you. Thankfully, AI sex chat websites fit that niche perfectly. You can talk about whatever you want, receive nude images on demand, and chat with your ideal girl. One who doesn’t get mad if you ignore her for a night with the boys.</p>

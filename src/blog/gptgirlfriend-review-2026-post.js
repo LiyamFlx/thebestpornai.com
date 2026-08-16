@@ -52,6 +52,8 @@ export const GPTGIRLFRIEND_REVIEW_2026_POST = {
   cover: "/blog-assets/gptgirlfriend-review-2026-hero-wide.jpg",
   coverLayout: "landscape",
   wide: true,
+  ctaHref: "https://www.gptgirlfriend.online/",
+  ctaLabel: "Try GPTGirlfriend →",
   dropCap: false,
   body: `
     <p>We spent weeks on ${ext(SITE, "GPTGirlfriend")} (also sold as GirlfriendGPT) across free and paid tiers. This is the no-hype breakdown: talk quality, memory, voice, images, pricing, and who should actually pay.</p>

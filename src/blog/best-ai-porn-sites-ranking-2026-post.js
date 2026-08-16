@@ -78,9 +78,11 @@ export const BEST_AI_PORN_SITES_RANKING_2026_POST = {
     "SexyAi",
     "Kupid",
   ],
-  cover: "/blog-assets/best-ai-porn-sites-2026-crew.jpg",
+  cover: "/blog-assets/best-ai-porn-sites-2026-ranking-hero-wide.jpg",
   coverLayout: "landscape",
   wide: true,
+  ctaHref: "https://www.gptgirlfriend.online/",
+  ctaLabel: "Try #1 GPTGirlfriend →",
   dropCap: false,
   itemList: [
     { "@type": "ListItem", position: 1, name: "GPTGirlfriend", url: URLS.gptgf },

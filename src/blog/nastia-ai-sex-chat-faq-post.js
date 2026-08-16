@@ -40,6 +40,8 @@ export const NASTIA_AI_SEX_CHAT_FAQ_POST = {
   cover: "/blog-assets/nastia-ai-sex-chat-faq-hero-wide.jpg",
   coverLayout: "landscape",
   wide: true,
+  ctaHref: "https://www.nastia.ai/n/onboarding?intent=f",
+  ctaLabel: "Try Nastia free →",
   dropCap: false,
   body: `
     <p>${ext(NA_CHAT, "Nastia")} is an adult AI companion built for uncensored sex chat — sexting, dirty talk, roleplay, images, and voice — not a general chatbot with adult topics bolted on. This FAQ answers the questions on their ${ext(NA_CHAT, "AI sex chat")} page, plus how that lines up with the pricing they publish.</p>
