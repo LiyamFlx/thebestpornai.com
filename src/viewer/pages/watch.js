@@ -330,7 +330,7 @@ function metadataBlockDesktop(v, catList, tagList, live, hasCreator){
       <h1 class="watch-title-v2 desktop">${esc(v.title)}</h1>
       <div class="watch-meta-actions-row">
         <div class="stats-left">
-          <span class="views-count" id="watchViewsCount">${fmt(displayViews(v))} views</span><span class="dot-sep">•</span><span>Published ${esc(v.uploaded)}</span>
+          <span class="views-count" id="watchViewsCount">${fmt(displayViews(v))} views</span><span class="dot-sep">•</span><span>Published ${esc(fmtWatchDate(v.uploaded))}</span>
           ${tagList.length ? `<span class="dot-sep">•</span><span class="stats-tags">${tagChipsInline(tagList)}</span>` : ''}
         </div>
         ${actionBar(v, live, hasCreator)}

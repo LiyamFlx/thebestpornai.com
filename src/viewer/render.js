@@ -16,6 +16,7 @@ import { displayViews } from "./display-metrics.js";
 import { pubVideos, trending } from "./catalog-queries.js";
 import { takePendingHydrate } from "./router.js";
 import { relativeTime } from "./util.js";
+import { isoUploadDate as isoDate } from "../shared/dates.js";
 // takePendingFeedFocus is consumed inside attachFeedObserver (pages/feed.js)
 import { hydrateWatch } from "./hydrate.js";
 import { attachPlayerControlsV2 } from "./player-controls-v2.js";
@@ -286,15 +287,6 @@ function attachHeroRotation(isHomePage){
       section.classList.remove("hero-fading");
     }, HERO_FADE_MS);
   }, HERO_ROTATE_MS);
-}
-
-/* "YYYY-MM-DD" -> full ISO 8601 datetime with timezone, e.g.
-   "2026-07-04" -> "2026-07-04T00:00:00Z". Google's structured-data validator
-   flags a bare date as both an invalid datetime and missing a timezone. */
-function isoDate(d){
-  if(!d || typeof d !== "string") return undefined;
-  if(/^\d{4}-\d{2}-\d{2}$/.test(d)) return d + "T00:00:00Z";
-  return d;   // already a full datetime (or unparseable) — pass through as-is
 }
 
 /* "M:SS" (or "H:MM:SS") -> ISO 8601 duration, e.g. "0:10" -> "PT10S",

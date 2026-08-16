@@ -6,7 +6,7 @@
  *   - public/blog/rss.xml     RSS 2.0 for readers / automation
  *
  * Why static per-post pages: each needs its own URL, canonical, meta, OG,
- * Twitter, and BlogPosting / VideoObject JSON-LD in the first HTML response —
+ * Twitter, and BlogPosting JSON-LD in the first HTML response —
  * optimized for Google, social crawlers, and AI citation readiness.
  *
  * Run:  node scripts/gen-blog-posts.js
@@ -28,7 +28,10 @@ const REPO = path.join(__dirname, "..");
 const BLOG_DIR = path.join(REPO, "blog");
 const PUBLIC_BLOG = path.join(REPO, "public", "blog");
 const ORIGIN = "https://www.thebestpornai.com";
-const MEDIA_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media";
+// Same-origin proxy (vercel.json /r2/* → R2). Google's URL Inspection /
+// PageSpeed often fail to fetch pub-*.r2.dev ("Other error") even when the
+// object is a 200 for browsers.
+const MEDIA_BASE = `${ORIGIN}/r2/media`;
 const SUPABASE_ORIGIN = "https://dabfxysxcngijcxxekzc.supabase.co";
 const LOGO = `${ORIGIN}/logo.png`;
 
@@ -70,9 +73,10 @@ function findVideo(id) {
   return VIDEOS.find((v) => v.id === Number(id));
 }
 
-/** Canonical watch deep-link used site-wide (hash router on the main viewer). */
+/** Crawlable watch URL. Hash routes (#video/n) are not video watch pages
+ *  for Google; /video/n.html is the dedicated player landing. */
 function videoWatchUrl(id) {
-  return `/#video/${Number(id)}`;
+  return `/video/${Number(id)}.html`;
 }
 
 function formatDate(iso) {
@@ -100,21 +104,6 @@ function fmtViews(n) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
   return String(n);
-}
-
-function toIsoDuration(dur) {
-  if (!dur || typeof dur !== "string") return undefined;
-  const parts = dur.split(":").map(Number);
-  if (parts.some(isNaN)) return undefined;
-  if (parts.length === 2) {
-    const [mins, secs] = parts;
-    return `PT${mins}M${secs}S`;
-  }
-  if (parts.length === 3) {
-    const [hrs, mins, secs] = parts;
-    return `PT${hrs}H${mins}M${secs}S`;
-  }
-  return undefined;
 }
 
 function siteHeader({ mode = "index" } = {}) {
@@ -457,22 +446,9 @@ function jsonLdForPost(post, cover, words, relatedVideos = []) {
     });
   }
 
-  // Add VideoObject schema for related videos
-  for (const v of relatedVideos) {
-    const vTitle = cleanTitle(v.title);
-    const vThumb = v.thumb ? mediaUrl(v.thumb) : LOGO;
-    const videoObj = {
-      "@type": "VideoObject",
-      name: vTitle,
-      description: `${vTitle} — Watch on thebestpornai`,
-      thumbnailUrl: [vThumb],
-      uploadDate: v.uploaded || post.date,
-      contentUrl: `${ORIGIN}/#video/${v.id}`,
-    };
-    const isoDur = toIsoDuration(v.duration);
-    if (isoDur) videoObj.duration = isoDur;
-    graph.push(videoObj);
-  }
+  // Do not emit VideoObject on articles. Google then treats the post as a
+  // watch page, merges related clips into one video, and rejects indexing
+  // ("Video isn't on a watch page" / multiple video URLs).
 
   return {
     "@context": "https://schema.org",
@@ -535,7 +511,7 @@ function renderPost(post) {
 <title>${esc(cleanPostTitle)} | thebestpornai Blog</title>
 <meta name="description" content="${esc(description)}"/>
 <meta name="theme-color" content="#09090b"/>
-<link rel="preconnect" href="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev" crossorigin/>
+
 <meta name="author" content="${esc(BLOG_AUTHOR.name)}"/>
 <meta name="article:section" content="${esc(post.category)}"/>
 <meta name="article:published_time" content="${esc(post.date)}"/>
@@ -790,7 +766,7 @@ function renderIndex() {
 <title>Blog | thebestpornai — AI Porn Guides, Fantasies &amp; Stories</title>
 <meta name="description" content="AI porn guides, generator rankings, cinematic fantasies and confessions from thebestpornai. Read the story, then watch the matching scenes."/>
 <meta name="theme-color" content="#09090b"/>
-<link rel="preconnect" href="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev" crossorigin/>
+
 <link rel="canonical" href="${ORIGIN}/blog/"/>
 <link rel="alternate" type="application/rss+xml" title="thebestpornai Blog" href="${ORIGIN}/blog/rss.xml"/>
 <link rel="icon" type="image/png" href="/src/shared/assets/favicon-32.png"/>

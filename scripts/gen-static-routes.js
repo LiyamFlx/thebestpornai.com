@@ -15,6 +15,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { VIDEOS } from "../src/shared/catalog-videos.js";
+import { isoUploadDate } from "../src/shared/dates.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
@@ -737,8 +738,9 @@ function genPornstarProfiles() {
         "name": v.title,
         "description": `Watch ${v.title} starring AI model ${ps.name} on thebestpornai.`,
         "thumbnailUrl": [v.thumb ? mediaUrl(v.thumb) : avatarUrl],
-        "uploadDate": v.uploaded || "2026-05-01",
-        "contentUrl": `${ORIGIN}/#video/${v.id}`
+        "uploadDate": isoUploadDate(v.uploaded),
+        "url": `${ORIGIN}/video/${v.id}.html`,
+        "contentUrl": v.src ? mediaUrl(v.src) : `${ORIGIN}/video/${v.id}.html`
       }))
     };
 
@@ -871,8 +873,9 @@ function genCategoryPages() {
             "name": v.title,
             "description": `Watch ${v.title} in the ${cat.name} category on thebestpornai.`,
             "thumbnailUrl": [v.thumb ? mediaUrl(v.thumb) : sampleThumb],
-            "uploadDate": v.uploaded || "2026-05-01",
-            "contentUrl": `${ORIGIN}/#video/${v.id}`
+            "uploadDate": isoUploadDate(v.uploaded),
+            "url": `${ORIGIN}/video/${v.id}.html`,
+            "contentUrl": v.src ? mediaUrl(v.src) : `${ORIGIN}/video/${v.id}.html`
           }
         }))
       }
@@ -1001,7 +1004,7 @@ function genVideoPages() {
       "name": v.title,
       "description": description,
       "thumbnailUrl": [thumbUrl],
-      "uploadDate": v.uploaded || "2026-05-01",
+      "uploadDate": isoUploadDate(v.uploaded),
       "duration": isoDuration(v.duration),
       "contentUrl": v.src ? mediaUrl(v.src) : `${ORIGIN}/#video/${v.id}`,
       "embedUrl": `${ORIGIN}/#video/${v.id}`,

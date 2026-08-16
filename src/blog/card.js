@@ -5,9 +5,9 @@ function findVideo(id) {
   return VIDEOS.find((v) => v.id === id);
 }
 
-/** Hash deep-link into the main viewer (matches gen-blog-posts.js). */
+/** Crawlable watch page (matches gen-blog-posts.js). */
 export function videoWatchUrl(id) {
-  return `/#video/${Number(id)}`;
+  return `/video/${Number(id)}.html`;
 }
 
 export function postCoverUrl(post) {

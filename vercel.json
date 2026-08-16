@@ -9,9 +9,21 @@
   ],
   "rewrites": [
     { "source": "/v/:id", "destination": "/api/video-share?id=:id" },
-    { "source": "/watch/:id", "destination": "/api/video-share?id=:id" }
+    { "source": "/watch/:id", "destination": "/api/video-share?id=:id" },
+    { "source": "/video/:id.html", "destination": "/api/video-share?id=:id" },
+    {
+      "source": "/r2/:path*",
+      "destination": "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/:path*"
+    }
   ],
   "headers": [
+    {
+      "source": "/r2/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
     {
       "source": "/api/(.*)",
       "headers": [

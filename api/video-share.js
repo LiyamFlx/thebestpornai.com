@@ -1,4 +1,5 @@
 import { VIDEOS } from "../src/shared/catalog-videos.js";
+import { isoUploadDate } from "../src/shared/dates.js";
 
 const ORIGIN = "https://www.thebestpornai.com";
 const MEDIA_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media";
@@ -65,8 +66,9 @@ export default function handler(req, res) {
     "name": title,
     "description": desc,
     "thumbnailUrl": [thumbUrl],
-    "uploadDate": v.uploaded || "2026-05-01",
-    "contentUrl": videoStreamUrl || directWatchUrl,
+    "uploadDate": isoUploadDate(v.uploaded),
+    "url": `${ORIGIN}/video/${v.id}.html`,
+    "contentUrl": videoStreamUrl || `${ORIGIN}/video/${v.id}.html`,
     "embedUrl": embedUrl,
     "publisher": {
       "@type": "Organization",
