@@ -534,7 +534,7 @@ function renderPost(post) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>${esc(cleanPostTitle)} | thebestpornai Blog</title>
 <meta name="description" content="${esc(description)}"/>
-<meta name="theme-color" content="#000000"/>
+<meta name="theme-color" content="#09090b"/>
 <link rel="preconnect" href="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev" crossorigin/>
 <meta name="author" content="${esc(BLOG_AUTHOR.name)}"/>
 <meta name="article:section" content="${esc(post.category)}"/>
@@ -563,6 +563,7 @@ ${JSON.stringify(jsonLd, null, 2)}
 <link rel="stylesheet" href="/src/shared/theme.css"/>
 </head>
 <body class="blog-body">
+<div class="blog-progress" aria-hidden="true"><i id="blog-progress-bar"></i></div>
 ${siteHeader({ mode: "post" })}
 
 <main class="bp-page">
@@ -616,7 +617,7 @@ ${siteHeader({ mode: "post" })}
           toc.length
             ? `<nav class="bp-card" aria-label="In this article">
           <h3>In this article</h3>
-          <div class="bp-toc">
+          <div class="bp-toc" id="blog-toc">
             ${toc.map((t) => `<a href="#${esc(t.id)}">${esc(t.title)}</a>`).join("")}
             ${post.faqs && post.faqs.length ? `<a href="#faq">FAQ</a>` : ""}
           </div>
@@ -772,7 +773,7 @@ function renderIndex() {
   const jsonLd = jsonLdForIndex(hub);
   const categories = ["All", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
 
-  const PAGE_SIZE = 8;
+  const PAGE_SIZE = 9;
   const preview = rest.slice(0, PAGE_SIZE);
   const staticCards = preview.map((p, i) => postCardHtml(p, { eager: i < 3, fetchpriority: i === 0 ? "high" : undefined })).join("");
   const hasMore = rest.length > PAGE_SIZE;
@@ -788,7 +789,7 @@ function renderIndex() {
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Blog | thebestpornai — AI Porn Guides, Fantasies &amp; Stories</title>
 <meta name="description" content="AI porn guides, generator rankings, cinematic fantasies and confessions from thebestpornai. Read the story, then watch the matching scenes."/>
-<meta name="theme-color" content="#000000"/>
+<meta name="theme-color" content="#09090b"/>
 <link rel="preconnect" href="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev" crossorigin/>
 <link rel="canonical" href="${ORIGIN}/blog/"/>
 <link rel="alternate" type="application/rss+xml" title="thebestpornai Blog" href="${ORIGIN}/blog/rss.xml"/>
@@ -809,7 +810,7 @@ function renderIndex() {
 ${JSON.stringify(jsonLd, null, 2)}
 </script>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; base-uri 'self'; form-action 'self' mailto:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' ${SUPABASE_ORIGIN} https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com;">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/src/shared/theme.css"/>
 </head>
 <body class="blog-body">
@@ -900,6 +901,16 @@ ${siteHeader({ mode: "index" })}
     </div>
   </details>
 </main>
+
+<div class="blog-mob-dock" id="blog-mob-dock">
+  <button type="button" id="blog-mob-search">Search</button>
+  <button type="button" class="primary" id="blog-mob-filters">Filters</button>
+</div>
+<dialog class="blog-filter-dialog" id="blog-filter-dialog" aria-label="Filter posts">
+  <p class="blog-series-label">Category</p>
+  <div id="blog-dialog-pills"></div>
+  <form method="dialog"><button class="blog-cta blog-cta-ghost" type="submit">Done</button></form>
+</dialog>
 
 ${siteFooter()}
 

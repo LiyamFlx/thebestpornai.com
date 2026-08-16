@@ -7,7 +7,7 @@ import { esc } from "../shared/catalog.js";
 import { POSTS, getFeaturedPost, postsForHub } from "./posts.js";
 import { postCardHtml, postCardSkeletonHtml, postCoverUrl, formatDate } from "./card.js";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 9;
 const CATEGORIES = ["All", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
 const SKELETON_DELAY_MS = 220;
 const SEARCH_DEBOUNCE_MS = 160;
@@ -211,6 +211,39 @@ function renderPills() {
   });
 }
 
+function initMobileDock() {
+  const searchBtn = document.getElementById("blog-mob-search");
+  const filterBtn = document.getElementById("blog-mob-filters");
+  const dialog = document.getElementById("blog-filter-dialog");
+  const host = document.getElementById("blog-dialog-pills");
+  const input = document.getElementById("blog-filter-search");
+  searchBtn?.addEventListener("click", () => {
+    input?.focus();
+    input?.scrollIntoView({ block: "center" });
+  });
+  filterBtn?.addEventListener("click", () => {
+    if (!dialog) return;
+    if (host) {
+      host.innerHTML = "";
+      document.querySelectorAll("#blog-pillnav .blog-pill").forEach((btn) => {
+        host.appendChild(btn.cloneNode(true));
+      });
+      host.querySelectorAll("[data-category]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          activeCategory = btn.dataset.category || "all";
+          visibleCount = PAGE_SIZE;
+          writeUrlState();
+          renderPills();
+          renderHero();
+          renderCards();
+          dialog.close();
+        });
+      });
+    }
+    if (typeof dialog.showModal === "function") dialog.showModal();
+  });
+}
+
 function initSearch() {
   const input = document.getElementById("blog-filter-search");
   if (!input) return;
@@ -324,5 +357,6 @@ renderPills();
 renderCards();
 initSearch();
 initLoadMore();
+initMobileDock();
 
 export { formatDate };

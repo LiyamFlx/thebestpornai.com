@@ -2,16 +2,53 @@
    Article content is baked into static HTML by scripts/gen-blog-posts.js. */
 import "./blog.css";
 
-document.querySelectorAll(".blog-video-card, .blog-card").forEach((el) => {
-  el.addEventListener("mouseenter", () => {
-    const img = el.querySelector("img");
-    if (img) img.style.transform = "scale(1.05)";
-  });
-  el.addEventListener("mouseleave", () => {
-    const img = el.querySelector("img");
-    if (img) img.style.transform = "scale(1)";
-  });
-});
+/* Hover zoom is CSS-only (see .blog-card / .blog-hero) — no JS listeners. */
+
+const progressEl = document.getElementById("blog-progress-bar");
+if (progressEl) {
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const doc = document.documentElement;
+    const max = Math.max(1, doc.scrollHeight - window.innerHeight);
+    progressEl.style.transform = `scaleX(${Math.min(1, window.scrollY / max)})`;
+  };
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    },
+    { passive: true }
+  );
+  update();
+}
+
+const tocRoot = document.getElementById("blog-toc");
+if (tocRoot) {
+  const links = [...tocRoot.querySelectorAll("a[href^='#']")];
+  const map = new Map();
+  for (const a of links) {
+    const id = decodeURIComponent(a.getAttribute("href").slice(1));
+    const el = document.getElementById(id);
+    if (el) map.set(el, a);
+  }
+  if (map.size && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        const vis = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!vis) return;
+        const active = map.get(vis.target);
+        if (!active) return;
+        links.forEach((l) => l.classList.toggle("is-active", l === active));
+      },
+      { rootMargin: "-20% 0px -65% 0px", threshold: [0, 0.25, 0.5, 1] }
+    );
+    map.forEach((_, el) => io.observe(el));
+  }
+}
 
 /* Share: copy link + toast-style button feedback */
 document.querySelectorAll("[data-share=copy]").forEach((btn) => {
