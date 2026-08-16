@@ -1412,6 +1412,19 @@ a { color: inherit; }
 .blog-article-body td { color: rgba(255, 255, 255, 0.82); }
 .blog-article-body tr:last-child td { border-bottom: none; }
 
+.blog-article-body pre.blog-code {
+  margin: 1.25em 0 1.5em;
+  padding: 16px 18px;
+  background: #0a0a0c;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #d4d4d8;
+  white-space: pre-wrap;
+}
+
 .table-brand {
   display: inline-flex;
   align-items: center;
