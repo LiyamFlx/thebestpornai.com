@@ -340,7 +340,7 @@ await asyncCheck("Social unfurl gateway (api/video-share.js) generates complete 
   assert(body.includes('name="twitter:card" content="player"'));
   assert(body.includes('name="twitter:player"'));
   assert(body.includes('https://schema.org'));
-  assert(body.includes('/#video/1'));
+  assert(body.includes('/watch/1'));
 
   // Test with invalid ID (safe fallback)
   videoShareHandler({ query: { id: "999999999" } }, res);

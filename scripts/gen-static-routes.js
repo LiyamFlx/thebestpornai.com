@@ -794,7 +794,7 @@ function genVideoPages() {
               <span class="quality-pill">4K Ultra HD</span>
               ${v.duration ? `<span class="duration-pill">${esc(v.duration)}</span>` : ""}
             </div>
-            <a class="video-play-center" href="/#video/${v.id}" title="Play ${esc(v.title)} in the player">
+            <a class="video-play-center" href="/watch/${v.id}" title="Play ${esc(v.title)} in the player">
               <div class="big-play-btn" aria-hidden="true">▶</div>
               <div class="video-play-label">Play 4K Scene in Full Player</div>
             </a>

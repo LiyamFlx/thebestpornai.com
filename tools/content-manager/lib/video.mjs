@@ -14,11 +14,11 @@ export function parseVideoId(input) {
   } catch {
     /* fall through */
   }
-  const m2 = s.match(/#video\/(\d+)/) || s.match(/video\/(\d+)/) || s.match(/[?&]video=(\d+)/);
+  const m2 = s.match(/#video\/(\d+)/) || s.match(/\/watch\/(\d+)/) || s.match(/video\/(\d+)/) || s.match(/[?&]video=(\d+)/);
   if (m2) return Number(m2[1]);
   return null;
 }
 
 export function videoWatchUrl(id) {
-  return `https://www.thebestpornai.com/#video/${Number(id)}`;
+  return `https://www.thebestpornai.com/watch/${Number(id)}`;
 }
