@@ -35,6 +35,10 @@
 *::after { box-sizing: border-box; }
 
 html { scroll-behavior: auto; }
+html:has(body.blog-body) {
+  overflow-x: clip;
+  max-width: none;
+}
 
 .sr-only {
   position: absolute;
@@ -50,6 +54,8 @@ html { scroll-behavior: auto; }
 
 body.blog-body {
   margin: 0;
+  overflow-x: clip;
+  max-width: none;
   overflow-anchor: none;
   overscroll-behavior-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -64,21 +70,6 @@ body.blog-body {
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-}
-
-/* Subtle cyber grid (magazine paper → night city) */
-body.blog-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.35;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, #000 20%, transparent 75%);
 }
 
 body.blog-body > * { position: relative; z-index: 1; }
@@ -124,19 +115,15 @@ a { color: inherit; }
   transform: scaleX(0);
   transform-origin: left;
   background: linear-gradient(90deg, #E50914, #FF6B6B);
-  box-shadow: 0 0 12px rgba(229, 9, 20, 0.6);
-  will-change: transform;
+  box-shadow: none;
 }
 
 .blog-topbar {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--black-glass);
-  backdrop-filter: blur(20px) saturate(1.35);
-  -webkit-backdrop-filter: blur(20px) saturate(1.35);
+  background: #09090b;
   border-bottom: 1px solid var(--border);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .blog-topbar-inner {
@@ -627,7 +614,6 @@ a { color: inherit; }
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   min-height: 100%;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(10px);
 }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
@@ -2543,19 +2529,16 @@ a { color: inherit; }
 .bp-main .blog-article-body { max-width: none; }
 .bp-toc a.is-active { color: var(--red-hot); font-weight: 700; }
 .bp-side {
-  position: sticky;
-  top: 84px;
+  position: static;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 .bp-card {
-  background: rgba(24, 24, 27, 0.72);
+  background: #141418;
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 20px 20px 18px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
 }
 .bp-card h3 {
   margin: 0 0 12px;
