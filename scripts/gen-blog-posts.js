@@ -478,7 +478,7 @@ function renderPost(post) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>${esc(cleanPostTitle)} | thebestpornai Blog</title>
 <meta name="description" content="${esc(description)}"/>
-<meta name="theme-color" content="#09090b"/>
+<meta name="theme-color" content="#0A0A0A"/>
 
 <meta name="author" content="${esc(BLOG_AUTHOR.name)}"/>
 <meta name="article:section" content="${esc(post.category)}"/>
@@ -734,7 +734,7 @@ function renderIndex() {
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Blog | thebestpornai — AI Porn Guides, Fantasies &amp; Stories</title>
 <meta name="description" content="AI porn guides, generator rankings, cinematic fantasies and confessions from thebestpornai. Read the story, then watch the matching scenes."/>
-<meta name="theme-color" content="#09090b"/>
+<meta name="theme-color" content="#0A0A0A"/>
 
 <link rel="canonical" href="${ORIGIN}/blog/"/>
 <link rel="alternate" type="application/rss+xml" title="thebestpornai Blog" href="${ORIGIN}/blog/rss.xml"/>

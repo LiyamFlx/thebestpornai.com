@@ -1,12 +1,24 @@
-/* Shared marketing chrome — used by /categories, /pornstars, /video, /blog */
+/* Shared marketing chrome — tokens match src/shared/theme.css (Home). */
+:root {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface2: #1e1e1e;
+  --text: #ffffff;
+  --muted: #a0a0a0;
+  --accent: #e50914;
+  --accent2: #ff3b3b;
+  --border: rgba(255, 255, 255, 0.10);
+  --radius: 14px;
+}
+
 .site-header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(11, 12, 16, 0.94);
+  background: rgba(10, 10, 10, 0.92);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border);
 }
 .site-header-inner {
   max-width: 1200px;
@@ -39,7 +51,7 @@
   flex: 1;
 }
 .site-nav-link {
-  color: #8c93a0;
+  color: var(--muted);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -58,11 +70,12 @@
   flex: none;
 }
 .site-header .btn-primary,
-a.btn-primary {
+a.btn-primary,
+.btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #ff2d55, #9b51e0);
+  background: var(--accent);
   color: #fff;
   text-decoration: none;
   padding: 8px 16px;
@@ -70,15 +83,18 @@ a.btn-primary {
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
-  transition: opacity 0.15s;
+  border: none;
+  transition: background 0.15s;
 }
 .site-header .btn-primary:hover,
-a.btn-primary:hover {
-  opacity: 0.92;
+a.btn-primary:hover,
+.btn-primary:hover {
+  background: var(--accent2);
+  opacity: 1;
 }
 .site-footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: #08090c;
+  border-top: 1px solid var(--border);
+  background: #050505;
   padding: 48px 20px;
   margin-top: 60px;
 }
@@ -101,7 +117,7 @@ a.btn-primary:hover {
 }
 .site-footer-tagline {
   font-size: 14px;
-  color: #8c93a0;
+  color: var(--muted);
   margin: 12px 0 6px;
 }
 .site-footer-compliance {
@@ -124,7 +140,7 @@ a.btn-primary:hover {
   margin-bottom: 6px;
 }
 .site-footer-col a {
-  color: #8c93a0;
+  color: var(--muted);
   text-decoration: none;
 }
 .site-footer-col a:hover {

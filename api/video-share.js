@@ -45,7 +45,7 @@ export default function handler(req, res) {
   <script>window.location.replace("/");</script>
 </head>
 <body style="background:#0b0c10;color:#fff;font-family:sans-serif;text-align:center;padding:40px">
-  <p>Redirecting to <a href="/" style="color:#ff2d55">thebestpornai.com</a>...</p>
+  <p>Redirecting to <a href="/" style="color:#E50914">thebestpornai.com</a>...</p>
 </body>
 </html>`;
     res.setHeader("Content-Type", "text/html; charset=utf-8");
@@ -132,7 +132,7 @@ ${JSON.stringify(jsonLd, null, 2)}
 
   <style>
     body {
-      background: #0b0c10;
+      background: #0A0A0A;
       color: #f0f2f5;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       margin: 0;
@@ -144,7 +144,7 @@ ${JSON.stringify(jsonLd, null, 2)}
       box-sizing: border-box;
     }
     .card {
-      background: #13151b;
+      background: #141414;
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 16px;
       max-width: 480px;
@@ -170,7 +170,7 @@ ${JSON.stringify(jsonLd, null, 2)}
       width: 56px;
       height: 56px;
       border-radius: 50%;
-      background: rgba(255,45,85,0.9);
+      background: rgba(229,9,20,0.92);
       color: #fff;
       display: flex;
       align-items: center;
@@ -193,7 +193,7 @@ ${JSON.stringify(jsonLd, null, 2)}
     }
     .btn {
       display: inline-block;
-      background: linear-gradient(135deg, #ff2d55, #9b51e0);
+      background: #E50914;
       color: #fff;
       text-decoration: none;
       padding: 12px 24px;
