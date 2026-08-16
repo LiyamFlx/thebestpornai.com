@@ -21,14 +21,16 @@
   border-bottom: 1px solid var(--border);
 }
 .site-header-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 10px 20px;
-  min-height: 60px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 10px 24px;
+  min-height: 58px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+  box-sizing: border-box;
 }
 .site-brand {
   display: flex;
@@ -39,9 +41,9 @@
 }
 .site-brand-img {
   display: block;
-  height: 26px;
+  height: 24px;
   width: auto;
-  max-width: 220px;
+  max-width: 160px;
 }
 .site-nav {
   display: flex;
@@ -111,9 +113,9 @@ a.btn-primary:hover,
 }
 .site-footer-logo {
   display: block;
-  height: 22px;
+  height: 24px;
   width: auto;
-  max-width: 200px;
+  max-width: 160px;
 }
 .site-footer-tagline {
   font-size: 14px;
@@ -149,9 +151,6 @@ a.btn-primary:hover,
 @media (max-width: 768px) {
   .site-nav {
     display: none;
-  }
-  .site-brand-img {
-    height: 22px;
   }
   .site-header-inner {
     padding: 10px 16px;

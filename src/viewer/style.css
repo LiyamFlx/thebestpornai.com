@@ -64,18 +64,7 @@
 .page-watch .nav button,.page-watch .nav-link-out,.page-watch .nav-account-btn{width:40px}
 .page-watch .nav button .nav-label,.page-watch .nav-link-out .nav-label,.page-watch .nav-account-btn .nav-label{display:none}
 .page-watch .nav-link-out{display:none}
-.topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.site-nav--app{
-  display:flex;align-items:center;justify-content:center;gap:4px;flex:1;min-width:0;
-}
-.site-nav--app .site-nav-link{
-  color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;
-  padding:6px 10px;border-radius:8px;white-space:nowrap;
-}
-.site-nav--app .site-nav-link:hover{color:#fff;background:rgba(255,255,255,.05)}
-@media(max-width:900px){
-  .site-nav--app{display:none}
-}
+.topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
 
 /* Uniform control shape system: every icon-affordance in the chrome (search
    box, search-submit, upload, watch-later, account) is a rounded square at
@@ -1107,7 +1096,7 @@ iframe.player{object-fit:contain}
   display:inline-flex;align-items:center;line-height:0;
 }
 .topbar-brand img{
-  display:block;height:24px;width:auto;max-width:200px;
+  display:block;height:24px;width:auto;max-width:160px;
 } */
 .mobile-hero{display:none}            /* mobile-only featured banner — .hero (above) is its desktop equivalent; only .hero{display:none} was ever added for mobile, this element never had the matching desktop-side hide, so both heroes rendered stacked together on every viewport until now */
 .act-more{display:none}               /* action overflow trigger (mobile only) */
@@ -1669,7 +1658,7 @@ iframe.player{object-fit:contain}
     display: inline-flex !important;
   }
   .topbar-brand img {
-    height: 20px;
+    height: 24px;
   }
 
   .topbar{
