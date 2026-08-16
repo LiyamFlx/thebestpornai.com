@@ -16,6 +16,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { VIDEOS } from "../src/shared/catalog-videos.js";
 import { isoUploadDate } from "../src/shared/dates.js";
+import { FAVICON_LINKS, sharedFooterHtml, sharedHeaderHtml } from "./lib/site-chrome.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
@@ -140,56 +141,6 @@ const TOP_CATEGORIES = [
   { name: "Creampie", desc: "Uncensored internal finishes, dripping climax shots, and intense breeding clips." },
 ];
 
-function sharedHeaderHtml(activeNav = "") {
-  return `
-  <header class="site-header">
-    <div class="site-header-inner">
-      <a class="site-brand" href="/" aria-label="thebestpornai home">
-        <span class="site-brand-badge">4K</span>
-        <span class="site-brand-text">thebestporn<strong>ai</strong></span>
-      </a>
-      <nav class="site-nav" aria-label="Primary">
-        <a class="site-nav-link ${activeNav === 'home' ? 'active' : ''}" href="/">Home</a>
-        <a class="site-nav-link ${activeNav === 'pornstars' ? 'active' : ''}" href="/pornstars/">AI Pornstars</a>
-        <a class="site-nav-link ${activeNav === 'categories' ? 'active' : ''}" href="/categories/">Categories</a>
-        <a class="site-nav-link ${activeNav === 'blog' ? 'active' : ''}" href="/blog/">Editorial &amp; Guides</a>
-      </nav>
-      <div class="site-header-actions">
-        <a class="btn-primary" href="/#search">Search 5,000+ Videos</a>
-      </div>
-    </div>
-  </header>`;
-}
-
-function sharedFooterHtml() {
-  return `
-  <footer class="site-footer">
-    <div class="site-footer-inner">
-      <div class="site-footer-brand">
-        <span class="site-brand-text">thebestporn<strong>ai</strong></span>
-        <p class="site-footer-tagline">Curated AI Adult Entertainment &amp; High-Definition Streaming.</p>
-        <p class="site-footer-compliance">18+ Only. All models are 100% synthetically generated AI personas.</p>
-      </div>
-      <div class="site-footer-links">
-        <div class="site-footer-col">
-          <strong>Explore</strong>
-          <a href="/">Home Viewer</a>
-          <a href="/pornstars/">AI Pornstars</a>
-          <a href="/categories/">All Categories</a>
-          <a href="/blog/">Editorial Blog</a>
-        </div>
-        <div class="site-footer-col">
-          <strong>Legal &amp; Trust</strong>
-          <a href="/legal/terms.html">Terms of Service</a>
-          <a href="/legal/privacy.html">Privacy Policy</a>
-          <a href="/legal/dmca.html">DMCA Notice</a>
-          <a href="/legal/2257.html">18 U.S.C. 2257</a>
-        </div>
-      </div>
-    </div>
-  </footer>`;
-}
-
 function videoCardHtml(v, { eager = false, fetchpriority } = {}) {
   const thumbUrl = v.thumb ? mediaUrl(v.thumb) : "";
   const dur = v.duration ? `<span class="card-dur">${esc(v.duration)}</span>` : "";
@@ -198,13 +149,13 @@ function videoCardHtml(v, { eager = false, fetchpriority } = {}) {
   const fpAttr = fetchpriority ? ` fetchpriority="${fetchpriority}"` : "";
   return `
     <article class="v-card">
-      <a class="v-card-media" href="/#video/${v.id}" title="${esc(v.title)}">
+      <a class="v-card-media" href="/video/${v.id}.html" title="${esc(v.title)}">
         ${thumbUrl ? `<img src="${thumbUrl}" alt="${esc(v.title)}" width="320" height="180" loading="${loading}"${fpAttr} decoding="async"/>` : `<div class="v-ph"></div>`}
         ${dur}
         <span class="v-play-btn" aria-hidden="true">▶</span>
       </a>
       <div class="v-card-body">
-        <h3 class="v-card-title"><a href="/#video/${v.id}">${esc(v.title)}</a></h3>
+        <h3 class="v-card-title"><a href="/video/${v.id}.html">${esc(v.title)}</a></h3>
         <div class="v-card-meta">
           <span>${esc(v.category || "AI")}</span>
           <span>·</span>
@@ -239,8 +190,8 @@ function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, active
   <meta name="twitter:title" content="${esc(title)}"/>
   <meta name="twitter:description" content="${esc(description)}"/>
   <meta name="twitter:image" content="${ogImage || LOGO}"/>
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"/>
-  <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png"/>
+  ${FAVICON_LINKS}
+  <link rel="stylesheet" href="/site-chrome.css"/>
   <link rel="stylesheet" href="/assets/blog.css"/>
   <style>
     :root {
@@ -260,54 +211,6 @@ function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, active
       margin: 0;
       line-height: 1.5;
     }
-    .site-header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(11,12,16,0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-    }
-    .site-header-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .site-brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-      color: #fff;
-      font-weight: 700;
-      font-size: 18px;
-    }
-    .site-brand-badge {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #fff;
-      font-size: 11px;
-      font-weight: 800;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-    .site-brand-text strong { color: var(--accent); }
-    .site-nav {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-    .site-nav-link {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
-      transition: color 0.15s;
-    }
-    .site-nav-link:hover, .site-nav-link.active { color: #fff; }
     .btn-primary {
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       color: #fff;
@@ -432,28 +335,6 @@ function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, active
     .ps-card-info { padding: 16px; flex: 1; }
     .ps-card-name { font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 4px; }
     .ps-card-bio { font-size: 13px; color: var(--muted); margin: 0 0 12px; line-height: 1.4; }
-    .site-footer {
-      border-top: 1px solid var(--border);
-      background: #08090c;
-      padding: 48px 20px;
-      margin-top: 60px;
-    }
-    .site-footer-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 32px;
-    }
-    .site-footer-brand { max-width: 380px; }
-    .site-footer-tagline { font-size: 14px; color: var(--muted); margin: 12px 0 6px; }
-    .site-footer-compliance { font-size: 12px; color: #666; margin: 0; }
-    .site-footer-links { display: flex; gap: 48px; }
-    .site-footer-col { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
-    .site-footer-col strong { color: #fff; margin-bottom: 6px; }
-    .site-footer-col a { color: var(--muted); text-decoration: none; }
-    .site-footer-col a:hover { color: #fff; }
     /* Video Detail Page styles */
     .video-view-wrap { max-width: 1000px; margin: 0 auto; padding: 24px 20px; }
     .video-player-hero {
@@ -708,7 +589,7 @@ function genPornstarProfiles() {
           <h1>${esc(ps.name)}</h1>
           <p>${esc(ps.bio)}</p>
           <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-            <a class="btn-primary" href="/#video/${ps.introVideoId}">Watch Intro Scene</a>
+            <a class="btn-primary" href="/video/${ps.introVideoId}.html">Watch Intro Scene</a>
             ${ps.blogSlug ? `<a class="btn-primary" style="background:var(--surface2);border:1px solid var(--border)" href="/blog/${ps.blogSlug}.html">Read Case Study</a>` : ''}
           </div>
         </div>
@@ -952,7 +833,7 @@ function genVideoPages() {
               <span class="quality-pill">4K Ultra HD</span>
               ${v.duration ? `<span class="duration-pill">${esc(v.duration)}</span>` : ""}
             </div>
-            <a class="video-play-center" href="/#video/${v.id}" title="Play ${esc(v.title)}">
+            <a class="video-play-center" href="/#video/${v.id}" title="Play ${esc(v.title)} in the player">
               <div class="big-play-btn" aria-hidden="true">▶</div>
               <div class="video-play-label">Play 4K Scene in Full Player</div>
             </a>

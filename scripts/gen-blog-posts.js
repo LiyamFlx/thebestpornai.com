@@ -22,6 +22,7 @@ import {
   toInlineFigures,
   absoluteUrl,
 } from "./lib/blog-body.mjs";
+import { FAVICON_LINKS, sharedFooterHtml, sharedHeaderHtml } from "./lib/site-chrome.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
@@ -107,44 +108,11 @@ function fmtViews(n) {
 }
 
 function siteHeader({ mode = "index" } = {}) {
-  return `
-<header class="blog-topbar">
-  <div class="blog-topbar-inner">
-    <a class="blog-logo" href="/">
-      <img src="/src/shared/assets/favicon-64.png" width="28" height="28" alt=""/>
-      <span>thebestpornai</span>
-    </a>
-    <nav class="blog-topnav" aria-label="Primary">
-      <a href="/blog/" class="${mode === "index" ? "is-active" : ""}">Blog</a>
-      <a href="/">Watch</a>
-      <a href="/blog/rss.xml">RSS</a>
-    </nav>
-    <div class="blog-topbar-actions">
-      <a class="blog-cta-watch" href="/">Watch Now</a>
-    </div>
-  </div>
-</header>`;
+  return sharedHeaderHtml(mode === "index" || mode === "post" ? "blog" : mode);
 }
 
 function siteFooter() {
-  return `
-<footer class="blog-footer">
-  <div class="blog-shell">
-    <div class="blog-footer-brand">thebestpornai</div>
-    <div class="blog-footer-links">
-      <a href="/blog/">Blog</a>
-      <a href="/blog/rss.xml">RSS</a>
-      <a href="/">Watch</a>
-      <a href="/legal/terms.html">Terms</a>
-      <a href="/legal/privacy.html">Privacy</a>
-      <a href="/legal/2257.html">2257</a>
-      <a href="/legal/dmca.html">DMCA</a>
-      <a href="mailto:contact@thebestpornai.com">Contact</a>
-    </div>
-    <p class="blog-footer-copy">© 2026 THEBESTPORNAI. Read the fantasy. Watch the real thing.</p>
-    <p class="blog-footer-age">18+ ONLY · Adult content · By entering you confirm you are of legal age</p>
-  </div>
-</footer>`;
+  return sharedFooterHtml();
 }
 
 function plainText(html) {
@@ -518,7 +486,7 @@ function renderPost(post) {
 <meta name="article:modified_time" content="${esc(post.dateModified || post.date)}"/>
 <link rel="canonical" href="${url}"/>
 <link rel="alternate" type="application/rss+xml" title="thebestpornai Blog" href="${ORIGIN}/blog/rss.xml"/>
-<link rel="icon" type="image/png" href="/src/shared/assets/favicon-32.png"/>
+${FAVICON_LINKS}
 <meta property="og:type" content="article"/>
 <meta property="og:site_name" content="thebestpornai"/>
 <meta property="og:title" content="${esc(cleanPostTitle)}"/>
@@ -537,6 +505,7 @@ ${JSON.stringify(jsonLd, null, 2)}
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; base-uri 'self'; form-action 'self' mailto:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' ${SUPABASE_ORIGIN} https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com;">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/src/shared/theme.css"/>
+<link rel="stylesheet" href="/site-chrome.css"/>
 </head>
 <body class="blog-body">
 <div class="blog-progress" aria-hidden="true"><i id="blog-progress-bar"></i></div>
@@ -769,7 +738,7 @@ function renderIndex() {
 
 <link rel="canonical" href="${ORIGIN}/blog/"/>
 <link rel="alternate" type="application/rss+xml" title="thebestpornai Blog" href="${ORIGIN}/blog/rss.xml"/>
-<link rel="icon" type="image/png" href="/src/shared/assets/favicon-32.png"/>
+${FAVICON_LINKS}
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="thebestpornai"/>
 <meta property="og:title" content="Blog | thebestpornai — AI Porn Guides &amp; Fantasies"/>
@@ -788,6 +757,7 @@ ${JSON.stringify(jsonLd, null, 2)}
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; base-uri 'self'; form-action 'self' mailto:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' ${SUPABASE_ORIGIN} https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com;">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/src/shared/theme.css"/>
+<link rel="stylesheet" href="/site-chrome.css"/>
 </head>
 <body class="blog-body">
 ${siteHeader({ mode: "index" })}
