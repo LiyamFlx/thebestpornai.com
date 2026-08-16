@@ -5,6 +5,7 @@ import { DATA, toast } from "../shared/catalog.js";
 import { vstate, pushHistory } from "./state.js";
 import { jsdec } from "./util.js";
 import { visible } from "./catalog-queries.js";
+import { PORNSTARS_PATH, categoryPagePath } from "../shared/public-routes.js";
 
 let _suppressHash = false;
 let _pendingHydrate = null;   // video id to hydrate after the next render
@@ -180,7 +181,13 @@ export function applyHash(){
   const mps=h.match(/^pornstar\/(.+)$/);
   if(mps){ vstate.creatorId=jsdec(mps[1]); vstate.page="creator"; vstate.feedFocusId = null; return; }
   if(h === "pornstars" || h === "pornstar"){
-    vstate.page = "pornstars";
+    location.replace(PORNSTARS_PATH);
+    return;
+  }
+  if(h === "movies" || h === "scenes" || h === "clips"){
+    vstate.page = "home";
+    vstate.homeFilter = h;
+    vstate.homeCategory = "";
     vstate.feedFocusId = null;
     return;
   }
@@ -193,8 +200,28 @@ export function applyHash(){
   }
   const ms=h.match(/^search\/(.+)$/);
   if(ms){ vstate.searchQuery=jsdec(ms[1]); vstate.page="search"; vstate.feedFocusId = null; return; }
+  const mbrowse=h.match(/^browse\/(.+)$/);
+  if(mbrowse){
+    vstate.homeCategory = jsdec(mbrowse[1]);
+    vstate.homeFilter = "all";
+    vstate.page = "home";
+    vstate.feedFocusId = null;
+    return;
+  }
   const mcat=h.match(/^category\/(.+)$/);
-  if(mcat){ vstate.homeCategory=jsdec(mcat[1]); vstate.homeFilter="all"; vstate.page="home"; vstate.feedFocusId = null; return; }
+  if(mcat){
+    const name = jsdec(mcat[1]);
+    const landing = categoryPagePath(name);
+    if(landing){
+      location.replace(landing);
+      return;
+    }
+    vstate.homeCategory = name;
+    vstate.homeFilter = "all";
+    vstate.page = "home";
+    vstate.feedFocusId = null;
+    return;
+  }
   // Library hub: #library or #library/later|favorites|history|downloads
   const mlib=h.match(/^library(?:\/(later|favorites|history|downloads))?$/);
   if(mlib){

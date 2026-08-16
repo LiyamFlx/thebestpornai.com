@@ -726,13 +726,13 @@ function genCategoryPages() {
         <div class="page-hero-inner">
           <h1>${esc(cat.name)} AI Porn Videos</h1>
           <p>${esc(cat.desc)}</p>
-          <a class="btn-primary" href="/#category/${encodeURIComponent(cat.name)}">Open Category in Video Player</a>
+          <a class="btn-primary" href="/#browse/${encodeURIComponent(cat.name)}">Open Category in Video Player</a>
         </div>
       </section>
       <main class="main-wrap">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
           <h2 style="font-size:20px;font-weight:700;margin:0">Popular ${esc(cat.name)} Scenes (${categoryVideos.length})</h2>
-          <a class="btn-primary" style="font-size:12px" href="/#category/${encodeURIComponent(cat.name)}">Play All</a>
+          <a class="btn-primary" style="font-size:12px" href="/#browse/${encodeURIComponent(cat.name)}">Play All</a>
         </div>
         <div class="v-grid">
           ${videoCards.length ? videoCards : '<p style="color:var(--muted)">New scenes being generated daily.</p>'}

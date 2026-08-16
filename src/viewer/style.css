@@ -1081,6 +1081,7 @@ iframe.player{object-fit:contain}
   background:transparent;border:none;color:var(--muted);
   font-size:12.5px;font-weight:500;padding:6px 12px;border-radius:7px;
   cursor:pointer;transition:color .15s,background .15s;letter-spacing:.1px;
+  text-decoration:none;display:inline-flex;align-items:center;
 }
 .filter-pill:hover{color:var(--text);background:var(--surface2)}
 .filter-pill.active{color:#fff;background:var(--surface2);font-weight:600}
@@ -1135,6 +1136,7 @@ iframe.player{object-fit:contain}
   background:transparent;border:none;color:var(--text);text-align:left;
   font-size:12.5px;font-weight:500;padding:8px 10px;border-radius:8px;
   cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:all .14s ease;
+  text-decoration:none;display:block;
 }
 .cat-more-item:hover{background:rgba(255,255,255,0.1);color:#fff}
 .cat-more-item.active{background:var(--accent);color:#fff;font-weight:700}

@@ -14,6 +14,7 @@ import { render } from "./render.js";
 import { hydrateWatch, persist } from "./hydrate.js";
 import { patchComments, commentsFor, renderCommentList } from "./comments.js";
 import { pubVideos, visible } from "./catalog-queries.js";
+import { PORNSTARS_PATH, categoryPagePath } from "../shared/public-routes.js";
 
 /* Primary navigation destinations. Legacy aliases (later/favorites/…) route
    into the Library hub with the matching tab so old links and menus still work. */
@@ -51,6 +52,10 @@ export function go(p){
     setHash("");
     render();
     scrollToTop();
+    return;
+  }
+  if(p === "pornstars" || p === "pornstar"){
+    location.assign(PORNSTARS_PATH);
     return;
   }
   // Shorts tab: open the vertical feed without a pinned clip (shareable bare #shorts)
@@ -236,11 +241,16 @@ export function openCreator(cid){
 
 export function setHomeFilter(f){
   const allowed = new Set(["all","movies","scenes","clips","pornstars"]);
-  vstate.homeFilter = allowed.has(f) ? f : "all";
+  const next = allowed.has(f) ? f : "all";
+  if(next === "pornstars"){
+    location.assign(PORNSTARS_PATH);
+    return;
+  }
+  vstate.homeFilter = next;
   vstate.homeCategory = "";
   vstate.homeExpandCats = false;
-  // Stars are people, not a sorted video list — reset sort noise
-  if(vstate.homeFilter === "pornstars") vstate.homeSort = "none";
+  vstate.page = "home";
+  setHash(next === "all" ? "" : next);
   render();
 }
 export function setHomeSort(s){ vstate.homeSort = s; render(); }
@@ -255,10 +265,23 @@ export function setHomeExpandCats(on){
 export function setHomeCategory(c){
   c = jsdec(c);
   document.querySelectorAll(".cat-more.open").forEach(el => el.classList.remove("open"));
-  vstate.homeCategory = (vstate.homeCategory === c) ? "" : c;   // toggle off if same
+  if(!c || vstate.homeCategory === c){
+    vstate.homeCategory = "";
+    vstate.page = "home";
+    vstate.homeFilter = "all";
+    setHash("");
+    render();
+    return;
+  }
+  const landing = categoryPagePath(c);
+  if(landing){
+    location.assign(landing);
+    return;
+  }
+  vstate.homeCategory = c;
   vstate.page = "home";
   vstate.homeFilter = "all";
-  setHash(vstate.homeCategory ? "category/"+encodeURIComponent(vstate.homeCategory) : "");
+  setHash("browse/"+encodeURIComponent(c));
   render();
   if (window.scrollY > 400) scrollToTop();
 }

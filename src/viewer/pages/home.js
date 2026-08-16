@@ -2,6 +2,7 @@
 import { DATA, esc, creatorName, fmt, mediaUrl, ytId } from "../../shared/catalog.js";
 import { videoCard, rowSection, emptyState } from "../../shared/ui.js";
 import { CATEGORIES, POPULAR_TAGS } from "../../shared/taxonomy.js";
+import { categoryPagePath, homeFilterHref } from "../../shared/public-routes.js";
 import { POSTS, postsForHub, isFeaturedPost } from "../../blog/posts.js";
 import { postCoverThumbUrl } from "../../blog/card.js";
 import { vstate, persistState } from "../state.js";
@@ -139,9 +140,16 @@ function homeFilterBar(){
   const showSort = vstate.homeFilter !== "pornstars";
   return `<div class="home-toolbar-v2">
     <div class="home-chips-strip mchrome-scroll">
-      ${filters.map(([key,label])=>`<button type="button" class="filter-pill ${(vstate.homeFilter===key && !activeCat)?'active':''}" onclick="setHomeCategory(''); setHomeFilter('${key}')">${label}</button>`).join("")}
+      ${filters.map(([key,label])=>{
+        const href = homeFilterHref(key);
+        const on = vstate.homeFilter===key && !activeCat;
+        return `<a href="${esc(href)}" class="filter-pill ${on?'active':''}" ${key==="pornstars"?"":`onclick="setHomeFilter('${key}'); return false;"`}>${label}</a>`;
+      }).join("")}
       <span class="filter-divider"></span>
-      ${POPULAR_QUICK_CATS.map(c=>`<button type="button" class="filter-pill ${activeCat===c?'active':''}" onclick="setHomeFilter('all'); setHomeCategory('${jsq(c)}')">${esc(c)}</button>`).join("")}
+      ${POPULAR_QUICK_CATS.map(c=>{
+        const href = categoryPagePath(c) || ("/#browse/"+encodeURIComponent(c));
+        return `<a href="${esc(href)}" class="filter-pill ${activeCat===c?'active':''}">${esc(c)}</a>`;
+      }).join("")}
       <span class="cat-more">
         <button type="button" class="filter-pill cat-picker-btn ${activeCat && !POPULAR_QUICK_CATS.includes(activeCat)?'active':''}" onclick="toggleCatMenu(this, event)">
           <span class="cat-pill-label">${activeCat && !POPULAR_QUICK_CATS.includes(activeCat) ? esc(activeCat) : 'More Categories (' + CATEGORIES.length + ')'}</span>
@@ -150,7 +158,10 @@ function homeFilterBar(){
         <div class="cat-more-menu">
           <div class="cat-more-menu-header">All Categories (${CATEGORIES.length})</div>
           <div class="cat-more-grid">
-            ${CATEGORIES.map(c=>`<button type="button" class="cat-more-item ${activeCat===c?'active':''}" onclick="setHomeCategory('${jsq(c)}'); event.stopPropagation();">${esc(c)}</button>`).join("")}
+            ${CATEGORIES.map(c=>{
+              const href = categoryPagePath(c) || ("/#browse/"+encodeURIComponent(c));
+              return `<a href="${esc(href)}" class="cat-more-item ${activeCat===c?'active':''}">${esc(c)}</a>`;
+            }).join("")}
           </div>
         </div>
       </span>

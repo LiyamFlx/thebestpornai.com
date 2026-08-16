@@ -1551,7 +1551,7 @@ export const SEED_POSTS = [
         <strong>Verdict:</strong> For users whose primary goal is consuming high-retention, top-tier AI porn video without technical friction or subscription costs, thebestpornai is the uncontested #1 platform in 2026.
       </div>
 
-      <a href="/#pornstars" class="blog-embed">
+      <a href="/pornstars/" class="blog-embed">
         <div class="blog-embed-thumb" style="background-image:url('https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/Marsha%20Banks/Marsha%20Banks%20Intro.jpg')"></div>
         <div class="blog-embed-info">
           <div class="blog-embed-label">Stream Free on thebestpornai</div>
