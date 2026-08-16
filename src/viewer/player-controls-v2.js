@@ -563,7 +563,7 @@ export function copyVideoLinkV2(id){
 }
 
 export function copyEmbedCodeV2(id){
-  const url = `${location.origin}/#video/${id}`;
+  const url = `${location.origin}/watch/${id}`;
   const code = `<iframe src="${url}" width="640" height="360" frameborder="0" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>`;
   if(navigator.clipboard) navigator.clipboard.writeText(code).then(()=>window.toast("Embed code copied"), ()=>window.toast("Embed copy failed"));
   else window.toast("Embed copy failed");

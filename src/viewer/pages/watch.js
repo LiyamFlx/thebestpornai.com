@@ -372,7 +372,7 @@ function watchTabsNav(commentCount){
 
 
 function sheetsAndModals(v, c){
-  const shareUrl = typeof location !== "undefined" ? (location.href.split("#")[0] + "#video/" + v.id) : `https://www.thebestpornai.com/#video/${v.id}`;
+  const shareUrl = typeof location !== "undefined" ? `${location.origin}/watch/${v.id}` : `https://www.thebestpornai.com/watch/${v.id}`;
   return `
     <div class="sheet-backdrop" id="shareSheet" hidden aria-hidden="true" data-act="close-sheet-backdrop" data-sheet="shareSheet">
       <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="shareSheetTitle">
@@ -668,7 +668,7 @@ function dispatch(el, evtType, evt){
 // TODO: verify #video/<id> hash shape against router.js's route table.
 function primeShareLink(el){
   const id = el.dataset.id;
-  const url = location.href.split("#")[0] + "#video/" + id;
+  const url = location.origin + "/watch/" + id;
   if(el.dataset.act === "share-whatsapp"){
     el.href = "https://wa.me/?text=" + encodeURIComponent(url);
   } else if(el.dataset.act === "share-twitter"){

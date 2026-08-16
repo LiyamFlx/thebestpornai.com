@@ -59,8 +59,31 @@ const videoInputs = existsSync(videoDir)
     )
   : {};
 
+const SPA_PATH = /^\/(movies|scenes|clips|watch\/|shorts|search|browse\/|library|creator\/|movie\/|explore|subscriptions|profile|settings|originals)(\/|$)/;
+
+function spaFallback() {
+  return {
+    name: "spa-path-fallback",
+    configureServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        const url = req.url || "";
+        if (SPA_PATH.test(url.split("?")[0])) req.url = "/index.html";
+        next();
+      });
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        const url = req.url || "";
+        if (SPA_PATH.test(url.split("?")[0])) req.url = "/index.html";
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
   root: ".",
+  plugins: [spaFallback()],
   define: {
     "process.env.SUPABASE_URL": JSON.stringify(process.env.SUPABASE_URL),
     "process.env.SUPABASE_KEY": JSON.stringify(process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY),

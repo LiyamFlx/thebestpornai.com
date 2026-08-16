@@ -363,7 +363,7 @@ function addStructuredData(){
           "uploadDate": isoDate(v.uploaded),
           "duration": isoDuration(v.duration),
           "contentUrl": v.src ? mediaUrl(v.src) : undefined,
-          "url": "https://www.thebestpornai.com/#video/" + v.id,
+          "url": "https://www.thebestpornai.com/watch/" + v.id,
         }
       }))
     };

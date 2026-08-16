@@ -56,14 +56,6 @@
   background:var(--surface2,rgba(255,255,255,.06));border:1px solid var(--border);
   border-radius:20px;padding:3px 10px;letter-spacing:.2px;
 }
-/* Watch page: maximize immersion by shrinking the global chrome down to just
-   navigation essentials (brand mark, the 5 core destinations, search,
-   avatar). Nothing is removed from the DOM — collapsed via CSS so leaving
-   the watch page restores full chrome instantly with no re-render. */
-.page-watch .sidebar{width:56px}
-.page-watch .nav button,.page-watch .nav-link-out,.page-watch .nav-account-btn{width:40px}
-.page-watch .nav button .nav-label,.page-watch .nav-link-out .nav-label,.page-watch .nav-account-btn .nav-label{display:none}
-.page-watch .nav-link-out{display:none}
 .topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
 
 /* Uniform control shape system: every icon-affordance in the chrome (search

@@ -57,8 +57,8 @@ export default function handler(req, res) {
   const thumbUrl = v.thumb ? mediaUrl(v.thumb) : LOGO;
   const videoStreamUrl = v.src ? mediaUrl(v.src) : "";
   const shareUrl = `${ORIGIN}/v/${v.id}`;
-  const directWatchUrl = `${ORIGIN}/#video/${v.id}`;
-  const embedUrl = `${ORIGIN}/viewer/index.html#video/${v.id}`;
+  const directWatchUrl = `${ORIGIN}/watch/${v.id}`;
+  const embedUrl = `${ORIGIN}/watch/${v.id}`;
 
   const jsonLd = {
     "@context": "https://schema.org",

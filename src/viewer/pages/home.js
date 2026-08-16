@@ -2,7 +2,7 @@
 import { DATA, esc, creatorName, fmt, mediaUrl, ytId } from "../../shared/catalog.js";
 import { videoCard, rowSection, emptyState } from "../../shared/ui.js";
 import { CATEGORIES, POPULAR_TAGS } from "../../shared/taxonomy.js";
-import { categoryPagePath, homeFilterHref } from "../../shared/public-routes.js";
+import { browsePath, homeFilterHref } from "../../shared/public-routes.js";
 import { POSTS, postsForHub, isFeaturedPost } from "../../blog/posts.js";
 import { postCoverThumbUrl } from "../../blog/card.js";
 import { vstate, persistState } from "../state.js";
@@ -147,7 +147,7 @@ function homeFilterBar(){
       }).join("")}
       <span class="filter-divider"></span>
       ${POPULAR_QUICK_CATS.map(c=>{
-        const href = categoryPagePath(c) || ("/#browse/"+encodeURIComponent(c));
+        const href = browsePath(c);
         return `<a href="${esc(href)}" class="filter-pill ${activeCat===c?'active':''}">${esc(c)}</a>`;
       }).join("")}
       <span class="cat-more">
@@ -159,7 +159,7 @@ function homeFilterBar(){
           <div class="cat-more-menu-header">All Categories (${CATEGORIES.length})</div>
           <div class="cat-more-grid">
             ${CATEGORIES.map(c=>{
-              const href = categoryPagePath(c) || ("/#browse/"+encodeURIComponent(c));
+              const href = browsePath(c);
               return `<a href="${esc(href)}" class="cat-more-item ${activeCat===c?'active':''}">${esc(c)}</a>`;
             }).join("")}
           </div>

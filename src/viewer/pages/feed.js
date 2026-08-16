@@ -332,9 +332,8 @@ export function attachFeedObserver() {
         // of the address bar matches the clip on screen (IG Reel behaviour).
         // replace:true — swipe-through must not flood the Back stack.
         if(Number.isFinite(videoId) && vstate.page === "feed"){
-          const want = "shorts/" + videoId;
-          const cur = (location.hash || "").replace(/^#/, "");
-          if(cur !== want) setHash(want, { replace: true });
+          const want = "/shorts/" + videoId;
+          if(location.pathname !== want) setHash("shorts/" + videoId, { replace: true });
           vstate.feedFocusId = videoId;
         }
         // Hydrate this item + neighbours and devirtualize anything that

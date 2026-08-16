@@ -9,7 +9,7 @@ import { ShAPI } from "../shared/streamhub-api.js";
 import { applyVote, storedVoteFor, writeStoredVote } from "../shared/vote-logic.js";
 import { vstate, pushHistory, onWatch, persistState, COMMENT_MAX_LEN } from "./state.js";
 import { jsdec } from "./util.js";
-import { setHash, scrollToTop, saveScrollPosition, takeSavedReturn } from "./router.js";
+import { setHash, setPath, scrollToTop, saveScrollPosition, takeSavedReturn } from "./router.js";
 import { render } from "./render.js";
 import { hydrateWatch, persist } from "./hydrate.js";
 import { patchComments, commentsFor, renderCommentList } from "./comments.js";
@@ -144,7 +144,9 @@ export function closeWatch(){
   if(vstate.page !== "watch") return;
   const saved = takeSavedReturn();
   vstate.page = saved?.page || "home";
-  setHash((saved?.hash || "").replace(/^#/, ""));
+  const back = saved?.hash || "/";
+  if(back.startsWith("/")) setPath(back, { replace: true });
+  else setHash(String(back).replace(/^#/, ""), { replace: true });
   render();
   if(saved){
     window.scrollTo(0, saved.y);
@@ -604,16 +606,12 @@ export function reportVideo(id){
   persist(()=> ShAPI.moderate(id, "reported", "user report", null));
 }
 
-/* Share a deep link. Vertical (Shorts) clips use #shorts/N so the recipient
-   lands on that exact reel in the feed — same idea as an IG Reel URL.
-   Landscape clips keep #video/N (watch page). Prefer the Web Share sheet on
-   mobile when available; fall back to clipboard. */
+/* Share a deep link. Vertical clips use /shorts/N; landscape uses /watch/N. */
 export function shareVideo(id){
   id = +id;
   const v = DATA.videos.find((x) => x.id === id);
   const isShort = v && v.orientation === "vertical";
-  const hash = isShort ? ("shorts/" + id) : ("video/" + id);
-  const url = `${location.origin}/v/${id}`;
+  const url = isShort ? `${location.origin}/shorts/${id}` : `${location.origin}/watch/${id}`;
   const title = (v && v.title) ? `${v.title} — thebestpornai` : "Watch on thebestpornai";
 
   if(typeof navigator.share === "function"){

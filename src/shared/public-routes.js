@@ -24,13 +24,61 @@ export function categoryPagePath(name) {
   return `/categories/${slug}.html`;
 }
 
-/** In-app Home browse for a category (not the SEO landing). */
-export function categoryBrowseHash(name) {
-  return "browse/" + encodeURIComponent(name);
+import { CATEGORIES } from "./taxonomy.js";
+
+export function categoryNameFromSlug(slug) {
+  const s = slugifySegment(slug);
+  const all = [...PUBLIC_CATEGORY_NAMES, ...CATEGORIES];
+  return all.find((n) => slugifySegment(n) === s) || String(slug || "").replace(/-/g, " ");
+}
+
+/** In-app Home browse when there is no SEO landing. */
+export function browsePath(name) {
+  const landing = categoryPagePath(name);
+  if (landing) return landing;
+  return "/browse/" + slugifySegment(name);
+}
+
+export function watchPath(id) {
+  return "/watch/" + Number(id);
+}
+
+export function shortsPath(id) {
+  return id == null || id === "" ? "/shorts" : "/shorts/" + Number(id);
 }
 
 export function homeFilterHref(filter) {
   if (filter === "pornstars") return PORNSTARS_PATH;
-  if (filter === "movies" || filter === "scenes" || filter === "clips") return "/#" + filter;
+  if (filter === "movies" || filter === "scenes" || filter === "clips") return "/" + filter;
   return "/";
+}
+
+/** Map a legacy hash (or leftover setHash arg) to a canonical path. */
+export function hashToPath(h) {
+  const raw = String(h || "").replace(/^#/, "");
+  if (!raw) return "/";
+  let m;
+  if ((m = raw.match(/^video\/(\d+)$/))) return watchPath(m[1]);
+  if ((m = raw.match(/^(?:shorts|feed)\/(\d+)$/))) return shortsPath(m[1]);
+  if (raw === "shorts" || raw === "feed" || raw === "shorts/" || raw === "feed/") return "/shorts";
+  if (raw === "movies" || raw === "scenes" || raw === "clips") return "/" + raw;
+  if (raw === "search" || raw === "search/") return "/search";
+  if (raw.startsWith("search/")) return "/search/" + raw.slice(7);
+  if (raw.startsWith("browse/")) return browsePath(decodeURIComponent(raw.slice(7)));
+  if (raw.startsWith("category/")) {
+    const name = decodeURIComponent(raw.slice(9));
+    return categoryPagePath(name) || browsePath(name);
+  }
+  if (raw === "pornstars" || raw === "pornstar") return PORNSTARS_PATH;
+  if ((m = raw.match(/^library(?:\/(later|favorites|history|downloads))?$/))) {
+    return m[1] ? "/library/" + m[1] : "/library";
+  }
+  if (raw === "later" || raw === "favorites" || raw === "history" || raw === "downloads") {
+    return "/library/" + raw;
+  }
+  if (raw.startsWith("creator/")) return "/creator/" + raw.slice(8);
+  if (raw.startsWith("pornstar/")) return "/creator/" + raw.slice(9);
+  if (raw.startsWith("movie/")) return "/movie/" + raw.slice(6);
+  if (raw === "home") return "/";
+  return "/" + raw.replace(/^\/+/, "");
 }

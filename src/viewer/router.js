@@ -5,7 +5,14 @@ import { DATA, toast } from "../shared/catalog.js";
 import { vstate, pushHistory } from "./state.js";
 import { jsdec } from "./util.js";
 import { visible } from "./catalog-queries.js";
-import { PORNSTARS_PATH, categoryPagePath } from "../shared/public-routes.js";
+import {
+  PORNSTARS_PATH,
+  categoryPagePath,
+  categoryNameFromSlug,
+  hashToPath,
+  watchPath,
+  shortsPath,
+} from "../shared/public-routes.js";
 
 let _suppressHash = false;
 let _pendingHydrate = null;   // video id to hydrate after the next render
@@ -36,7 +43,7 @@ export function saveScrollPosition(){
     y: window.scrollY,
     viewTop: view ? view.scrollTop : 0,
     page: vstate.page,
-    hash: location.hash,
+    hash: location.pathname + location.search + location.hash,
   };
 }
 
@@ -46,21 +53,29 @@ export function takeSavedReturn(){
   return s;
 }
 
-/* Update the URL hash. `replace:true` uses history.replaceState so live search
-   typing does not push a history entry per keystroke (Back would be unusable). */
-export function setHash(h, opts = {}){
+export function setPath(path, opts = {}){
   _suppressHash = true;
-  const next = h ? ("#" + h) : "";
-  if(opts.replace){
-    try {
-      history.replaceState(null, "", location.pathname + location.search + next);
-    } catch(_){
-      location.hash = next;
-    }
-  } else {
-    location.hash = next;
+  let next = path || "/";
+  if(!next.startsWith("/")) next = "/" + next;
+  try {
+    const url = next + (opts.keepSearch ? location.search : "");
+    if(opts.replace) history.replaceState(null, "", url);
+    else history.pushState(null, "", url);
+  } catch(_){
+    location.href = next;
   }
   setTimeout(()=>_suppressHash=false, 0);
+}
+
+/* Legacy name: callers still pass hash fragments; we write real paths. */
+export function setHash(h, opts = {}){
+  const path = hashToPath(h);
+  if(path.startsWith("/pornstars") || path.startsWith("/categories/")){
+    if(opts.replace) location.replace(path);
+    else location.assign(path);
+    return;
+  }
+  setPath(path, opts);
 }
 
 /* Accept legacy / external links that use ?video=N (blog CTAs used this before
@@ -80,21 +95,152 @@ export function promoteVideoQuery(){
       if(!Number.isFinite(id)) return;
       url.searchParams.delete("shorts");
       url.searchParams.delete("feed");
-      url.hash = "shorts/" + id;
-      history.replaceState(null, "", url.pathname + url.search + url.hash);
+      history.replaceState(null, "", shortsPath(id));
       return;
     }
     if(!videoQ) return;
     const id = Number(videoQ);
     if(!Number.isFinite(id)) return;
     url.searchParams.delete("video");
-    url.hash = "video/" + id;
-    history.replaceState(null, "", url.pathname + url.search + url.hash);
+    history.replaceState(null, "", watchPath(id));
   } catch(_){}
 }
 
+function openWatchById(id){
+  const vid = DATA.videos.find(v => v.id === +id);
+  if(vid && visible(vid)){
+    if(vid.orientation === "vertical"){
+      vstate.page = "feed";
+      vstate.feedFocusId = vid.id;
+      _pendingFeedFocus = vid.id;
+      setPath(shortsPath(vid.id), { replace: true });
+      return true;
+    }
+    vstate.current = vid;
+    pushHistory(vid.id);
+    vstate.page = "watch";
+    vstate.feedFocusId = null;
+    _pendingHydrate = vid.id;
+    return true;
+  }
+  if(!_catalogReady) return true;
+  setPath("/", { replace: true });
+  vstate.page = "home";
+  vstate.feedFocusId = null;
+  setTimeout(() => toast("That video isn't available."), 0);
+  return true;
+}
+
+function openShortsById(id){
+  const vid = DATA.videos.find(v => v.id === +id);
+  if(vid && visible(vid) && vid.orientation === "vertical"){
+    vstate.page = "feed";
+    vstate.feedFocusId = id;
+    _pendingFeedFocus = id;
+    return true;
+  }
+  if(vid && visible(vid)){
+    vstate.current = vid;
+    pushHistory(vid.id);
+    vstate.page = "watch";
+    vstate.feedFocusId = null;
+    _pendingHydrate = vid.id;
+    setPath(watchPath(id), { replace: true });
+    return true;
+  }
+  if(!_catalogReady) return true;
+  vstate.page = "feed";
+  vstate.feedFocusId = null;
+  setPath("/shorts", { replace: true });
+  setTimeout(() => toast("That Short isn't available."), 0);
+  return true;
+}
+
+function applyPath(){
+  const p = (location.pathname || "/").replace(/\/+$/, "") || "/";
+  if(p === "/"){
+    if(location.hash && location.hash !== "#") return false;
+    vstate.page = "home";
+    vstate.homeFilter = "all";
+    vstate.homeCategory = "";
+    vstate.feedFocusId = null;
+    return true;
+  }
+  if(p === "/movies" || p === "/scenes" || p === "/clips"){
+    vstate.page = "home";
+    vstate.homeFilter = p.slice(1);
+    vstate.homeCategory = "";
+    vstate.feedFocusId = null;
+    return true;
+  }
+  let m;
+  if((m = p.match(/^\/watch\/(\d+)$/))) return openWatchById(+m[1]);
+  if((m = p.match(/^\/shorts\/(\d+)$/))) return openShortsById(+m[1]);
+  if(p === "/shorts"){
+    vstate.page = "feed";
+    vstate.feedFocusId = null;
+    _pendingFeedFocus = null;
+    return true;
+  }
+  if(p === "/search"){
+    vstate.page = "search";
+    vstate.searchQuery = "";
+    vstate.feedFocusId = null;
+    return true;
+  }
+  if((m = p.match(/^\/search\/(.+)$/))){
+    vstate.searchQuery = jsdec(m[1]);
+    vstate.page = "search";
+    vstate.feedFocusId = null;
+    return true;
+  }
+  if((m = p.match(/^\/browse\/(.+)$/))){
+    vstate.homeCategory = categoryNameFromSlug(jsdec(m[1]));
+    vstate.homeFilter = "all";
+    vstate.page = "home";
+    vstate.feedFocusId = null;
+    return true;
+  }
+  if((m = p.match(/^\/library(?:\/(later|favorites|history|downloads))?$/))){
+    vstate.page = "library";
+    vstate.libraryTab = m[1] || vstate.libraryTab || "later";
+    vstate.feedFocusId = null;
+    return true;
+  }
+  if((m = p.match(/^\/creator\/(.+)$/))){
+    vstate.creatorId = jsdec(m[1]);
+    vstate.page = "creator";
+    vstate.feedFocusId = null;
+    return true;
+  }
+  if((m = p.match(/^\/movie\/(.+)$/))){
+    vstate.currentMovieTitle = jsdec(m[1]);
+    vstate.page = "movie";
+    vstate.feedFocusId = null;
+    return true;
+  }
+  const SPA_PAGES = new Set(["explore","subscriptions","profile","settings","originals","feed"]);
+  const page = p.slice(1);
+  if(SPA_PAGES.has(page)){
+    vstate.page = page === "feed" ? "feed" : page;
+    vstate.feedFocusId = null;
+    return true;
+  }
+  return false;
+}
+
 export function applyHash(){
+  if(applyPath()) return;
+
   const h=(location.hash||"").replace(/^#/,"");
+  if(h){
+    const dest = hashToPath(h);
+    if(dest !== location.pathname){
+      location.replace(dest);
+      return;
+    }
+  }
+
   const m=h.match(/^video\/(\d+)$/);
   if(m){
     const vid=DATA.videos.find(v=>v.id===+m[1]);
@@ -265,10 +411,12 @@ export function takePendingFeedFocus(){
 
 /* Registered from main.js so this module stays side-effect-free on import. */
 export function initRouter(onChange){
-  window.addEventListener("hashchange", ()=>{
+  const run = ()=>{
     if(_suppressHash) return;
     applyHash();
     onChange();
-    scrollToTop();   // back/forward: land at the top of the restored page
-  });
+    scrollToTop();
+  };
+  window.addEventListener("hashchange", run);
+  window.addEventListener("popstate", run);
 }
