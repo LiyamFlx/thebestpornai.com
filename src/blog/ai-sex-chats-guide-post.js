@@ -107,6 +107,7 @@ export const AI_SEX_CHATS_GUIDE_POST = {
       <li><a href="/blog/best-ai-companion-uncensored-image-platforms-2026.html">Best AI companion &amp; uncensored image platforms</a></li>
       <li><a href="/blog/what-is-ai-sex-chat-ourdream.html">What is AI sex chat on OurDream.ai?</a></li>
       <li><a href="/blog/ourdream-ai-vs-candy-ai-comparison.html">OurDream vs Candy AI</a></li>
+      <li><a href="/blog/nastia-ai-sex-chat-faq.html">Nastia.ai sex chat FAQ</a></li>
       <li><a href="/">Watch finished AI scenes</a> (no credits)</li>
     </ul>
 
