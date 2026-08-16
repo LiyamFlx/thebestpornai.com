@@ -1,5 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/blog/best-ai-porn-sites-2026.html",
+      "destination": "/blog/best-ai-porn-sites-2026-ranking.html",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/v/:id", "destination": "/api/video-share?id=:id" },
     { "source": "/watch/:id", "destination": "/api/video-share?id=:id" }

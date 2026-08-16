@@ -14,6 +14,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { POSTS } from "../src/blog/posts.js";
+import { isRedirectedSlug } from "../src/blog/redirects.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
@@ -53,6 +54,7 @@ const pages = [
 
 // Every editorial post — primary indexable content surface for organic reach.
 for (const post of POSTS) {
+  if (isRedirectedSlug(post.slug)) continue;
   pages.push({
     loc: `/blog/${post.slug}.html`,
     changefreq: "monthly",

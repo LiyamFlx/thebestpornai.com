@@ -21,6 +21,7 @@ import { AI_SEX_CHATS_GUIDE_POST } from "./ai-sex-chats-guide-post.js";
 import { NASTIA_AI_SEX_CHAT_FAQ_POST } from "./nastia-ai-sex-chat-faq-post.js";
 import { BEST_AI_PORN_SITES_RANKING_2026_POST } from "./best-ai-porn-sites-ranking-2026-post.js";
 import { GPTGIRLFRIEND_REVIEW_2026_POST } from "./gptgirlfriend-review-2026-post.js";
+import { isRedirectedSlug } from "./redirects.js";
 
 export const BLOG_AUTHOR = {
   name: "thebestpornai Editorial",
@@ -960,6 +961,7 @@ export const SEED_POSTS = [
     relatedVideoIds: [2, 4, 7, 12, 270, 4301],
     tags: ["AI", "guide", "best AI porn sites", "2026", "comparison"],
     body: `
+      <p>For the current companion/tool list (GPTGirlfriend, SpicyChat, DRT, and the rest), see <a href="/blog/best-ai-porn-sites-2026-ranking.html">Best AI porn sites 2026 — ranking</a>. This page is the <em>watch library vs generator</em> distinction, not that list.</p>
       <p>If you are hunting the <strong>best AI porn sites in 2026</strong>, you are usually not looking for a research paper. You want a place that loads fast, looks good past the first three seconds, and does not dump you into infinite low-quality sludge.</p>
       <p>There are two product types people mix up. Mixing them is why so many “best of” lists feel useless.</p>
       <h2>Type A: Generators (create)</h2>
@@ -2831,7 +2833,7 @@ export const POSTS = [
   ...OURDREAM_FAQ_POSTS,
   ...ETHICS_POSTS,
   ...SEED_POSTS,
-].sort((a, b) => {
+].filter((p) => p && !isRedirectedSlug(p.slug)).sort((a, b) => {
   const d = String(b.date || "").localeCompare(String(a.date || ""));
   if (d !== 0) return d;
   return (Number(b.id) || 0) - (Number(a.id) || 0);
