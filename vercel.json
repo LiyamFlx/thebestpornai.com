@@ -5,9 +5,22 @@
       "source": "/blog/best-ai-porn-sites-2026.html",
       "destination": "/blog/best-ai-porn-sites-2026-ranking.html",
       "permanent": true
+    },
+    {
+      "source": "/the-best-porn-ai-in-2026",
+      "destination": "/The-Best-Porn-AI-in-2026",
+      "permanent": true
+    },
+    {
+      "source": "/The-Best-Porn-AI-in-2026.html",
+      "destination": "/The-Best-Porn-AI-in-2026",
+      "permanent": true
     }
   ],
   "rewrites": [
+    { "source": "/The-Best-Porn-AI-in-2026", "destination": "/The-Best-Porn-AI-in-2026.html" },
+    { "source": "/guides/:slug", "destination": "/blog/:slug.html" },
+    { "source": "/guides/:slug/", "destination": "/blog/:slug.html" },
     { "source": "/v/:id", "destination": "/api/video-share?id=:id" },
     { "source": "/video/:id.html", "destination": "/api/video-share?id=:id" },
     { "source": "/movies", "destination": "/index.html" },

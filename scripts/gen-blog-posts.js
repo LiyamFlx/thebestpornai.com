@@ -514,6 +514,7 @@ ${JSON.stringify(jsonLd, null, 2)}
 <link rel="stylesheet" href="/src/shared/theme.css"/>
 <link rel="stylesheet" href="/app-shell.css"/>
 <link rel="stylesheet" href="/site-chrome.css"/>
+<link rel="stylesheet" href="/cluster.css"/>
 </head>
 <body class="blog-body">
 <div class="blog-progress" aria-hidden="true"><i id="blog-progress-bar"></i></div>
@@ -767,6 +768,7 @@ ${JSON.stringify(jsonLd, null, 2)}
 <link rel="stylesheet" href="/src/shared/theme.css"/>
 <link rel="stylesheet" href="/app-shell.css"/>
 <link rel="stylesheet" href="/site-chrome.css"/>
+<link rel="stylesheet" href="/cluster.css"/>
 </head>
 <body class="blog-body">
 ${wrapBlogPage(`
@@ -904,13 +906,39 @@ ${items}
 `;
 }
 
+function hydrateClusterBodies(posts) {
+  const importedPath = path.join(__dirname, "../src/cluster/imported-pages.json");
+  if (!fs.existsSync(importedPath)) return posts;
+  const imported = JSON.parse(fs.readFileSync(importedPath, "utf8"));
+  const bySlug = new Map(imported.map((p) => [p.slug, p]));
+  const part2 = `
+  <aside class="blog-part2">
+    <p class="blog-series-label">Part 2</p>
+    <p class="blog-part2-title"><a href="/blog/building-your-fantasy-from-scratch-ai-adult-ethics.html">Building Your Fantasy From Scratch</a></p>
+    <p>Consent, likeness, and privacy — the other half of “best.”</p>
+    <a class="blog-cta blog-cta-ghost" href="/blog/building-your-fantasy-from-scratch-ai-adult-ethics.html">Read the ethics guide →</a>
+  </aside>
+  <p class="cluster-hub-link">This page is part of the <a href="/The-Best-Porn-AI-in-2026">The Best Porn AI in 2026</a> benchmark hub. Want finished scenes instead of a generator? <a href="/">Watch on thebestpornai</a>.</p>`;
+  return posts.map((post) => {
+    const extra = bySlug.get(post.slug);
+    if (!extra || !extra.body) return post;
+    return {
+      ...post,
+      title: extra.title || post.title,
+      excerpt: extra.excerpt || post.excerpt,
+      body: `<div class="cluster-article">${extra.body}</div>${part2}`,
+    };
+  });
+}
+
 function main() {
   fs.mkdirSync(BLOG_DIR, { recursive: true });
   fs.mkdirSync(PUBLIC_BLOG, { recursive: true });
 
-  const sorted = [...POSTS].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const all = hydrateClusterBodies(POSTS);
+  const sorted = [...all].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  for (const post of POSTS) {
+  for (const post of all) {
     const outPath = path.join(BLOG_DIR, `${post.slug}.html`);
     const words = wordCount(post.body);
     const readMins = calcReadMins(words);

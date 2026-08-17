@@ -25,6 +25,8 @@ const pages = [
   { loc: "/", changefreq: "daily", priority: "1.0", lastmod: today },
   { loc: "/choose.html", changefreq: "monthly", priority: "0.4", lastmod: today },
   { loc: "/blog/", changefreq: "weekly", priority: "0.9", lastmod: today },
+  { loc: "/The-Best-Porn-AI-in-2026", changefreq: "weekly", priority: "1.0", lastmod: today },
+  { loc: "/guides/how-ai-porn-generators-work/", changefreq: "monthly", priority: "0.7", lastmod: today },
   { loc: "/blog/rss.xml", changefreq: "weekly", priority: "0.3", lastmod: today },
   { loc: "/legal/terms.html", changefreq: "yearly", priority: "0.3", lastmod: "2026-07-04" },
   { loc: "/legal/privacy.html", changefreq: "yearly", priority: "0.3", lastmod: "2026-07-04" },

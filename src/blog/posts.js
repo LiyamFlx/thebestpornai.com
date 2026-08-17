@@ -22,6 +22,7 @@ import { NASTIA_AI_SEX_CHAT_FAQ_POST } from "./nastia-ai-sex-chat-faq-post.js";
 import { BEST_AI_PORN_SITES_RANKING_2026_POST } from "./best-ai-porn-sites-ranking-2026-post.js";
 import { GPTGIRLFRIEND_REVIEW_2026_POST } from "./gptgirlfriend-review-2026-post.js";
 import { SPICYCHAT_REVIEW_2026_POST } from "./spicychat-review-2026-post.js";
+import { CLUSTER_POSTS } from "./cluster-posts.js";
 import { isRedirectedSlug } from "./redirects.js";
 
 export const BLOG_AUTHOR = {
@@ -660,6 +661,7 @@ export const SEED_POSTS = [
       </ul>
       <p>Platforms ranked here handle these better than average. None are perfect. That is why selection and curation still matter on the watching side.</p>
 
+      <p>For the generator/companion leaderboard (scores, matrix, 42 tools), open the dedicated hub: <a href="/The-Best-Porn-AI-in-2026">The Best Porn AI in 2026</a>. That page can disagree with this essay — watch vs create are different jobs.</p>
       <h2>Final ranking summary</h2>
       <p><strong>The best porn AI in 2026</strong> is not a single URL. It is the right tool for the job:</p>
       <ul>
@@ -2832,6 +2834,7 @@ export const POSTS = [
   BEST_AI_PORN_SITES_RANKING_2026_POST,
   GPTGIRLFRIEND_REVIEW_2026_POST,
   SPICYCHAT_REVIEW_2026_POST,
+  ...CLUSTER_POSTS,
   ...OURDREAM_FAQ_POSTS,
   ...ETHICS_POSTS,
   ...SEED_POSTS,
