@@ -510,7 +510,7 @@ ${cover ? `<link rel="preload" as="image" href="${esc(cover)}" fetchpriority="hi
 ${JSON.stringify(jsonLd, null, 2)}
 </script>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; base-uri 'self'; form-action 'self' mailto:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' ${SUPABASE_ORIGIN} https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com;">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/src/shared/theme.css"/>
 <link rel="stylesheet" href="/app-shell.css"/>
 <link rel="stylesheet" href="/site-chrome.css"/>
@@ -764,7 +764,7 @@ ${cover ? `<link rel="preload" as="image" href="${esc(cover)}" fetchpriority="hi
 ${JSON.stringify(jsonLd, null, 2)}
 </script>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; base-uri 'self'; form-action 'self' mailto:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' ${SUPABASE_ORIGIN} https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com;">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/src/shared/theme.css"/>
 <link rel="stylesheet" href="/app-shell.css"/>
 <link rel="stylesheet" href="/site-chrome.css"/>
@@ -922,11 +922,19 @@ function hydrateClusterBodies(posts) {
   return posts.map((post) => {
     const extra = bySlug.get(post.slug);
     if (!extra || !extra.body) return post;
+    let body = extra.body
+      .replace(/<nav class="breadcrumb"[\s\S]*?<\/nav>/i, "")
+      .replace(/<h1[\s\S]*?<\/h1>/i, "")
+      .replace(/<p class="deck"[\s\S]*?<\/p>/i, "")
+      .replace(/<div class="byline-bar"[\s\S]*?<\/div>\s*<\/div>/i, "")
+      .replace(/<div class="related"[\s\S]*$/i, "")
+      .replace(/<div class="final-box"[\s\S]*?<\/div>\s*<\/div>/i, "")
+      .replace(/<section class="related[\s\S]*$/i, "");
     return {
       ...post,
       title: extra.title || post.title,
       excerpt: extra.excerpt || post.excerpt,
-      body: `<div class="cluster-article">${extra.body}</div>${part2}`,
+      body: `<div class="cluster-article">${body}</div>${part2}`,
     };
   });
 }

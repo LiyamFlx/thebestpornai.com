@@ -28,7 +28,15 @@ html,body{margin:0;background:var(--bg);color:var(--text);
 .nav a.active{background:rgba(229,9,20,0.15);color:#fff}
 .nav a.active .ico{filter:drop-shadow(0 0 6px rgba(229,9,20,.55))}
 .nav-label{line-height:1.1}
-.nav-link-out{margin-top:auto}
+.sidebar-you{
+  margin-top:auto;
+  width:56px;
+  background:transparent;border:none;color:var(--muted);
+  padding:9px 4px 7px;border-radius:12px;text-align:center;
+  font-size:10px;font-weight:600;text-decoration:none;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.sidebar-you:hover{background:var(--surface2);color:var(--text)}
 .main{flex:1;display:flex;flex-direction:column;min-width:0}
 .topbar{
   min-height:58px;display:flex;align-items:center;justify-content:space-between;

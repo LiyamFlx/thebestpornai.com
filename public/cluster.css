@@ -164,7 +164,17 @@
 }
 
 /* Review / guide article (blog) */
-.cluster-article { max-width: 48rem; }
+.cluster-article { max-width: 48rem; overflow: hidden; }
+.cluster-article .breadcrumb,
+.cluster-article .related,
+.cluster-article .final-box { display: none; }
+.cluster-article .hero-rating,
+.cluster-article .rating-card {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 1.5rem;
+}
+.cluster-article .cta-row { flex-wrap: wrap; }
 .cluster-article .editorial-tag { display: inline-flex; gap: 0.4rem; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 800; }
 .cluster-article .editorial-tag::before { content: ""; width: 2px; height: 11px; background: var(--red, #E50914); }
 .cluster-article h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0.5rem 0 0.75rem; }
