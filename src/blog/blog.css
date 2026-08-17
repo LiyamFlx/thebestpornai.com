@@ -39,6 +39,10 @@ html:has(body.blog-body) {
   overflow-x: clip;
   max-width: none;
 }
+body.blog-body .app { min-height: 100vh; }
+body.blog-body .content { padding: 0; }
+body.blog-body .blog-shell,
+body.blog-body .bp-page { padding: 24px; }
 
 .sr-only {
   position: absolute;
@@ -413,10 +417,15 @@ a { color: inherit; }
 .blog-hero-img {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
   background-size: cover;
   background-position: center 18%;
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
+.blog-card-wrap { display: contents; }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .blog-hero:hover .blog-hero-img { transform: scale(1.02); }

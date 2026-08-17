@@ -22,7 +22,7 @@ import {
   toInlineFigures,
   absoluteUrl,
 } from "./lib/blog-body.mjs";
-import { FAVICON_LINKS, sharedFooterHtml, sharedHeaderHtml } from "./lib/site-chrome.mjs";
+import { FAVICON_LINKS, appShellHtml } from "./lib/site-chrome.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
@@ -107,12 +107,14 @@ function fmtViews(n) {
   return String(n);
 }
 
-function siteHeader({ mode = "index" } = {}) {
-  return sharedHeaderHtml(mode === "index" || mode === "post" ? "blog" : mode);
-}
+const HEAD_HINTS = `
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="preconnect" href="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev" crossorigin/>
+`.trim();
 
-function siteFooter() {
-  return sharedFooterHtml();
+function wrapBlogPage(inner) {
+  return `<a class="skip-link" href="#main-content">Skip to content</a>
+${appShellHtml("blog", inner)}`;
 }
 
 function plainText(html) {
@@ -177,6 +179,7 @@ function postCardHtml(post, { eager = false, fetchpriority } = {}) {
   const readMins = calcReadMins(words);
   const title = cleanTitle(post.title);
   return `
+    <article class="blog-card-wrap">
     <a class="blog-card" href="/blog/${esc(post.slug)}.html" data-category="${esc(post.category)}" data-slug="${esc(post.slug)}">
       <div class="blog-card-media">
         <img src="${esc(cover)}" alt="${esc(title)}" loading="${loading}"${fpAttr} width="640" height="380" decoding="async"/>
@@ -190,11 +193,12 @@ function postCardHtml(post, { eager = false, fetchpriority } = {}) {
         <div class="blog-card-meta">
           <span class="blog-card-byline">Editorial</span>
           <span class="dot"></span>
-          <span>${ICON_CALENDAR}${esc(formatDate(post.date))}</span>
+          <time datetime="${esc(post.date)}">${ICON_CALENDAR}${esc(formatDate(post.date))}</time>
           <span class="blog-card-read-more">Read story →</span>
         </div>
       </div>
     </a>
+    </article>
   `;
 }
 
@@ -487,6 +491,8 @@ function renderPost(post) {
 <link rel="canonical" href="${url}"/>
 <link rel="alternate" type="application/rss+xml" title="thebestpornai Blog" href="${ORIGIN}/blog/rss.xml"/>
 ${FAVICON_LINKS}
+${HEAD_HINTS}
+${cover ? `<link rel="preload" as="image" href="${esc(cover)}" fetchpriority="high"/>` : ""}
 <meta property="og:type" content="article"/>
 <meta property="og:site_name" content="thebestpornai"/>
 <meta property="og:title" content="${esc(cleanPostTitle)}"/>
@@ -505,12 +511,12 @@ ${JSON.stringify(jsonLd, null, 2)}
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; base-uri 'self'; form-action 'self' mailto:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' ${SUPABASE_ORIGIN} https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com;">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/src/shared/theme.css"/>
+<link rel="stylesheet" href="/app-shell.css"/>
 <link rel="stylesheet" href="/site-chrome.css"/>
 </head>
 <body class="blog-body">
 <div class="blog-progress" aria-hidden="true"><i id="blog-progress-bar"></i></div>
-${siteHeader({ mode: "post" })}
-
+${wrapBlogPage(`
 <main class="bp-page">
   <article class="blog-post" itemscope itemtype="https://schema.org/BlogPosting">
     <div class="bp-layout">
@@ -654,8 +660,7 @@ ${siteHeader({ mode: "post" })}
     </div>
   </article>
 </main>
-
-${siteFooter()}
+`)}
 
 <script type="module" src="/src/blog/post-render.js"></script>
 </body>
@@ -739,6 +744,8 @@ function renderIndex() {
 <link rel="canonical" href="${ORIGIN}/blog/"/>
 <link rel="alternate" type="application/rss+xml" title="thebestpornai Blog" href="${ORIGIN}/blog/rss.xml"/>
 ${FAVICON_LINKS}
+${HEAD_HINTS}
+${cover ? `<link rel="preload" as="image" href="${esc(cover)}" fetchpriority="high"/>` : ""}
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="thebestpornai"/>
 <meta property="og:title" content="Blog | thebestpornai — AI Porn Guides &amp; Fantasies"/>
@@ -757,11 +764,11 @@ ${JSON.stringify(jsonLd, null, 2)}
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: blob: data:; base-uri 'self'; form-action 'self' mailto:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' ${SUPABASE_ORIGIN} https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com;">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/src/shared/theme.css"/>
+<link rel="stylesheet" href="/app-shell.css"/>
 <link rel="stylesheet" href="/site-chrome.css"/>
 </head>
 <body class="blog-body">
-${siteHeader({ mode: "index" })}
-
+${wrapBlogPage(`
 <main class="blog-shell">
   <header class="blog-masthead">
     <div class="blog-masthead-badge">
@@ -803,12 +810,12 @@ ${siteHeader({ mode: "index" })}
           <div class="blog-hero-meta">
             <span>${ICON_CLOCK}${featuredReadMins} min</span>
             <span class="dot"></span>
-            <span>${ICON_CALENDAR}${esc(formatDate(featured.date))}</span>
+            <time datetime="${esc(featured.date)}">${ICON_CALENDAR}${esc(formatDate(featured.date))}</time>
           </div>
         </div>
       </div>
       <div class="blog-hero-visual">
-        <div class="blog-hero-img" style="background-image:url('${esc(cover)}')"></div>
+        <img class="blog-hero-img" src="${esc(cover)}" alt="${esc(featuredTitle)}" width="1600" height="900" decoding="async" fetchpriority="high"/>
       </div>
     </a>
   </div>
@@ -847,6 +854,7 @@ ${siteHeader({ mode: "index" })}
     </div>
   </details>
 </main>
+`)}
 
 <div class="blog-mob-dock" id="blog-mob-dock">
   <button type="button" id="blog-mob-search">Search</button>
@@ -857,8 +865,6 @@ ${siteHeader({ mode: "index" })}
   <div id="blog-dialog-pills"></div>
   <form method="dialog"><button class="blog-cta blog-cta-ghost" type="submit">Done</button></form>
 </dialog>
-
-${siteFooter()}
 
 <script type="module" src="/src/blog/feed.js"></script>
 </body>

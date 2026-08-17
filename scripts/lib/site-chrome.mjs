@@ -19,7 +19,7 @@ export function sharedHeaderHtml(activeNav = "") {
         <a class="site-nav-link${on("home")}" href="/">Home</a>
         <a class="site-nav-link${on("pornstars")}" href="/pornstars/">AI Pornstars</a>
         <a class="site-nav-link${on("categories")}" href="/categories/">Categories</a>
-        <a class="site-nav-link${on("blog")}" href="/blog/">Editorial &amp; Guides</a>
+        <a class="site-nav-link${on("blog")}" href="/blog/"${activeNav === "blog" ? ' aria-current="page"' : ""}>Editorial &amp; Guides</a>
       </nav>
       <div class="site-header-actions">
         <a class="btn-primary" href="/#search">Search 5,000+ Videos</a>
@@ -46,13 +46,13 @@ export function appShellHtml(activeNav, bodyContent) {
   <aside class="sidebar">
     <a class="brand" href="/" aria-label="thebestpornai home"><img src="/favicon-64.png" width="32" height="32" alt="thebestpornai"/></a>
     <nav class="nav" aria-label="Primary">
-      <a href="/" class="${on("home")}" aria-label="Home">${ICO.home}<span class="nav-label">Home</span></a>
+      <a href="/" class="${on("home")}" aria-label="Home"${activeNav === "home" ? ' aria-current="page"' : ""}>${ICO.home}<span class="nav-label">Home</span></a>
       <a href="/shorts" aria-label="Shorts">${ICO.shorts}<span class="nav-label">Shorts</span></a>
       <a href="/library" aria-label="Library">${ICO.save}<span class="nav-label">Library</span></a>
       <a href="/subscriptions" aria-label="Subscriptions">${ICO.subs}<span class="nav-label">Subs</span></a>
       <a href="/explore" aria-label="Explore">${ICO.explore}<span class="nav-label">Explore</span></a>
-      <a href="/pornstars/" class="${on("pornstars")}" aria-label="Pornstars">${ICO.you}<span class="nav-label">Stars</span></a>
-      <a href="/blog/" class="nav-link-out${on("blog")}" aria-label="Blog">${ICO.comment}<span class="nav-label">Blog</span></a>
+      <a href="/pornstars/" class="${on("pornstars")}" aria-label="Pornstars"${activeNav === "pornstars" ? ' aria-current="page"' : ""}>${ICO.you}<span class="nav-label">Stars</span></a>
+      <a href="/blog/" class="nav-link-out${on("blog")}" aria-label="Blog"${activeNav === "blog" ? ' aria-current="page"' : ""}>${ICO.comment}<span class="nav-label">Blog</span></a>
     </nav>
   </aside>
   <div class="main">
@@ -69,7 +69,7 @@ export function appShellHtml(activeNav, bodyContent) {
         </form>
       </div>
     </div>
-    <div class="content">
+    <div class="content" id="main-content">
       ${bodyContent}
       <p class="shell-legal">18+ only ·
         <a href="/legal/terms.html">Terms</a>
