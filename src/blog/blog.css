@@ -1384,6 +1384,10 @@ a { color: inherit; }
   color: #fff;
   border-bottom-color: var(--red);
 }
+.blog-article-body a.btn,
+.blog-article-body .cta-row a {
+  border-bottom: none;
+}
 
 /* ---- Ranking / comparison guides (generators roundup etc.) ---- */
 .blog-callout {

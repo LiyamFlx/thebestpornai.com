@@ -27,28 +27,44 @@ function relAttr(url) {
   return /ourdream|kupid/i.test(url) ? "noopener sponsored nofollow" : "noopener nofollow";
 }
 
-const featured = tools.filter((t) =>
-  ["candy-ai", "xotic-ai", "ourdream-ai", "seduced-ai", "promptchan", "joi-ai"].includes(t.slug)
-);
+const featured = tools
+  .filter((t) =>
+    ["candy-ai", "xotic-ai", "ourdream-ai", "seduced-ai", "promptchan", "joi-ai"].includes(t.slug)
+  )
+  .sort((a, b) => Number(b.score) - Number(a.score));
+
+function stars(score) {
+  const n = Math.max(1, Math.min(5, Math.round(Number(score) / 2)));
+  return "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
+}
 
 function card(t) {
   const tags = (t.tags || []).map((x) => `<span class="tag-item">${esc(x)}</span>`).join("");
   return `
-  <article class="tool-card" data-category="${esc(t.category)}" data-name="${esc(t.name)}" data-rating="${esc(t.score)}">
+  <a class="tool-card" href="${esc(t.reviewUrl)}" data-category="${esc(t.category)}" data-name="${esc(t.name)}" data-rating="${esc(t.score)}">
     <div class="tool-header">
-      <div>
-        <h3>${esc(t.name)}</h3>
-        <span class="tag-item">${esc(t.bestFor || t.category)}</span>
-      </div>
-      <div class="tool-rating-box">${esc(t.score)} / 10</div>
+      <h3>${esc(t.name)}</h3>
+      <div class="tool-rating-box">${esc(t.score)}<span> / 10</span></div>
     </div>
+    <span class="tag-item">${esc(t.bestFor || t.category)}</span>
     <p class="tool-desc">${esc(t.desc)}</p>
     <div class="tool-tags">${tags}</div>
-    <div class="tool-footer">
-      <a class="btn btn-secondary btn-sm" href="${esc(t.reviewUrl)}">Review →</a>
-      <a class="btn btn-primary btn-sm" href="${esc(t.outbound)}" target="_blank" rel="${relAttr(t.outbound)}">Visit →</a>
-    </div>
-  </article>`;
+    <div class="tool-cta">Open review →</div>
+  </a>`;
+}
+
+function podiumCard(t, place) {
+  const winner = place === 1;
+  return `
+  <a class="podium-card${winner ? " is-winner" : ""}" href="${esc(t.reviewUrl)}">
+    ${winner ? `<span class="winner-ribbon">Winner</span>` : ""}
+    <div class="podium-rank">${winner ? "Best rank · #1" : "#" + place}</div>
+    <div class="podium-stars" aria-label="${stars(t.score)}">${stars(t.score)}</div>
+    <h3 class="podium-name">${esc(t.name)}</h3>
+    <div class="podium-score">${esc(t.score)}<span> / 10</span></div>
+    <p class="tool-desc">${esc(t.bestFor || t.desc)}</p>
+    <div class="tool-cta">${winner ? "See why it won →" : "Read review →"}</div>
+  </a>`;
 }
 
 const matrixRows = [...tools]
@@ -151,10 +167,14 @@ const body = `
   </section>
 
   <section id="ranking" class="section-wrapper">
-    <div class="editorial-tag">Editor’s top picks</div>
-    <h2 class="section-title">Best porn AI reviews</h2>
-    <p class="section-desc">Long reviews live on /blog. Scores on this hub are this channel’s SSOT.</p>
-    <div class="pick-grid">${featured.map(card).join("")}</div>
+    <div class="editorial-tag">Podium</div>
+    <h2 class="section-title">The winner and top 3</h2>
+    <p class="section-desc">Highest scores in this channel. The middle card is #1. Tap a card to open the full review.</p>
+    <div class="podium">
+      ${podiumCard(featured[1] || featured[0], 2)}
+      ${podiumCard(featured[0], 1)}
+      ${podiumCard(featured[2] || featured[0], 3)}
+    </div>
   </section>
 
   <section id="comparison" class="section-wrapper">
