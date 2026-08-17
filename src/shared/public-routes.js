@@ -1,5 +1,7 @@
 /* Canonical public URLs. Hash aliases must redirect here — never keep both. */
 
+import { CATEGORIES } from "./taxonomy.js";
+
 export function slugifySegment(text) {
   return String(text || "")
     .toLowerCase()
@@ -24,8 +26,6 @@ export function categoryPagePath(name) {
   return `/categories/${slug}.html`;
 }
 
-import { CATEGORIES } from "./taxonomy.js";
-
 export function categoryNameFromSlug(slug) {
   const s = slugifySegment(slug);
   const all = [...PUBLIC_CATEGORY_NAMES, ...CATEGORIES];
@@ -45,6 +45,18 @@ export function watchPath(id) {
 
 export function shortsPath(id) {
   return id == null || id === "" ? "/shorts" : "/shorts/" + Number(id);
+}
+
+/** In-app play URL: vertical → Shorts, else Watch. */
+export function playPath(video) {
+  const id = typeof video === "object" ? video && video.id : video;
+  const vertical = typeof video === "object" && video && video.orientation === "vertical";
+  return vertical ? shortsPath(id) : watchPath(id);
+}
+
+export function searchPath(query) {
+  const q = String(query || "").trim();
+  return q ? "/search/" + encodeURIComponent(q) : "/search";
 }
 
 export function homeFilterHref(filter) {

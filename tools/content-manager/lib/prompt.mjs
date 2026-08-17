@@ -34,7 +34,7 @@ export function buildUserPrompt({ title, category, notes, video }) {
     `Category: ${category}`,
     `Primary video id: ${video.id}`,
     `Primary video title: ${video.title}`,
-    `Primary video watch URL: https://www.thebestpornai.com/#video/${video.id}`,
+    `Primary video watch URL: https://www.thebestpornai.com/watch/${video.id}`,
     video.duration ? `Duration: ${video.duration}` : null,
     video.category ? `Video category: ${video.category}` : null,
     notes ? `Editor notes / brief:\n${notes}` : "Editor notes: (none — choose a strong natural angle)",

@@ -17,6 +17,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { POSTS, BLOG_AUTHOR, getFeaturedPost, postsForHub } from "../src/blog/posts.js";
 import { VIDEOS } from "../src/shared/catalog-videos.js";
+import { playPath } from "../src/shared/public-routes.js";
 import {
   stripLeadingHeroDup,
   toInlineFigures,
@@ -74,10 +75,10 @@ function findVideo(id) {
   return VIDEOS.find((v) => v.id === Number(id));
 }
 
-/** Crawlable watch URL. Hash routes (#video/n) are not video watch pages
- *  for Google; /video/n.html is the dedicated player landing. */
-function videoWatchUrl(id) {
-  return `/video/${Number(id)}.html`;
+function videoWatchUrl(vOrId) {
+  if (vOrId && typeof vOrId === "object") return playPath(vOrId);
+  const v = findVideo(vOrId);
+  return v ? playPath(v) : playPath(vOrId);
 }
 
 function formatDate(iso) {
@@ -208,7 +209,7 @@ function videoCardHtml(v) {
   const views = typeof v.views === "number" ? fmtViews(v.views) + " views" : "";
   const title = cleanTitle(v.title);
   return `
-    <a class="blog-video-card" href="${videoWatchUrl(v.id)}">
+    <a class="blog-video-card" href="${videoWatchUrl(v)}">
       <div class="blog-video-card-media">
         ${thumb ? `<img src="${esc(thumb)}" alt="${esc(title)}" loading="lazy" width="640" height="360" decoding="async"/>` : `<div class="blog-video-card-ph"></div>`}
         <div class="blog-video-card-play">${ICON_PLAY}</div>

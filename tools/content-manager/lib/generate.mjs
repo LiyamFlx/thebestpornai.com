@@ -105,7 +105,7 @@ export async function generateArticle({ title, category, notes, video, env }) {
         "<p>Use the Watch CTA on this page to open video #" + video.id + " on https://www.thebestpornai.com/.</p>",
       faqs: [
         { q: "Is this a real published article?", a: "Mock mode produces valid structure for testing publish. Use a live LLM key for production writing." },
-        { q: "Where do I watch the video?", a: "Open https://www.thebestpornai.com/#video/" + video.id + " or use the on-page Watch button after publish." },
+        { q: "Where do I watch the video?", a: "Open https://www.thebestpornai.com/watch/" + video.id + " or use the on-page Watch button after publish." },
       ],
     });
   }

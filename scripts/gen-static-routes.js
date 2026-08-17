@@ -16,6 +16,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { VIDEOS } from "../src/shared/catalog-videos.js";
 import { isoUploadDate } from "../src/shared/dates.js";
+import { playPath, searchPath } from "../src/shared/public-routes.js";
 import { FAVICON_LINKS, appShellHtml } from "./lib/site-chrome.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -148,7 +149,7 @@ function videoCardHtml(v, { eager = false, fetchpriority } = {}) {
   const loading = eager ? "eager" : "lazy";
   const fpAttr = fetchpriority ? ` fetchpriority="${fetchpriority}"` : "";
   return `
-    <a class="card" href="/watch/${v.id}" title="${esc(v.title)}">
+    <a class="card" href="${playPath(v)}" title="${esc(v.title)}">
       <div class="video-thumb">
         ${thumbUrl ? `<img class="thumb-video" src="${thumbUrl}" alt="" width="320" height="180" loading="${loading}"${fpAttr} decoding="async"/>` : ""}
         <span class="quality-badge">4K</span>
@@ -794,7 +795,7 @@ function genVideoPages() {
               <span class="quality-pill">4K Ultra HD</span>
               ${v.duration ? `<span class="duration-pill">${esc(v.duration)}</span>` : ""}
             </div>
-            <a class="video-play-center" href="/watch/${v.id}" title="Play ${esc(v.title)} in the player">
+            <a class="video-play-center" href="${playPath(v)}" title="Play ${esc(v.title)} in the player">
               <div class="big-play-btn" aria-hidden="true">▶</div>
               <div class="video-play-label">Play 4K Scene in Full Player</div>
             </a>
@@ -814,7 +815,7 @@ function genVideoPages() {
           ${v.desc ? `<p class="video-desc">${esc(v.desc)}</p>` : ""}
           <div class="video-tags-list">
             ${(v.categories || [v.category]).filter(Boolean).map(c => `<a class="tag-chip" href="/categories/${slugify(c)}.html">${esc(c)}</a>`).join("")}
-            ${(v.tags || []).slice(0, 8).map(t => `<a class="tag-chip" href="/#search/${encodeURIComponent(t)}">#${esc(t)}</a>`).join("")}
+            ${(v.tags || []).slice(0, 8).map(t => `<a class="tag-chip" href="${searchPath(t)}">#${esc(t)}</a>`).join("")}
           </div>
         </div>
 
@@ -848,8 +849,8 @@ function genVideoPages() {
       "thumbnailUrl": [thumbUrl],
       "uploadDate": isoUploadDate(v.uploaded),
       "duration": isoDuration(v.duration),
-      "contentUrl": v.src ? mediaUrl(v.src) : `${ORIGIN}/#video/${v.id}`,
-      "embedUrl": `${ORIGIN}/#video/${v.id}`,
+      "contentUrl": v.src ? mediaUrl(v.src) : `${ORIGIN}${playPath(v)}`,
+      "embedUrl": `${ORIGIN}${playPath(v)}`,
       "interactionStatistic": {
         "@type": "InteractionCounter",
         "interactionType": { "@type": "WatchAction" },

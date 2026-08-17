@@ -1,13 +1,15 @@
 import { esc, mediaUrl, fmt } from "../shared/catalog.js";
 import { VIDEOS } from "../shared/catalog-videos.js";
+import { playPath } from "../shared/public-routes.js";
 
 function findVideo(id) {
   return VIDEOS.find((v) => v.id === id);
 }
 
-/** Crawlable watch page (matches gen-blog-posts.js). */
+/** In-app player URL (Watch or Shorts). */
 export function videoWatchUrl(id) {
-  return `/video/${Number(id)}.html`;
+  const v = findVideo(id);
+  return v ? playPath(v) : playPath(id);
 }
 
 export function postCoverUrl(post) {

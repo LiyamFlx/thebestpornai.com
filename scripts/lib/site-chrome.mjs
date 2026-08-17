@@ -22,7 +22,7 @@ export function sharedHeaderHtml(activeNav = "") {
         <a class="site-nav-link${on("blog")}" href="/blog/"${activeNav === "blog" ? ' aria-current="page"' : ""}>Editorial &amp; Guides</a>
       </nav>
       <div class="site-header-actions">
-        <a class="btn-primary" href="/#search">Search 5,000+ Videos</a>
+        <a class="btn-primary" href="/search">Search videos</a>
       </div>
     </div>
   </header>`;

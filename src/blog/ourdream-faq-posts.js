@@ -102,7 +102,7 @@ const RAW = [
       ${fig("/blog-assets/ourdream-lace-bedroom.jpg", "Custom AI character in a bedroom scene", "Once the character exists, every scene stays on the same face and body language.")}
       ${fig("/blog-assets/character-for-ai-sex1.webp", "Another custom AI sex chat character design", "Community packs exist if you want a faster start without building from zero.")}
       <p>For a faster start, <strong>community packs</strong> with existing characters are available to subscribers. Most users still take the full creator: you shape attitude, speaking style, and how they look in generated images and videos.</p>
-      <p>Whether you create your own or use a pack, the same features apply once the character is set up. Prefer named faces with no prompting? Stream <a href="/#creator/ps-mia-nympo">Mia Nympo</a> and other packs free on thebestpornai.</p>
+      <p>Whether you create your own or use a pack, the same features apply once the character is set up. Prefer named faces with no prompting? Stream <a href="/creator/ps-mia-nympo">Mia Nympo</a> and other packs free on thebestpornai.</p>
       ${CTA}
       ${SERIES}
     `,

@@ -670,7 +670,7 @@ export const SEED_POSTS = [
         <li><strong>Unrestricted prompts:</strong> <a href="https://ho.kupid.ai/go/r?src_ref=80101de29&amp;sub_id=blog-best-porn-ai" target="_blank" rel="noopener sponsored nofollow">Kupid</a></li>
         <li><strong>Anime / hentai:</strong> YumeAI</li>
       </ul>
-      <p>If you only remember one line: for pure watching, skip the generation tax. For pure control, pay the generation tax and use the tool that matches your priority (realism, speed, video, or freedom). For a deep dive into free trials and traps, read our <a href="/blog/best-free-ai-porn-2026.html">Best Free AI Porn Guide</a>, or check our <a href="/blog/best-ai-porn-sites-2026.html">Ranked AI Adult Content Platforms Review</a> for security and privacy audits.</p>
+      <p>If you only remember one line: for pure watching, skip the generation tax. For pure control, pay the generation tax and use the tool that matches your priority (realism, speed, video, or freedom). For a deep dive into free trials and traps, read our <a href="/blog/best-free-ai-porn-2026.html">Best Free AI Porn Guide</a>, or check our <a href="/blog/best-ai-porn-sites-2026-ranking.html">Ranked AI Adult Content Platforms Review</a> for security and privacy audits.</p>
     `,
     faqs: [
       {
@@ -1545,7 +1545,7 @@ export const SEED_POSTS = [
       <h3>1. thebestpornai — The Benchmark Leader in Video Streaming</h3>
       <p>While generative image tools require users to spend minutes crafting prompts and waiting for cloud rendering queues, <strong><a href="/">thebestpornai</a></strong> dominates the pure viewing and entertainment category. Engineered with edge CDN media delivery, it provides zero-buffering 1080p playback of curated, production-grade AI videos.</p>
 
-      <p>Its standout innovation is the <strong>Verified AI Pornstar System</strong>. Instead of scrolling through thousands of disconnected, anonymous clips, users can follow dedicated synthetic performers like <a href="/#creator/ps-mia-nympo">Mia Nympo</a>, <a href="/#creator/ps-sabrina-ass">Sabrina Ass</a>, and <a href="/#creator/ps-marsha-banks">Marsha Banks</a>. Each performer features full horizontal introductory films paired with snackable vertical Shorts.</p>
+      <p>Its standout innovation is the <strong>Verified AI Pornstar System</strong>. Instead of scrolling through thousands of disconnected, anonymous clips, users can follow dedicated synthetic performers like <a href="/creator/ps-mia-nympo">Mia Nympo</a>, <a href="/creator/ps-sabrina-ass">Sabrina Ass</a>, and <a href="/creator/ps-marsha-banks">Marsha Banks</a>. Each performer features full horizontal introductory films paired with snackable vertical Shorts.</p>
 
       <div class="blog-takeaway">
         <strong>Verdict:</strong> For users whose primary goal is consuming high-retention, top-tier AI porn video without technical friction or subscription costs, thebestpornai is the uncontested #1 platform in 2026.
@@ -1891,11 +1891,11 @@ export const SEED_POSTS = [
 
       <ul>
         <li><strong>No Paywalls & No Tokens:</strong> Watch full scenes from beginning to end without spending credits.</li>
-        <li><strong>Curated AI Pornstars:</strong> Follow dedicated synthetic performers including <a href="/#creator/ps-mia-nympo">Mia Nympo</a>, <a href="/#creator/ps-sabrina-ass">Sabrina Ass</a>, and <a href="/#creator/ps-marsha-banks">Marsha Banks</a>.</li>
+        <li><strong>Curated AI Pornstars:</strong> Follow dedicated synthetic performers including <a href="/creator/ps-mia-nympo">Mia Nympo</a>, <a href="/creator/ps-sabrina-ass">Sabrina Ass</a>, and <a href="/creator/ps-marsha-banks">Marsha Banks</a>.</li>
         <li><strong>Mobile-Optimized Shorts:</strong> Seamless vertical feed designed for quick, touch-friendly browsing.</li>
       </ul>
 
-      <a href="/#shorts" class="blog-embed">
+      <a href="/shorts" class="blog-embed">
         <div class="blog-embed-thumb" style="background-image:url('https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/Sabrina%20Ass/Sabrina%20Ass%20Intro.jpg')"></div>
         <div class="blog-embed-info">
           <div class="blog-embed-label">Free Unlimited Stream</div>
