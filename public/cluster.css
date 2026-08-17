@@ -414,6 +414,67 @@
   text-decoration: none;
 }
 .cluster-hub-link { font-size: 0.92rem; color: var(--muted); margin-top: 2rem; }
+.cluster-article .faq-list { margin: 2rem 0 0; display: flex; flex-direction: column; gap: 10px; }
+.cluster-article .faq-item {
+  background: var(--black-elev, #1c1c22);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+}
+.cluster-article .faq-q { font-weight: 800; margin-bottom: 0.35rem; }
+.cluster-article .faq-a { color: var(--muted, #A0A0A0); font-size: 0.92rem; line-height: 1.55; }
+.cluster-end {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 2rem 0 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border, rgba(255,255,255,.1));
+}
+.cluster-more { margin: 0 0 2rem; }
+.cluster-more .section-title { font-size: 1.35rem; margin: 0.35rem 0 1rem; }
+body.cluster-ui {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  background: #0A0A0A;
+}
+body.cluster-ui .blog-masthead { padding: 8px 0 20px; }
+body.cluster-ui .blog-hero {
+  display: block;
+  background: #141414;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px;
+  overflow: hidden;
+}
+body.cluster-ui .blog-hero-title {
+  font-family: Inter, sans-serif;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+body.cluster-ui .blog-card {
+  background: #141414;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: transform .18s, border-color .18s;
+}
+body.cluster-ui .blog-card:hover { transform: translateY(-4px); border-color: #E50914; }
+body.cluster-ui .blog-card-title {
+  font-family: Inter, sans-serif;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+body.cluster-ui .blog-card-media img { width: 100%; height: 180px; object-fit: cover; object-position: center; }
+body.cluster-ui .bp-title {
+  font-family: Inter, sans-serif;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
 @media (max-width: 720px) {
   .cluster .hero-stats { grid-template-columns: 1fr 1fr; }
   .cluster .podium { grid-template-columns: 1fr; }

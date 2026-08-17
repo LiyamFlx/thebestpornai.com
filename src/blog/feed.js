@@ -8,7 +8,7 @@ import { POSTS, getFeaturedPost, postsForHub } from "./posts.js";
 import { postCardHtml, postCardSkeletonHtml, postCoverUrl, formatDate } from "./card.js";
 
 const PAGE_SIZE = 9;
-const CATEGORIES = ["All", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
+const CATEGORIES = ["All", "Reviews", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
 const SKELETON_DELAY_MS = 220;
 const SEARCH_DEBOUNCE_MS = 160;
 

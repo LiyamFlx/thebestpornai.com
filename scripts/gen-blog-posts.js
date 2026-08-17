@@ -474,6 +474,40 @@ function renderPost(post) {
   const figcaption = stripped.caption
     ? `<figcaption class="blog-media-caption">${stripped.caption}</figcaption>`
     : "";
+  const cluster = Boolean(post.clusterImport);
+  const relatedCards = relatedPosts
+    .slice(0, 3)
+    .map((p) => postCardHtml(p))
+    .join("");
+  const endMatter = cluster
+    ? `
+        <nav class="cluster-end" aria-label="Next">
+          <a class="btn btn-primary" href="/The-Best-Porn-AI-in-2026">2026 leaderboard</a>
+          <a class="btn btn-secondary" href="/blog/">All articles</a>
+          <a class="btn btn-secondary" href="/">Watch free scenes</a>
+        </nav>
+        ${
+          relatedCards
+            ? `<section class="cluster-more" aria-labelledby="more-heading">
+          <div class="editorial-tag">More from the desk</div>
+          <h2 id="more-heading" class="section-title">Related</h2>
+          <div class="blog-cards">${relatedCards}</div>
+        </section>`
+            : ""
+        }`
+    : `
+        <div class="blog-article-cta-wrap">
+          <a class="blog-cta blog-cta-primary"${cta.external ? ' target="_blank" rel="noopener sponsored nofollow"' : ""} href="${esc(cta.href)}">${esc(cta.label)}</a>
+          <a class="blog-cta blog-cta-ghost" href="/blog/">More stories</a>
+        </div>
+        ${faqHtml(post.faqs)}
+        <aside class="bp-author-box">
+          <div class="bp-avatar bp-avatar--lg" aria-hidden="true">TB</div>
+          <div>
+            <h3>thebestpornai Editorial</h3>
+            <p>We review AI adult platforms and stream finished scenes.</p>
+          </div>
+        </aside>`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -515,10 +549,10 @@ ${JSON.stringify(jsonLd, null, 2)}
 <link rel="stylesheet" href="/site-chrome.css"/>
 <link rel="stylesheet" href="/cluster.css"/>
 </head>
-<body class="blog-body">
+<body class="blog-body${cluster ? " cluster-ui" : ""}">
 <div class="blog-progress" aria-hidden="true"><i id="blog-progress-bar"></i></div>
 ${wrapBlogPage(`
-<main class="bp-page">
+<main class="bp-page${cluster ? " cluster" : ""}">
   <article class="blog-post" itemscope itemtype="https://schema.org/BlogPosting">
     <div class="bp-layout">
       <div class="bp-main">
@@ -547,21 +581,7 @@ ${wrapBlogPage(`
         <div class="blog-article-body blog-article-body--plain" itemprop="articleBody">
           ${articleBody}
         </div>
-
-        <div class="blog-article-cta-wrap">
-          <a class="blog-cta blog-cta-primary"${cta.external ? ' target="_blank" rel="noopener sponsored nofollow"' : ""} href="${esc(cta.href)}">${esc(cta.label)}</a>
-          <a class="blog-cta blog-cta-ghost" href="/blog/">More stories</a>
-        </div>
-
-        ${faqHtml(post.faqs)}
-
-        <aside class="bp-author-box">
-          <div class="bp-avatar bp-avatar--lg" aria-hidden="true">TB</div>
-          <div>
-            <h3>thebestpornai Editorial</h3>
-            <p>We review AI adult platforms and stream finished scenes. Read the guide, then watch on thebestpornai — or try the tool if you want to generate.</p>
-          </div>
-        </aside>
+        ${endMatter}
       </div>
 
       <aside class="bp-side">
@@ -577,9 +597,9 @@ ${wrapBlogPage(`
             : ""
         }
         <div class="bp-card bp-cta">
-          <h3>${esc(cta.external ? "Try this platform" : "Watch on thebestpornai")}</h3>
-          <p>${esc(cta.external ? "Open the reviewed tool in a new tab. 18+ only." : "Stream the matching scene on thebestpornai — free, no credits.")}</p>
-          <a class="blog-cta blog-cta-primary"${cta.external ? ' target="_blank" rel="noopener sponsored nofollow"' : ""} href="${esc(cta.href)}">${esc(cta.label)}</a>
+          <h3>${cluster ? "2026 benchmark" : cta.external ? "Try this platform" : "Watch on thebestpornai"}</h3>
+          <p>${cluster ? "Scores and the full 42-tool directory live on the hub." : cta.external ? "Open the reviewed tool in a new tab. 18+ only." : "Stream the matching scene — free, no credits."}</p>
+          <a class="btn btn-primary"${cta.external && !cluster ? ' target="_blank" rel="noopener sponsored nofollow"' : ""} href="${esc(cluster ? "/The-Best-Porn-AI-in-2026" : cta.href)}">${esc(cluster ? "Open leaderboard →" : cta.label)}</a>
         </div>
         ${
           relatedPosts.length
@@ -603,7 +623,10 @@ ${wrapBlogPage(`
       </aside>
     </div>
 
-    <div class="bp-below">
+    ${
+      cluster
+        ? ""
+        : `<div class="bp-below">
       ${
         relatedVideos.length
           ? `
@@ -617,48 +640,21 @@ ${wrapBlogPage(`
       `
           : ""
       }
-
       ${
         relatedPosts.length
           ? `
       <section class="blog-related" aria-labelledby="related-heading">
-        <div class="blog-section-head">
-          <h2 id="related-heading">More Stories &amp; Articles</h2>
-          <div class="blog-section-rule" aria-hidden="true"></div>
-        </div>
-        <p class="blog-related-sub">Explore uncensored fantasies, in-depth guides, and creator deep-dives.</p>
+        <h2 id="related-heading">More stories</h2>
         <div class="blog-cards blog-related-cards">
           ${relatedPosts.map((p) => postCardHtml(p)).join("")}
-        </div>
-        <div class="blog-topic-bar">
-          <span class="blog-topic-label">Browse Topics:</span>
-          <a href="/blog/" class="blog-topic-pill">All</a>
-          <a href="/blog/#guides" class="blog-topic-pill">Guides</a>
-          <a href="/blog/#fantasies" class="blog-topic-pill">Fantasies</a>
-          <a href="/blog/#stories" class="blog-topic-pill">Stories</a>
-          <a href="/blog/#confessions" class="blog-topic-pill">Confessions</a>
-          <a href="/blog/#kink-lab" class="blog-topic-pill">Kink Lab</a>
         </div>
       </section>
       `
           : ""
       }
-
       ${prevNextHtml(post)}
-
-      <section class="blog-confession">
-        <h3>Anonymous confession</h3>
-        <p>Tell us what you can't tell anyone else. Submitted securely &amp; anonymously — no account required.</p>
-        <form id="blog-confession-form" action="/api/confession" method="post">
-          <div class="blog-confession-field">
-            <label class="blog-confession-label" for="blog-confession-input">Your confession</label>
-            <textarea id="blog-confession-input" name="body" placeholder="Type your confession…" maxlength="2000" required></textarea>
-          </div>
-          <button type="submit" class="blog-cta blog-cta-primary blog-confession-submit" id="blog-confession-submit">Send confession</button>
-          <p class="blog-confession-note">Nothing is stored in your browser. Submissions are moderated for safety.</p>
-        </form>
-      </section>
-    </div>
+    </div>`
+    }
   </article>
 </main>
 `)}
@@ -722,7 +718,7 @@ function renderIndex() {
   const rest = hub.filter((p) => p.slug !== featured?.slug);
   const cover = postCoverUrl(featured);
   const jsonLd = jsonLdForIndex(hub);
-  const categories = ["All", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
+  const categories = ["All", "Reviews", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
 
   const PAGE_SIZE = 9;
   const preview = rest.slice(0, PAGE_SIZE);
@@ -769,16 +765,17 @@ ${JSON.stringify(jsonLd, null, 2)}
 <link rel="stylesheet" href="/site-chrome.css"/>
 <link rel="stylesheet" href="/cluster.css"/>
 </head>
-<body class="blog-body">
+<body class="blog-body cluster-ui">
 ${wrapBlogPage(`
-<main class="blog-shell">
+<main class="blog-shell cluster">
   <header class="blog-masthead">
-    <div class="blog-masthead-badge">
-      <span class="pulse-dot"></span>
-      <span>Editorial</span>
+    <div class="editorial-tag">Editorial · 2026</div>
+    <h1 class="hero-title">Guides, reviews &amp; <span class="text-red">stories</span></h1>
+    <p class="hero-subtitle">Same type and cards as the 2026 hub. Read a review, then watch a scene — or open the leaderboard.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="/The-Best-Porn-AI-in-2026">2026 leaderboard</a>
+      <a class="btn btn-secondary" href="/">Watch free scenes</a>
     </div>
-    <h1>Guides, rankings &amp; stories</h1>
-    <p class="blog-masthead-sub">Honest reviews of AI porn tools, plus the fantasies and scenes they pair with. Read first — then watch.</p>
   </header>
 
   <div class="blog-filter-bar">
@@ -910,14 +907,6 @@ function hydrateClusterBodies(posts) {
   if (!fs.existsSync(importedPath)) return posts;
   const imported = JSON.parse(fs.readFileSync(importedPath, "utf8"));
   const bySlug = new Map(imported.map((p) => [p.slug, p]));
-  const part2 = `
-  <aside class="blog-part2">
-    <p class="blog-series-label">Part 2</p>
-    <p class="blog-part2-title"><a href="/blog/building-your-fantasy-from-scratch-ai-adult-ethics.html">Building Your Fantasy From Scratch</a></p>
-    <p>Consent, likeness, and privacy — the other half of “best.”</p>
-    <a class="blog-cta blog-cta-ghost" href="/blog/building-your-fantasy-from-scratch-ai-adult-ethics.html">Read the ethics guide →</a>
-  </aside>
-  <p class="cluster-hub-link">This page is part of the <a href="/The-Best-Porn-AI-in-2026">The Best Porn AI in 2026</a> benchmark hub. Want finished scenes instead of a generator? <a href="/">Watch on thebestpornai</a>.</p>`;
   return posts.map((post) => {
     const extra = bySlug.get(post.slug);
     if (!extra || !extra.body) return post;
@@ -926,6 +915,7 @@ function hydrateClusterBodies(posts) {
       .replace(/<h1[\s\S]*?<\/h1>/i, "")
       .replace(/<p class="deck"[\s\S]*?<\/p>/i, "")
       .replace(/<div class="byline-bar"[\s\S]*?<\/div>\s*<\/div>/i, "")
+      .replace(/<div class="reviewer"[\s\S]*?<\/div>\s*<\/div>/i, "")
       .replace(/<div class="related"[\s\S]*$/i, "")
       .replace(/<div class="final-box"[\s\S]*?<\/div>\s*<\/div>/i, "")
       .replace(/<section class="related[\s\S]*$/i, "");
@@ -933,7 +923,8 @@ function hydrateClusterBodies(posts) {
       ...post,
       title: extra.title || post.title,
       excerpt: extra.excerpt || post.excerpt,
-      body: `<div class="cluster-article">${body}</div>${part2}`,
+      readMins: Math.max(4, calcReadMins(wordCount(extra.body))),
+      body: `<div class="cluster-article">${body}</div>`,
     };
   });
 }
