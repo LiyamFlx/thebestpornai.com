@@ -326,7 +326,10 @@ document.addEventListener("click", (e) => {
   const navEl = e.target.closest("[data-nav]");
   if (navEl) {
     const p = navEl.getAttribute("data-nav");
-    if (p) go(p);
+    if (p) {
+      e.preventDefault();
+      go(p);
+    }
     return;
   }
   const tabEl = e.target.closest("[data-lib-tab]");

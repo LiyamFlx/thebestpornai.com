@@ -21,14 +21,12 @@
      dependency, just the inline <style> block and inline module script below.
      TODO: if age-gate.js calls any external API, add its origin to connect-src. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self'; frame-src 'none'; object-src 'none';">
+<link rel="stylesheet" href="/app-shell.css"/>
 <style>
 :root{--bg:#0A0A0A;--surface:#141414;--text:#FFF;--muted:#A1A1AA;--muted-strong:#D4D4D8;--accent:#E50914;--accent2:#FF3B3B;--border:rgba(255,255,255,.1)}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(900px 500px at 50% -10%,#2A0307,#0A0A0A);color:var(--text);
-  font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;min-height:100vh;
-  display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:48px 24px}
-.logo{height:40px;margin-bottom:20px;filter:drop-shadow(0 0 20px rgba(229,9,20,.35))}
-header{text-align:center}
+.choose-wrap{max-width:1240px;margin:0 auto}
+.choose-wrap header{text-align:left;margin:0 0 28px}
+.choose-wrap .logo{display:none}
 h1{font-size:36px;margin:6px 0 10px;text-align:center;font-weight:800;letter-spacing:-.5px}
 .sub{color:var(--muted-strong);margin:0 0 36px;text-align:center;max-width:560px;font-size:16px;line-height:1.6}
 main{width:100%;display:flex;flex-direction:column;align-items:center}
@@ -65,8 +63,32 @@ main{width:100%;display:flex;flex-direction:column;align-items:center}
 </style>
 </head>
 <body>
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="thebestpornai home"><img src="/favicon-64.png" width="32" height="32" alt="thebestpornai"/></a>
+    <nav class="nav" aria-label="Primary">
+      <a href="/" aria-label="Home"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg><span class="nav-label">Home</span></a>
+      <a href="/shorts" aria-label="Shorts"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z"/></svg><span class="nav-label">Shorts</span></a>
+      <a href="/library" aria-label="Library"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.5a1 1 0 0 1 1-1Z"/></svg><span class="nav-label">Library</span></a>
+      <a href="/subscriptions" aria-label="Subscriptions"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M8 3h8"/></svg><span class="nav-label">Subs</span></a>
+      <a href="/explore" aria-label="Explore"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m15 9-3.5 6.5L8 12l3.5-6.5L15 9Z"/></svg><span class="nav-label">Explore</span></a>
+      <a href="/pornstars/" aria-label="Pornstars"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg><span class="nav-label">Stars</span></a>
+      <a href="/blog/" aria-label="Blog"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg><span class="nav-label">Blog</span></a>
+      <a href="/choose.html" class="active" aria-label="Creator Studio" aria-current="page"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M8 6V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1M10 12h4"/></svg><span class="nav-label">Studio</span></a>
+    </nav>
+    <a class="sidebar-you" href="/profile" aria-label="Your account"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg><span class="nav-label">You</span></a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="left">
+        <a href="/" class="topbar-brand" aria-label="thebestpornai home">
+          <img src="/logo-wordmark.png" alt="thebestpornai" width="160" height="24"/>
+        </a>
+      </div>
+    </div>
+    <div class="content">
+<div class="choose-wrap">
   <header>
-    <a href="/"><img class="logo" src="/src/shared/assets/logo.png" alt="thebestpornai"/></a>
     <h1>One ecosystem. Three experiences.</h1>
     <p class="sub">A premium hybrid video platform — choose how you want to enter. Each persona is its own full application sharing one design system and data model.</p>
   </header>
@@ -120,6 +142,10 @@ main{width:100%;display:flex;flex-direction:column;align-items:center}
     <a href="/legal/dmca.html">DMCA</a> · <a href="/legal/2257.html">18 U.S.C. 2257</a> ·
     <a href="mailto:contact@thebestpornai.com">Contact</a>
   </div>
+</div>
+    </div>
+  </div>
+</div>
 <script type="module">
 import { ageGate } from "/src/shared/age-gate.js";
 ageGate();

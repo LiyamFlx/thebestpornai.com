@@ -233,6 +233,7 @@ const html = `<!DOCTYPE html>
   <meta property="og:image" content="${ORIGIN}/logo-wordmark.png"/>
   <meta name="twitter:card" content="summary_large_image"/>
   ${FAVICON_LINKS}
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/src/shared/theme.css"/>
   <link rel="stylesheet" href="/app-shell.css"/>
   <link rel="stylesheet" href="/cluster.css"/>

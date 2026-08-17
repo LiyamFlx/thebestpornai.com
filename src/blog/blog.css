@@ -42,7 +42,7 @@ html:has(body.blog-body) {
 body.blog-body .app { min-height: 100vh; }
 body.blog-body .content { padding: 0; }
 body.blog-body .blog-shell,
-body.blog-body .bp-page { padding: 24px; }
+body.blog-body .bp-page { padding: 8px 20px 32px; }
 
 .sr-only {
   position: absolute;
@@ -254,7 +254,7 @@ a { color: inherit; }
 /* ---------- Page masthead (index) ---------- */
 /* ---------- Page masthead (index) ---------- */
 .blog-masthead {
-  padding: 36px 0 8px;
+  padding: 4px 0 8px;
   text-align: left;
 }
 
@@ -291,11 +291,11 @@ a { color: inherit; }
 .blog-masthead h1 {
   margin: 0 0 10px;
   font-family: var(--font-display);
-  font-style: italic;
-  font-size: clamp(28px, 4vw, 42px);
-  font-weight: 850;
-  letter-spacing: -0.038em;
-  line-height: 1.1;
+  font-style: normal;
+  font-size: clamp(28px, 4vw, 36px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
   color: #fff;
 }
 
@@ -2449,7 +2449,7 @@ a { color: inherit; }
   .blog-prevnext { grid-template-columns: 1fr; }
   .blog-prevnext-link.newer { text-align: left; }
   .blog-article-body { font-size: 16px; }
-  .blog-masthead { padding-top: 24px; }
+  .blog-masthead { padding-top: 4px; }
 }
 
 /* ========== Post layout: centered reading column + optional rail ========== */

@@ -114,8 +114,7 @@ const HEAD_HINTS = `
 `.trim();
 
 function wrapBlogPage(inner) {
-  return `<a class="skip-link" href="#main-content">Skip to content</a>
-${appShellHtml("blog", inner)}`;
+  return appShellHtml("blog", `<a class="skip-link" href="#main-content">Skip to content</a>\n${inner}`);
 }
 
 function plainText(html) {

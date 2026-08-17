@@ -13,7 +13,10 @@
   --border:rgba(255,255,255,0.10);
   --shadow:0 20px 60px rgba(0,0,0,0.6);
   --radius:14px;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --page-max: 1240px;
+  --page-pad: 20px;
+  font-family: var(--font);
   color-scheme: dark;
 }
 html {
