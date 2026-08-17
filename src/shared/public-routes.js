@@ -39,12 +39,28 @@ export function browsePath(name) {
   return "/browse/" + slugifySegment(name);
 }
 
+function finiteId(id) {
+  const n = Number(id);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function safeDecode(s) {
+  try {
+    return decodeURIComponent(String(s));
+  } catch {
+    return String(s);
+  }
+}
+
 export function watchPath(id) {
-  return "/watch/" + Number(id);
+  const n = finiteId(id);
+  return n == null ? "/" : "/watch/" + n;
 }
 
 export function shortsPath(id) {
-  return id == null || id === "" ? "/shorts" : "/shorts/" + Number(id);
+  if (id == null || id === "") return "/shorts";
+  const n = finiteId(id);
+  return n == null ? "/shorts" : "/shorts/" + n;
 }
 
 /** In-app play URL: vertical → Shorts, else Watch. */
@@ -75,10 +91,18 @@ export function hashToPath(h) {
   if (raw === "shorts" || raw === "feed" || raw === "shorts/" || raw === "feed/") return "/shorts";
   if (raw === "movies" || raw === "scenes" || raw === "clips") return "/" + raw;
   if (raw === "search" || raw === "search/") return "/search";
-  if (raw.startsWith("search/")) return "/search/" + raw.slice(7);
-  if (raw.startsWith("browse/")) return browsePath(decodeURIComponent(raw.slice(7)));
+  if (raw.startsWith("search/")) {
+    const slice = raw.slice(7);
+    try {
+      const q = decodeURIComponent(slice).trim();
+      return q ? "/search/" + encodeURIComponent(q) : "/search";
+    } catch {
+      return slice.trim() ? "/search/" + slice : "/search";
+    }
+  }
+  if (raw.startsWith("browse/")) return browsePath(safeDecode(raw.slice(7)));
   if (raw.startsWith("category/")) {
-    const name = decodeURIComponent(raw.slice(9));
+    const name = safeDecode(raw.slice(9));
     return categoryPagePath(name) || browsePath(name);
   }
   if (raw === "pornstars" || raw === "pornstar") return PORNSTARS_PATH;

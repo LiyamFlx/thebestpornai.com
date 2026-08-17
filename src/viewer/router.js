@@ -176,6 +176,13 @@ function applyPath(){
   let m;
   if((m = p.match(/^\/watch\/(\d+)$/))) return openWatchById(+m[1]);
   if((m = p.match(/^\/shorts\/(\d+)$/))) return openShortsById(+m[1]);
+  // Malformed play URLs (/watch/NaN, /shorts/abc) must not stick in the bar.
+  if(p.startsWith("/watch/") || (p.startsWith("/shorts/") && p !== "/shorts")){
+    setPath(p.startsWith("/shorts/") ? "/shorts" : "/", { replace: true });
+    vstate.page = p.startsWith("/shorts/") ? "feed" : "home";
+    vstate.feedFocusId = null;
+    return true;
+  }
   if(p === "/shorts"){
     vstate.page = "feed";
     vstate.feedFocusId = null;

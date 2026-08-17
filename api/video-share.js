@@ -1,5 +1,6 @@
 import { VIDEOS } from "../src/shared/catalog-videos.js";
 import { isoUploadDate } from "../src/shared/dates.js";
+import { playPath } from "../src/shared/public-routes.js";
 
 const ORIGIN = "https://www.thebestpornai.com";
 const MEDIA_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media";
@@ -57,8 +58,8 @@ export default function handler(req, res) {
   const thumbUrl = v.thumb ? mediaUrl(v.thumb) : LOGO;
   const videoStreamUrl = v.src ? mediaUrl(v.src) : "";
   const shareUrl = `${ORIGIN}/v/${v.id}`;
-  const directWatchUrl = `${ORIGIN}/watch/${v.id}`;
-  const embedUrl = `${ORIGIN}/watch/${v.id}`;
+  const directWatchUrl = `${ORIGIN}${playPath(v)}`;
+  const embedUrl = `${ORIGIN}${playPath(v)}`;
 
   const jsonLd = {
     "@context": "https://schema.org",
