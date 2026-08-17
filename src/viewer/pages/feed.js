@@ -1,9 +1,9 @@
 import { DATA, esc, creatorName, fmt, mediaUrl } from "../../shared/catalog.js";
 import { pubVerticalVideos, creatorById, visible } from "../catalog-queries.js";
 import { vstate, markFeedWatched } from "../state.js";
-import { jsq } from "../util.js";
+
 import { renderCommentList, commentsFor } from "../comments.js";
-import { likeVideo, subscribe, addComment } from "../actions.js";
+import { likeVideo, subscribe, addComment, openCreator, shareVideo, go } from "../actions.js";
 import { ShAPI } from "../../shared/streamhub-api.js";
 import { setHash, takePendingFeedFocus } from "../router.js";
 
@@ -12,6 +12,9 @@ let feedObserver = null;
 let currentActiveVideo = null;
 let feedMuted = true;
 let activeProgressVideo = null;
+let _progressRaf = null;
+let _lastProgressTs = 0;
+const PROGRESS_MIN_MS = 50;
 
 /* ---- Virtualization ----
    The feed's public/originals catalog can run into the hundreds of vertical
@@ -117,7 +120,7 @@ function feedItemInner(d){
     <video class="feed-video" playsinline preload="none" ${feedMuted ? 'muted' : ''} data-src="${mediaUrl(v.src)}" poster="${mediaUrl(v.thumb)}"></video>
 
     <!-- Floating Tap for Sound banner (visible when muted) -->
-    <button type="button" class="feed-unmute-banner ${feedMuted ? '' : 'hidden'}" onclick="event.stopPropagation();toggleFeedMute()" aria-label="Tap for sound">
+    <button type="button" class="feed-unmute-banner ${feedMuted ? '' : 'hidden'}" data-action="toggleMute" aria-label="Tap for sound">
       <span class="ico-sound">🔊</span> Tap for Sound
     </button>
 
@@ -127,7 +130,7 @@ function feedItemInner(d){
     <!-- Video Details Overlay (Bottom) -->
     <div class="feed-overlay">
       <div class="feed-creator-row">
-        <span class="feed-creator" onclick="openCreator('${jsq(c.id)}')">@${esc(c.name)}</span>
+        <span class="feed-creator" data-action="openCreator" data-creator="${esc(c.id)}">@${esc(c.name)}</span>
         ${c.verified ? '<span class="verified-badge">✓</span>' : ''}
       </div>
       <div class="feed-title">${esc(v.title)}</div>
@@ -138,33 +141,33 @@ function feedItemInner(d){
     <div class="feed-sidebar">
       <!-- Creator Avatar (+ overlapping follow badge) -->
       <div class="feed-avatar-wrap">
-        <div class="feed-avatar" onclick="openCreator('${jsq(c.id)}')">${esc((c.name || "?")[0])}</div>
+        <div class="feed-avatar" data-action="openCreator" data-creator="${esc(c.id)}">${esc((c.name || "?")[0])}</div>
         ${hasCreator ? `
-          <button class="feed-follow-dot ${subbed ? 'subbed' : ''}" onclick="event.stopPropagation();subscribe('${jsq(c.id)}')" aria-label="${subbed ? 'Following' : 'Follow'} ${esc(c.name)}">${subbed ? '✓' : '+'}</button>
+          <button type="button" class="feed-follow-dot ${subbed ? 'subbed' : ''}" data-action="subscribe" data-creator="${esc(c.id)}" aria-label="${subbed ? 'Following' : 'Follow'} ${esc(c.name)}">${subbed ? '✓' : '+'}</button>
         ` : ''}
       </div>
 
       <!-- Sound / Mute Toggle -->
       <div class="feed-action">
-        <button class="feed-btn feed-sound-btn" onclick="toggleFeedMute()" aria-label="Toggle sound"><svg class="ico"><use href="#icon-${feedMuted ? 'mute' : 'unmute'}"/></svg></button>
+        <button type="button" class="feed-btn feed-sound-btn" data-action="toggleMute" aria-label="Toggle sound"><svg class="ico"><use href="#icon-${feedMuted ? 'mute' : 'unmute'}"/></svg></button>
         <span class="feed-label feed-sound-label">${feedMuted ? 'Muted' : 'Sound'}</span>
       </div>
 
       <!-- Like Button -->
       <div class="feed-action">
-        <button class="feed-btn feed-like-btn ${(live && live.myVote === "like") ? 'liked' : ''}" onclick="likeVideo(${v.id})" aria-label="Like video"><svg class="ico"><use href="#icon-heart"/></svg></button>
+        <button type="button" class="feed-btn feed-like-btn ${(live && live.myVote === "like") ? 'liked' : ''}" data-action="like" data-video="${v.id}" aria-label="Like video"><svg class="ico"><use href="#icon-heart"/></svg></button>
         <span class="feed-label" id="feedLike_${v.id}">${fmt(v.likes + live.like)}</span>
       </div>
 
       <!-- Comments Button -->
       <div class="feed-action">
-        <button class="feed-btn" onclick="openFeedComments(${v.id})" aria-label="View comments"><svg class="ico"><use href="#icon-comment"/></svg></button>
+        <button type="button" class="feed-btn" data-action="comments" data-video="${v.id}" aria-label="View comments"><svg class="ico"><use href="#icon-comment"/></svg></button>
         <span class="feed-label" id="feedComment_${v.id}">${commentCount}</span>
       </div>
 
       <!-- Share Button -->
       <div class="feed-action">
-        <button class="feed-btn" onclick="shareVideo(${v.id})" aria-label="Share video"><svg class="ico"><use href="#icon-share"/></svg></button>
+        <button type="button" class="feed-btn" data-action="share" data-video="${v.id}" aria-label="Share video"><svg class="ico"><use href="#icon-share"/></svg></button>
         <span class="feed-label">Share</span>
       </div>
     </div>
@@ -177,7 +180,7 @@ export function renderFeed() {
     return `<div class="empty">
       <div class="empty-emoji">📱</div>
       <div class="empty-msg">No vertical videos published yet.</div>
-      <button type="button" class="btn ghost sm empty-home-btn" onclick="go('home')">Browse Home</button>
+      <button type="button" class="btn ghost sm empty-home-btn" data-action="goHome">Browse Home</button>
     </div>`;
   }
 
@@ -216,13 +219,13 @@ export function renderFeed() {
     </div>
 
     <!-- Feed Comments Backdrop -->
-    <div class="feed-comments-backdrop" id="feedCommentsBackdrop" onclick="closeFeedComments()"></div>
+    <div class="feed-comments-backdrop" id="feedCommentsBackdrop" data-action="closeComments"></div>
 
     <!-- Feed Comments Slide-up Drawer -->
     <div class="feed-comments-drawer" id="feedCommentsDrawer">
       <div class="feed-comments-header">
         <span>Comments</span>
-        <button class="feed-comments-close" onclick="closeFeedComments()">✕</button>
+        <button type="button" class="feed-comments-close" data-action="closeComments">✕</button>
       </div>
       <div class="feed-comments-body" id="feedCommentsBody"></div>
       <div class="feed-comments-footer" id="feedCommentsFooter"></div>
@@ -289,23 +292,98 @@ function hydrateWindow(container, activeIndex){
   }
 }
 
-function bindVideoProgress(item, videoEl){
-  if(activeProgressVideo === videoEl) return;
-  if(activeProgressVideo){
-    activeProgressVideo.removeEventListener("timeupdate", onVideoTimeUpdate);
+function stopProgressLoop(){
+  if(_progressRaf){
+    cancelAnimationFrame(_progressRaf);
+    _progressRaf = null;
   }
-  activeProgressVideo = videoEl;
-  videoEl.addEventListener("timeupdate", onVideoTimeUpdate);
+  activeProgressVideo = null;
+  _lastProgressTs = 0;
 }
 
-function onVideoTimeUpdate(){
-  if(!activeProgressVideo) return;
-  const item = activeProgressVideo.closest(".feed-item");
-  if(!item) return;
-  const bar = item.querySelector(".feed-progress-bar");
-  if(!bar) return;
-  const pct = (activeProgressVideo.currentTime / (activeProgressVideo.duration || 1)) * 100;
-  bar.style.width = `${pct.toFixed(1)}%`;
+function tickProgress(now){
+  if(!activeProgressVideo){
+    _progressRaf = null;
+    return;
+  }
+  if(!_lastProgressTs || (now - _lastProgressTs) >= PROGRESS_MIN_MS){
+    const item = activeProgressVideo.closest(".feed-item");
+    const bar = item && item.querySelector(".feed-progress-bar");
+    if(bar){
+      const dur = activeProgressVideo.duration || 1;
+      const pct = (activeProgressVideo.currentTime / dur) * 100;
+      bar.style.width = `${pct.toFixed(1)}%`;
+    }
+    _lastProgressTs = now;
+  }
+  _progressRaf = requestAnimationFrame(tickProgress);
+}
+
+function bindVideoProgress(item, videoEl){
+  if(!videoEl || activeProgressVideo === videoEl) return;
+  activeProgressVideo = videoEl;
+  if(!_progressRaf) _progressRaf = requestAnimationFrame(tickProgress);
+}
+
+function onFeedActionClick(e){
+  const el = e.target.closest("[data-action]");
+  if(!el) return;
+  const action = el.dataset.action;
+  if(!action) return;
+  e.stopPropagation();
+  const videoId = Number(el.dataset.video);
+  const creator = el.dataset.creator;
+  switch(action){
+    case "toggleMute":
+      toggleFeedMute();
+      break;
+    case "openCreator":
+      if(creator) openCreator(creator);
+      break;
+    case "subscribe":
+      if(creator) subscribe(creator);
+      break;
+    case "like":
+      if(Number.isFinite(videoId)) likeVideo(videoId);
+      break;
+    case "comments":
+      if(Number.isFinite(videoId)) openFeedComments(videoId);
+      break;
+    case "share":
+      if(Number.isFinite(videoId)) shareVideo(videoId);
+      break;
+    case "closeComments":
+      closeFeedComments();
+      break;
+    case "postComment":
+      if(Number.isFinite(videoId)) submitFeedComment(videoId);
+      break;
+    case "goHome":
+      go("home");
+      break;
+  }
+}
+
+/** Tear down observer, listeners, timers when leaving Shorts. */
+export function detachFeedObserver(){
+  if(feedObserver){
+    feedObserver.disconnect();
+    feedObserver = null;
+  }
+  stopProgressLoop();
+  const container = document.getElementById("feedContainer");
+  const root = container && container.parentElement;
+  if(container){
+    container.removeEventListener("pointerup", onFeedPointerUp);
+  }
+  if(root){
+    root.removeEventListener("click", onFeedActionClick);
+  }
+  clearTimeout(_singleTapTimer);
+  _singleTapTimer = null;
+  _lastTapItem = null;
+  _lastTapTime = 0;
+  currentActiveVideo = null;
 }
 
 /* IntersectionObserver to handle autoplay, hydration/virtualization window,
@@ -314,11 +392,10 @@ export function attachFeedObserver() {
   const container = document.getElementById("feedContainer");
   if (!container) return;
 
-  const items = Array.from(container.querySelectorAll(".feed-item"));
+  detachFeedObserver();
 
-  if (feedObserver) {
-    feedObserver.disconnect();
-  }
+  const items = Array.from(container.querySelectorAll(".feed-item"));
+  const root = container.parentElement;
 
   feedObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
@@ -371,6 +448,7 @@ export function attachFeedObserver() {
 
   items.forEach(item => feedObserver.observe(item));
   attachFeedGestures(container);
+  if(root) root.addEventListener("click", onFeedActionClick);
 
   // Deep link: jump to the pinned/shared clip before first paint settles.
   // takePendingFeedFocus is set by applyHash for #shorts/N; fall back to
@@ -516,87 +594,92 @@ function onFeedPointerUp(e){
   }
 }
 
-// Window actions for comments drawer & sound toggle
-if (typeof window !== "undefined") {
-  window.toggleFeedMute = toggleFeedMute;
+function openFeedComments(videoId) {
+  videoId = +videoId;
+  const drawer = document.getElementById("feedCommentsDrawer");
+  const backdrop = document.getElementById("feedCommentsBackdrop");
+  const body = document.getElementById("feedCommentsBody");
+  const footer = document.getElementById("feedCommentsFooter");
+  if (!drawer || !body || !footer) return;
 
-  window.openFeedComments = function(videoId) {
-    videoId = +videoId;
-    const drawer = document.getElementById("feedCommentsDrawer");
-    const backdrop = document.getElementById("feedCommentsBackdrop");
-    const body = document.getElementById("feedCommentsBody");
-    const footer = document.getElementById("feedCommentsFooter");
-    if (!drawer || !body || !footer) return;
+  const v = DATA.videos.find(x => x.id === videoId);
+  if (!v) return;
 
-    const v = DATA.videos.find(x => x.id === videoId);
-    if (!v) return;
-
-    body.innerHTML = renderCommentList(v);
-    footer.innerHTML = `
-      <input class="fld" id="feedCbox" placeholder="Add a comment…" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();submitFeedComment(${v.id})}"/>
-      <button type="button" class="btn" onclick="submitFeedComment(${v.id})">Post</button>
-    `;
-
-    drawer.classList.add("open");
-    drawer.dataset.videoId = String(v.id);
-    if (backdrop) backdrop.classList.add("show");
-    // Pull server comments into the drawer (same source as watch page).
-    hydrateFeedComments(v).catch(() => {});
-    // Focus input after open so mobile keyboards can post immediately.
-    requestAnimationFrame(() => {
-      const input = document.getElementById("feedCbox");
-      if (input) try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+  body.innerHTML = renderCommentList(v);
+  footer.innerHTML = `
+    <input class="fld" id="feedCbox" placeholder="Add a comment…" autocomplete="off"/>
+    <button type="button" class="btn" data-action="postComment" data-video="${v.id}">Post</button>
+  `;
+  const cbox = footer.querySelector("#feedCbox");
+  if(cbox){
+    cbox.addEventListener("keydown", (ev) => {
+      if(ev.key === "Enter"){
+        ev.preventDefault();
+        submitFeedComment(v.id);
+      }
     });
-  };
-
-  window.closeFeedComments = function() {
-    const drawer = document.getElementById("feedCommentsDrawer");
-    const backdrop = document.getElementById("feedCommentsBackdrop");
-    if (drawer) drawer.classList.remove("open");
-    if (backdrop) backdrop.classList.remove("show");
-  };
-
-  /* Merge Supabase comments for this video into DATA.comments, then refresh
-     the open drawer + sidebar count. Best-effort; seed/local overlay remain. */
-  async function hydrateFeedComments(v) {
-    if (!ShAPI || !ShAPI.enabled || !v) return;
-    try {
-      const rows = await ShAPI.listComments(v.id);
-      if (!rows || !rows.length) return;
-      for (const c of rows) {
-        const key = "db" + c.id;
-        if (!DATA.comments.some((m) => m.id === key)) {
-          DATA.comments.push({
-            id: key,
-            video: v.id,
-            user: c.author,
-            text: c.body,
-            time: "",
-            ts: Date.parse(c.created_at) || 0,
-          });
-        }
-      }
-      const body = document.getElementById("feedCommentsBody");
-      if (body && document.getElementById("feedCommentsDrawer")?.classList.contains("open")) {
-        body.innerHTML = renderCommentList(v);
-      }
-      const commentLabel = document.getElementById(`feedComment_${v.id}`);
-      if (commentLabel) commentLabel.textContent = String(commentsFor(v).length);
-    } catch (_) { /* offline / API down */ }
   }
 
-  window.submitFeedComment = function(videoId) {
-    videoId = +videoId;
-    const box = document.getElementById("feedCbox");
-    if (!box) return;
-    const bodyVal = (box.value || "").trim();
-    if (!bodyVal) return;
-    // addComment accepts text directly (does not require #cbox) and refreshes
-    // the feed drawer + count when #feedCommentsBody is present.
-    try {
-      addComment(videoId, bodyVal);
-    } catch (e) {
-      console.error("Failed to post comment", e);
+  drawer.classList.add("open");
+  drawer.dataset.videoId = String(v.id);
+  if (backdrop) backdrop.classList.add("show");
+  hydrateFeedComments(v).catch(() => {});
+  requestAnimationFrame(() => {
+    const input = document.getElementById("feedCbox");
+    if (input) try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+  });
+}
+
+function closeFeedComments() {
+  const drawer = document.getElementById("feedCommentsDrawer");
+  const backdrop = document.getElementById("feedCommentsBackdrop");
+  if (drawer) drawer.classList.remove("open");
+  if (backdrop) backdrop.classList.remove("show");
+}
+
+async function hydrateFeedComments(v) {
+  if (!ShAPI || !ShAPI.enabled || !v) return;
+  try {
+    const rows = await ShAPI.listComments(v.id);
+    if (!rows || !rows.length) return;
+    for (const c of rows) {
+      const key = "db" + c.id;
+      if (!DATA.comments.some((m) => m.id === key)) {
+        DATA.comments.push({
+          id: key,
+          video: v.id,
+          user: c.author,
+          text: c.body,
+          time: "",
+          ts: Date.parse(c.created_at) || 0,
+        });
+      }
     }
-  };
+    const body = document.getElementById("feedCommentsBody");
+    if (body && document.getElementById("feedCommentsDrawer")?.classList.contains("open")) {
+      body.innerHTML = renderCommentList(v);
+    }
+    const commentLabel = document.getElementById(`feedComment_${v.id}`);
+    if (commentLabel) commentLabel.textContent = String(commentsFor(v).length);
+  } catch (_) { /* offline / API down */ }
+}
+
+function submitFeedComment(videoId) {
+  videoId = +videoId;
+  const box = document.getElementById("feedCbox");
+  if (!box) return;
+  const bodyVal = (box.value || "").trim();
+  if (!bodyVal) return;
+  try {
+    addComment(videoId, bodyVal);
+  } catch (e) {
+    console.error("Failed to post comment", e);
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.toggleFeedMute = toggleFeedMute;
+  window.openFeedComments = openFeedComments;
+  window.closeFeedComments = closeFeedComments;
+  window.submitFeedComment = submitFeedComment;
 }

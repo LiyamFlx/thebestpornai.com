@@ -24,7 +24,7 @@ import { renderHome, nextHero } from "./pages/home.js";
 import { renderWatch, attachWatchHandlers } from "./pages/watch.js";
 import { renderMovieDetail } from "./pages/movie.js";
 import { renderCreatorPage } from "./pages/creator.js";
-import { renderFeed, attachFeedObserver } from "./pages/feed.js";
+import { renderFeed, attachFeedObserver, detachFeedObserver } from "./pages/feed.js";
 import { refreshChipRows } from "./mobile-chrome.js";
 import { resetGridWindow, observeSentinels, setGridAppendHook } from "./grid-window.js";
 import {
@@ -76,6 +76,8 @@ export function render(){
   attachHeroRotation(p === "home");
   if (p === "feed") {
     attachFeedObserver();
+  } else {
+    detachFeedObserver();
   }
   if (p === "watch") {
     attachWatchHandlers();
