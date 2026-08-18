@@ -18,6 +18,7 @@ import { fileURLToPath } from "url";
 import { POSTS, BLOG_AUTHOR, getFeaturedPost, postsForHub } from "../src/blog/posts.js";
 import { VIDEOS } from "../src/shared/catalog-videos.js";
 import { playPath } from "../src/shared/public-routes.js";
+import { ourdreamUrl } from "../src/shared/affiliates.js";
 import {
   stripLeadingHeroDup,
   toInlineFigures,
@@ -439,7 +440,7 @@ function primaryCta(post, primaryVideo) {
   const blob = `${post.slug || ""} ${(post.tags || []).join(" ")}`;
   if (/ourdream/i.test(blob)) {
     return {
-      href: "https://ourdream.ai/?ref=thebestpornai",
+      href: ourdreamUrl("home", "blog-cta"),
       label: "Try OurDream.ai →",
       external: true,
     };
@@ -911,6 +912,8 @@ function hydrateClusterBodies(posts) {
     const extra = bySlug.get(post.slug);
     if (!extra || !extra.body) return post;
     let body = extra.body
+      .replace(/https:\/\/ourdream\.ai\/?\?ref=thebestpornai/g, "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog")
+      .replace(/https:\/\/ourdream\.ai(?=[^a-zA-Z0-9])/g, "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog")
       .replace(/<nav class="breadcrumb"[\s\S]*?<\/nav>/i, "")
       .replace(/<h1[\s\S]*?<\/h1>/i, "")
       .replace(/<p class="deck"[\s\S]*?<\/p>/i, "")

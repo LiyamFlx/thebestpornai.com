@@ -17,6 +17,7 @@ import { fileURLToPath } from "url";
 import { VIDEOS } from "../src/shared/catalog-videos.js";
 import { isoUploadDate } from "../src/shared/dates.js";
 import { playPath, searchPath } from "../src/shared/public-routes.js";
+import { ourdreamUrl, OURDREAM_REL } from "../src/shared/affiliates.js";
 import { FAVICON_LINKS, appShellHtml } from "./lib/site-chrome.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -828,7 +829,7 @@ function genVideoPages() {
             <h2 class="aff-title">Want to create adult videos like this?</h2>
             <p class="aff-desc">This scene was generated using <strong>OurDream.ai</strong>. Try the #1 rated uncensored AI generator to create your own custom photoreal models, deepfakes, and 4K scenes in seconds.</p>
           </div>
-          <a href="https://ourdream.ai/?ref=thebestpornai" target="_blank" rel="noopener nofollow" class="aff-cta-btn">
+          <a href="${ourdreamUrl("create", "video-landing")}" target="_blank" rel="${OURDREAM_REL}" class="aff-cta-btn">
             <span>Try OurDream.ai Free →</span>
           </a>
         </div>

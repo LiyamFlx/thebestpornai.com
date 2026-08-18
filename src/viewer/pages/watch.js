@@ -278,7 +278,7 @@ function affiliatePromoBanner(v){
           <div class="affiliate-desc">Generate custom photoreal AI models, deepfakes, and 4K scenes with full prompt control.</div>
         </div>
       </div>
-      <a href="https://ourdream.ai/?ref=thebestpornai" target="_blank" rel="noopener nofollow" class="affiliate-cta-btn">
+      <a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=watch" target="_blank" rel="noopener sponsored nofollow" class="affiliate-cta-btn">
         <span>Try OurDream.ai Free</span>
         <svg class="ico" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42L16.86 11H5v2z"/></svg>
       </a>

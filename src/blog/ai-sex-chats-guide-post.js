@@ -1,8 +1,9 @@
 /* Ultimate AI sex chat guide — affiliate only OurDream + existing Candy official URLs. */
-const OD = "https://ourdream.ai/?ref=thebestpornai";
+import { ourdreamUrl } from "../shared/affiliates.js";
+const OD = ourdreamUrl("home", "blog-sex-chats");
 
 function ext(href, label, sponsored = false) {
-  const rel = sponsored || href.includes("ourdream.ai") || href.includes("kupid")
+  const rel = sponsored || href.includes("ourdream") || href.includes("ourdreamersai13") || href.includes("kupid")
     ? "noopener sponsored nofollow"
     : "noopener nofollow";
   return `<a href="${href}" target="_blank" rel="${rel}">${label}</a>`;
@@ -78,7 +79,7 @@ export const AI_SEX_CHATS_GUIDE_POST = {
   cover: "/blog-assets/ai-sex-chats-guide-2026-hero-wide.jpg",
   coverLayout: "landscape",
   wide: true,
-  ctaHref: "https://ourdream.ai/?ref=thebestpornai",
+  ctaHref: OD,
   ctaLabel: "Try OurDream.ai →",
   dropCap: false,
   body: `

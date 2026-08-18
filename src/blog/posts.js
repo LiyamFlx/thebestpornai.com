@@ -503,7 +503,7 @@ export const SEED_POSTS = [
             </tr>
             <tr>
               <td>2</td>
-              <td><a href="https://ourdream.ai" target="_blank" rel="noopener nofollow">OurDream AI</a></td>
+              <td><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow">OurDream AI</a></td>
               <td>Create + companion</td>
               <td>Photorealism &amp; 3D interaction</td>
               <td>$19.99/mo</td>
@@ -585,7 +585,7 @@ export const SEED_POSTS = [
         <p class="best-for"><strong>Best for:</strong> Photorealistic stills + interactive 3D companions.</p>
         <p>Strongest overall package when realism and presence both matter. Skin, lighting, and multi-angle consistency are among the best available. Higher entry price than pure image tools, but it covers stills and companion interaction in one place.</p>
         <div class="takeaway"><strong>Key takeaway:</strong> Pick OurDream when quality and interactive feel beat lowest price.</div>
-        <div class="links"><a href="https://ourdream.ai" target="_blank" rel="noopener nofollow">Official site</a></div>
+        <div class="links"><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow">Official site</a></div>
       </div>
 
       <div class="rank-card">
@@ -1971,7 +1971,7 @@ export const SEED_POSTS = [
     itemList: [
       { "@type": "ListItem", position: 1, name: "thebestpornai.com", url: "https://www.thebestpornai.com" },
       { "@type": "ListItem", position: 2, name: "Candy AI", url: "https://candy.ai" },
-      { "@type": "ListItem", position: 3, name: "OurDream AI", url: "https://ourdream.ai" },
+      { "@type": "ListItem", position: 3, name: "OurDream AI", url: "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" },
       { "@type": "ListItem", position: 4, name: "Xotic AI", url: "https://xotic.ai" },
       { "@type": "ListItem", position: 5, name: "Joi AI", url: "https://joi.ai" }
     ],
@@ -2014,7 +2014,7 @@ export const SEED_POSTS = [
               <td>Daily credits</td>
             </tr>
             <tr>
-              <td><a href="https://ourdream.ai" target="_blank" rel="noopener nofollow"><strong>OurDream AI</strong></a></td>
+              <td><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow"><strong>OurDream AI</strong></a></td>
               <td>Best for Photorealistic Stills</td>
               <td>Fine-tuned diffusion (FLUX/SDXL)</td>
               <td>Client-side session clearing</td>
@@ -2109,7 +2109,7 @@ export const SEED_POSTS = [
           <li><strong>Limitations:</strong> Minimal conversational features; built for static/short output, not a streaming library.</li>
         </ul>
         <div class="takeaway"><strong>Key takeaway:</strong> The benchmark standard for single-frame photorealism and custom LoRA rendering.</div>
-        <div class="links"><a href="https://ourdream.ai" target="_blank" rel="noopener nofollow">Official site</a></div>
+        <div class="links"><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow">Official site</a></div>
       </div>
 
       <div class="rank-card">
@@ -2254,7 +2254,7 @@ export const SEED_POSTS = [
             </tr>
             <tr>
               <td>3</td>
-              <td><a href="https://ourdream.ai" target="_blank" rel="noopener nofollow">OurDream AI</a></td>
+              <td><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow">OurDream AI</a></td>
               <td>Generate</td>
               <td>Trial images / limited free use</td>
               <td>Often no for trial</td>
@@ -2319,7 +2319,7 @@ export const SEED_POSTS = [
         <p class="best-for"><strong>Best for:</strong> Checking photoreal quality and companion interaction before subscribing.</p>
         <p>Free or trial access is limited but useful for judging skin, lighting, and motion samples. Full value sits on paid plans.</p>
         <div class="takeaway"><strong>Key takeaway:</strong> Use the free window to decide if the quality ceiling is worth the subscription.</div>
-        <div class="links"><a href="https://ourdream.ai" target="_blank" rel="noopener nofollow">Official site</a></div>
+        <div class="links"><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow">Official site</a></div>
       </div>
 
       <div class="rank-card">
@@ -2441,7 +2441,7 @@ export const SEED_POSTS = [
     itemList: [
       { "@type": "ListItem", position: 1, name: "Candy AI", url: "https://candy.ai" },
       { "@type": "ListItem", position: 2, name: "Xotic AI", url: "https://xotic.ai" },
-      { "@type": "ListItem", position: 3, name: "OurDream AI", url: "https://ourdream.ai" },
+      { "@type": "ListItem", position: 3, name: "OurDream AI", url: "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" },
       { "@type": "ListItem", position: 4, name: "Joi AI", url: "https://joi.ai" },
       { "@type": "ListItem", position: 5, name: "thebestpornai.com", url: "https://www.thebestpornai.com" }
     ],
@@ -2482,7 +2482,7 @@ export const SEED_POSTS = [
               <td>Limited</td>
             </tr>
             <tr>
-              <td><a href="https://ourdream.ai" target="_blank" rel="noopener nofollow"><strong>OurDream AI</strong></a></td>
+              <td><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow"><strong>OurDream AI</strong></a></td>
               <td>Fast Rendering &amp; No-Queue Processing</td>
               <td>9.2 / 10</td>
               <td>Standard</td>
@@ -2555,7 +2555,7 @@ export const SEED_POSTS = [
           <li><strong>Discreet Usage:</strong> No user tracking or persistent logs on free sessions.</li>
         </ul>
         <div class="takeaway"><strong>Key takeaway:</strong> Fast, beginner-friendly UI with strong baseline photorealism and skin textures.</div>
-        <div class="links"><a href="https://ourdream.ai" target="_blank" rel="noopener nofollow">Try OurDream AI →</a></div>
+        <div class="links"><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow">Try OurDream AI →</a></div>
       </div>
 
       <div class="rank-card">
@@ -2647,7 +2647,7 @@ export const SEED_POSTS = [
       { "@type": "ListItem", position: 1, name: "Candy AI", url: "https://candy.ai" },
       { "@type": "ListItem", position: 2, name: "Perchance", url: "https://perchance.org" },
       { "@type": "ListItem", position: 3, name: "Kindroid", url: "https://kindroid.ai" },
-      { "@type": "ListItem", position: 4, name: "OurDream AI", url: "https://ourdream.ai" },
+      { "@type": "ListItem", position: 4, name: "OurDream AI", url: "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" },
       { "@type": "ListItem", position: 5, name: "Grok Imagine", url: "https://x.ai" },
       { "@type": "ListItem", position: 6, name: "thebestpornai.com", url: "https://www.thebestpornai.com" }
     ],
@@ -2694,7 +2694,7 @@ export const SEED_POSTS = [
               <td>Free Tier Available</td>
             </tr>
             <tr>
-              <td><a href="https://ourdream.ai" target="_blank" rel="noopener nofollow"><strong>OurDream AI</strong></a></td>
+              <td><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow"><strong>OurDream AI</strong></a></td>
               <td>Fast Browser-Based Renderings</td>
               <td>9.1 / 10</td>
               <td>Moderate</td>

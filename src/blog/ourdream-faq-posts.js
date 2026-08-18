@@ -1,5 +1,6 @@
 /* OurDream.ai FAQ series — 8 standalone guides, internally linked. */
-const OD = "https://ourdream.ai/?ref=thebestpornai";
+import { ourdreamUrl } from "../shared/affiliates.js";
+const OD = ourdreamUrl("create", "blog-ourdream-faq");
 const od = (label = "Try OurDream.ai") =>
   `<a href="${OD}" target="_blank" rel="noopener sponsored nofollow">${label}</a>`;
 
