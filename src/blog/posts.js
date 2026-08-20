@@ -2822,7 +2822,7 @@ export const SEED_POSTS = [
 ];
 
 /** Canonical featured hub hero — always pinned on /blog/ (override via post.featured). */
-export const FEATURED_BLOG_SLUG = "best-ai-porn-generators-2026";
+export const FEATURED_BLOG_SLUG = "ourdream-ai-review-2026";
 
 /** Newest first so hub + RSS lead with fresh posts. */
 const WRITER_NO_DUP = WRITER_POSTS.filter((p) => p.slug !== GENERATORS_2026_POST.slug);

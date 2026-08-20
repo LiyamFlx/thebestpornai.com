@@ -270,17 +270,16 @@ function affiliatePromoBanner(v){
     <div class="watch-affiliate-banner">
       <div class="affiliate-banner-inner">
         <div class="affiliate-badge-row">
-          <span class="affiliate-badge-pill">⚡ AI Video Generator</span>
-          <span class="affiliate-partner-name">OurDream.ai</span>
+          <span class="affiliate-badge-pill">⚡ AI STUDIO PARTNER</span>
         </div>
         <div class="affiliate-text-block">
-          <div class="affiliate-title">Create Videos Like This in Seconds</div>
-          <div class="affiliate-desc">Generate custom photoreal AI models, deepfakes, and 4K scenes with full prompt control.</div>
+          <div class="affiliate-title">Create Custom AI Adult Videos &amp; 4K Scenes</div>
+          <div class="affiliate-desc">Use <strong>OurDream.ai</strong> to generate high-fidelity photoreal AI babes, uncensored fantasies, and cinematic videos with zero restrictions.</div>
         </div>
       </div>
-      <a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=watch" target="_blank" rel="noopener sponsored nofollow" class="affiliate-cta-btn">
-        <span>Try OurDream.ai Free</span>
-        <svg class="ico" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42L16.86 11H5v2z"/></svg>
+      <a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=watch-banner" target="_blank" rel="noopener sponsored nofollow" class="affiliate-cta-btn">
+        <span>Start Generating Free</span>
+        <span class="cta-arrow">→</span>
       </a>
     </div>`;
 }
