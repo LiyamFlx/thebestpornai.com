@@ -267,21 +267,11 @@ function blogStoryChip(v){
 
 function affiliatePromoBanner(v){
   return `
-    <div class="watch-affiliate-banner">
-      <div class="affiliate-banner-inner">
-        <div class="affiliate-badge-row">
-          <span class="affiliate-badge-pill">⚡ AI STUDIO PARTNER</span>
-        </div>
-        <div class="affiliate-text-block">
-          <div class="affiliate-title">Create Custom AI Adult Videos &amp; 4K Scenes</div>
-          <div class="affiliate-desc">Use <strong>OurDream.ai</strong> to generate high-fidelity photoreal AI babes, uncensored fantasies, and cinematic videos with zero restrictions.</div>
-        </div>
+    <a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=watch-banner" target="_blank" rel="noopener sponsored nofollow" class="ourdream-ad-banner-link" aria-label="Create Your Dream AI Companion on OurDream.ai">
+      <div class="ourdream-ad-banner-card">
+        <img src="/blog-assets/ourdream-banner-ad.jpg" alt="OurDream.ai — Create Your Dream AI Companion &amp; Chat in Seconds" class="ourdream-ad-img" loading="lazy" decoding="async" width="1024" height="434"/>
       </div>
-      <a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=watch-banner" target="_blank" rel="noopener sponsored nofollow" class="affiliate-cta-btn">
-        <span>Start Generating Free</span>
-        <span class="cta-arrow">→</span>
-      </a>
-    </div>`;
+    </a>`;
 }
 
 

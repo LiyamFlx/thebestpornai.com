@@ -438,17 +438,11 @@ function _renderHomeBody(){
 
 function homeAffiliatePromoStrip(){
   return `
-    <div class="home-affiliate-strip">
-      <div class="home-affiliate-left">
-        <div class="home-affiliate-badge">⚡ AI STUDIO PARTNER</div>
-        <div class="home-affiliate-title">Create Custom AI Adult Videos &amp; 4K Scenes</div>
-        <div class="home-affiliate-sub">Use <strong>OurDream.ai</strong> to generate high-fidelity photoreal AI babes, uncensored fantasies, and cinematic videos with zero restrictions.</div>
+    <a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=home-banner" target="_blank" rel="noopener sponsored nofollow" class="ourdream-ad-banner-link" aria-label="Create Your Dream AI Companion on OurDream.ai">
+      <div class="ourdream-ad-banner-card">
+        <img src="/blog-assets/ourdream-banner-ad.jpg" alt="OurDream.ai — Create Your Dream AI Companion &amp; Chat in Seconds" class="ourdream-ad-img" loading="lazy" decoding="async" width="1024" height="434"/>
       </div>
-      <a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=home-banner" target="_blank" rel="noopener sponsored nofollow" class="home-affiliate-cta">
-        <span>Start Generating Free</span>
-        <span class="cta-arrow">→</span>
-      </a>
-    </div>`;
+    </a>`;
 }
 
   const html = `
