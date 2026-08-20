@@ -192,6 +192,13 @@ export function renderSettings(){
         </span>
         <input type="checkbox" class="switch" ${vstate.settings.autoplay ? 'checked' : ''} onchange="toggleAutoplaySetting(this.checked)"/>
       </label>
+      <label class="setting-row" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+        <span>
+          <span class="lbl" style="margin:0">Hover Trailer Preview</span>
+          <span class="small" style="display:block;color:var(--muted)">Autoplay video trailer preview when hovering over video thumbnails.</span>
+        </span>
+        <input type="checkbox" class="switch" ${vstate.settings.hoverPreview !== false ? 'checked' : ''} onchange="toggleHoverPreviewSetting(this.checked)"/>
+      </label>
       <div class="setting-row" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
         <span>
           <span class="lbl" style="margin:0">Account Session</span>

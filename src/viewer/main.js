@@ -38,6 +38,7 @@ import {
   doSearch,
   stepWatch,
   toggleAutoplaySetting,
+  toggleHoverPreviewSetting,
   signOutUser,
 } from "./actions.js";
 import { refreshManifest, syncManifestOnLoad } from "./manifest-sync.js";
@@ -138,6 +139,7 @@ Object.assign(window, {
   refreshManifest,
   stepWatch,
   toggleAutoplaySetting,
+  toggleHoverPreviewSetting,
   signOutUser,
   switchWatchTab,
   filterUpNext,

@@ -666,6 +666,12 @@ export function toggleAutoplaySetting(on){
   toast(on ? "Autoplay turned on" : "Autoplay turned off");
 }
 
+export function toggleHoverPreviewSetting(on){
+  vstate.settings.hoverPreview = !!on;
+  persistState();
+  toast(on ? "Hover trailer preview enabled" : "Hover trailer preview disabled");
+}
+
 export function signOutUser(){
   try {
     localStorage.removeItem("sh_session");

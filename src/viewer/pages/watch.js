@@ -403,6 +403,10 @@ function sheetsAndModals(v, c){
           <span>Quality Stream</span>
           <span class="quality-value">Auto</span>
         </div>
+        <div class="sheet-row">
+          <span>Hover Trailer Preview</span>
+          <input type="checkbox" class="switch" data-act="toggle-hover-preview" ${vstate.settings.hoverPreview!==false?'checked':''}/>
+        </div>
       </div>
     </div>
 
@@ -562,6 +566,9 @@ function dispatch(el, evtType, evt){
     case "toggle-autoplay":
       call("toggleAutoplaySetting", !!el.checked);
       break;
+    case "toggle-hover-preview":
+      call("toggleHoverPreviewSetting", !!el.checked);
+      break;
     case "comment-input":
       if(evt && evt.key === "Enter"){
         evt.preventDefault();
@@ -692,7 +699,7 @@ function onDocClick(e){
 function onDocChange(e){
   const el = e.target.closest("[data-act]");
   if(!el) return;
-  if(["toggle-autoplay","sort-comments","change-speed","toggle-later","toggle-fav","comment-input"].includes(el.dataset.act)){
+  if(["toggle-autoplay","toggle-hover-preview","sort-comments","change-speed","toggle-later","toggle-fav","comment-input"].includes(el.dataset.act)){
     dispatch(el, "change", e);
   }
 }

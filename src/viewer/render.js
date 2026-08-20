@@ -227,6 +227,7 @@ function attachHoverPreview(){
   if(!view) return;
   _hoverBound = true;
   const play = (card)=>{
+    if(vstate.settings && vstate.settings.hoverPreview === false) return; // Hover trailer preview disabled by user setting
     const vid = card.querySelector("video.thumb-preview, video.thumb-video");
     if(!vid) return;
     if(vid.dataset.src){ vid.src = vid.dataset.src; vid.removeAttribute("data-src"); vid.classList.remove("lazy"); }
