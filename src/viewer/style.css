@@ -2685,20 +2685,30 @@ iframe.player{object-fit:contain}
 }
 
 /* ---- OurDream.ai Visual Ad Banner ---- */
+.home-affiliate-section {
+  margin: 28px 0 32px;
+}
+.sponsored-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-left: auto;
+}
 .ourdream-promo-link {
   display: block;
   width: 100%;
-  max-width: 50%;
-  margin: 20px auto 24px;
+  max-width: 100%;
+  margin: 12px 0 0;
   text-decoration: none !important;
   border-radius: 16px;
   overflow: hidden;
   outline: none;
-}
-@media (max-width: 768px) {
-  .ourdream-promo-link {
-    max-width: 85%;
-  }
 }
 .ourdream-promo-card {
   position: relative;

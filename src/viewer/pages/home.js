@@ -438,21 +438,27 @@ function _renderHomeBody(){
 
 function homeAffiliatePromoStrip(){
   return `
-    <a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=home-banner" target="_blank" rel="noopener sponsored nofollow" class="ourdream-promo-link" aria-label="Create Your Dream AI Companion on OurDream.ai">
-      <div class="ourdream-promo-card">
-        <img src="/ourdream-banner-ad.jpg?v=20260821" alt="OurDream.ai — Create Your Dream AI Companion &amp; Chat in Seconds" class="ourdream-promo-img" loading="eager" decoding="async" width="2176" height="912"/>
+    <section class="home-affiliate-section">
+      <div class="row-heading-wrap">
+        <h3 class="row-heading">Featured AI Companion</h3>
+        <span class="sponsored-badge">Sponsored</span>
       </div>
-    </a>`;
+      <a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=home-banner" target="_blank" rel="noopener sponsored nofollow" class="ourdream-promo-link" aria-label="Create Your Dream AI Companion on OurDream.ai">
+        <div class="ourdream-promo-card">
+          <img src="/ourdream-banner-ad.jpg?v=20260821" alt="OurDream.ai — Create Your Dream AI Companion &amp; Chat in Seconds" class="ourdream-promo-img" loading="lazy" decoding="async" width="2176" height="912"/>
+        </div>
+      </a>
+    </section>`;
 }
 
   const html = `
     ${homeFilterBar()}
     ${homeHero(hero)}
-    ${homeAffiliatePromoStrip()}
 
     ${continueWatching.length ? rowSection("Continue Watching", continueWatching, { layout: "row" }) : ""}
     ${becauseYouWatchedRow()}
     ${rowSection("Fresh Uploads", byIdDesc().slice(0, ROW_MAX), { layout: "row" })}
+    ${homeAffiliatePromoStrip()}
     ${rowSection("Recommended for you", recommended, { layout: "row" })}
     ${rowSection("Trending now", byViewsDesc().slice(0, ROW_MAX), { layout: "row" })}
     ${fromTheBlogRow()}
