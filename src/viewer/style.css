@@ -1112,7 +1112,7 @@ iframe.player{object-fit:contain}
 }
 .topbar-brand img{
   display:block;height:24px;width:auto;max-width:160px;
-} */
+}
 .mobile-hero{display:none}            /* mobile-only featured banner — .hero (above) is its desktop equivalent; only .hero{display:none} was ever added for mobile, this element never had the matching desktop-side hide, so both heroes rendered stacked together on every viewport until now */
 .act-more{display:none}               /* action overflow trigger (mobile only) */
 /* On desktop the overflow wrapper + menu dissolve so Favorite/Save/Share/Report
@@ -2713,7 +2713,7 @@ iframe.player{object-fit:contain}
   display: block;
   width: 100%;
   height: auto;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 15px;
 }
 
