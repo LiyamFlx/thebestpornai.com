@@ -440,9 +440,9 @@ body.cluster-ui {
 body.cluster-ui .blog-masthead { padding: 8px 0 20px; }
 body.cluster-ui .blog-hero {
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.15fr);
-  align-items: center;
-  background: radial-gradient(ellipse 100% 100% at 90% 50%, rgba(229, 9, 20, 0.12), transparent 70%), #0e0e12;
+  grid-template-columns: minmax(280px, 0.95fr) minmax(320px, 1.05fr);
+  align-items: stretch;
+  background: #0e0e12;
   border: 1px solid rgba(255,255,255,.12);
   border-radius: 20px;
   overflow: hidden;
