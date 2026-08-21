@@ -2685,16 +2685,16 @@ iframe.player{object-fit:contain}
 }
 
 /* ---- OurDream.ai Visual Ad Banner ---- */
-.ourdream-ad-banner-link {
+.ourdream-promo-link {
   display: block;
   width: 100%;
-  margin: 20px 0 24px;
+  margin: 24px 0 28px;
   text-decoration: none !important;
   border-radius: 16px;
   overflow: hidden;
   outline: none;
 }
-.ourdream-ad-banner-card {
+.ourdream-promo-card {
   position: relative;
   width: 100%;
   border-radius: 16px;
@@ -2706,12 +2706,12 @@ iframe.player{object-fit:contain}
   padding: 6px;
   box-sizing: border-box;
 }
-.ourdream-ad-banner-link:hover .ourdream-ad-banner-card {
+.ourdream-promo-link:hover .ourdream-promo-card {
   transform: translateY(-3px) scale(1.01);
   border-color: rgba(255, 45, 85, 0.75);
   box-shadow: 0 18px 52px rgba(0, 0, 0, 0.78), 0 0 44px rgba(255, 45, 85, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
-.ourdream-ad-img {
+.ourdream-promo-img {
   display: block;
   width: 100%;
   height: auto;
