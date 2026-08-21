@@ -269,7 +269,7 @@ function affiliatePromoBanner(v){
   return `
     <a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=watch-banner" target="_blank" rel="noopener sponsored nofollow" class="ourdream-promo-link" aria-label="Create Your Dream AI Companion on OurDream.ai">
       <div class="ourdream-promo-card">
-        <img src="/blog-assets/ourdream-official-promo.jpg" alt="OurDream.ai — Create Your Dream AI Companion &amp; Chat in Seconds" class="ourdream-promo-img" loading="lazy" decoding="async" width="1024" height="429"/>
+        <img src="/ourdream-banner-ad.jpg?v=20260821" alt="OurDream.ai — Create Your Dream AI Companion &amp; Chat in Seconds" class="ourdream-promo-img" loading="lazy" decoding="async" width="2176" height="912"/>
       </div>
     </a>`;
 }
