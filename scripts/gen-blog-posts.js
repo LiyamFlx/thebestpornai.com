@@ -497,9 +497,12 @@ function renderPost(post) {
             : ""
         }`
     : `
-        <div class="blog-article-cta-wrap">
-          <a class="blog-cta blog-cta-primary"${cta.external ? ' target="_blank" rel="noopener sponsored nofollow"' : ""} href="${esc(cta.href)}">${esc(cta.label)}</a>
-          <a class="blog-cta blog-cta-ghost" href="/blog/">More stories</a>
+        <div class="blog-article-ad-banner" style="margin: 36px 0 28px;">
+          <a href="${esc(cta.external ? cta.href : "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=blog-bottom-banner")}" target="_blank" rel="noopener sponsored nofollow" class="ourdream-ad-banner-link" aria-label="Try OurDream AI">
+            <div class="ourdream-ad-banner-card">
+              <img src="/blog-assets/ourdream-banner-ad.jpg" alt="OurDream.ai - #1 Uncensored AI Companion & Character Platform" class="ourdream-ad-img" width="2176" height="912" loading="lazy" />
+            </div>
+          </a>
         </div>
         ${faqHtml(post.faqs)}
         <aside class="bp-author-box">
