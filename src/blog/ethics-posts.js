@@ -15,7 +15,7 @@ export const ETHICS_POSTS = [
     dateModified: "2026-08-14",
     readMins: 12,
     coverVideoId: 3,
-    relatedVideoIds: [3, 7, 5168],
+    relatedVideoIds: [3, 7, 5168, 4],
     coverLayout: "portrait",
     dropCap: false,
     tags: [

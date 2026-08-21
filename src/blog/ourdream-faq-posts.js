@@ -94,7 +94,7 @@ const RAW = [
     dateModified: "2026-08-14",
     readMins: 4,
     coverVideoId: 5257,
-    relatedVideoIds: [5257, 5168, 5248],
+    relatedVideoIds: [5257, 5168, 5248, 4],
     tags: ["ai character creator", "ourdream ai", "ai sex chat", "custom ai girlfriend"],
     body: `
       <p>One of the strongest features of ${od("OurDream.ai")} is that character creation sits at the center of the experience. You are not limited to a library of pre-made characters.</p>
@@ -125,7 +125,7 @@ const RAW = [
     dateModified: "2026-08-14",
     readMins: 4,
     coverVideoId: 5248,
-    relatedVideoIds: [5248, 5168, 2],
+    relatedVideoIds: [5248, 5168, 2, 7],
     tags: ["ai voice chat", "ourdream ai", "ai sex chat", "dreamcoins"],
     body: `
       <p>Yes. ${od("OurDream.ai")} supports both text chat and voice interaction.</p>
@@ -155,7 +155,7 @@ const RAW = [
     dateModified: "2026-08-14",
     readMins: 4,
     coverVideoId: 3,
-    relatedVideoIds: [3, 7, 5168],
+    relatedVideoIds: [3, 7, 5168, 12],
     tags: ["ourdream privacy", "ai sex chat privacy", "encrypted ai chat"],
     body: `
       <p>Privacy is treated as a priority on ${od("OurDream.ai")}.</p>
@@ -184,7 +184,7 @@ const RAW = [
     dateModified: "2026-08-14",
     readMins: 4,
     coverVideoId: 2,
-    relatedVideoIds: [2, 4, 5168],
+    relatedVideoIds: [2, 4, 5168, 1],
     tags: ["nsfw ai chat", "ourdream subscription", "uncensored ai"],
     body: `
       <p>Access to NSFW features on ${od("OurDream.ai")} requires two things: you must be <strong>18 or older</strong>, and you must have an <strong>active subscription</strong>.</p>
@@ -216,7 +216,7 @@ const RAW = [
     dateModified: "2026-08-14",
     readMins: 7,
     coverVideoId: 4,
-    relatedVideoIds: [4, 7, 12],
+    relatedVideoIds: [4, 7, 12, 1],
     tags: ["dreamcoins", "ourdream ai", "ai credits", "ourdream pricing"],
     body: `
       <p>On ${od("OurDream.ai")}, almost everything that is not a paid member’s standard text message is priced in <strong>Dreamcoins</strong>. Free trial or annual plan, the same wallet pays for GPU work. Get the expiry rules wrong and you will either hoard coins that reset, or panic-buy packs you did not need.</p>
@@ -310,7 +310,7 @@ const RAW = [
     dateModified: "2026-08-14",
     readMins: 7,
     coverVideoId: 12,
-    relatedVideoIds: [12, 5168, 5257],
+    relatedVideoIds: [12, 5168, 5257, 4],
     tags: [
       "generate images of ai character",
       "ourdream ai video",
@@ -408,7 +408,7 @@ const RAW = [
     dateModified: "2026-08-14",
     readMins: 8,
     coverVideoId: 7,
-    relatedVideoIds: [7, 2, 5168],
+    relatedVideoIds: [7, 2, 5168, 12],
     tags: [
       "ourdream pricing",
       "is ourdream ai free",

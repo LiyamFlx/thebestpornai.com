@@ -595,6 +595,39 @@ ${wrapBlogPage(`
           ${articleBody}
         </div>
         ${endMatter}
+
+        ${
+          cluster
+            ? ""
+            : `<div class="bp-below">
+          ${
+            relatedVideos.length
+              ? `
+          <section class="blog-related" aria-labelledby="watch-heading">
+            <h2 id="watch-heading">Ready to watch the real thing?</h2>
+            <p class="blog-related-sub">Companion clips from the thebestpornai catalog — opens the main player.</p>
+            <div class="blog-related-grid">
+              ${relatedVideos.map(videoCardHtml).join("")}
+            </div>
+          </section>
+          `
+              : ""
+          }
+          ${
+            relatedPosts.length
+              ? `
+          <section class="blog-related" aria-labelledby="related-heading">
+            <h2 id="related-heading">More stories</h2>
+            <div class="blog-cards blog-related-cards">
+              ${relatedPosts.map((p) => postCardHtml(p)).join("")}
+            </div>
+          </section>
+          `
+              : ""
+          }
+          ${prevNextHtml(post)}
+        </div>`
+        }
       </div>
 
       <aside class="bp-side">
@@ -635,39 +668,6 @@ ${wrapBlogPage(`
         }
       </aside>
     </div>
-
-    ${
-      cluster
-        ? ""
-        : `<div class="bp-below">
-      ${
-        relatedVideos.length
-          ? `
-      <section class="blog-related" aria-labelledby="watch-heading">
-        <h2 id="watch-heading">Ready to watch the real thing?</h2>
-        <p class="blog-related-sub">Companion clips from the thebestpornai catalog — opens the main player.</p>
-        <div class="blog-related-grid">
-          ${relatedVideos.map(videoCardHtml).join("")}
-        </div>
-      </section>
-      `
-          : ""
-      }
-      ${
-        relatedPosts.length
-          ? `
-      <section class="blog-related" aria-labelledby="related-heading">
-        <h2 id="related-heading">More stories</h2>
-        <div class="blog-cards blog-related-cards">
-          ${relatedPosts.map((p) => postCardHtml(p)).join("")}
-        </div>
-      </section>
-      `
-          : ""
-      }
-      ${prevNextHtml(post)}
-    </div>`
-    }
   </article>
 </main>
 `)}
