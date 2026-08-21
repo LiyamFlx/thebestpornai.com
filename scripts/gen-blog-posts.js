@@ -261,6 +261,15 @@ function getDeduplicatedRelatedVideos(post) {
     }
   }
 
+  if (pool.length < 4) {
+    for (const v of VIDEOS) {
+      if (pool.length >= 4) break;
+      if (v.id !== post.coverVideoId) {
+        addVid(v.id);
+      }
+    }
+  }
+
   return pool.slice(0, 4);
 }
 
