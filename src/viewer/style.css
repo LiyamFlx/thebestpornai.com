@@ -2688,11 +2688,17 @@ iframe.player{object-fit:contain}
 .ourdream-promo-link {
   display: block;
   width: 100%;
-  margin: 24px 0 28px;
+  max-width: 50%;
+  margin: 20px auto 24px;
   text-decoration: none !important;
   border-radius: 16px;
   overflow: hidden;
   outline: none;
+}
+@media (max-width: 768px) {
+  .ourdream-promo-link {
+    max-width: 85%;
+  }
 }
 .ourdream-promo-card {
   position: relative;
