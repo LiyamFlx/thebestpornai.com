@@ -19,6 +19,17 @@ function fig(src, alt, cap) {
     </figure>`;
 }
 
+/* A promo figure that is fully clickable (outbound affiliate). */
+function linkedFig(href, src, alt, cap) {
+  return `
+    <figure class="blog-inline-figure">
+      <a href="${href}" target="_blank" rel="noopener sponsored nofollow" aria-label="${alt}">
+        <img src="${src}" alt="${alt}" width="1024" height="1365" loading="lazy" decoding="async"/>
+      </a>
+      <figcaption class="blog-media-caption">${cap}</figcaption>
+    </figure>`;
+}
+
 const SERIES = `
   <nav class="blog-series" aria-label="OurDream.ai FAQ series">
     <p class="blog-series-label">OurDream.ai FAQ series</p>
@@ -131,7 +142,7 @@ const RAW = [
       <p>Yes. ${od("OurDream.ai")} supports both text chat and voice interaction.</p>
       ${fig("/blog-assets/ourdream-kitchen-stretch.jpg", "AI companion character in a casual kitchen scene", "Voice sits on the same personality you already chat with.")}
       <p>In addition to regular text conversations, the platform offers voice calls and audio messages. Your character is not limited to written replies — you can hear them respond in real time or receive audio messages.</p>
-      ${yt("qs_kXEgSUx0", "OurDream.ai voice and character demo")}
+      ${yt("IfhczYCZEDg", "OurDream.ai walkthrough — chat, voice, and premium plans")}
       <p>Voice features use the same <a href="/blog/ourdream-dreamcoins-explained.html">dreamcoin</a> system as image and video generation. A call or an audio message consumes coins from your balance.</p>
       <p>Having both modes creates flexibility. Some users prefer typing for longer, detailed scenes; others want the presence of a voice call. Because personality and backstory stay consistent across formats, the experience feels continuous whether you are typing or speaking. That multi-modal loop (text + voice + visuals) is a core strength of the platform.</p>
       ${CTA}
@@ -449,7 +460,7 @@ const RAW = [
       <p>That is a sandbox to judge the UI. Regular conversation, visual generation, or unrestricted roleplay means an upgrade.</p>
 
       <h2>Plans, price, and checkout</h2>
-      ${fig("/blog-assets/sex-chat-cta-banner.webp", "OurDream.ai subscription call to action", "Annual is half the monthly rate if you already know you will stay.")}
+      ${linkedFig(OD, "/blog-assets/sex-chat-cta-banner.webp", "OurDream.ai subscription call to action — click to open OurDream.ai", "Annual is half the monthly rate if you already know you will stay.")}
       <div class="table-wrap">
         <table>
           <thead>
