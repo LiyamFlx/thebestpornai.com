@@ -2,13 +2,12 @@
    and are merged at generate time so the blog feed JS stays small. */
 
 const META = [
-  { slug: "candy-ai-review-2026", title: "Candy AI Review 2026", category: "Reviews", excerpt: "Photoreal stills, girlfriend memory, and uncensored chat — our 9.9/10 2026 benchmark of Candy AI.", cover: "/blog-assets/best-ai-porn-sites-2026-crew.jpg", relatedVideoIds: [15, 24, 25, 4] },
+  { slug: "candy-ai-review-2026", title: "Candy AI Review 2026", category: "Reviews", excerpt: "Photoreal stills, girlfriend memory, and uncensored chat — Candy AI at 9.7/10, our #2 overall and photorealism leader.", cover: "/blog-assets/best-ai-porn-sites-2026-crew.jpg", relatedVideoIds: [15, 24, 25, 4] },
   { slug: "xotic-ai-review-2026", title: "Xotic AI Review 2026", category: "Reviews", excerpt: "Prompt weight, anatomy, and 4K video — hands-on Xotic AI review, 9.5/10.", cover: "/blog-assets/ourdream-studio-athlete.jpg", relatedVideoIds: [34, 40, 42, 7] },
-  { slug: "ourdream-ai-review-2026", title: "OurDream AI Review 2026", category: "Reviews", excerpt: "Companion realism, Dreamcoins, stills + video on one face — OurDream scored 9.3/10 in this channel.", cover: "/blog-assets/ourdream-ai-review-2026-hero-wide.jpg", relatedVideoIds: [5168, 5248, 5257, 12] },
+  { slug: "ourdream-ai-review-2026", title: "OurDream AI Review 2026", category: "Reviews", excerpt: "Chat, stills, video, and voice on one character — OurDream AI is our #1 pick of 2026 at 9.8/10.", cover: "/blog-assets/ourdream-ai-review-2026-hero-wide.jpg", relatedVideoIds: [5168, 5248, 5257, 12] },
   { slug: "seduced-ai-review-2026", title: "Seduced.ai Review 2026", category: "Reviews", excerpt: "4K photoreal poses and face lock — Seduced.ai at 9.4/10.", cover: "/blog-assets/ourdream-couch-scene.jpg", relatedVideoIds: [5100, 388, 395, 1] },
   { slug: "promptchan-review-2026", title: "PromptChan Review 2026", category: "Reviews", excerpt: "Uncensored diffusion and motion video — PromptChan 9.3/10.", cover: "/blog-assets/ourdream-studio-athlete.jpg", relatedVideoIds: [21, 22, 23, 4] },
   { slug: "joi-ai-review-2026", title: "Joi AI Review 2026", category: "Reviews", excerpt: "Fast explicit chat that escalates — Joi AI 8.8/10.", cover: "/blog-assets/ourdream-kitchen-stretch.jpg", relatedVideoIds: [260, 261, 262, 7] },
-  { slug: "candy-ai-vs-ourdream-ai", title: "Candy AI vs OurDream AI", category: "Guides", excerpt: "Head-to-head: Candy’s 9.9 overall vs OurDream’s companion value.", cover: "/blog-assets/ourdream-pink-studio.jpg", relatedVideoIds: [5253, 5249, 5169, 12] },
   { slug: "candy-ai-vs-xotic-ai", title: "Candy AI vs Xotic AI", category: "Guides", excerpt: "Girlfriend stack vs prompt-accurate 4K — which 2026 tool wins?", cover: "/blog-assets/ourdream-gym-pink.jpg", relatedVideoIds: [396, 397, 398, 1] },
   { slug: "xotic-ai-vs-seduced-ai", title: "Xotic AI vs Seduced.ai", category: "Guides", excerpt: "Two photoreal engines, different jobs — side-by-side 2026 scores.", cover: "/blog-assets/ourdream-kitchen-stretch.jpg", relatedVideoIds: [399, 400, 401, 4] },
   { slug: "promptchan-vs-seduced-ai", title: "PromptChan vs Seduced.ai", category: "Guides", excerpt: "Unfiltered prompt engine vs pose-locked 4K stills.", cover: "/blog-assets/07-lilith-dream-portrait.jpg", relatedVideoIds: [402, 403, 404, 7] },
@@ -29,7 +28,7 @@ export const CLUSTER_POSTS = META.map((p) => ({
   title: p.title,
   category: p.category,
   excerpt: p.excerpt,
-  microcopy: "Independent 2026 benchmark — create aisle.",
+  microcopy: "Independently tested and scored for the 2026 benchmark.",
   date: "2026-08-17",
   dateModified: "2026-08-17",
   readMins: 6,

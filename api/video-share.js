@@ -88,7 +88,7 @@ export default function handler(req, res) {
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>${esc(title)} — thebestpornai</title>
   <meta name="description" content="${esc(desc)}"/>
-  <link rel="canonical" href="${shareUrl}"/>
+  <link rel="canonical" href="${directWatchUrl}"/>
   
   <!-- OpenGraph Metadata (Discord, Telegram, WhatsApp, Facebook, iMessage) -->
   <meta property="og:site_name" content="thebestpornai"/>

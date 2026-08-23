@@ -3,13 +3,23 @@
   "redirects": [
     {
       "source": "/",
-      "has": [{ "type": "host", "value": "thebestpornai.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "thebestpornai.com"
+        }
+      ],
       "destination": "https://www.thebestpornai.com/",
       "permanent": true
     },
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "thebestpornai.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "thebestpornai.com"
+        }
+      ],
       "destination": "https://www.thebestpornai.com/:path*",
       "permanent": true
     },
@@ -27,32 +37,106 @@
       "source": "/The-Best-Porn-AI-in-2026.html",
       "destination": "/The-Best-Porn-AI-in-2026",
       "permanent": true
+    },
+    {
+      "source": "/blog/candy-ai-vs-ourdream-ai.html",
+      "destination": "/blog/ourdream-ai-vs-candy-ai-comparison.html",
+      "permanent": true
     }
   ],
   "rewrites": [
-    { "source": "/The-Best-Porn-AI-in-2026", "destination": "/The-Best-Porn-AI-in-2026.html" },
-    { "source": "/guides/:slug", "destination": "/blog/:slug.html" },
-    { "source": "/guides/:slug/", "destination": "/blog/:slug.html" },
-    { "source": "/v/:id", "destination": "/api/video-share?id=:id" },
-    { "source": "/video/:id.html", "destination": "/api/video-share?id=:id" },
-    { "source": "/movies", "destination": "/index.html" },
-    { "source": "/scenes", "destination": "/index.html" },
-    { "source": "/clips", "destination": "/index.html" },
-    { "source": "/watch/:id", "destination": "/index.html" },
-    { "source": "/shorts", "destination": "/index.html" },
-    { "source": "/shorts/:id", "destination": "/index.html" },
-    { "source": "/search", "destination": "/index.html" },
-    { "source": "/search/:q*", "destination": "/index.html" },
-    { "source": "/browse/:slug", "destination": "/index.html" },
-    { "source": "/library", "destination": "/index.html" },
-    { "source": "/library/:tab", "destination": "/index.html" },
-    { "source": "/creator/:id*", "destination": "/index.html" },
-    { "source": "/movie/:title*", "destination": "/index.html" },
-    { "source": "/explore", "destination": "/index.html" },
-    { "source": "/subscriptions", "destination": "/index.html" },
-    { "source": "/profile", "destination": "/index.html" },
-    { "source": "/settings", "destination": "/index.html" },
-    { "source": "/originals", "destination": "/index.html" },
+    {
+      "source": "/The-Best-Porn-AI-in-2026",
+      "destination": "/The-Best-Porn-AI-in-2026.html"
+    },
+    {
+      "source": "/guides/:slug",
+      "destination": "/blog/:slug.html"
+    },
+    {
+      "source": "/guides/:slug/",
+      "destination": "/blog/:slug.html"
+    },
+    {
+      "source": "/v/:id",
+      "destination": "/api/video-share?id=:id"
+    },
+    {
+      "source": "/video/:id.html",
+      "destination": "/api/video-share?id=:id"
+    },
+    {
+      "source": "/movies",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/scenes",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/clips",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/watch/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/shorts",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/shorts/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/search",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/search/:q*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/browse/:slug",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/library",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/library/:tab",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/creator/:id*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/movie/:title*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/explore",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/subscriptions",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/profile",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/settings",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/originals",
+      "destination": "/index.html"
+    },
     {
       "source": "/r2/:path*",
       "destination": "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/:path*"
@@ -62,29 +146,53 @@
     {
       "source": "/r2/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Methods", "value": "POST, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type"
+        }
       ]
     },
     {
       "source": "/api/internal-writer",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
-        { "key": "Cache-Control", "value": "no-store" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
       ]
     },
     {
       "source": "/internal/writer/(.*)",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
-        { "key": "Cache-Control", "value": "no-store" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
       ]
     }
   ]

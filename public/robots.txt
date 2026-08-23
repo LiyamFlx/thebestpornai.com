@@ -5,3 +5,4 @@ Disallow: /manager/
 Disallow: /internal/
 
 Sitemap: https://www.thebestpornai.com/sitemap.xml
+Sitemap: https://www.thebestpornai.com/sitemap-video.xml

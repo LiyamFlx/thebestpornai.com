@@ -55,7 +55,12 @@ function esc(s) {
  */
 function cleanTitle(str) {
   if (!str) return "";
-  let clean = String(str).replace(/(\d{4,}|_\d{2,}|\s+\d{4,})$/i, "").trim();
+  let clean = String(str).trim();
+  // Strip trailing frame/numeric suffixes (00001, _001) — but never a year
+  // like "2026", which is a meaningful part of editorial titles.
+  if (!/(?:19|20)\d{2}$/.test(clean)) {
+    clean = clean.replace(/(\d{4,}|_\d{2,}|\s+\d{4,})$/i, "").trim();
+  }
   clean = clean.replace(/'([A-Z])\b/g, (_, char) => `'${char.toLowerCase()}`);
   return clean;
 }
@@ -396,7 +401,7 @@ function jsonLdForPost(post, cover, words, relatedVideos = []) {
       inLanguage: "en",
       isAccessibleForFree: true,
       author: {
-        "@type": "Organization",
+        "@type": "Person",
         name: BLOG_AUTHOR.name,
         url: BLOG_AUTHOR.url,
       },
@@ -409,6 +414,30 @@ function jsonLdForPost(post, cover, words, relatedVideos = []) {
       mainEntityOfPage: { "@type": "WebPage", "@id": url },
     },
   ];
+
+  // Star-rating rich results for review posts (post.review = {name, rating, url}).
+  if (post.review && post.review.name && post.review.rating) {
+    graph.push({
+      "@type": "Review",
+      itemReviewed: {
+        "@type": "SoftwareApplication",
+        name: post.review.name,
+        applicationCategory: "EntertainmentApplication",
+        operatingSystem: "Web",
+        ...(post.review.url ? { url: post.review.url } : {}),
+      },
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: post.review.rating,
+        bestRating: 10,
+        worstRating: 1,
+      },
+      author: { "@type": "Person", name: BLOG_AUTHOR.name, url: BLOG_AUTHOR.url },
+      publisher: { "@type": "Organization", name: "thebestpornai", url: ORIGIN },
+      datePublished: post.date,
+      url,
+    });
+  }
 
   if (post.faqs && post.faqs.length) {
     graph.push({
@@ -491,6 +520,13 @@ function renderPost(post) {
     .join("");
   const endMatter = cluster
     ? `
+        <aside class="bp-author-box">
+          <div class="bp-avatar bp-avatar--lg" aria-hidden="true">AK</div>
+          <div>
+            <h3><a href="${esc(BLOG_AUTHOR.url)}" rel="author">${esc(BLOG_AUTHOR.name)}</a></h3>
+            <p>Reviews editor at thebestpornai. Every scored platform is tested hands-on, on a paid account, before it earns a number. <a href="/The-Best-Porn-AI-in-2026#how-we-test">How we test →</a></p>
+          </div>
+        </aside>
         <nav class="cluster-end" aria-label="Next">
           <a class="btn btn-primary" href="/The-Best-Porn-AI-in-2026">2026 leaderboard</a>
           <a class="btn btn-secondary" href="/blog/">All articles</a>
@@ -515,10 +551,10 @@ function renderPost(post) {
         </div>
         ${faqHtml(post.faqs)}
         <aside class="bp-author-box">
-          <div class="bp-avatar bp-avatar--lg" aria-hidden="true">TB</div>
+          <div class="bp-avatar bp-avatar--lg" aria-hidden="true">AK</div>
           <div>
-            <h3>thebestpornai Editorial</h3>
-            <p>We review AI adult platforms and stream finished scenes.</p>
+            <h3><a href="${esc(BLOG_AUTHOR.url)}" rel="author">${esc(BLOG_AUTHOR.name)}</a></h3>
+            <p>Reviews editor at thebestpornai. Every scored platform is tested hands-on, on a paid account, before it earns a number. <a href="/The-Best-Porn-AI-in-2026#how-we-test">How we test →</a></p>
           </div>
         </aside>`;
 
@@ -527,7 +563,7 @@ function renderPost(post) {
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>${esc(cleanPostTitle)} | thebestpornai Blog</title>
+<title>${esc(post.metaTitle || `${cleanPostTitle} | thebestpornai Blog`)}</title>
 <meta name="description" content="${esc(description)}"/>
 <meta name="theme-color" content="#0A0A0A"/>
 
@@ -542,13 +578,13 @@ ${HEAD_HINTS}
 ${cover ? `<link rel="preload" as="image" href="${esc(cover)}" fetchpriority="high"/>` : ""}
 <meta property="og:type" content="article"/>
 <meta property="og:site_name" content="thebestpornai"/>
-<meta property="og:title" content="${esc(cleanPostTitle)}"/>
+<meta property="og:title" content="${esc(post.metaTitle || cleanPostTitle)}"/>
 <meta property="og:description" content="${esc(description)}"/>
 <meta property="og:url" content="${url}"/>
 <meta property="og:image" content="${esc(cover)}"/>
 <meta property="og:image:alt" content="${esc(cleanPostTitle)}"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="${esc(cleanPostTitle)}"/>
+<meta name="twitter:title" content="${esc(post.metaTitle || cleanPostTitle)}"/>
 <meta name="twitter:description" content="${esc(description)}"/>
 <meta name="twitter:image" content="${esc(cover)}"/>
 <meta name="robots" content="index,follow,max-image-preview:large"/>
@@ -579,7 +615,7 @@ ${wrapBlogPage(`
           <h1 class="bp-title" itemprop="headline">${esc(cleanPostTitle)}</h1>
           ${post.microcopy ? `<p class="bp-deck">${esc(post.microcopy)}</p>` : ""}
           <div class="bp-meta">
-            <span class="bp-author"><span class="bp-avatar" aria-hidden="true">TB</span><a href="${esc(BLOG_AUTHOR.url)}" rel="author">${esc(BLOG_AUTHOR.name)}</a></span>
+            <span class="bp-author"><span class="bp-avatar" aria-hidden="true">AK</span><a href="${esc(BLOG_AUTHOR.url)}" rel="author">${esc(BLOG_AUTHOR.name)}</a></span>
             <span>${ICON_CALENDAR}<time datetime="${esc(post.date)}" itemprop="datePublished">${esc(formatDateLong(post.date))}</time></span>
             <span>${ICON_CLOCK}${readMins} min read</span>
           </div>
@@ -694,23 +730,13 @@ function jsonLdForIndex(sorted) {
           url: ORIGIN,
           logo: { "@type": "ImageObject", url: LOGO },
         },
-        blogPost: sorted.map((p) => ({
+        blogPost: sorted.slice(0, 10).map((p) => ({
           "@type": "BlogPosting",
           headline: cleanTitle(p.title),
           url: postUrl(p),
           datePublished: p.date,
           dateModified: p.dateModified || p.date,
           articleSection: p.category,
-        })),
-      },
-      {
-        "@type": "ItemList",
-        name: "Latest desires",
-        itemListElement: sorted.map((p, i) => ({
-          "@type": "ListItem",
-          position: i + 1,
-          url: postUrl(p),
-          name: cleanTitle(p.title),
         })),
       },
       {
@@ -784,7 +810,7 @@ ${wrapBlogPage(`
   <header class="blog-masthead">
     <div class="editorial-tag">Editorial · 2026</div>
     <h1 class="hero-title">Guides, reviews &amp; <span class="text-red">stories</span></h1>
-    <p class="hero-subtitle">Same type and cards as the 2026 hub. Read a review, then watch a scene — or open the leaderboard.</p>
+    <p class="hero-subtitle">Hands-on reviews, honest guides, and stories from the 2026 benchmark. Read a review, then watch a scene — or open the leaderboard.</p>
     <div class="cta-row">
       <a class="btn btn-primary" href="/The-Best-Porn-AI-in-2026">2026 leaderboard</a>
       <a class="btn btn-secondary" href="/">Watch free scenes</a>
@@ -938,6 +964,11 @@ function hydrateClusterBodies(posts) {
       ...post,
       title: extra.title || post.title,
       excerpt: extra.excerpt || post.excerpt,
+      metaTitle: extra.metaTitle || post.metaTitle,
+      microcopy: extra.microcopy || post.microcopy,
+      faqs: extra.faqs || post.faqs,
+      review: extra.review || post.review,
+      dateModified: extra.dateModified || post.dateModified,
       readMins: Math.max(4, calcReadMins(wordCount(extra.body))),
       body: `<div class="cluster-article">${body}</div>`,
     };

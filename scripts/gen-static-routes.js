@@ -589,8 +589,7 @@ function genPornstarProfiles() {
         "description": `Watch ${v.title} starring AI model ${ps.name} on thebestpornai.`,
         "thumbnailUrl": [v.thumb ? mediaUrl(v.thumb) : avatarUrl],
         "uploadDate": isoUploadDate(v.uploaded),
-        "url": `${ORIGIN}/video/${v.id}.html`,
-        "contentUrl": v.src ? mediaUrl(v.src) : `${ORIGIN}/video/${v.id}.html`
+        "url": `${ORIGIN}/video/${v.id}.html`
       }))
     };
 
@@ -718,8 +717,7 @@ function genCategoryPages() {
             "description": `Watch ${v.title} in the ${cat.name} category on thebestpornai.`,
             "thumbnailUrl": [v.thumb ? mediaUrl(v.thumb) : sampleThumb],
             "uploadDate": isoUploadDate(v.uploaded),
-            "url": `${ORIGIN}/video/${v.id}.html`,
-            "contentUrl": v.src ? mediaUrl(v.src) : `${ORIGIN}/video/${v.id}.html`
+            "url": `${ORIGIN}/video/${v.id}.html`
           }
         }))
       }
@@ -850,8 +848,10 @@ function genVideoPages() {
       "thumbnailUrl": [thumbUrl],
       "uploadDate": isoUploadDate(v.uploaded),
       "duration": isoDuration(v.duration),
+      "url": canonical,
       "contentUrl": v.src ? mediaUrl(v.src) : `${ORIGIN}${playPath(v)}`,
-      "embedUrl": `${ORIGIN}${playPath(v)}`,
+      "embedUrl": `${ORIGIN}/v/${v.id}`,
+      "isFamilyFriendly": "false",
       "interactionStatistic": {
         "@type": "InteractionCounter",
         "interactionType": { "@type": "WatchAction" },

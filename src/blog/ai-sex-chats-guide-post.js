@@ -48,7 +48,7 @@ export const AI_SEX_CHATS_GUIDE_POST = {
   title: "AI Sex Chats – The Ultimate Guide to the Best Uncensored AI NSFW Chatbots in 2026",
   category: "Guides",
   excerpt:
-    "Best uncensored AI sex chats and NSFW chatbots in 2026. Honest reviews of Candy.ai, OurDream, MyLovely, SpicyChat, CrushOn, SecretDesires, and GirlfriendGPT — plus how to pick a platform.",
+    "Best uncensored AI sex chats and NSFW chatbots in 2026. Honest reviews of OurDream, Candy.ai, MyLovely, SpicyChat, CrushOn, SecretDesires, and GirlfriendGPT — plus how to pick a platform.",
   microcopy: "Instant replies, custom characters, and chats you would not send a real person — plus which sites actually deliver.",
   date: "2026-08-16",
   dateModified: "2026-08-16",
@@ -68,8 +68,8 @@ export const AI_SEX_CHATS_GUIDE_POST = {
     "CrushOn AI",
   ],
   itemList: [
-    { "@type": "ListItem", position: 1, name: "Candy.ai", url: "https://candy.ai" },
-    { "@type": "ListItem", position: 2, name: "OurDream", url: OD },
+    { "@type": "ListItem", position: 1, name: "OurDream", url: OD },
+    { "@type": "ListItem", position: 2, name: "Candy.ai", url: "https://candy.ai" },
     { "@type": "ListItem", position: 3, name: "MyLovely", url: "https://www.mylovely.ai/" },
     { "@type": "ListItem", position: 4, name: "SpicyChat", url: "https://spicychat.ai" },
     { "@type": "ListItem", position: 5, name: "SecretDesires", url: "https://secretdesires.ai/" },
@@ -146,13 +146,6 @@ export const AI_SEX_CHATS_GUIDE_POST = {
 
     <h2 id="reviews">Best AI Sex Chat Websites Reviewed</h2>
     ${review({
-      id: "candy-ai",
-      name: "Candy.ai",
-      href: "https://candy.ai",
-      lead: `${ext("https://candy.ai", "Candy AI")} is an AI girlfriend generator that allows you to enjoy uncensored and NSFW conversations with girls (and guys). That said, you have to put in a bit of work to build a connection with the girls first. If you come onto them too strongly right away, they’ll reject you. Wow, that’s just like real life, isn’t it? Candy.ai focuses more on relationship-style interactions than pure instant gratification. If you enjoy building tension, it works well. If you just want immediate explicit content, other platforms may feel more direct.`,
-      best: "Users who like a more realistic back-and-forth before things get sexual.",
-    })}
-    ${review({
       id: "ourdream-ai",
       name: "OurDream",
       href: OD,
@@ -160,6 +153,13 @@ export const AI_SEX_CHATS_GUIDE_POST = {
       lead: `If you’re on the search for explicit sex chats, ${od("OurDream AI")} may be just the fit for you. What am I saying — it definitely is. Fantasy and monster girls? Check. A roommate who’s obsessed with you? Check. College women and MILFs? Double check. OurDream doesn’t limit itself to realistic women. You can ${od("create your own character")}, generate stills and short video of the same person, and use voice — one character across every mode.`,
       more: `<p>For pricing and coins, see <a href="/blog/is-ourdream-ai-free.html">Is OurDream.ai free?</a> and <a href="/blog/ourdream-dreamcoins-explained.html">How Dreamcoins work</a>.</p>${fig("/blog-assets/ourdream-pink-studio.jpg", "OurDream AI character studio", "OurDream: chat, stills, video, and voice on one character.")}`,
       best: "Fantasy, extreme, and highly varied character options.",
+    })}
+    ${review({
+      id: "candy-ai",
+      name: "Candy.ai",
+      href: "https://candy.ai",
+      lead: `${ext("https://candy.ai", "Candy AI")} is an AI girlfriend generator that allows you to enjoy uncensored and NSFW conversations with girls (and guys). That said, you have to put in a bit of work to build a connection with the girls first. If you come onto them too strongly right away, they’ll reject you. Wow, that’s just like real life, isn’t it? Candy.ai focuses more on relationship-style interactions than pure instant gratification. If you enjoy building tension, it works well. If you just want immediate explicit content, other platforms may feel more direct.`,
+      best: "Users who like a more realistic back-and-forth before things get sexual.",
     })}
     ${review({
       id: "mylovely-ai",

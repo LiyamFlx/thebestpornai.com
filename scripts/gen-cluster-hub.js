@@ -38,10 +38,14 @@ function stars(score) {
   return "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
 }
 
+function hasRealReview(t) {
+  return Boolean(t.reviewUrl) && !/#directory/.test(t.reviewUrl);
+}
+
 function card(t) {
   const tags = (t.tags || []).map((x) => `<span class="tag-item">${esc(x)}</span>`).join("");
-  return `
-  <a class="tool-card" href="${esc(t.reviewUrl)}" data-category="${esc(t.category)}" data-name="${esc(t.name)}" data-rating="${esc(t.score)}">
+  const linked = hasRealReview(t);
+  const inner = `
     <div class="tool-header">
       <h3>${esc(t.name)}</h3>
       <div class="tool-rating-box">${esc(t.score)}<span> / 10</span></div>
@@ -49,8 +53,14 @@ function card(t) {
     <span class="tag-item">${esc(t.bestFor || t.category)}</span>
     <p class="tool-desc">${esc(t.desc)}</p>
     <div class="tool-tags">${tags}</div>
-    <div class="tool-cta">Open review →</div>
-  </a>`;
+    <div class="tool-cta">${linked ? "Open review →" : "Not yet reviewed"}</div>`;
+  return linked
+    ? `
+  <a class="tool-card" href="${esc(t.reviewUrl)}" data-category="${esc(t.category)}" data-name="${esc(t.name)}" data-rating="${esc(t.score)}">${inner}
+  </a>`
+    : `
+  <div class="tool-card" data-category="${esc(t.category)}" data-name="${esc(t.name)}" data-rating="${esc(t.score)}">${inner}
+  </div>`;
 }
 
 function podiumCard(t, place) {
@@ -72,7 +82,7 @@ const matrixRows = [...tools]
   .slice(0, 12)
   .map(
     (t) => `<tr>
-      <td><a href="${esc(t.reviewUrl)}">${esc(t.name)}</a></td>
+      <td>${hasRealReview(t) ? `<a href="${esc(t.reviewUrl)}">${esc(t.name)}</a>` : esc(t.name)}</td>
       <td>${esc(t.score)}</td>
       <td>${esc(t.quality)}</td>
       <td>${esc(t.features)}</td>
@@ -83,6 +93,21 @@ const matrixRows = [...tools]
     </tr>`
   )
   .join("");
+
+const HUB_FAQS = [
+  {
+    q: "What is the best porn AI in 2026?",
+    a: "It depends on the job — but our 2026 benchmark crowns OurDream AI #1 overall at 9.8/10, with Candy AI (9.7, best photorealism) and Xotic AI (9.5) completing the podium. If you want finished scenes instead of prompting, thebestpornai itself is the watch library.",
+  },
+  {
+    q: "Who writes and tests these reviews?",
+    a: "All scored reviews are written by Anna K., our New York-based reviews editor, from hands-on testing on paid accounts. Each platform is tested for at least 7 days against the six weighted criteria described in the methodology on this page.",
+  },
+  {
+    q: "Is thebestpornai a generator?",
+    a: "No. thebestpornai is a curated streaming catalog of finished AI adult video. This page is the create/compare aisle: it ranks third-party generators and companions.",
+  },
+];
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -95,6 +120,12 @@ const jsonLd = {
       description:
         "Compare the best porn AI tools in 2026: generators, companions, and video. Independent scores plus a watch-library path on thebestpornai.",
       isPartOf: { "@type": "WebSite", name: "thebestpornai", url: ORIGIN + "/" },
+      dateModified: new Date().toISOString().slice(0, 10),
+      author: {
+        "@type": "Person",
+        name: "Anna K.",
+        url: ORIGIN + "/author/anna-k.html",
+      },
     },
     {
       "@type": "BreadcrumbList",
@@ -115,24 +146,11 @@ const jsonLd = {
     },
     {
       "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "What is the best porn AI in 2026?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "It depends on the job. This hub ranks generators and companions (Candy AI 9.9 in this channel). If you want finished scenes, thebestpornai is the watch library. See also /blog/the-best-porn-ai-2026.html for the watch-vs-create take.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Is thebestpornai a generator?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "No. thebestpornai is a curated streaming catalog of finished AI adult video. This page is the create/compare aisle.",
-          },
-        },
-      ],
+      mainEntity: HUB_FAQS.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
     },
   ],
 };
@@ -143,6 +161,7 @@ const body = `
     <div class="editorial-tag">2026 benchmark · create aisle</div>
     <h1 class="hero-title">The Best Porn AI <span class="text-red">in 2026</span></h1>
     <p class="hero-subtitle">Independent scores for generators and companions. Different channel, different verdicts than our watch-first essays — on purpose. Want heat without a prompt? Stream the catalog.</p>
+    <p class="section-desc" style="margin-top:0.5rem">Reviewed by <a href="/author/anna-k.html">Anna K.</a> · <a href="#how-we-test">How we test</a> · Updated August 23, 2026</p>
     <div class="cta-row">
       <a class="btn btn-primary" href="/">Watch free scenes →</a>
       <a class="btn btn-secondary" href="/blog/the-best-porn-ai-2026.html">Watch vs create essay</a>
@@ -192,6 +211,39 @@ const body = `
     <div class="editorial-tag">Directory</div>
     <h2 class="section-title">${tools.length} platforms</h2>
     <div class="tool-grid" id="toolGrid">${tools.map(card).join("")}</div>
+  </section>
+
+  <section id="how-we-test" class="section-wrapper">
+    <div class="editorial-tag">Methodology</div>
+    <h2 class="section-title">How we test</h2>
+    <p class="section-desc">Every scored platform is tested hands-on by <a href="/author/anna-k.html">Anna K.</a> on a paid account for a minimum of 7 days — never from marketing pages or press kits. Scores are a weighted average of six criteria:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Criterion</th><th>Weight</th><th>What we measure</th></tr></thead>
+        <tbody>
+          <tr><td>Visual Quality &amp; Fidelity</td><td>30%</td><td>Anatomy accuracy, skin texture, identity consistency across poses and angles</td></tr>
+          <tr><td>Conversational Depth &amp; Memory</td><td>20%</td><td>Multi-day context retention, personality drift, escalation control</td></tr>
+          <tr><td>Customization Depth</td><td>15%</td><td>Character creator granularity, body and style controls, scenario options</td></tr>
+          <tr><td>Privacy &amp; Data Security</td><td>15%</td><td>Billing descriptors, deletion paths, log and retention policies</td></tr>
+          <tr><td>Pricing &amp; Credit Value</td><td>10%</td><td>Real cost per usable image, video clip, or chat session</td></tr>
+          <tr><td>UX &amp; Generation Latency</td><td>10%</td><td>Queue times, interface friction, mobile browser behavior</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="section-desc">Testing includes fresh characters per platform, identical prompt sets for image and video comparisons, and privacy verification against each platform's live billing and deletion flows. Outbound links on this site — including links to our top pick — may earn affiliate commission; the disclosure appears on every review. Platforms without a published full review carry a directory score only and are marked "Not yet reviewed."</p>
+  </section>
+
+  <section id="hub-faq" class="section-wrapper">
+    <div class="editorial-tag">FAQ</div>
+    <h2 class="section-title">Frequently asked questions</h2>
+    <div class="faq-list">
+      ${HUB_FAQS.map(
+        (f) => `<div class="faq-item">
+          <div class="faq-q">${esc(f.q)}</div>
+          <div class="faq-a">${esc(f.a)}</div>
+        </div>`
+      ).join("\n      ")}
+    </div>
   </section>
 
   <section class="watch-callout">

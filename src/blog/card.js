@@ -42,7 +42,12 @@ export function formatDate(iso) {
 
 export function cleanTitle(str) {
   if (!str) return "";
-  let clean = String(str).replace(/(\d{4,}|_\d{2,}|\s+\d{4,})$/i, "").trim();
+  let clean = String(str).trim();
+  // Strip trailing frame/numeric suffixes (00001, _001) — but never a year
+  // like "2026", which is a meaningful part of editorial titles.
+  if (!/(?:19|20)\d{2}$/.test(clean)) {
+    clean = clean.replace(/(\d{4,}|_\d{2,}|\s+\d{4,})$/i, "").trim();
+  }
   clean = clean.replace(/'([A-Z])\b/g, (_, char) => `'${char.toLowerCase()}`);
   return clean;
 }
