@@ -358,16 +358,8 @@ function addStructuredData(){
       "itemListElement": top.map((v, idx) => ({
         "@type": "ListItem",
         "position": idx + 1,
-        "item": {
-          "@type": "VideoObject",
-          "name": v.title,
-          "description": v.desc || `${v.title} by ${creatorName(v.creator)}`,
-          "thumbnailUrl": v.thumb ? mediaUrl(v.thumb) : new URL(defaultThumbUrl, location.origin).href,
-          "uploadDate": isoDate(v.uploaded),
-          "duration": isoDuration(v.duration),
-          "contentUrl": v.src ? mediaUrl(v.src) : undefined,
-          "url": "https://www.thebestpornai.com/watch/" + v.id,
-        }
+        "url": "https://www.thebestpornai.com/video/" + v.id + ".html",
+        "name": v.title
       }))
     };
   }

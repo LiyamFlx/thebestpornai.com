@@ -150,7 +150,7 @@ function videoCardHtml(v, { eager = false, fetchpriority } = {}) {
   const loading = eager ? "eager" : "lazy";
   const fpAttr = fetchpriority ? ` fetchpriority="${fetchpriority}"` : "";
   return `
-    <a class="card" href="${playPath(v)}" title="${esc(v.title)}">
+    <a class="card" href="/video/${v.id}.html" title="${esc(v.title)}">
       <div class="video-thumb">
         ${thumbUrl ? `<img class="thumb-video" src="${thumbUrl}" alt="" width="320" height="180" loading="${loading}"${fpAttr} decoding="async"/>` : ""}
         <span class="quality-badge">4K</span>
@@ -344,10 +344,13 @@ function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, active
       border: 1px solid var(--border);
       margin-bottom: 24px;
     }
-    .video-player-hero img {
+    .video-player-hero img,
+    .video-player-hero video {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
+      background: #000;
     }
     .video-hero-overlay {
       position: absolute;
@@ -584,11 +587,8 @@ function genPornstarProfiles() {
         `${ORIGIN}/blog/${ps.blogSlug}.html`
       ],
       "subjectOf": creatorVideos.slice(0, 12).map((v) => ({
-        "@type": "VideoObject",
+        "@type": "WebPage",
         "name": v.title,
-        "description": `Watch ${v.title} starring AI model ${ps.name} on thebestpornai.`,
-        "thumbnailUrl": [v.thumb ? mediaUrl(v.thumb) : avatarUrl],
-        "uploadDate": isoUploadDate(v.uploaded),
         "url": `${ORIGIN}/video/${v.id}.html`
       }))
     };
@@ -711,14 +711,8 @@ function genCategoryPages() {
         "itemListElement": categoryVideos.slice(0, 12).map((v, i) => ({
           "@type": "ListItem",
           "position": i + 1,
-          "item": {
-            "@type": "VideoObject",
-            "name": v.title,
-            "description": `Watch ${v.title} in the ${cat.name} category on thebestpornai.`,
-            "thumbnailUrl": [v.thumb ? mediaUrl(v.thumb) : sampleThumb],
-            "uploadDate": isoUploadDate(v.uploaded),
-            "url": `${ORIGIN}/video/${v.id}.html`
-          }
+          "url": `${ORIGIN}/video/${v.id}.html`,
+          "name": v.title
         }))
       }
     };
@@ -740,35 +734,33 @@ function genCategoryPages() {
 
 // 5. Generate /video/<id>.html for top curated & popular scenes with rich Schema VideoObject and OurDream.ai affiliate conversion
 function genVideoPages() {
+  const byId = new Map(VIDEOS.map((v) => [v.id, v]));
   const seenIds = new Set();
   const prioritized = [];
 
-  // Priority 1: All new batch / recent uploads (id >= 5142)
+  function add(v) {
+    if (!v || !v.src || seenIds.has(v.id)) return;
+    seenIds.add(v.id);
+    prioritized.push(v);
+  }
+
+  // Always rewrite landings that already exist so older IDs stay watch pages.
+  if (fs.existsSync(VIDEO_DIR)) {
+    for (const f of fs.readdirSync(VIDEO_DIR)) {
+      if (!f.endsWith(".html")) continue;
+      add(byId.get(parseInt(f, 10)));
+    }
+  }
+
+  // New batch / recent uploads
   for (const v of VIDEOS) {
-    if (v.id >= 5142 && !seenIds.has(v.id)) {
-      seenIds.add(v.id);
-      prioritized.push(v);
-    }
+    if (v.id >= 5142) add(v);
   }
 
-  // Priority 2: All pornstar scenes
   for (const ps of PORNSTARS) {
-    const starVideos = VIDEOS.filter(v => (v.tags || []).some(t => t.toLowerCase() === ps.name.toLowerCase()));
-    for (const v of starVideos) {
-      if (!seenIds.has(v.id)) {
-        seenIds.add(v.id);
-        prioritized.push(v);
-      }
-    }
-  }
-
-  // Priority 3: Top viewed from all categories
-  const sortedByViews = [...VIDEOS].sort((a, b) => (b.views || 0) - (a.views || 0));
-  for (const v of sortedByViews) {
-    if (prioritized.length >= 350) break;
-    if (!seenIds.has(v.id)) {
-      seenIds.add(v.id);
-      prioritized.push(v);
+    const name = ps.name.toLowerCase();
+    for (const v of VIDEOS) {
+      if ((v.tags || []).some((t) => String(t).toLowerCase() === name)) add(v);
     }
   }
 
@@ -788,19 +780,18 @@ function genVideoPages() {
     const bodyContent = `
       <main class="video-view-wrap">
         <div class="video-player-hero">
-          ${thumbUrl ? `<img src="${thumbUrl}" alt="${esc(v.title)}" width="960" height="540" loading="eager" fetchpriority="high" decoding="async"/>` : `<div class="v-ph"></div>`}
-          <div class="video-hero-overlay">
-            <div class="video-top-badges">
-              <span class="quality-pill">4K Ultra HD</span>
-              ${v.duration ? `<span class="duration-pill">${esc(v.duration)}</span>` : ""}
-            </div>
-            <a class="video-play-center" href="${playPath(v)}" title="Play ${esc(v.title)} in the player">
-              <div class="big-play-btn" aria-hidden="true">▶</div>
-              <div class="video-play-label">Play 4K Scene in Full Player</div>
-            </a>
-            <div style="font-size:12px;color:rgba(255,255,255,0.7)">100% Free · No Registration Required</div>
-          </div>
+          ${v.src
+            ? `<video controls playsinline preload="metadata" width="960" height="540" poster="${esc(thumbUrl)}" title="${esc(v.title)}">
+            <source src="${esc(mediaUrl(v.src))}" type="video/mp4"/>
+          </video>`
+            : (thumbUrl
+              ? `<img src="${thumbUrl}" alt="${esc(v.title)}" width="960" height="540" loading="eager" fetchpriority="high" decoding="async"/>`
+              : `<div class="v-ph"></div>`)}
         </div>
+        <p class="sub" style="margin:12px 0 0">
+          <a href="${playPath(v)}" style="color:var(--accent);font-weight:700">Open in full player</a>
+          · 4K Ultra HD${v.duration ? ` · ${esc(v.duration)}` : ""} · 100% Free
+        </p>
 
         <div class="video-info-box">
           <h1 class="video-page-title">${esc(v.title)}</h1>
@@ -849,8 +840,8 @@ function genVideoPages() {
       "uploadDate": isoUploadDate(v.uploaded),
       "duration": isoDuration(v.duration),
       "url": canonical,
-      "contentUrl": v.src ? mediaUrl(v.src) : `${ORIGIN}${playPath(v)}`,
-      "embedUrl": `${ORIGIN}/v/${v.id}`,
+      "contentUrl": v.src ? mediaUrl(v.src) : canonical,
+      "embedUrl": canonical,
       "isFamilyFriendly": "false",
       "interactionStatistic": {
         "@type": "InteractionCounter",

@@ -90,10 +90,10 @@ if (fs.existsSync(videoDir)) {
   for (const vf of videoFiles) {
     const id = parseInt(vf.replace(".html", ""), 10);
     const v = VIDEOS.find((item) => item.id === id);
-    if (!v || !v.src || !v.title) continue;
+    if (!v || !v.src || !v.title || !v.thumb) continue;
 
     const loc = `${ORIGIN}/video/${vf}`;
-    const thumbLoc = v.thumb ? mediaUrl(v.thumb) : `${ORIGIN}/logo.png`;
+    const thumbLoc = mediaUrl(v.thumb);
     const contentLoc = mediaUrl(v.src);
     const playerLoc = `${ORIGIN}/video/${vf}`;
     const title = v.title;
