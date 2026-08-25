@@ -58,6 +58,7 @@ export default function handler(req, res) {
   const thumbUrl = v.thumb ? mediaUrl(v.thumb) : LOGO;
   const videoStreamUrl = v.src ? mediaUrl(v.src) : "";
   const shareUrl = `${ORIGIN}/v/${v.id}`;
+  const seoUrl = `${ORIGIN}/video/${v.id}.html`;
   const directWatchUrl = `${ORIGIN}${playPath(v)}`;
   const embedUrl = `${ORIGIN}${playPath(v)}`;
 
@@ -68,8 +69,8 @@ export default function handler(req, res) {
     "description": desc,
     "thumbnailUrl": [thumbUrl],
     "uploadDate": isoUploadDate(v.uploaded),
-    "url": `${ORIGIN}/video/${v.id}.html`,
-    "contentUrl": videoStreamUrl || `${ORIGIN}/video/${v.id}.html`,
+    "url": seoUrl,
+    "contentUrl": videoStreamUrl || seoUrl,
     "embedUrl": embedUrl,
     "publisher": {
       "@type": "Organization",
@@ -88,7 +89,8 @@ export default function handler(req, res) {
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>${esc(title)} — thebestpornai</title>
   <meta name="description" content="${esc(desc)}"/>
-  <link rel="canonical" href="${directWatchUrl}"/>
+  <link rel="canonical" href="${seoUrl}"/>
+  <meta name="robots" content="noindex, follow"/>
   
   <!-- OpenGraph Metadata (Discord, Telegram, WhatsApp, Facebook, iMessage) -->
   <meta property="og:site_name" content="thebestpornai"/>
@@ -123,10 +125,10 @@ export default function handler(req, res) {
 ${JSON.stringify(jsonLd, null, 2)}
   </script>
 
-  <!-- Instant Client-Side Redirect to Web App Player -->
-  <meta http-equiv="refresh" content="0; url=${directWatchUrl}"/>
+  <!-- Humans go to the in-app player. Do not meta-refresh crawlers onto /watch
+       (that URL is the SPA shell and looks like a homepage duplicate). -->
   <script>
-    if (!/bot|crawler|spider|facebookexternalhit|twitterbot|discordbot|telegrambot|whatsapp/i.test(navigator.userAgent)) {
+    if (!/bot|crawler|spider|facebookexternalhit|twitterbot|discordbot|telegrambot|whatsapp|slackbot|linkedinbot|pinterest|googlebot|bingbot|applebot/i.test(navigator.userAgent)) {
       window.location.replace("${directWatchUrl}");
     }
   </script>

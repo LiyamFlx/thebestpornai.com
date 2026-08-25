@@ -40,18 +40,14 @@ function xmlEsc(s) {
     .replace(/'/g, "&apos;");
 }
 
+// Indexable editorial/hub pages only. Never list noindex URLs (choose.html,
+// legal/*) or non-HTML feeds — GSC "Discovered - currently not indexed" is
+// worsened by bloated/duplicate sitemaps and noindex+sitemap contradictions.
 const pages = [
   { loc: "/", changefreq: "daily", priority: "1.0", lastmod: today },
-  { loc: "/choose.html", changefreq: "monthly", priority: "0.4", lastmod: today },
   { loc: "/blog/", changefreq: "weekly", priority: "0.9", lastmod: today },
   { loc: "/The-Best-Porn-AI-in-2026", changefreq: "weekly", priority: "1.0", lastmod: today },
   { loc: "/author/anna-k.html", changefreq: "monthly", priority: "0.5", lastmod: today },
-  { loc: "/guides/how-ai-porn-generators-work/", changefreq: "monthly", priority: "0.7", lastmod: today },
-  { loc: "/blog/rss.xml", changefreq: "weekly", priority: "0.3", lastmod: today },
-  { loc: "/legal/terms.html", changefreq: "yearly", priority: "0.3", lastmod: "2026-07-04" },
-  { loc: "/legal/privacy.html", changefreq: "yearly", priority: "0.3", lastmod: "2026-07-04" },
-  { loc: "/legal/dmca.html", changefreq: "yearly", priority: "0.3", lastmod: "2026-07-04" },
-  { loc: "/legal/2257.html", changefreq: "yearly", priority: "0.3", lastmod: "2026-07-04" },
   { loc: "/pornstars/", changefreq: "weekly", priority: "0.9", lastmod: today },
   { loc: "/pornstars/mia-nympo.html", changefreq: "weekly", priority: "0.8", lastmod: today },
   { loc: "/pornstars/sabrina-ass.html", changefreq: "weekly", priority: "0.8", lastmod: today },
@@ -85,33 +81,29 @@ for (const post of POSTS) {
   });
 }
 
-// Every static video landing page
+// Videos live ONLY in sitemap-video.xml (not duplicated in sitemap.xml).
 const videoDir = path.join(REPO, "video");
 const videoSitemapEntries = [];
 
 if (fs.existsSync(videoDir)) {
   const videoFiles = fs.readdirSync(videoDir).filter((f) => f.endsWith(".html"));
   for (const vf of videoFiles) {
-    pages.push({
-      loc: `/video/${vf}`,
-      changefreq: "weekly",
-      priority: "0.7",
-      lastmod: today,
-    });
-
     const id = parseInt(vf.replace(".html", ""), 10);
     const v = VIDEOS.find((item) => item.id === id);
-    if (v) {
-      const loc = `${ORIGIN}/video/${vf}`;
-      const thumbLoc = v.thumb ? mediaUrl(v.thumb) : `${ORIGIN}/logo.png`;
-      const contentLoc = v.src ? mediaUrl(v.src) : loc;
-      const playerLoc = `${ORIGIN}/v/${v.id}`;
-      const title = v.title || `AI Video #${v.id}`;
-      const desc = v.desc || `Watch ${title} in 4K on thebestpornai.`;
-      const pubDate = isoUploadDate(v.uploaded);
+    if (!v || !v.src || !v.title) continue;
 
-      videoSitemapEntries.push(`  <url>
+    const loc = `${ORIGIN}/video/${vf}`;
+    const thumbLoc = v.thumb ? mediaUrl(v.thumb) : `${ORIGIN}/logo.png`;
+    const contentLoc = mediaUrl(v.src);
+    const playerLoc = `${ORIGIN}/video/${vf}`;
+    const title = v.title;
+    const desc = v.desc || `Watch ${title} in 4K on thebestpornai.`;
+    const pubDate = isoUploadDate(v.uploaded);
+    const lastmod = (v.uploaded && String(v.uploaded).slice(0, 10)) || today;
+
+    videoSitemapEntries.push(`  <url>
     <loc>${loc}</loc>
+    <lastmod>${xmlEsc(lastmod)}</lastmod>
     <video:video>
       <video:thumbnail_loc>${xmlEsc(thumbLoc)}</video:thumbnail_loc>
       <video:title>${xmlEsc(title)}</video:title>
@@ -122,7 +114,6 @@ if (fs.existsSync(videoDir)) {
       <video:family_friendly>no</video:family_friendly>
     </video:video>
   </url>`);
-    }
   }
 }
 
@@ -155,3 +146,18 @@ console.log(`✔ public/sitemap.xml written with ${pages.length} URLs.`);
 
 fs.writeFileSync(path.join(REPO, "public", "sitemap-video.xml"), videoXml);
 console.log(`✔ public/sitemap-video.xml written with ${videoSitemapEntries.length} Video Sitemap entries.`);
+
+const indexXml = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>${ORIGIN}/sitemap.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${ORIGIN}/sitemap-video.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+</sitemapindex>
+`;
+fs.writeFileSync(path.join(REPO, "public", "sitemap-index.xml"), indexXml);
+console.log("✔ public/sitemap-index.xml written.");

@@ -317,6 +317,12 @@ check("Sitemap contains all indexable static routes and valid XML", () => {
   assert(xml.includes("/categories/"), "Must include /categories/");
   assert(xml.includes("/categories/blonde.html"), "Must include Blonde category");
   assert(xml.includes("/blog/"), "Must include /blog/");
+  assert(!xml.includes("/choose.html"), "Must not list noindex /choose.html");
+  assert(!xml.includes("/legal/2257.html"), "Must not list noindex legal pages");
+  assert(!xml.includes("/video/"), "Video URLs belong only in sitemap-video.xml");
+  const videoSitemap = fs.readFileSync(path.join(REPO, "public", "sitemap-video.xml"), "utf8");
+  assert(videoSitemap.includes("/video/"), "sitemap-video.xml must list video landings");
+  assert(fs.existsSync(path.join(REPO, "public", "sitemap-index.xml")), "sitemap-index.xml must exist");
 });
 
 // --- SECTION 5: Social Unfurl Gateway & PWA Validation ---
