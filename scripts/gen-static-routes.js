@@ -123,6 +123,45 @@ const PORNSTARS = [
     introVideoId: 5257,
     blogSlug: "marsha-banks-ai-pornstar-profile-intro-shorts",
   },
+  {
+    id: "ps-yuna-blackveil",
+    name: "Yuna Blackveil",
+    handle: "@yunablackveil",
+    slug: "yuna-blackveil",
+    subs: 6200,
+    bio: "2D AI pornstar — long black hair, hentai-style close-ups, and unapologetic bedroom scenes. Illustrated heat with a single, repeatable face.",
+    tags: ["Yuna Blackveil", "Pornstar", "Hentai", "Anime", "Big Tits", "Babe", "AI", "Solo"],
+    categories: ["Babe", "AI Generated", "Hentai"],
+    avatar: "../media/Yuna Blackveil/avatar.jpg",
+    banner: "../media/Yuna Blackveil/banner.jpg",
+    introVideoId: 5962,
+  },
+  {
+    id: "ps-violet-rush",
+    name: "Violet Rush",
+    handle: "@violetrush",
+    slug: "violet-rush",
+    subs: 8100,
+    bio: "Neon-city AI pornstar — lavender hair, pink floral dress, and night-drive energy. Photoreal clips built around one look you can binge.",
+    tags: ["Violet Rush", "Pornstar", "Latina", "Babe", "AI", "Solo", "Big Tits"],
+    categories: ["Babe", "AI Generated", "Latina"],
+    avatar: "../media/Violet Rush/avatar.jpg",
+    banner: "../media/Violet Rush/banner.jpg",
+    introVideoId: 5968,
+  },
+  {
+    id: "ps-elle-hart",
+    name: "Elle Hart",
+    handle: "@ellehart",
+    slug: "elle-hart",
+    subs: 7400,
+    bio: "Photoreal blonde AI pornstar — huge natural tits, studio heat, and slow body-forward scenes. Soft face, heavy chest, same girl on repeat.",
+    tags: ["Elle Hart", "Pornstar", "Blonde", "Big Tits", "Babe", "AI", "Solo"],
+    categories: ["Big Tits", "AI Generated", "Blonde"],
+    avatar: "../media/Elle Hart/avatar.jpg",
+    banner: "../media/Elle Hart/banner.jpg",
+    introVideoId: 5973,
+  },
 ];
 
 const TOP_CATEGORIES = [
@@ -584,8 +623,8 @@ function genPornstarProfiles() {
       "image": avatarUrl,
       "description": ps.bio,
       "sameAs": [
-        `${ORIGIN}/blog/${ps.blogSlug}.html`
-      ],
+        ps.blogSlug ? `${ORIGIN}/blog/${ps.blogSlug}.html` : `${ORIGIN}/pornstars/${ps.slug}.html`
+      ].filter(Boolean),
       "subjectOf": creatorVideos.slice(0, 12).map((v) => ({
         "@type": "WebPage",
         "name": v.title,
