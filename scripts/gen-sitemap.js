@@ -49,9 +49,6 @@ const pages = [
   { loc: "/The-Best-Porn-AI-in-2026", changefreq: "weekly", priority: "1.0", lastmod: today },
   { loc: "/author/anna-k.html", changefreq: "monthly", priority: "0.5", lastmod: today },
   { loc: "/pornstars/", changefreq: "weekly", priority: "0.9", lastmod: today },
-  { loc: "/pornstars/mia-nympo.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/pornstars/sabrina-ass.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/pornstars/marsha-banks.html", changefreq: "weekly", priority: "0.8", lastmod: today },
   { loc: "/categories/", changefreq: "weekly", priority: "0.9", lastmod: today },
   { loc: "/categories/blonde.html", changefreq: "weekly", priority: "0.8", lastmod: today },
   { loc: "/categories/latina.html", changefreq: "weekly", priority: "0.8", lastmod: today },
@@ -69,6 +66,13 @@ const pages = [
   { loc: "/categories/lesbian.html", changefreq: "weekly", priority: "0.8", lastmod: today },
   { loc: "/categories/creampie.html", changefreq: "weekly", priority: "0.8", lastmod: today },
 ];
+
+const pornstarDir = path.join(REPO, "pornstars");
+if (fs.existsSync(pornstarDir)) {
+  for (const f of fs.readdirSync(pornstarDir).filter((x) => x.endsWith(".html") && x !== "index.html").sort()) {
+    pages.push({ loc: `/pornstars/${f}`, changefreq: "weekly", priority: "0.8", lastmod: today });
+  }
+}
 
 // Every editorial post
 for (const post of POSTS) {
