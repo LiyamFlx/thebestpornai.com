@@ -73,7 +73,7 @@ export const GENERATORS_2026_POST = {
   coverLayout: "landscape",
   wide: true,
   body: `
-    <p>Searching “best AI porn sites 2026” usually lands you in a pile of generators. That is a different job from <em>watching</em>. A generator is a studio: you prompt, you wait, you pay coins. A watch library like <a href="/">thebestpornai</a> is already cut. This page ranks <strong>generators</strong> — ten tools we scored on fidelity, speed, short video, control, and whether the price is honest.</p>
+    <p>Searching “best AI porn sites 2026” usually lands you in a pile of generators. That is a different job from <em>watching</em>. A generator is a studio: you prompt, you wait, you pay coins. A watch library like <a href="/">thebestpornai</a> is already cut. This page ranks <strong>generators</strong> — ten tools we scored on fidelity, speed, short video, control, and whether the price is honest. If you specifically want <em>uncensored stills</em> (not a 10-tool studio tour), start with <a href="/blog/best-nsfw-ai-image-generators-2026.html">best NSFW AI image generators 2026</a>.</p>
     <div class="blog-callout">
       <strong>Quick picks</strong>
       Overall package → ${ext(OD, "OurDream AI")}.
