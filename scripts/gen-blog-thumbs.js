@@ -46,13 +46,17 @@ function collectCoverPaths() {
     for (const e of data) if (e.cover && e.cover.includes("media/blog/")) paths.add(e.cover);
   }
 
-  const postsJsPath = path.join(REPO, "src", "blog", "posts.js");
-  if (fs.existsSync(postsJsPath)) {
-    const src = fs.readFileSync(postsJsPath, "utf8");
-    const re = /cover:\s*"([^"]+)"/g;
-    let m;
-    while ((m = re.exec(src))) {
-      if (m[1].includes("media/blog/")) paths.add(m[1]);
+  // Scan all JS and JSON files in src/blog/ directory for cover: "..." patterns
+  const blogDir = path.join(REPO, "src", "blog");
+  if (fs.existsSync(blogDir)) {
+    for (const f of fs.readdirSync(blogDir)) {
+      if (!f.endsWith(".js") && !f.endsWith(".json")) continue;
+      const src = fs.readFileSync(path.join(blogDir, f), "utf8");
+      const re = /cover:\s*"([^"]+)"/g;
+      let m;
+      while ((m = re.exec(src))) {
+        if (m[1].includes("media/blog/")) paths.add(m[1]);
+      }
     }
   }
 
