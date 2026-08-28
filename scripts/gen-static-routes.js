@@ -1049,7 +1049,6 @@ function genVideoPages() {
       "duration": isoDuration(v.duration),
       "url": canonical,
       "contentUrl": v.src ? mediaUrl(v.src) : canonical,
-      "embedUrl": canonical,
       "isFamilyFriendly": "false",
       "interactionStatistic": {
         "@type": "InteractionCounter",

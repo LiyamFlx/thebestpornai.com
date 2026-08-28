@@ -99,7 +99,6 @@ if (fs.existsSync(videoDir)) {
     const loc = `${ORIGIN}/video/${vf}`;
     const thumbLoc = mediaUrl(v.thumb);
     const contentLoc = mediaUrl(v.src);
-    const playerLoc = `${ORIGIN}/video/${vf}`;
     const title = v.title;
     const desc = v.desc || `Watch ${title} in 4K on thebestpornai.`;
     const pubDate = isoUploadDate(v.uploaded);
@@ -113,7 +112,6 @@ if (fs.existsSync(videoDir)) {
       <video:title>${xmlEsc(title)}</video:title>
       <video:description>${xmlEsc(desc)}</video:description>
       <video:content_loc>${xmlEsc(contentLoc)}</video:content_loc>
-      <video:player_loc>${xmlEsc(playerLoc)}</video:player_loc>
       <video:publication_date>${pubDate}</video:publication_date>
       <video:family_friendly>no</video:family_friendly>
     </video:video>

@@ -71,7 +71,6 @@ export default function handler(req, res) {
     "uploadDate": isoUploadDate(v.uploaded),
     "url": seoUrl,
     "contentUrl": videoStreamUrl || seoUrl,
-    "embedUrl": embedUrl,
     "publisher": {
       "@type": "Organization",
       "name": "thebestpornai",
