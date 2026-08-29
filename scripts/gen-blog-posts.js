@@ -140,6 +140,24 @@ function wordCount(html) {
   return t.split(/\s+/).filter(Boolean).length;
 }
 
+/**
+ * Truncate description at a word boundary to avoid mid-word cuts in SERP snippets.
+ * Targets <= 155 chars for optimal desktop and mobile snippet display.
+ */
+function cleanDescription(raw, maxLen = 155) {
+  if (!raw) return "";
+  const text = plainText(raw).replace(/\s+/g, " ").trim();
+  if (text.length <= maxLen) return text;
+  const truncated = text.slice(0, maxLen);
+  const lastSpace = truncated.lastIndexOf(" ");
+  if (lastSpace > 60) {
+    let clean = truncated.slice(0, lastSpace).replace(/[,;:\-\s]+$/, "");
+    clean = clean.replace(/\s+\b(and|or|the|with|for|of|to|in|by|a|an|at|as|is|are|on)\b$/i, "").replace(/[,;:\-\s]+$/, "");
+    return clean + "…";
+  }
+  return truncated.replace(/[,;:\-\s]+$/, "") + "…";
+}
+
 /** Derived reading time at ~200wpm, minimum 1 min. */
 function calcReadMins(words) {
   return Math.max(1, Math.ceil((words || 0) / 200));
@@ -161,7 +179,15 @@ function postCoverUrl(post) {
  */
 function postCoverThumbUrl(post) {
   if (!post.cover) return postCoverUrl(post);
-  if (post.cover.startsWith("/") || /^https?:\/\//i.test(post.cover)) return post.cover;
+  if (post.cover.startsWith("/") || /^https?:\/\//i.test(post.cover)) {
+    if (post.cover.startsWith("/blog-assets/")) {
+      const webpRel = post.cover.replace(/\.(jpe?g|png)$/i, ".webp");
+      if (fs.existsSync(path.join(REPO, "public", webpRel))) {
+        return webpRel;
+      }
+    }
+    return post.cover;
+  }
   if (post.cover.includes("media/blog/")) {
     const thumbRel = post.cover.replace(/\.(jpe?g|png)$/i, "-thumb.webp");
     return mediaUrl(thumbRel);
@@ -372,7 +398,7 @@ function prevNextHtml(post) {
 
 function jsonLdForPost(post, cover, words, relatedVideos = []) {
   const url = postUrl(post);
-  const description = plainText(post.excerpt).slice(0, 160);
+  const description = cleanDescription(post.excerpt);
   const cleanPostTitle = cleanTitle(post.title);
 
   const graph = [
@@ -493,7 +519,7 @@ function renderPost(post) {
   const articleBody = withHeadingIds(toInlineFigures(stripped.body));
   const toc = tocFromBody(articleBody);
   const url = postUrl(post);
-  const description = plainText(post.excerpt).slice(0, 160);
+  const description = cleanDescription(post.excerpt);
   const words = wordCount(articleBody);
   const readMins = calcReadMins(words);
   const relatedVideos = getDeduplicatedRelatedVideos(post);
