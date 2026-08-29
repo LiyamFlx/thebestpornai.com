@@ -1039,6 +1039,7 @@ function genVideoPages() {
         </div>
       </main>`;
 
+    const mediaStreamUrl = v.src ? mediaUrl(v.src) : null;
     const jsonLd = {
       "@context": "https://schema.org",
       "@type": "VideoObject",
@@ -1048,7 +1049,8 @@ function genVideoPages() {
       "uploadDate": isoUploadDate(v.uploaded),
       "duration": isoDuration(v.duration),
       "url": canonical,
-      "contentUrl": v.src ? mediaUrl(v.src) : canonical,
+      "embedUrl": canonical,
+      ...(mediaStreamUrl ? { "contentUrl": mediaStreamUrl } : {}),
       "isFamilyFriendly": "false",
       "interactionStatistic": {
         "@type": "InteractionCounter",

@@ -1,72 +1,158 @@
-# thebestpornai.com — Hybrid Video Platform
+# thebestpornai.com — StreamHub Video Platform & SEO Engine
 
-Three independent web apps sharing one catalog and one design system: a social
-video platform (viewer / creator studio / platform manager). Live at
-**https://www.thebestpornai.com**.
+A self-contained, high-performance web platform featuring three unified web apps sharing a single catalog, design system, and serverless backend:
 
-| App | Entry | Role |
-|-----|-------|------|
-| **Viewer** | `index.html` (root) | Browse, watch, favorite, comment, playlists |
-| **Creator Studio** | `creator/index.html` | Upload wizard, analytics, revenue, subscribers |
-| **Platform Manager** | `manager/index.html` | Users, moderation, recommendations, homepage builder, infra |
+* **Viewer**: Full-featured adult video streaming SPA (browse, watch, search, favorites, playlists, comments, vertical Shorts, and mobile PWA).
+* **Creator Studio**: Video upload wizard, video analytics, subscriber metrics, and channel manager.
+* **Platform Manager**: Administrative dashboard for content moderation, system infrastructure, and homepage configuration.
+* **SEO & Content Engine**: Static route generator producing crawlable, schema-enriched landing pages for blog posts, creator profiles, category hubs, and video pages.
 
-`choose.html` is the persona picker (linked from the viewer sidebar as
-"Creator / Manager").
+Live at **[https://www.thebestpornai.com](https://www.thebestpornai.com)**.
 
-## ⚙️ How the live site is served
+---
 
-The site is served directly from **Vercel** with media assets hosted on **Cloudflare R2**:
+## 🚀 App Suite Overview
+
+| App | Entry Point | Route | Primary Role |
+| :--- | :--- | :--- | :--- |
+| **Viewer** | `index.html` | `/` | Main video discovery, playback, comments, & social interactions |
+| **Creator Studio** | `creator/index.html` | `/creator/` | Multi-file direct upload, channel customization, and metrics |
+| **Platform Manager** | `manager/index.html` | `/manager/` | Moderation queue, user management, and catalog controls |
+| **Persona Picker** | `choose.html` | `/choose.html` | Switch between Viewer, Creator, and Manager personas |
+
+---
+
+## ⚡ Tech Stack & Architecture
+
+- **Frontend**: Vanilla JavaScript (ES Modules), Custom CSS Design System, Responsive HTML5 Video & PWA support.
+- **Bundler & Dev Server**: [Vite](https://vitejs.dev/) with code splitting and multi-page entry points.
+- **Backend & Hosting**: **Vercel** (Serverless Node functions & client hosting).
+- **Media CDN & Storage**: **Cloudflare R2** (`streamhub-media` bucket) for videos, posters, and thumbnails.
+- **Database & Auth**: **Supabase** (PostgREST API for persistent likes, comments, views, and authentication).
+- **Testing**: Built-in Node.js native test runner (`node --test`), catalog ID integrity checks, and regression suite.
 
 ```
-thebestpornai.com ──► Vercel (hosting HTML/JS pages and Serverless APIs)
+thebestpornai.com ──► Vercel (HTML/JS Pages & Serverless APIs in api/)
 media requests    ──► Cloudflare R2 Bucket (streamhub-media)
+data persistence  ──► Supabase PostgREST (likes, views, comments, auth)
 ```
 
-Full detail (credentials, sync script, gotchas) lives in [`CLAUDE.md`](CLAUDE.md) — read that before working on deployment or the catalog.
+---
 
-## Architecture
-
-Real source lives under `src/`, built by **Vite**.
+## 📁 Repository Structure
 
 ```
-src/
-  shared/catalog.js     Single source of truth: MEDIA_BASE, mediaUrl(), DATA
-                         (videos, creators, categories, comments, moderation, user)
-  shared/ui.js           Shared render helpers (videoCard, playerEmbed, barChart, ...)
-  viewer/  creator/  manager/    Per-app main.js + style.css, each imports catalog.js
-scripts/
-  upload-catalog-to-r2.js Uploads local files under media/ to Cloudflare R2 bucket.
-  find-local-media.js    Scans local directories, compares against catalog, and reports missing files.
+├── api/                    # Vercel Serverless Functions
+│   ├── attest.js           # Rights & age attestation verification
+│   ├── presign.js          # Direct-to-R2 presigned upload URL generator
+│   ├── verify-upload.js    # SHA-256 byte verification & CSAM screening
+│   ├── save-upload.js      # Manifest & upload record persistence
+│   └── engage.js           # Server-side engagement handling (likes/comments)
+├── src/
+│   ├── shared/             # Single Source of Truth
+│   │   ├── catalog.js      # Core catalog state, mediaUrl() resolver, & helpers
+│   │   ├── catalog-videos.js # ~5k Video entries (lazily code-split)
+│   │   ├── taxonomy.js     # Taxonomy, tags, categories definition
+│   │   ├── streamhub-api.js# Supabase REST client wrapper
+│   │   └── ui.js           # Shared component templates (videoCard, playerEmbed)
+│   ├── viewer/             # Main video streaming app logic & pages
+│   ├── creator/            # Creator studio logic & upload UI
+│   ├── manager/            # Admin manager dashboard
+│   └── upload/             # Dynamic live upload overlay integration
+├── scripts/                # Build, Publish, & SEO Generators
+│   ├── publish-folder.js   # Bulk publishing script (uploads to R2, extracts posters, updates catalog)
+│   ├── gen-static-routes.js# Generates static SEO pages for /pornstars/, /categories/, /video/
+│   ├── gen-blog-posts.js   # Compiles markdown & JSON blog posts to /blog/*.html
+│   ├── gen-sitemap.js      # Generates sitemap.xml and sitemap-video.xml
+│   └── upload-catalog-to-r2.js # R2 asset sync tool
+├── tools/                  # Internal Content Manager GUI ("Writer")
+├── blog/                   # Generated static blog pages
+├── pornstars/              # Generated static creator/star landing pages
+└── categories/             # Generated static category hub pages
 ```
 
-Each app's `main.js` imports `src/shared/catalog.js` as an ES module — **edit the catalog in exactly one place**, no per-app copies to keep in sync.
+---
 
-## Local dev
+## 🛠️ Development & Workflow
+
+### 1. Installation & Local Development
 
 ```bash
+# Install dependencies
 npm install
-npm run dev        # Vite dev server with hot reload
+
+# Start Vite local development server
+npm run dev
 ```
 
-`MEDIA_BASE` always points at the Cloudflare R2 public URL, so playback works locally without any local video files present.
+During local development, `MEDIA_BASE` points directly to the Cloudflare R2 bucket dev URL, enabling full video playback without needing local `.mp4` media files.
 
-## Adding videos to the catalog
+### 2. Running Tests & Quality Suite
 
-**Read [`CLAUDE.md`](CLAUDE.md) → "Adding videos"** for the full, current procedure.
+```bash
+# Run catalog ID checks, publication diagnostics, unit tests, and regression suite
+npm test
 
-Short version:
-1. Move the `.mp4` file(s) into one of the `media/` subfolders.
-2. Run `npm run publish -- "media/<folder>" ...` to upload to R2 and insert
-   entries into `src/shared/catalog-videos.js` (the actual ~5k-entry catalog —
-   `catalog.js` only holds a small SEED for instant first paint plus shared
-   helpers). See `CLAUDE.md` → "Adding videos" for flags and the manual path.
-3. Run the media sync script to upload them to R2 (only needed for the manual
-   path — `publish-folder.js` already uploads as part of step 2):
-   ```bash
-   npm run sync-media
-   ```
-4. Push to GitHub to trigger Vercel build/deploy, or trigger it manually via Vercel CLI.
+# Run regression test suite only
+npm run test:regression
+```
 
-## Videos are not committed to git
+### 3. Building for Production
 
-`.gitignore` / `.vercelignore` exclude `media/**/*.mp4` — see [`media/README.md`](media/README.md). Videos live on Cloudflare R2, never in the repo.
+```bash
+# Run all pre-build generators and Vite production compilation
+npm run build
+```
+
+The build pipeline automatically executes all content generators (`gen-author`, `gen-local-webp`, `gen-cluster-hub`, `gen-blog-posts`, `gen-static-routes`, `gen-sitemap`) before compiling static client assets via Vite.
+
+---
+
+## 📹 Video Publishing Pipeline
+
+Media files (`.mp4`) live exclusively on Cloudflare R2 and are ignored from Git via `.gitignore` / `.vercelignore`.
+
+### Bulk Folder Publish (Recommended)
+
+To publish a folder of raw videos:
+
+```bash
+# Dry run to inspect files and category matching without modifying state
+npm run publish -- "media/<folder_name>" --category "AI" --dry-run
+
+# Publish folder: uploads missing videos to R2, generates posters, and updates catalog-videos.js
+npm run publish -- "media/<folder_name>" --category "AI" --tags "POV,Babe"
+
+# Run publication health doctor to verify catalog IDs and media coverage
+npm run publish:doctor
+```
+
+### Poster Thumbnail Backfill
+
+```bash
+# Check for catalog entries missing poster images
+npm run posters -- --dry-run
+
+# Generate frame thumbnails with ffmpeg, upload to R2, and assign `thumb` properties
+npm run posters
+```
+
+---
+
+## 🌐 Serverless APIs & Database Integration
+
+The Vercel Serverless Function endpoints in `api/` provide secure backend capability:
+- **`presign.js`**: Grants short-lived S3 PUT URLs so browsers upload files directly to Cloudflare R2 without hitting serverless payload size limits.
+- **`verify-upload.js`**: Performs server-side byte hashing (SHA-256), duplicate check, and compliance verification.
+- **`save-upload.js`**: Merges newly verified user uploads into the live catalog manifest.
+- **`engage.js`**: Rate-limits and processes likes, comments, and views.
+
+For complete deployment details, R2 bucket credentials, and production maintenance guidelines, see [`CLAUDE.md`](CLAUDE.md).
+
+---
+
+## 📄 License & Notes
+
+- Site Code: Private / Proprietary
+- Media Assets: Hosted on Cloudflare R2 (`streamhub-media` bucket)
+- Site URL: [https://www.thebestpornai.com](https://www.thebestpornai.com)

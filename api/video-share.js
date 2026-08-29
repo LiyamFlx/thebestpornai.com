@@ -70,7 +70,8 @@ export default function handler(req, res) {
     "thumbnailUrl": [thumbUrl],
     "uploadDate": isoUploadDate(v.uploaded),
     "url": seoUrl,
-    "contentUrl": videoStreamUrl || seoUrl,
+    "embedUrl": seoUrl,
+    ...(videoStreamUrl ? { "contentUrl": videoStreamUrl } : {}),
     "publisher": {
       "@type": "Organization",
       "name": "thebestpornai",

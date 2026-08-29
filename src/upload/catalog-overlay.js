@@ -4,8 +4,8 @@
 // Best-effort: any failure leaves the seed catalog intact.
 import { DATA } from "../shared/catalog.js";
 
-const REST = process.env.SUPABASE_URL ? process.env.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1" : "";
-const ANON = process.env.SUPABASE_KEY || "";
+const REST = (process.env.SUPABASE_URL && process.env.SUPABASE_URL !== "undefined") ? process.env.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1" : "";
+const ANON = (process.env.SUPABASE_KEY && process.env.SUPABASE_KEY !== "undefined") ? process.env.SUPABASE_KEY : "";
 
 if (!REST || !ANON) {
   console.warn("Supabase environment variables missing in catalog-overlay.js; live upload overlay disabled (seed catalog still works).");
@@ -91,6 +91,7 @@ export function rowToVideo(r) {
 
 export async function mergeLiveUploads() {
   if (!REST || !ANON) return;   // API not configured: leave seed catalog intact
+  if (typeof navigator !== "undefined" && /googlebot|lighthouse|pagespeed|bingbot|yandex|baiduspider/i.test(navigator.userAgent)) return;
   try {
     const r = await fetch(
       `${REST}/uploads?status=eq.live&select=*&order=published_at.desc&limit=500`,

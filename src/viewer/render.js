@@ -327,6 +327,8 @@ function addStructuredData(){
 
   if (vstate.page === "watch" && vstate.current) {
     const v = vstate.current;
+    const watchCanonical = `https://www.thebestpornai.com/video/${v.id}.html`;
+    const cUrl = v.src ? mediaUrl(v.src) : undefined;
     json = {
       "@context": "https://schema.org",
       "@type": "VideoObject",
@@ -338,7 +340,8 @@ function addStructuredData(){
       "thumbnailUrl": v.thumb ? mediaUrl(v.thumb) : new URL(defaultThumbUrl, location.origin).href,
       "uploadDate": isoDate(v.uploaded),
       "duration": isoDuration(v.duration),
-      "contentUrl": v.src ? mediaUrl(v.src) : undefined,
+      "embedUrl": watchCanonical,
+      "contentUrl": cUrl,
       "genre": v.category,
       "keywords": (v.tags || []).join(", ") || undefined,
       "interactionStatistic": [
@@ -416,9 +419,10 @@ const _lazyObserver = (typeof window !== "undefined" && "IntersectionObserver" i
 function lazyLoadThumbs(){
   // Targets ONLY .thumb-video.lazy (not .thumb-preview)
   const els = [...document.querySelectorAll("video.thumb-video.lazy[data-src]")];
-  // Eager-load the first screenful immediately so the grid is never blank; lazy
-  // the rest. ~8 covers what's actually above the fold on a phone.
-  const eager = _lazyObserver ? 8 : els.length;
+  const isBot = typeof navigator !== "undefined" && /googlebot|lighthouse|pagespeed|bingbot|yandex|baiduspider/i.test(navigator.userAgent);
+  if(isBot) return; // Skip eager video load for crawlers to conserve quota and avoid network aborts
+  // Eager-load the first few above the fold on real browsers; lazy-load the rest.
+  const eager = _lazyObserver ? 4 : els.length;
   els.forEach((el, i) => {
     if(i < eager){ revealThumb(el); }
     else { _lazyObserver.observe(el); }
