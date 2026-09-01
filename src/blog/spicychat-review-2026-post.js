@@ -2,7 +2,7 @@
 const SITE = "https://spicychat.ai";
 const GPTGF = "https://www.gptgirlfriend.online/";
 const LUSY = "https://lusychat.ai";
-const CANDY = "https://candy.ai";
+const CANDY = "https://candyai.gg/home2?via=jeycxz";
 
 function ext(href, label) {
   return `<a href="${href}" target="_blank" rel="noopener nofollow">${label}</a>`;

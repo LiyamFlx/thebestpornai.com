@@ -978,6 +978,7 @@ function hydrateClusterBodies(posts) {
     let body = extra.body
       .replace(/https:\/\/ourdream\.ai\/?\?ref=thebestpornai/g, "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog")
       .replace(/https:\/\/ourdream\.ai(?=[^a-zA-Z0-9])/g, "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog")
+      .replace(/https:\/\/(www\.)?candy\.ai\/?(?=["'\s<>]|$)/g, "https://candyai.gg/home2?via=jeycxz")
       .replace(/<nav class="breadcrumb"[\s\S]*?<\/nav>/i, "")
       .replace(/<h1[\s\S]*?<\/h1>/i, "")
       .replace(/<p class="deck"[\s\S]*?<\/p>/i, "")

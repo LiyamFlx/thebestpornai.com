@@ -77,7 +77,7 @@ export const GENERATORS_2026_POST = {
     <div class="blog-callout">
       <strong>Quick picks</strong>
       Overall package → ${ext(OD, "OurDream AI")}.
-      Speed + live chat → ${ext("https://candy.ai", "Candy.AI")}.
+      Speed + live chat → ${ext("https://candyai.gg/home2?via=jeycxz", "Candy.AI")}.
       Short HD video → ${ext("https://www.soulgen.ai", "SoulGen")}.
       Anime only → ${ext("https://yumeai.com", "YumeAI")}.
       Unrestricted keywords → ${ext(KUPID, "Kupid")}.
@@ -100,7 +100,7 @@ export const GENERATORS_2026_POST = {
         <thead><tr><th>#</th><th>Platform</th><th>Best for</th><th>From</th></tr></thead>
         <tbody>
           <tr><td>1</td><td>${ext(OD, "OurDream AI")}</td><td>Photoreal + companion</td><td>$19.99/mo</td></tr>
-          <tr><td>2</td><td>${ext("https://candy.ai", "Candy.AI")}</td><td>Speed + live action</td><td>$5.99–$12.99/mo</td></tr>
+          <tr><td>2</td><td>${ext("https://candyai.gg/home2?via=jeycxz", "Candy.AI")}</td><td>Speed + live action</td><td>$5.99–$12.99/mo</td></tr>
           <tr><td>3</td><td>${ext("https://www.soulgen.ai", "SoulGen")}</td><td>Short HD video</td><td>$12.99/mo</td></tr>
           <tr><td>4</td><td>${ext("https://yumeai.com", "YumeAI")}</td><td>Hentai / 2D</td><td>$5.99–$12.99/mo</td></tr>
           <tr><td>5</td><td>${ext("https://www.mydreamcompanion.com", "Dream Companion")}</td><td>Face / expression</td><td>$11.99 / $44.99</td></tr>
@@ -146,11 +146,11 @@ export const GENERATORS_2026_POST = {
       n: 2,
       badge: "Best speed",
       name: "Candy.AI",
-      href: "https://candy.ai",
+      href: "https://candyai.gg/home2?via=jeycxz",
       logoFile: "candy-ai.png",
       h3: "Candy.AI — fast stills, Live Action, huge gallery",
       best: "People who generate often and chat more than they studio-craft every frame.",
-      lead: `${ext("https://candy.ai", "Candy.AI")} is the mass-market companion: millions of users, sub-second stills on many tiers, and Live Action (ask for a beat, get a selfie or a short motion). It will not go as hardcore as a raw NSFW diffuser. It will not make you wait.`,
+      lead: `${ext("https://candyai.gg/home2?via=jeycxz", "Candy.AI")} is the mass-market companion: millions of users, sub-second stills on many tiers, and Live Action (ask for a beat, get a selfie or a short motion). It will not go as hardcore as a raw NSFW diffuser. It will not make you wait.`,
       features: ["Live Action — prompt a behavior, get a reactive still", "On-demand selfies inside the chat", "Stills and short clips from the same persona"],
       pros: ["Very fast queues", "Big pre-built gallery", "Annual price drops hard"],
       cons: ["Soft on extreme / fetish depth", "Hands still glitch", "Tokens for the good extras"],
