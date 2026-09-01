@@ -20,6 +20,7 @@ Thumbs.db
 *.zip
 dist/
 node_modules/
+video/*.html
 
 # Local bulk-upload staging — videos live on Bunny CDN, not in repo
 media/new balk uplode/
