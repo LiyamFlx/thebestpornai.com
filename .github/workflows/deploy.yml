@@ -21,17 +21,6 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # .vercel/project.json (which pins this checkout to the correct existing
-  # project) is gitignored, so a fresh CI checkout has no way to know which
-  # project to deploy to on its own. Without these, `vercel pull` silently
-  # created a brand-new, separate project instead of linking to this one —
-  # a real incident on the first run of this workflow: CI deployed
-  # successfully, just to a project that didn't own thebestpornai.com, so
-  # the domain never updated. These IDs are not secret (they're already
-  # committed in .vercel/project.json on any dev machine that's run `vercel
-  # link` here) but are passed as repo variables rather than hardcoded so
-  # they're one visible place to update if the project is ever recreated.
-  VERCEL_ORG_ID: flxx
   VERCEL_PROJECT_ID: prj_hH2IjJrX358Ula0ORQtxV2OpIhKQ
 
 jobs:
@@ -49,7 +38,7 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: Pull Vercel project settings
-        run: vercel pull --yes --environment=production --scope=flxx --project=x --token="${{ secrets.VERCEL_TOKEN }}"
+        run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
 
       - name: Build
         run: vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
