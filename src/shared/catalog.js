@@ -16,20 +16,35 @@ const MEDIA_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media";
    Use for ALL dynamic/user/catalog text rendered via innerHTML (titles, comments,
    names, search input, etc.) to prevent stored/reflected XSS. Returns "" for
    null/undefined so missing fields render blank instead of "undefined". */
+const _escCache = new Map();
 function esc(s){
   if(s === null || s === undefined) return "";
-  return String(s)
+  const str = String(s);
+  const cached = _escCache.get(str);
+  if (cached !== undefined) return cached;
+  const res = str
     .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  if (_escCache.size < 5000) _escCache.set(str, res);
+  return res;
 }
 
 /* ---------- shared helpers (identical across all pages; defined once here) ---------- */
 
+/* O(1) Creator Map lookup cache */
+let _creatorMap = null;
+function getCreatorMap(){
+  if(!_creatorMap || _creatorMap.size !== DATA.creators.length){
+    _creatorMap = new Map(DATA.creators.map(c => [c.id, c]));
+  }
+  return _creatorMap;
+}
+
 /* Look up a creator's display name by id. */
-function creatorName(id){ const c = DATA.creators.find(x=>x.id===id); return c?c.name:"Unknown"; }
+function creatorName(id){ const c = getCreatorMap().get(id); return c ? c.name : "Unknown"; }
 
 /* Whether a creator has the verified badge. */
-function creatorVerified(id){ const c = DATA.creators.find(x=>x.id===id); return !!(c && c.verified); }
+function creatorVerified(id){ const c = getCreatorMap().get(id); return !!(c && c.verified); }
 
 /* Format a number compactly: 1.2M / 3.4K / 567. */
 function fmt(n){ return n>=1000000 ? (n/1000000).toFixed(1)+"M" : n>=1000 ? (n/1000).toFixed(1)+"K" : ""+n; }
@@ -55,24 +70,30 @@ function toast(msg, actionLabel, actionFn){
 }
 
 /* Rewrite a "../media/x.mp4" path to the CDN when MEDIA_BASE is set and HTML-escape it. */
+const _mediaUrlCache = new Map();
 function mediaUrl(src){
   if(!src) return "";
-  // Block dangerous protocol schemes
-  if (/:/.test(src) && !/^https?:\/\//i.test(src) && !/^blob:/i.test(src) && !/^data:image\//i.test(src)) {
-    return "";
-  }
+  const cached = _mediaUrlCache.get(src);
+  if(cached !== undefined) return cached;
+
   let result = src;
-  if(src.startsWith("/")) {
-    return esc(src);
-  }
-  if(!/^https?:\/\//i.test(src) && !src.startsWith("blob:") && !src.startsWith("data:")) {
+  if (/:/.test(src) && !/^https?:\/\//i.test(src) && !/^blob:/i.test(src) && !/^data:image\//i.test(src)) {
+    result = "";
+  } else if(src.startsWith("/")) {
+    result = esc(src);
+  } else if(!/^https?:\/\//i.test(src) && !src.startsWith("blob:") && !src.startsWith("data:")) {
     if(MEDIA_BASE) {
       const rel = src.replace(/^(\.\.\/)?media\//, "");
       const path = rel.split("/").map(seg => encodeURIComponent(seg).replace(/'/g, "%27")).join("/");
       result = MEDIA_BASE.replace(/\/$/,"") + "/" + path;
     }
+    result = esc(result);
+  } else {
+    result = esc(result);
   }
-  return esc(result);
+
+  if(_mediaUrlCache.size < 10000) _mediaUrlCache.set(src, result);
+  return result;
 }
 
 /* Extract YouTube ID from common URL formats. Shared so videoCard etc can use it everywhere. */

@@ -77,17 +77,20 @@ scanDirs.forEach((dir) => {
 });
 
 console.log(`Found ${localByRelPath.size} local files.`);
-const dupBasenames = [...localBasenames.entries()].filter(([, n]) => n > 1);
-if (dupBasenames.length) {
-  console.warn(`⚠ ${dupBasenames.length} filenames appear in more than one scanned folder — matching by full relative path to avoid uploading the wrong file's bytes:`);
-  for (const [name, n] of dupBasenames.slice(0, 10)) console.warn(`   ${name} (${n}×)`);
-}
+const localFiles = getLocalFiles(mediaDir);
+console.log(`Found ${localFiles.length} video files in local media directory.`);
 
-// Filter catalog videos that we have locally
+// Map local files by relative path (normalized lowercase)
+const localByRelPath = new Map();
+localFiles.forEach(f => {
+  const rel = path.relative(mediaDir, f).replace(/\\/g, "/").toLowerCase().trim();
+  localByRelPath.set(rel, f);
+});
+
+// Build upload queue
 const uploadQueue = [];
-catalogVideos.forEach((v) => {
-  if (v.src) {
-    // The relative path in v.src strips "../media/" or "media/"
+catalogVideos.forEach(v => {
+  if (v.src && !v.src.startsWith("http")) {
     const relPath = v.src.replace(/^(\.\.\/)?media\//, "").toLowerCase().trim();
     if (localByRelPath.has(relPath)) {
       const localPath = localByRelPath.get(relPath);
@@ -103,16 +106,24 @@ async function uploadFile(item) {
   const fileStream = fs.createReadStream(item.localPath);
   const size = fs.statSync(item.localPath).size;
 
-  // Check if file already exists in R2 to avoid redundant uploads
-  try {
-    await s3.send(new HeadObjectCommand({
-      Bucket: R2_BUCKET,
-      Key: item.r2Key
-    }));
+  // Check if file already exists in R2
+  if (existingR2Keys.has(item.r2Key)) {
     console.log(`⏭️ Already exists: ${item.r2Key}`);
     return;
-  } catch (err) {
-    // File doesn't exist, proceed with upload
+  }
+
+  // Fallback HEAD check if list inventory was not fully populated
+  if (existingR2Keys.size === 0) {
+    try {
+      await s3.send(new HeadObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: item.r2Key
+      }));
+      console.log(`⏭️ Already exists: ${item.r2Key}`);
+      return;
+    } catch (err) {
+      // File doesn't exist, proceed with upload
+    }
   }
 
   console.log(`⬆️ Uploading: "${item.title}" (${(size/1024/1024).toFixed(2)} MB) -> ${item.r2Key}`);
@@ -126,23 +137,27 @@ async function uploadFile(item) {
       CacheControl: "public, max-age=31536000, immutable"
     }));
     console.log(`✅ Uploaded: "${item.title}"`);
+    existingR2Keys.add(item.r2Key);
   } catch (err) {
     console.error(`❌ Failed to upload "${item.title}":`, err.message);
   }
 }
 
-// Concurrency pool (upload 3 files in parallel to keep it stable)
+// Set-based concurrency pool (strictly enforces limit without indexOf -1 bug)
 const CONCURRENCY = 3;
 async function processQueue() {
-  const active = [];
+  await fetchExistingKeys();
+
+  const active = new Set();
   for (const item of uploadQueue) {
-    if (active.length >= CONCURRENCY) {
+    if (active.size >= CONCURRENCY) {
       await Promise.race(active);
     }
-    const p = uploadFile(item).then(() => {
-      active.splice(active.indexOf(p), 1);
-    });
-    active.push(p);
+    const p = (async () => {
+      await uploadFile(item);
+    })();
+    active.add(p);
+    p.finally(() => active.delete(p));
   }
   await Promise.all(active);
   console.log("All matching catalog videos uploaded to Cloudflare R2!");
