@@ -1,6 +1,9 @@
 # Do not upload private videos to the public host (policy + privacy)
 media/
 
+# Ignore generated static video routes from CLI upload (generated during build)
+video/
+
 # Editor sources / build tooling — not needed at runtime
 # Staging / temporary manifest and video catalog helper files
 missing-videos.json
