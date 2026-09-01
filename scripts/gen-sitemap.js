@@ -85,6 +85,17 @@ for (const post of POSTS) {
   });
 }
 
+// Programmatic Niche Guides
+const blogDir = path.join(REPO, "blog");
+if (fs.existsSync(blogDir)) {
+  for (const f of fs.readdirSync(blogDir).filter((x) => x.startsWith("best-ai-") && x.endsWith(".html")).sort()) {
+    const guideLoc = `/blog/${f}`;
+    if (!pages.some(p => p.loc === guideLoc)) {
+      pages.push({ loc: guideLoc, changefreq: "weekly", priority: "0.8", lastmod: today });
+    }
+  }
+}
+
 // Videos live ONLY in sitemap-video.xml (not duplicated in sitemap.xml).
 const videoDir = path.join(REPO, "video");
 const videoSitemapEntries = [];
