@@ -69,7 +69,7 @@ export const AI_SEX_CHATS_GUIDE_POST = {
   ],
   itemList: [
     { "@type": "ListItem", position: 1, name: "OurDream", url: OD },
-    { "@type": "ListItem", position: 2, name: "Candy.ai", url: "https://candy.ai" },
+    { "@type": "ListItem", position: 2, name: "Candy.ai", url: "https://candyai.gg/home2?via=jeycxz" },
     { "@type": "ListItem", position: 3, name: "MyLovely", url: "https://www.mylovely.ai/" },
     { "@type": "ListItem", position: 4, name: "SpicyChat", url: "https://spicychat.ai" },
     { "@type": "ListItem", position: 5, name: "SecretDesires", url: "https://secretdesires.ai/" },
@@ -157,8 +157,8 @@ export const AI_SEX_CHATS_GUIDE_POST = {
     ${review({
       id: "candy-ai",
       name: "Candy.ai",
-      href: "https://candy.ai",
-      lead: `${ext("https://candy.ai", "Candy AI")} is an AI girlfriend generator that allows you to enjoy uncensored and NSFW conversations with girls (and guys). That said, you have to put in a bit of work to build a connection with the girls first. If you come onto them too strongly right away, they’ll reject you. Wow, that’s just like real life, isn’t it? Candy.ai focuses more on relationship-style interactions than pure instant gratification. If you enjoy building tension, it works well. If you just want immediate explicit content, other platforms may feel more direct.`,
+      href: "https://candyai.gg/home2?via=jeycxz",
+      lead: `${ext("https://candyai.gg/home2?via=jeycxz", "Candy AI")} is an AI girlfriend generator that allows you to enjoy uncensored and NSFW conversations with girls (and guys). That said, you have to put in a bit of work to build a connection with the girls first. If you come onto them too strongly right away, they’ll reject you. Wow, that’s just like real life, isn’t it? Candy.ai focuses more on relationship-style interactions than pure instant gratification. If you enjoy building tension, it works well. If you just want immediate explicit content, other platforms may feel more direct.`,
       best: "Users who like a more realistic back-and-forth before things get sexual.",
     })}
     ${review({

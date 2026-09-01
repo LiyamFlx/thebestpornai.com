@@ -512,7 +512,7 @@ export const SEED_POSTS = [
             </tr>
             <tr>
               <td>3</td>
-              <td><a href="https://candy.ai" target="_blank" rel="noopener nofollow">Candy.AI</a></td>
+              <td><a href="https://candyai.gg/home2?via=jeycxz" target="_blank" rel="noopener nofollow">Candy.AI</a></td>
               <td>Create + companion</td>
               <td>Speed &amp; live-style moments</td>
               <td>$5.99/mo</td>
@@ -596,7 +596,7 @@ export const SEED_POSTS = [
         <p class="best-for"><strong>Best for:</strong> Fast results and live-style moments inside chat.</p>
         <p>Sub-second generation and a clean interface make it the strongest pure-speed option. Softcore-to-mid aesthetic focus; less ideal if you need maximum hardcore anatomical complexity.</p>
         <div class="takeaway"><strong>Key takeaway:</strong> Best when you generate often and hate waiting.</div>
-        <div class="links"><a href="https://candy.ai" target="_blank" rel="noopener nofollow">Official site</a></div>
+        <div class="links"><a href="https://candyai.gg/home2?via=jeycxz" target="_blank" rel="noopener nofollow">Official site</a></div>
       </div>
 
       <div class="rank-card">
@@ -1972,7 +1972,7 @@ export const SEED_POSTS = [
     ],
     itemList: [
       { "@type": "ListItem", position: 1, name: "thebestpornai.com", url: "https://www.thebestpornai.com" },
-      { "@type": "ListItem", position: 2, name: "Candy AI", url: "https://candy.ai" },
+      { "@type": "ListItem", position: 2, name: "Candy AI", url: "https://candyai.gg/home2?via=jeycxz" },
       { "@type": "ListItem", position: 3, name: "OurDream AI", url: "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" },
       { "@type": "ListItem", position: 4, name: "Xotic AI", url: "https://xotic.ai" },
       { "@type": "ListItem", position: 5, name: "Joi AI", url: "https://joi.ai" }
@@ -2016,7 +2016,7 @@ export const SEED_POSTS = [
               <td>10 starter renders</td>
             </tr>
             <tr>
-              <td><a href="https://candy.ai" target="_blank" rel="noopener nofollow"><strong>Candy AI</strong></a></td>
+              <td><a href="https://candyai.gg/home2?via=jeycxz" target="_blank" rel="noopener nofollow"><strong>Candy AI</strong></a></td>
               <td>Best for Interactive Companions</td>
               <td>Hybrid diffusion + companion chat</td>
               <td>Zero-log chat</td>
@@ -2111,7 +2111,7 @@ export const SEED_POSTS = [
           <li><strong>Limitations:</strong> Negative-prompt control is simplified versus raw diffusion tools.</li>
         </ul>
         <div class="takeaway"><strong>Key takeaway:</strong> Top pick for conversational AI girlfriends and interactive voice notes.</div>
-        <div class="links"><a href="https://candy.ai" target="_blank" rel="noopener nofollow">Official site</a></div>
+        <div class="links"><a href="https://candyai.gg/home2?via=jeycxz" target="_blank" rel="noopener nofollow">Official site</a></div>
       </div>
 
       <div class="rank-card">
@@ -2249,7 +2249,7 @@ export const SEED_POSTS = [
             </tr>
             <tr>
               <td>2</td>
-              <td><a href="https://candy.ai" target="_blank" rel="noopener nofollow">Candy.AI</a></td>
+              <td><a href="https://candyai.gg/home2?via=jeycxz" target="_blank" rel="noopener nofollow">Candy.AI</a></td>
               <td>Generate</td>
               <td>Limited daily credits / free tier</td>
               <td>Usually no to try</td>
@@ -2321,7 +2321,7 @@ export const SEED_POSTS = [
         <p class="best-for"><strong>Best for:</strong> Fast sampling of realistic companion-style generation.</p>
         <p>Free tier with limited daily use is enough to test image quality and chat feel. Paid plans unlock volume and better features. One of the cleaner “try without card” experiences in the category.</p>
         <div class="takeaway"><strong>Key takeaway:</strong> Good first free generator to test if photoreal companions are what you want.</div>
-        <div class="links"><a href="https://candy.ai" target="_blank" rel="noopener nofollow">Official site</a></div>
+        <div class="links"><a href="https://candyai.gg/home2?via=jeycxz" target="_blank" rel="noopener nofollow">Official site</a></div>
       </div>
 
       <div class="rank-card">
@@ -2441,7 +2441,7 @@ export const SEED_POSTS = [
       "prompt accuracy"
     ],
     itemList: [
-      { "@type": "ListItem", position: 1, name: "Candy AI", url: "https://candy.ai" },
+      { "@type": "ListItem", position: 1, name: "Candy AI", url: "https://candyai.gg/home2?via=jeycxz" },
       { "@type": "ListItem", position: 2, name: "Xotic AI", url: "https://xotic.ai" },
       { "@type": "ListItem", position: 3, name: "OurDream AI", url: "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" },
       { "@type": "ListItem", position: 4, name: "Joi AI", url: "https://joi.ai" },
@@ -2477,7 +2477,7 @@ export const SEED_POSTS = [
               <td>Yes (Bonus Coins)</td>
             </tr>
             <tr>
-              <td><a href="https://candy.ai" target="_blank" rel="noopener nofollow"><strong>Candy AI</strong></a></td>
+              <td><a href="https://candyai.gg/home2?via=jeycxz" target="_blank" rel="noopener nofollow"><strong>Candy AI</strong></a></td>
               <td>Photorealistic Rendering &amp; Chat</td>
               <td>9.8 / 10</td>
               <td>High (Encrypted)</td>
@@ -2542,7 +2542,7 @@ export const SEED_POSTS = [
           <li><strong>Privacy First:</strong> Discreet billing and fully encrypted data handling.</li>
         </ul>
         <div class="takeaway"><strong>Key takeaway:</strong> Excellent hybrid experience combining lifelike image generation with conversational depth.</div>
-        <div class="links"><a href="https://candy.ai" target="_blank" rel="noopener nofollow">Try Candy AI →</a></div>
+        <div class="links"><a href="https://candyai.gg/home2?via=jeycxz" target="_blank" rel="noopener nofollow">Try Candy AI →</a></div>
       </div>
 
       <div class="rank-card">
@@ -2647,7 +2647,7 @@ export const SEED_POSTS = [
     ],
     itemList: [
       { "@type": "ListItem", position: 1, name: "OurDream AI", url: "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" },
-      { "@type": "ListItem", position: 2, name: "Candy AI", url: "https://candy.ai" },
+      { "@type": "ListItem", position: 2, name: "Candy AI", url: "https://candyai.gg/home2?via=jeycxz" },
       { "@type": "ListItem", position: 3, name: "Perchance", url: "https://perchance.org" },
       { "@type": "ListItem", position: 4, name: "Kindroid", url: "https://kindroid.ai" },
       { "@type": "ListItem", position: 5, name: "Grok Imagine", url: "https://x.ai" },
@@ -2682,7 +2682,7 @@ export const SEED_POSTS = [
               <td>Yes (Bonus Coins)</td>
             </tr>
             <tr>
-              <td><a href="https://candy.ai" target="_blank" rel="noopener nofollow"><strong>Candy AI</strong></a></td>
+              <td><a href="https://candyai.gg/home2?via=jeycxz" target="_blank" rel="noopener nofollow"><strong>Candy AI</strong></a></td>
               <td>Photorealism &amp; Conversational Models</td>
               <td>9.8 / 10</td>
               <td>High</td>
@@ -2761,7 +2761,7 @@ export const SEED_POSTS = [
           <li><strong>Custom Character Suite:</strong> Create consistent personas that carry over into chat sessions.</li>
         </ul>
         <div class="takeaway"><strong>Key takeaway:</strong> The gold standard for photorealistic character styling and natural lighting.</div>
-        <div class="links"><a href="https://candy.ai" target="_blank" rel="noopener nofollow">Visit Candy AI →</a></div>
+        <div class="links"><a href="https://candyai.gg/home2?via=jeycxz" target="_blank" rel="noopener nofollow">Visit Candy AI →</a></div>
       </div>
 
       <div class="rank-card">

@@ -2,7 +2,7 @@
 import { ourdreamUrl } from "../shared/affiliates.js";
 
 const OD = ourdreamUrl("home", "blog-nsfw-image-gens");
-const CANDY = "https://candy.ai";
+const CANDY = "https://candyai.gg/home2?via=jeycxz";
 const GROK = "https://grok.com/imagine";
 const PROMPTCHAN = "https://promptchan.com";
 const SOULGEN = "https://www.soulgen.ai";
