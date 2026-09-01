@@ -76,16 +76,7 @@ scanDirs.forEach((dir) => {
   });
 });
 
-console.log(`Found ${localByRelPath.size} local files.`);
-const localFiles = getLocalFiles(mediaDir);
-console.log(`Found ${localFiles.length} video files in local media directory.`);
-
-// Map local files by relative path (normalized lowercase)
-const localByRelPath = new Map();
-localFiles.forEach(f => {
-  const rel = path.relative(mediaDir, f).replace(/\\/g, "/").toLowerCase().trim();
-  localByRelPath.set(rel, f);
-});
+console.log(`Found ${localByRelPath.size} local files across scan directories.`);
 
 // Build upload queue
 const uploadQueue = [];
