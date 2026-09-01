@@ -952,9 +952,24 @@ function genVideoPages() {
     prioritized.push(v);
   }
 
-  // Generate static landing pages for ALL videos in the catalog
+  // Always rewrite landings that already exist so older IDs stay watch pages.
+  if (fs.existsSync(VIDEO_DIR)) {
+    for (const f of fs.readdirSync(VIDEO_DIR)) {
+      if (!f.endsWith(".html")) continue;
+      add(byId.get(parseInt(f, 10)));
+    }
+  }
+
+  // New batch / recent uploads
   for (const v of VIDEOS) {
-    add(v);
+    if (v.id >= 5142) add(v);
+  }
+
+  for (const ps of PORNSTARS) {
+    const name = ps.name.toLowerCase();
+    for (const v of VIDEOS) {
+      if ((v.tags || []).some((t) => String(t).toLowerCase() === name)) add(v);
+    }
   }
 
   console.log(`Generating static landing pages for ${prioritized.length} top videos...`);
