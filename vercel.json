@@ -78,11 +78,7 @@
       "destination": "/index.html"
     },
     {
-      "source": "/video/:id",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/video/:id.html",
+      "source": "/video/:path*",
       "destination": "/index.html"
     },
     {
