@@ -23,19 +23,24 @@ function isIosSafari() {
 
 function isDismissed() {
   try {
-    const saved = localStorage.getItem("pwa_install_dismissed");
-    if (!saved) return false;
-    const elapsedDays = (Date.now() - parseInt(saved, 10)) / (1000 * 60 * 60 * 24);
-    return elapsedDays < DISMISS_DAYS;
+    return !!(
+      localStorage.getItem("pwa_install_dismissed") ||
+      localStorage.getItem("pwa_install_seen")
+    );
   } catch (_) {
     return false;
   }
 }
 
-function dismissBanner(banner) {
+function markSeen() {
   try {
-    localStorage.setItem("pwa_install_dismissed", Date.now().toString());
+    localStorage.setItem("pwa_install_seen", "true");
+    localStorage.setItem("pwa_install_dismissed", "true");
   } catch (_) {}
+}
+
+function dismissBanner(banner) {
+  markSeen();
   if (banner) {
     banner.classList.add("pwa-banner-hiding");
     setTimeout(() => banner.remove(), 300);
@@ -92,6 +97,7 @@ function showAndroidInstallBanner() {
   `;
 
   document.body.appendChild(banner);
+  markSeen();
 
   document.getElementById("pwaInstallAction")?.addEventListener("click", async () => {
     if (!deferredInstallPrompt) return;
@@ -133,6 +139,7 @@ function showIosInstallBanner() {
   `;
 
   document.body.appendChild(banner);
+  markSeen();
 
   document.getElementById("pwaDismissAction")?.addEventListener("click", () => {
     dismissBanner(banner);

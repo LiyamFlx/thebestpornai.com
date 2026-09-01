@@ -16,6 +16,26 @@ let _progressRaf = null;
 let _lastProgressTs = 0;
 const PROGRESS_MIN_MS = 50;
 
+let tapSoundSeen = false;
+try {
+  tapSoundSeen = !!(
+    localStorage.getItem("tap_for_sound_seen") ||
+    localStorage.getItem("tap_for_sound_dismissed")
+  );
+} catch (_) {}
+
+function markTapSoundSeen() {
+  if (tapSoundSeen) return;
+  tapSoundSeen = true;
+  try {
+    localStorage.setItem("tap_for_sound_seen", "true");
+    localStorage.setItem("tap_for_sound_dismissed", "true");
+  } catch (_) {}
+  document.querySelectorAll(".feed-unmute-banner").forEach((el) => {
+    el.classList.add("hidden");
+  });
+}
+
 /* ---- Virtualization ----
    The feed's public/originals catalog can run into the hundreds of vertical
    entries; renderFeed() used to map() every single one into one innerHTML
@@ -88,6 +108,7 @@ function orderedFeedVideos(){
 
 export function toggleFeedMute(){
   feedMuted = !feedMuted;
+  markTapSoundSeen();
   document.querySelectorAll(".feed-video").forEach(v => {
     // Unmute only after user gesture (this handler runs on click).
     try { v.muted = feedMuted; } catch(_){ v.muted = true; }
@@ -99,7 +120,7 @@ export function toggleFeedMute(){
     l.textContent = feedMuted ? "Muted" : "Sound";
   });
   document.querySelectorAll(".feed-unmute-banner").forEach(el => {
-    el.classList.toggle("hidden", !feedMuted);
+    el.classList.add("hidden");
   });
 }
 
@@ -119,8 +140,8 @@ function feedItemInner(d){
     <!-- Video element -->
     <video class="feed-video" playsinline preload="none" ${feedMuted ? 'muted' : ''} data-src="${mediaUrl(v.src)}" poster="${mediaUrl(v.thumb)}"></video>
 
-    <!-- Floating Tap for Sound banner (visible when muted) -->
-    <button type="button" class="feed-unmute-banner ${feedMuted ? '' : 'hidden'}" data-action="toggleMute" aria-label="Tap for sound">
+    <!-- Floating Tap for Sound banner (visible when muted on first visit only) -->
+    <button type="button" class="feed-unmute-banner ${feedMuted && !tapSoundSeen ? '' : 'hidden'}" data-action="toggleMute" aria-label="Tap for sound">
       <span class="ico-sound">🔊</span> Tap for Sound
     </button>
 
@@ -449,6 +470,7 @@ export function attachFeedObserver() {
   items.forEach(item => feedObserver.observe(item));
   attachFeedGestures(container);
   if(root) root.addEventListener("click", onFeedActionClick);
+  if (!tapSoundSeen) setTimeout(markTapSoundSeen, 4000);
 
   // Deep link: jump to the pinned/shared clip before first paint settles.
   // takePendingFeedFocus is set by applyHash for #shorts/N; fall back to
