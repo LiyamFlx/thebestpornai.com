@@ -23,6 +23,7 @@ import { NASTIA_AI_SEX_CHAT_FAQ_POST } from "./nastia-ai-sex-chat-faq-post.js";
 import { BEST_AI_PORN_SITES_RANKING_2026_POST } from "./best-ai-porn-sites-ranking-2026-post.js";
 import { GPTGIRLFRIEND_REVIEW_2026_POST } from "./gptgirlfriend-review-2026-post.js";
 import { SPICYCHAT_REVIEW_2026_POST } from "./spicychat-review-2026-post.js";
+import { STRIPPER_QUESTIONS_POST } from "./10-questions-to-ask-your-stripper-post.js";
 import { CLUSTER_POSTS } from "./cluster-posts.js";
 import { isRedirectedSlug } from "./redirects.js";
 
@@ -2849,6 +2850,7 @@ export const POSTS = [
   BEST_AI_PORN_SITES_RANKING_2026_POST,
   GPTGIRLFRIEND_REVIEW_2026_POST,
   SPICYCHAT_REVIEW_2026_POST,
+  STRIPPER_QUESTIONS_POST,
   ...CLUSTER_POSTS,
   ...OURDREAM_FAQ_POSTS,
   ...ETHICS_POSTS,
