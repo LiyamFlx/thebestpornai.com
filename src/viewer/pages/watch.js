@@ -12,6 +12,7 @@ import { displayViews } from "../display-metrics.js";
 import { pubVideos, trending, relatedTo, creatorById } from "../catalog-queries.js";
 import { renderCommentList, commentsFor } from "../comments.js";
 import { postsForVideoId } from "../../blog/posts.js";
+import { getAffiliateOffer, AFFILIATE_REL } from "../../shared/affiliates.js";
 
 const MOBILE = "(max-width:760px)";
 const isMobile = () => !!(window.matchMedia && window.matchMedia(MOBILE).matches);
@@ -266,8 +267,17 @@ function blogStoryChip(v){
 }
 
 function affiliatePromoBanner(v){
+  const offer = getAffiliateOffer({ category: v?.category, tags: v?.tags, src: "watch-banner" });
+  if (offer.network === "candy") {
+    return `
+      <a href="${offer.url}" target="_blank" rel="${AFFILIATE_REL}" class="ourdream-promo-link" aria-label="Create Your Dream AI Companion on Candy.ai">
+        <div class="ourdream-promo-card">
+          <img src="/affiliate/candy/Candy.ai 728x90/asset10.gif" alt="Candy.ai — Create Your Dream AI Companion &amp; Chat in Seconds" class="ourdream-promo-img" loading="lazy" decoding="async" width="728" height="90"/>
+        </div>
+      </a>`;
+  }
   return `
-    <a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=watch-banner" target="_blank" rel="noopener sponsored nofollow" class="ourdream-promo-link" aria-label="Create Your Dream AI Companion on OurDream.ai">
+    <a href="${offer.url}" target="_blank" rel="${AFFILIATE_REL}" class="ourdream-promo-link" aria-label="Create Your Dream AI Companion on OurDream.ai">
       <div class="ourdream-promo-card">
         <img src="/ourdream-banner-ad.jpg?v=20260821" alt="OurDream.ai — Create Your Dream AI Companion &amp; Chat in Seconds" class="ourdream-promo-img" loading="lazy" decoding="async" width="2176" height="912"/>
       </div>

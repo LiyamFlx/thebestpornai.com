@@ -13,6 +13,7 @@ import {
   actNames, clipsByAct, highlights, originals, byIdDesc, byViewsDesc,
   byUploadedDesc, videoById, relatedTo, pornstars,
 } from "../catalog-queries.js";
+import { getAffiliateOffer, AFFILIATE_REL } from "../../shared/affiliates.js";
 
 // Homepage hero rotates through a small, high-signal pool of catalog videos
 // (top performers with a real playable file — no YouTube embeds, no vertical
@@ -437,15 +438,20 @@ function _renderHomeBody(){
   const acts = actNames();
 
 function homeAffiliatePromoStrip(){
+  const offer = getAffiliateOffer({ category: "Babe", src: "home-banner" });
+  const isCandy = offer.network === "candy";
+  const bannerImg = isCandy ? "/affiliate/candy/Candy.ai 728x90/asset10.gif" : "/ourdream-banner-ad.jpg?v=20260821";
+  const bannerAlt = isCandy ? "Candy.ai — Create Your Dream AI Companion &amp; Chat in Seconds" : "OurDream.ai — Create Your Dream AI Companion &amp; Chat in Seconds";
+
   return `
     <section class="home-affiliate-section">
       <div class="row-heading-wrap">
         <h3 class="row-heading">Featured AI Companion</h3>
         <span class="sponsored-badge">Sponsored</span>
       </div>
-      <a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=home-banner" target="_blank" rel="noopener sponsored nofollow" class="ourdream-promo-link" aria-label="Create Your Dream AI Companion on OurDream.ai">
+      <a href="${offer.url}" target="_blank" rel="${AFFILIATE_REL}" class="ourdream-promo-link" aria-label="${bannerAlt}">
         <div class="ourdream-promo-card">
-          <img src="/ourdream-banner-ad.jpg?v=20260821" alt="OurDream.ai — Create Your Dream AI Companion &amp; Chat in Seconds" class="ourdream-promo-img" loading="lazy" decoding="async" width="2176" height="912"/>
+          <img src="${bannerImg}" alt="${bannerAlt}" class="ourdream-promo-img" loading="lazy" decoding="async" width="2176" height="912"/>
         </div>
       </a>
     </section>`;
