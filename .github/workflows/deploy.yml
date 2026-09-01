@@ -31,8 +31,8 @@ env:
   # committed in .vercel/project.json on any dev machine that's run `vercel
   # link` here) but are passed as repo variables rather than hardcoded so
   # they're one visible place to update if the project is ever recreated.
-  VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+  VERCEL_ORG_ID: flxx
+  VERCEL_PROJECT_ID: prj_hH2IjJrX358Ula0ORQtxV2OpIhKQ
 
 jobs:
   deploy:
