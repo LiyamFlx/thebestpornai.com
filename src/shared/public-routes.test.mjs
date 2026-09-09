@@ -6,6 +6,8 @@ import {
   playPath,
   searchPath,
   hashToPath,
+  categoryPagePath,
+  browsePath,
 } from "./public-routes.js";
 
 test("watchPath / shortsPath reject NaN and non-positive ids", () => {
@@ -44,4 +46,11 @@ test("hashToPath migrates legacy hashes to paths", () => {
 test("searchPath encodes queries", () => {
   assert.equal(searchPath(""), "/search");
   assert.equal(searchPath("  POV  "), "/search/POV");
+});
+
+test("categoryPagePath includes AI Generated landing", () => {
+  assert.equal(categoryPagePath("AI Generated"), "/categories/ai-generated.html");
+  assert.equal(browsePath("AI Generated"), "/categories/ai-generated.html");
+  assert.equal(categoryPagePath("Blonde"), "/categories/blonde.html");
+  assert.equal(categoryPagePath("Not A Real Cat"), null);
 });

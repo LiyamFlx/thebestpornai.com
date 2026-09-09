@@ -412,6 +412,7 @@ const PORNSTARS = [
 ];
 
 const TOP_CATEGORIES = [
+  { name: "AI Generated", desc: "Premium AI-generated adult scenes — photoreal models, uncensored motion, and the largest library on thebestpornai." },
   { name: "Blonde", desc: "Stunning AI blonde beauties, natural babes, and high-energy blonde scenes in 4K." },
   { name: "Latina", desc: "Passionate AI Latina models, curvy perfection, and spicy erotic clips." },
   { name: "Big Ass", desc: "Top-tier PAWG and big booty AI scenes featuring hypnotic twerk and doggystyle angles." },
@@ -962,8 +963,12 @@ function genCategoriesHub() {
 function genCategoryPages() {
   for (const cat of TOP_CATEGORIES) {
     const slug = slugify(cat.name);
-    const title = `${cat.name} AI Porn Videos — Best 4K ${cat.name} Scenes | thebestpornai`;
-    const description = `Stream the best ${cat.name} AI porn videos in 4K resolution. ${cat.desc} Free high-speed streaming on thebestpornai.`;
+    const title = cat.name === "AI Generated"
+      ? "AI Generated Porn Videos — Best 4K AI Scenes | thebestpornai"
+      : `${cat.name} AI Porn Videos — Best 4K ${cat.name} Scenes | thebestpornai`;
+    const description = cat.name === "AI Generated"
+      ? `Stream the best AI-generated porn videos in 4K resolution. ${cat.desc} Free high-speed streaming on thebestpornai.`
+      : `Stream the best ${cat.name} AI porn videos in 4K resolution. ${cat.desc} Free high-speed streaming on thebestpornai.`;
     const canonical = `${ORIGIN}/categories/${slug}.html`;
 
     const categoryVideos = VIDEOS.filter((v) =>
