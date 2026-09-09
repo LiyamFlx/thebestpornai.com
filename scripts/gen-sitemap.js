@@ -6,8 +6,13 @@
  * hash URLs are NOT separately indexable. We list genuine static video landing
  * pages (/video/<id>.html), blog posts, categories, and author profile routes.
  *
+ * Video sitemap is CAPPED (VIDEO_SITEMAP_LIMIT). Listing every catalog landing
+ * caused GSC "Discovered - currently not indexed" to balloon (~4.6k). Only
+ * priority pages (thumb + title + src, ranked by engagement) are submitted.
+ *
  * Run:  node scripts/gen-sitemap.js   (writes ./public/sitemap.xml and ./public/sitemap-video.xml)
  */
+
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -21,6 +26,10 @@ const REPO = path.join(__dirname, "..");
 const ORIGIN = "https://www.thebestpornai.com";
 const MEDIA_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media";
 const today = new Date().toISOString().slice(0, 10);
+/** Max /video/*.html URLs in sitemap-video.xml (crawl-budget control). */
+const VIDEO_SITEMAP_LIMIT = 500;
+/** Reserve slots for recent structured / star-pack clips inside the cap. */
+const VIDEO_SITEMAP_RECENT_SLOTS = 80;
 
 function mediaUrl(src) {
   if (!src) return "";
@@ -50,6 +59,7 @@ const pages = [
   { loc: "/author/anna-k.html", changefreq: "monthly", priority: "0.5", lastmod: today },
   { loc: "/pornstars/", changefreq: "weekly", priority: "0.9", lastmod: today },
   { loc: "/categories/", changefreq: "weekly", priority: "0.9", lastmod: today },
+  { loc: "/categories/ai-generated.html", changefreq: "weekly", priority: "0.9", lastmod: today },
   { loc: "/categories/blonde.html", changefreq: "weekly", priority: "0.8", lastmod: today },
   { loc: "/categories/latina.html", changefreq: "weekly", priority: "0.8", lastmod: today },
   { loc: "/categories/big-ass.html", changefreq: "weekly", priority: "0.8", lastmod: today },
@@ -100,13 +110,64 @@ if (fs.existsSync(blogDir)) {
 const videoDir = path.join(REPO, "video");
 const videoSitemapEntries = [];
 
-if (fs.existsSync(videoDir)) {
-  const videoFiles = fs.readdirSync(videoDir).filter((f) => f.endsWith(".html"));
-  for (const vf of videoFiles) {
-    const id = parseInt(vf.replace(".html", ""), 10);
-    const v = VIDEOS.find((item) => item.id === id);
-    if (!v || !v.src || !v.title || !v.thumb) continue;
+function engagementScore(v) {
+  return (Number(v.views) || 0) + (Number(v.likes) || 0) * 10 + (Number(v.favorites) || 0) * 5;
+}
 
+function isPriorityPack(v) {
+  const creator = String(v.creator || "");
+  return creator.startsWith("ps-") || Boolean(v.movieTitle) || v.level === "clip" || v.level === "scene";
+}
+
+function uploadedMs(v) {
+  const t = Date.parse(String(v.uploaded || ""));
+  return Number.isFinite(t) ? t : 0;
+}
+
+if (fs.existsSync(videoDir)) {
+  const htmlIds = new Set(
+    fs.readdirSync(videoDir)
+      .filter((f) => f.endsWith(".html"))
+      .map((f) => parseInt(f.replace(".html", ""), 10))
+      .filter((id) => Number.isFinite(id) && id > 0)
+  );
+
+  const eligible = VIDEOS.filter(
+    (v) =>
+      htmlIds.has(v.id) &&
+      v.src &&
+      v.title &&
+      v.thumb &&
+      v.status !== "private" &&
+      v.flagged !== true
+  );
+
+  const byEngagement = [...eligible].sort((a, b) => engagementScore(b) - engagementScore(a) || b.id - a.id);
+  const byRecentPack = [...eligible]
+    .filter(isPriorityPack)
+    .sort((a, b) => uploadedMs(b) - uploadedMs(a) || b.id - a.id);
+
+  const selected = [];
+  const seen = new Set();
+  const recentSlots = Math.min(VIDEO_SITEMAP_RECENT_SLOTS, VIDEO_SITEMAP_LIMIT);
+
+  for (const v of byRecentPack) {
+    if (selected.length >= recentSlots) break;
+    if (seen.has(v.id)) continue;
+    seen.add(v.id);
+    selected.push(v);
+  }
+  for (const v of byEngagement) {
+    if (selected.length >= VIDEO_SITEMAP_LIMIT) break;
+    if (seen.has(v.id)) continue;
+    seen.add(v.id);
+    selected.push(v);
+  }
+
+  selected.sort((a, b) => a.id - b.id);
+
+  for (const v of selected) {
+    const vf = `${v.id}.html`;
     const loc = `${ORIGIN}/video/${vf}`;
     const thumbLoc = mediaUrl(v.thumb);
     const contentLoc = mediaUrl(v.src);
@@ -128,6 +189,10 @@ if (fs.existsSync(videoDir)) {
     </video:video>
   </url>`);
   }
+
+  console.log(
+    `ℹ video sitemap: ${eligible.length} eligible landings → ${selected.length} submitted (cap ${VIDEO_SITEMAP_LIMIT}, recent-pack slots ${recentSlots})`
+  );
 }
 
 const urls = pages
