@@ -1422,6 +1422,65 @@ a { color: inherit; }
   text-shadow: none;
 }
 
+/* Numbered how-to steps (Candy / tool tutorials) */
+.blog-steps {
+  list-style: none;
+  margin: 1.75em 0 2em;
+  padding: 0;
+  counter-reset: blog-step;
+  display: grid;
+  gap: 14px;
+}
+.blog-steps > li {
+  counter-increment: blog-step;
+  position: relative;
+  background: var(--black-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  padding: 16px 18px 16px 64px;
+}
+.blog-steps > li::before {
+  content: counter(blog-step);
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--red);
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  display: grid;
+  place-items: center;
+}
+.blog-steps > li > strong:first-child {
+  display: block;
+  color: var(--white);
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+.blog-figure {
+  margin: 1.25em 0 1.5em;
+  border-radius: var(--r-card);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--black-elev);
+}
+.blog-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 420px;
+  object-fit: cover;
+}
+.blog-figure figcaption {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+}
+
 .blog-table-wrap {
   overflow-x: auto;
   margin: 1.5em 0 1.75em;

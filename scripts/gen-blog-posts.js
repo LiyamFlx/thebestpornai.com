@@ -476,6 +476,24 @@ function jsonLdForPost(post, cover, words, relatedVideos = []) {
     });
   }
 
+  // HowTo rich results / AEO for step-by-step guides (post.howToSteps = [{name, text}]).
+  if (Array.isArray(post.howToSteps) && post.howToSteps.length) {
+    graph.push({
+      "@type": "HowTo",
+      name: cleanPostTitle,
+      description,
+      totalTime: post.howToTotalTime || "PT20M",
+      step: post.howToSteps.map((s, i) => ({
+        "@type": "HowToStep",
+        position: i + 1,
+        name: s.name,
+        text: s.text,
+        ...(s.url ? { url: s.url } : {}),
+        ...(s.image ? { image: s.image } : {}),
+      })),
+    });
+  }
+
   if (post.itemList && post.itemList.length) {
     graph.push({
       "@type": "ItemList",
