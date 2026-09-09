@@ -25,6 +25,7 @@ import { GPTGIRLFRIEND_REVIEW_2026_POST } from "./gptgirlfriend-review-2026-post
 import { SPICYCHAT_REVIEW_2026_POST } from "./spicychat-review-2026-post.js";
 import { STRIPPER_QUESTIONS_POST } from "./10-questions-to-ask-your-stripper-post.js";
 import { CLUSTER_POSTS } from "./cluster-posts.js";
+import { INDUSTRY_TRENDS_2026_POSTS } from "./industry-trends-2026-posts.js";
 import { isRedirectedSlug } from "./redirects.js";
 
 export const BLOG_AUTHOR = {
@@ -2851,6 +2852,7 @@ export const POSTS = [
   GPTGIRLFRIEND_REVIEW_2026_POST,
   SPICYCHAT_REVIEW_2026_POST,
   STRIPPER_QUESTIONS_POST,
+  ...INDUSTRY_TRENDS_2026_POSTS,
   ...CLUSTER_POSTS,
   ...OURDREAM_FAQ_POSTS,
   ...ETHICS_POSTS,
