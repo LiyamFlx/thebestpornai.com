@@ -27,6 +27,7 @@ import { STRIPPER_QUESTIONS_POST } from "./10-questions-to-ask-your-stripper-pos
 import { CLUSTER_POSTS } from "./cluster-posts.js";
 import { INDUSTRY_TRENDS_2026_POSTS } from "./industry-trends-2026-posts.js";
 import { CANDY_AI_GUIDE_2026_POST } from "./candy-ai-guide-2026-post.js";
+import { WHAT_IS_GENERATOR_POSTS } from "./what-is-generator-posts.js";
 import { isRedirectedSlug } from "./redirects.js";
 
 export const BLOG_AUTHOR = {
@@ -2854,6 +2855,7 @@ export const POSTS = [
   SPICYCHAT_REVIEW_2026_POST,
   STRIPPER_QUESTIONS_POST,
   CANDY_AI_GUIDE_2026_POST,
+  ...WHAT_IS_GENERATOR_POSTS,
   ...INDUSTRY_TRENDS_2026_POSTS,
   ...CLUSTER_POSTS,
   ...OURDREAM_FAQ_POSTS,
