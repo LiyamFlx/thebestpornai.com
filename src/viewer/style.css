@@ -173,10 +173,6 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
    a 20px/16px split here had drifted apart with no design reason for it. */
 .video-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;align-items:start}
 .video-list .video-thumb{height:auto;aspect-ratio:16/9;margin-bottom:0}
-/* /movies: one full-width card per row, page scrolls vertically. */
-.movies-feed{display:flex;flex-direction:column;gap:20px;width:100%}
-.movies-feed .card{width:100%;min-width:0;max-width:none}
-.movies-feed .video-thumb{height:auto;aspect-ratio:16/9;margin-bottom:0}
 /* Row-layout card identity block (top-row + title, no avatar — scoped to
    .card-text, not .video-list, so it applies to ANY layout:'row' card
    regardless of container: .video-list on Search/channel pages, .row-scroll
@@ -1843,9 +1839,6 @@ iframe.player{object-fit:contain}
 
   /* ---- Cards (Row vs 2-Up Grid) ---- */
   .video-list{display:flex;flex-direction:column;gap:18px}
-  .movies-feed{gap:18px}
-  .movies-feed .card{background:transparent;border:none;padding:0;border-radius:0;box-shadow:none}
-  .movies-feed .video-thumb{border-radius:12px}
   .video-list .card{
     background:transparent;border:none;padding:0;border-radius:0;
     box-shadow:none;cursor:pointer;

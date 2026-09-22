@@ -386,7 +386,7 @@ function _renderHomeBody(){
   if(filter==="movies"){
     const allMovies = movies();
     const html = `${homeFilterBar()}${allMovies.length
-      ? `<h3 class="row-heading">Movies <span class="small">(${allMovies.length})</span></h3><div class="movies-feed">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`, layout:'row'})).join("")}</div>`
+      ? `<h3 class="row-heading">Movies <span class="small">(${allMovies.length})</span></h3><div class="video-list">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`, layout:'row'})).join("")}</div>`
       : emptyState("No movies yet. Browse clips and scenes instead.", POPULAR_TAGS.slice(0, 6), { emoji: "🎬" })}`;
     return { html, empty: !allMovies.length };
   }
