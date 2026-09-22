@@ -35,7 +35,7 @@ export function invalidateCatalogCache(){ bumpCatalogGeneration(); }
 
 let _pub = null, _pubVert = null, _searchable = null, _trending = null;
 let _movies = null, _actNames = null, _highlights = null, _originals = null;
-let _byIdDesc = null, _byViewsDesc = null, _byUploadedDesc = null;
+let _byIdDesc = null, _byViewsDesc = null, _byUploadedDesc = null, _newest = null;
 let _videoById = null;
 let _searchIndex = null;
 let _tagIndex = null;
@@ -51,7 +51,7 @@ function _ensure(){
     _cacheRef = DATA.videos; _cacheLen = DATA.videos.length; _cacheGen = _generation;
     _pub = null; _pubVert = null; _searchable = null; _trending = null; _byCat.clear(); _byCatFilter.clear();
     _movies = null; _actNames = null; _highlights = null; _originals = null; _clipsByAct.clear();
-    _byIdDesc = null; _byViewsDesc = null; _byUploadedDesc = null;
+    _byIdDesc = null; _byViewsDesc = null; _byUploadedDesc = null; _newest = null;
     _videoById = null;
     _searchIndex = null;
     _tagIndex = null;
@@ -108,6 +108,10 @@ export const byCat = (c)=> { _ensure(); let r = _byCat.get(c); if(!r){ r = pubVi
 // Uploaded rows, which previously re-sorted the whole public catalog on
 // every render() call, including every nav-bar click).
 export const byIdDesc = ()=> { _ensure(); return _byIdDesc || (_byIdDesc = pubVideos().slice().sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0))); };
+/* Fresh Uploads: newest catalog ids, including vertical clips. pubVideos()
+   keeps Shorts off the landscape rows, which hid the latest portrait uploads
+   from this row even though openVideo() already routes them to Shorts. */
+export const newestUploads = ()=> { _ensure(); return _newest || (_newest = searchableVideos().slice().sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0))); };
 export const byViewsDesc = ()=> { _ensure(); return _byViewsDesc || (_byViewsDesc = pubVideos().slice().sort((a,b)=>b.views-a.views)); };
 export const byUploadedDesc = ()=> { _ensure(); return _byUploadedDesc || (_byUploadedDesc = pubVideos().slice().sort((a,b)=>(b.uploaded||"").localeCompare(a.uploaded||""))); };
 

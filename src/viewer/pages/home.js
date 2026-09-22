@@ -10,8 +10,8 @@ import { jsq, relativeTime } from "../util.js";
 import { displayViews } from "../display-metrics.js";
 import {
   pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies,
-  actNames, clipsByAct, highlights, originals, byIdDesc, byViewsDesc,
-  byUploadedDesc, videoById, relatedTo, pornstars,
+  actNames, clipsByAct, highlights, originals, byViewsDesc,
+  byUploadedDesc, newestUploads, videoById, relatedTo, pornstars,
 } from "../catalog-queries.js";
 import { getAffiliateOffer, AFFILIATE_REL } from "../../shared/affiliates.js";
 
@@ -463,7 +463,7 @@ function homeAffiliatePromoStrip(){
 
     ${continueWatching.length ? rowSection("Continue Watching", continueWatching, { layout: "row" }) : ""}
     ${becauseYouWatchedRow()}
-    ${rowSection("Fresh Uploads", byIdDesc().slice(0, ROW_MAX), { layout: "row" })}
+    ${rowSection("Fresh Uploads", newestUploads().slice(0, ROW_MAX), { layout: "row" })}
     ${homeAffiliatePromoStrip()}
     ${rowSection("Recommended for you", recommended, { layout: "row" })}
     ${rowSection("Trending now", byViewsDesc().slice(0, ROW_MAX), { layout: "row" })}

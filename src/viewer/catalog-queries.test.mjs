@@ -15,6 +15,8 @@ import {
   clipsFor,
   clipsByAct,
   byUploadedDesc,
+  byIdDesc,
+  newestUploads,
   videoById,
   bumpCatalogGeneration,
 } from "./catalog-queries.js";
@@ -35,6 +37,21 @@ test("catalog queries - visible filter uses the real status vocabulary", (t) => 
   assert.equal(visible({ status: "some-future-status" }), true);
   assert.equal(visible({}), true);
   assert.equal(visible(null), null);
+});
+
+test("newestUploads includes vertical clips that Fresh Uploads used to hide", () => {
+  const orig = DATA.videos;
+  DATA.videos = [
+    { id: 10, status: "published" },
+    { id: 11, status: "published", orientation: "vertical" },
+    { id: 9, status: "pending", orientation: "vertical" },
+  ];
+  try {
+    assert.deepEqual(newestUploads().map(v => v.id), [11, 10]);
+    assert.deepEqual(byIdDesc().map(v => v.id), [10]);
+  } finally {
+    DATA.videos = orig;
+  }
 });
 
 test("catalog queries - pubVideos excludes private AND pending, keeps published", (t) => {
