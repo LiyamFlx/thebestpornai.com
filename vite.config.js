@@ -59,7 +59,7 @@ const videoInputs = existsSync(videoDir)
     )
   : {};
 
-const SPA_PATH = /^\/(movies|scenes|clips|watch\/|shorts|search|browse\/|library|creator\/|movie\/|explore|subscriptions|profile|settings|originals)(\/|$)/;
+const SPA_PATH = /^\/(movies|scenes|clips|watch\/|shorts|search|browse\/|library|creator\/|movie\/|explore|trending|subscriptions|profile|settings|originals)(\/|$)/;
 
 function spaFallback() {
   return {

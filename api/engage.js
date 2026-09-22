@@ -93,6 +93,8 @@ export default async function handler(req, res) {
       }
       const raw = await r.json().catch(() => null);
       const row = Array.isArray(raw) ? raw[0] : raw;
+      // Same-minute duplicate is skipped by comments_rate_limit (201, no row).
+      if (!row) return res.status(429).json({ ok: false, rateLimited: true });
       return res.status(200).json({ ok: true, row });
     }
 

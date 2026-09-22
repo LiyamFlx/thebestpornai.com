@@ -333,7 +333,9 @@ const ShAPI = {
     }
     if (r.ok) {
       const row = Array.isArray(r.data) ? r.data[0] : r.data;
-      return { ok: true, row: row || null, status: r.status };
+      // Same-minute duplicate is skipped in the database (201, no row).
+      if (!row) return { ok: false, row: null, status: 429, rateLimited: true };
+      return { ok: true, row, status: r.status };
     }
     const rateLimited = r.status === 401 || r.status === 403 || r.status === 409 || r.status === 429;
     return { ok: false, row: null, status: r.status, rateLimited };

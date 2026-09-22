@@ -228,7 +228,7 @@ function applyPath(){
     vstate.feedFocusId = null;
     return true;
   }
-  const SPA_PAGES = new Set(["explore","subscriptions","profile","settings","originals","feed"]);
+  const SPA_PAGES = new Set(["explore","trending","subscriptions","profile","settings","originals","feed"]);
   const page = p.slice(1);
   if(SPA_PAGES.has(page)){
     vstate.page = page === "feed" ? "feed" : page;
