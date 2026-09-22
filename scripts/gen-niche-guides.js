@@ -61,6 +61,12 @@ const NICHE_CONFIGS = [
   { slug: "best-ai-pov-porn-scenes-2026", category: "POV", title: "Top First-Person POV AI Video Scenes in 2026", desc: "Immersive 4K first-person perspective AI porn clips putting you directly in the scene." },
   { slug: "best-ai-amateur-porn-scenes-2026", category: "Amateur", title: "Best AI Amateur & Bedroom Videos in 2026", desc: "Authentic, candid-style AI bedroom videos and homemade aesthetic clips in 4K." },
   { slug: "best-ai-bdsm-porn-scenes-2026", category: "BDSM", title: "Top AI BDSM & Kink Video Scenes in 2026", desc: "Demure desires, kink scenes, and high-definition BDSM AI video clips." },
+  { slug: "best-ai-generated-porn-scenes-2026", category: "AI Generated", title: "Best AI Generated Porn Scenes in 2026", desc: "Finished AI adult clips you can watch without a prompt box — curated 4K scenes and Shorts." },
+  { slug: "best-ai-babe-porn-scenes-2026", category: "Babe", title: "Best AI Babe Porn Scenes in 2026", desc: "Solo AI babe packs, face-matched performers, and 4K scenes." },
+  { slug: "best-ai-lesbian-porn-scenes-2026", category: "Lesbian", title: "Best AI Lesbian Porn Scenes in 2026", desc: "Girl-girl AI scenes, twin packs, and lesbian category clips." },
+  { slug: "best-ai-anal-porn-scenes-2026", category: "Anal", title: "Best AI Anal Porn Scenes in 2026", desc: "Anal-tagged AI scenes from the catalog, with performer links." },
+  { slug: "best-ai-blowjob-porn-scenes-2026", category: "Blowjob", title: "Best AI Blowjob Porn Scenes in 2026", desc: "Blowjob-tagged AI clips and the performers who recur in them." },
+  { slug: "best-ai-creampie-porn-scenes-2026", category: "Creampie", title: "Best AI Creampie Porn Scenes in 2026", desc: "Creampie-tagged AI scenes in the thebestpornai catalog." },
 ];
 
 export function generateNicheGuides() {
@@ -143,7 +149,7 @@ export function generateNicheGuides() {
               <a href="${offer.url}" target="_blank" rel="noopener sponsored" class="niche-btn-primary">
                 Try Top ${esc(cfg.category)} Generator (${offer.name}) →
               </a>
-              <a href="/category/${cfg.category.toLowerCase().replace(/\s+/g, "-")}.html" class="niche-btn-ghost">
+              <a href="/categories/${cfg.category.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}.html" class="niche-btn-ghost">
                 Browse All ${esc(cfg.category)} Clips (${matchingVideos.length}+)
               </a>
             </div>

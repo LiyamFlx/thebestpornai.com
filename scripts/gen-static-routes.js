@@ -1117,7 +1117,8 @@ function genPornstarsHub() {
 // 2. Generate /pornstars/<slug>.html
 function genPornstarProfiles() {
   for (const ps of PORNSTARS) {
-    const title = `${ps.name} — AI Pornstar Profile, 4K Videos &amp; Shorts | thebestpornai`;
+    const guideSlug = ps.blogSlug || `${ps.slug}-ai-pornstar`;
+    const title = `${ps.name} AI Pornstar — Profile, 4K Videos &amp; Shorts | thebestpornai`;
     const description = `${ps.bio} Watch full HD & 4K video scenes and mobile vertical Shorts starring ${ps.name}.`;
     const canonical = `${ORIGIN}/pornstars/${ps.slug}.html`;
     const avatarUrl = mediaUrl(ps.avatar);
@@ -1131,8 +1132,9 @@ function genPornstarProfiles() {
     const videoCards = creatorVideos.map((v, i) => videoCardHtml(v, { eager: i < 4, fetchpriority: i === 0 ? "high" : undefined })).join("\n");
 
     const bodyContent = `
-      <h3 class="row-heading">${esc(ps.name)}</h3>
+      <h3 class="row-heading">${esc(ps.name)} AI Pornstar</h3>
       <p class="sub">${esc(ps.bio)}</p>
+      <p class="sub"><a href="/blog/${guideSlug}.html">${esc(ps.name)} AI pornstar guide</a></p>
       <div class="v-grid">
         ${videoCards.length ? videoCards : '<p class="sub">More videos coming soon.</p>'}
       </div>`;
@@ -1145,7 +1147,7 @@ function genPornstarProfiles() {
       "image": avatarUrl,
       "description": ps.bio,
       "sameAs": [
-        ps.blogSlug ? `${ORIGIN}/blog/${ps.blogSlug}.html` : `${ORIGIN}/pornstars/${ps.slug}.html`
+        `${ORIGIN}/blog/${guideSlug}.html`
       ].filter(Boolean),
       "subjectOf": creatorVideos.slice(0, 12).map((v) => ({
         "@type": "WebPage",

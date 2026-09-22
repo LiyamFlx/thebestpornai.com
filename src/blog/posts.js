@@ -28,6 +28,7 @@ import { CLUSTER_POSTS } from "./cluster-posts.js";
 import { INDUSTRY_TRENDS_2026_POSTS } from "./industry-trends-2026-posts.js";
 import { CANDY_AI_GUIDE_2026_POST } from "./candy-ai-guide-2026-post.js";
 import { AI_PORNSTARS_GUIDE_POST } from "./ai-pornstars-guide-post.js";
+import { PORNSTAR_PROFILE_POSTS } from "./pornstar-profile-posts.js";
 import { WHAT_IS_GENERATOR_POSTS } from "./what-is-generator-posts.js";
 import { isRedirectedSlug } from "./redirects.js";
 
@@ -2857,6 +2858,7 @@ export const POSTS = [
   STRIPPER_QUESTIONS_POST,
   CANDY_AI_GUIDE_2026_POST,
   AI_PORNSTARS_GUIDE_POST,
+  ...PORNSTAR_PROFILE_POSTS,
   ...WHAT_IS_GENERATOR_POSTS,
   ...INDUSTRY_TRENDS_2026_POSTS,
   ...CLUSTER_POSTS,

@@ -69,6 +69,7 @@ export function renderCreatorPage(){
           <h2 class="creator-page-name">${esc(c.name)} ${c.verified ? '<span class="verified" title="Verified">✓</span>' : ""} ${starBadge}</h2>
           <div class="small" style="margin-top:4px">${c.handle ? esc(c.handle) + " · " : ""}${fmt(c.subs)} subscribers · ${videos.length} video${videos.length !== 1 ? "s" : ""}${shorts.length ? ` · ${shorts.length} Shorts` : ""}</div>
           ${c.bio ? `<p class="creator-bio">${esc(c.bio)}</p>` : ""}
+          ${star ? `<p class="sub"><a href="/blog/${esc(c.slug === "mia-nympo" ? "ai-pornstar-profiles-mia-nympo-case-study" : c.slug === "sabrina-ass" ? "sabrina-ass-ai-pornstar-profile-intro-shorts" : c.slug === "marsha-banks" ? "marsha-banks-ai-pornstar-profile-intro-shorts" : c.slug + "-ai-pornstar")}.html">${esc(c.name)} AI pornstar guide</a></p>` : ""}
           ${tagsHtml}
           ${(introCta || shortsCta) ? `<div class="creator-page-actions">${introCta}${shortsCta}</div>` : ""}
         </div>
