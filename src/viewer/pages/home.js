@@ -463,7 +463,8 @@ function homeAffiliatePromoStrip(){
 
     ${continueWatching.length ? rowSection("Continue Watching", continueWatching, { layout: "row" }) : ""}
     ${becauseYouWatchedRow()}
-    ${rowSection("Fresh Uploads", newestUploads().slice(0, ROW_MAX), { layout: "row" })}
+    <h3 class="row-heading">Fresh Uploads <span class="small">(${newestUploads().length})</span></h3>
+    <div class="video-list">${newestUploads().slice(0, vstate.limit).map(v => videoCard(v, { layout: "row" })).join("")}</div>
     ${homeAffiliatePromoStrip()}
     ${rowSection("Recommended for you", recommended, { layout: "row" })}
     ${rowSection("Trending now", byViewsDesc().slice(0, ROW_MAX), { layout: "row" })}
