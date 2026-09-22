@@ -13,7 +13,7 @@ import { setHash, setPath, scrollToTop, saveScrollPosition, takeSavedReturn } fr
 import { render } from "./render.js";
 import { hydrateWatch, persist } from "./hydrate.js";
 import { patchComments, commentsFor, renderCommentList } from "./comments.js";
-import { pubVideos, visible } from "./catalog-queries.js";
+import { pubVideos, videoById, visible } from "./catalog-queries.js";
 import { PORNSTARS_PATH, categoryPagePath } from "../shared/public-routes.js";
 
 /* Primary navigation destinations. Legacy aliases (later/favorites/…) route
@@ -109,9 +109,21 @@ export function focusSearch(){
   }
 }
 
+/* Coalesce rapid Play / next / prev taps onto the latest id, and leave the
+   click turn so the browser can paint the pressed button before the watch
+   page is built. setTimeout (not rAF): rAF runs before the next paint and
+   still counts toward INP. */
+let _openVideoGen = 0;
 export function openVideo(id){
   id = +id;
-  const video = DATA.videos.find(v=>v.id===id);
+  const gen = ++_openVideoGen;
+  const run = () => { if(gen === _openVideoGen) openVideoNow(id); };
+  if(typeof setTimeout === "function") setTimeout(run, 0);
+  else run();
+}
+
+function openVideoNow(id){
+  const video = videoById(id);
   // Private/pending uploads must never be directly openable via a known id
   // or #video/N hash — the visible() gate everywhere else (feeds, search,
   // trending, suggestions) was purely cosmetic if this entry point skipped it.

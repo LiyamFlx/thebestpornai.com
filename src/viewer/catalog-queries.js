@@ -38,6 +38,7 @@ let _movies = null, _actNames = null, _highlights = null, _originals = null;
 let _byIdDesc = null, _byViewsDesc = null, _byUploadedDesc = null;
 let _videoById = null;
 let _searchIndex = null;
+let _tagIndex = null;
 const _byCat = new Map();
 const _byCatFilter = new Map();
 const _clipsByAct = new Map();
@@ -53,6 +54,7 @@ function _ensure(){
     _byIdDesc = null; _byViewsDesc = null; _byUploadedDesc = null;
     _videoById = null;
     _searchIndex = null;
+    _tagIndex = null;
   }
 }
 
@@ -129,17 +131,54 @@ export function byCategoryFilter(cat){
 /* Tag-weighted recommendations: rank other public videos by how many tags /
    category they share with `video`, then break ties by popularity. Powers the
    watch-page "Up Next" and the home "Because you watched…" row. */
+/* Tag → videos, built once per catalog version. relatedTo() used to score
+   every public video on the click that opens a watch page (~6k allocations
+   and a full sort), which blocked the hero Play button for most of a second. */
+const RELATED_BUCKET_CAP = 400;
+function tagIndex(){
+  _ensure();
+  if(_tagIndex) return _tagIndex;
+  const map = new Map();
+  for(const u of pubVideos()){
+    const keys = new Set();
+    for(const t of u.tags || []) keys.add(String(t).toLowerCase());
+    for(const t of u.categories || []) keys.add(String(t).toLowerCase());
+    if(u.category) keys.add(String(u.category).toLowerCase());
+    for(const k of keys){
+      let bucket = map.get(k);
+      if(!bucket) map.set(k, bucket = []);
+      bucket.push(u);
+    }
+  }
+  return _tagIndex = map;
+}
+
+function relatedScore(u, overlap){
+  return overlap * 100 + (u.views || 0) * 0.0001 + (u.likes || 0) * 0.01;
+}
+
 export function relatedTo(video, limit=12){
   if(!video) return [];
-  const vt = new Set([...(video.tags||[]), ...(video.categories||[]), video.category].filter(Boolean).map(x=>String(x).toLowerCase()));
-  return pubVideos()
-    .filter(u=>u.id!==video.id)
-    .map(u=>{
-      const ut = [...(u.tags||[]), ...(u.categories||[]), u.category].filter(Boolean).map(x=>String(x).toLowerCase());
-      const overlap = ut.reduce((n,t)=>n + (vt.has(t)?1:0), 0);
-      return { u, score: overlap*100 + (u.views||0)*0.0001 + (u.likes||0)*0.01 };
-    })
-    .filter(x=>x.score>0)
+  const keys = [...new Set([...(video.tags||[]), ...(video.categories||[]), video.category].filter(Boolean).map(x=>String(x).toLowerCase()))];
+  if(!keys.length) return [];
+  const index = tagIndex();
+  // Skip tags shared by hundreds of clips ("AI", "Babe"). Walking those
+  // buckets is what made Play stall. Up Next fills any shortfall from trending.
+  const use = keys.filter(k => (index.get(k)?.length || 0) <= RELATED_BUCKET_CAP);
+  if(!use.length) return [];
+  const scores = new Map();
+  for(const k of use){
+    const bucket = index.get(k);
+    if(!bucket) continue;
+    for(const u of bucket){
+      if(u.id === video.id) continue;
+      const prev = scores.get(u.id);
+      if(prev) prev.overlap++;
+      else scores.set(u.id, { u, overlap: 1 });
+    }
+  }
+  return [...scores.values()]
+    .map(x => ({ u: x.u, score: relatedScore(x.u, x.overlap) }))
     .sort((a,b)=>b.score-a.score)
     .slice(0, limit)
     .map(x=>x.u);
