@@ -214,7 +214,7 @@ export function generateNicheGuides() {
   </style>
 </head>
 <body>
-  ${appShellHtml({ activeNav: "blog", bodyContent: bodyHtml })}
+  ${appShellHtml("blog", bodyHtml)}
 </body>
 </html>`;
 

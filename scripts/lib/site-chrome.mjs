@@ -41,6 +41,10 @@ const ICO = {
 };
 
 export function appShellHtml(activeNav, bodyContent) {
+  if (typeof activeNav === "object" && activeNav !== null) {
+    bodyContent = activeNav.bodyContent;
+    activeNav = activeNav.activeNav;
+  }
   const on = (id) => (activeNav === id ? " active" : "");
   return `
 <div class="app">
