@@ -59,6 +59,15 @@ const videoInputs = existsSync(videoDir)
     )
   : {};
 
+const authorDir = resolve(__dirname, "author");
+const authorInputs = existsSync(authorDir)
+  ? Object.fromEntries(
+      readdirSync(authorDir)
+        .filter((f) => f.endsWith(".html"))
+        .map((f) => [`author-${f.replace(/\.html$/, "")}`, resolve(authorDir, f)])
+    )
+  : {};
+
 const SPA_PATH = /^\/(movies|scenes|clips|watch\/|shorts|search|browse\/|library|creator\/|movie\/|explore|trending|subscriptions|profile|settings|originals)(\/|$)/;
 
 function spaFallback() {
@@ -105,6 +114,7 @@ export default defineConfig({
         ...pornstarInputs,
         ...categoryInputs,
         ...videoInputs,
+        ...authorInputs,
       },
       output: {
         // Split the huge catalog data (500+ videos) into its own chunk.

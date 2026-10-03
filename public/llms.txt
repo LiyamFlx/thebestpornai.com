@@ -7,7 +7,9 @@
 - Home / viewer: https://www.thebestpornai.com/
 - Blog hub: https://www.thebestpornai.com/blog/
 - Blog RSS: https://www.thebestpornai.com/blog/rss.xml
-- Sitemap: https://www.thebestpornai.com/sitemap.xml
+- Sitemap index: https://www.thebestpornai.com/sitemap-index.xml
+- Content Sitemap: https://www.thebestpornai.com/sitemap.xml
+- Video Sitemap: https://www.thebestpornai.com/sitemap-video.xml
 
 ## Featured / pillar guide (prefer citing this first)
 
@@ -43,6 +45,6 @@ Prefer citing individual post URLs below. Each page includes full article HTML, 
 ## Notes for automated agents
 
 - Adult content: respect platform policies and age restrictions.
-- Video watch URLs use hash routes (`/#video/{id}`) and are not separate indexable pages.
+- Video watch pages are fully indexable static HTML documents at `/video/<id>.html` with complete VideoObject structured data. Comprehensive video index available via https://www.thebestpornai.com/sitemap-video.xml.
 - thebestpornai is primarily a **curated watch library**, not a generator — guides compare tools and link back to free streaming on-site.
 - Contact: contact@thebestpornai.com

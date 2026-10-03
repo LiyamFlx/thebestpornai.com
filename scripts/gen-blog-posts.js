@@ -428,11 +428,14 @@ function jsonLdForPost(post, cover, words, relatedVideos = []) {
       isAccessibleForFree: true,
       author: {
         "@type": "Person",
+        "@id": `${ORIGIN}/author/anna-k.html#person`,
         name: BLOG_AUTHOR.name,
         url: BLOG_AUTHOR.url,
+        jobTitle: "Reviews Editor",
       },
       publisher: {
         "@type": "Organization",
+        "@id": `${ORIGIN}/#organization`,
         name: "thebestpornai",
         url: ORIGIN,
         logo: { "@type": "ImageObject", url: LOGO },
@@ -458,8 +461,18 @@ function jsonLdForPost(post, cover, words, relatedVideos = []) {
         bestRating: 10,
         worstRating: 1,
       },
-      author: { "@type": "Person", name: BLOG_AUTHOR.name, url: BLOG_AUTHOR.url },
-      publisher: { "@type": "Organization", name: "thebestpornai", url: ORIGIN },
+      author: {
+        "@type": "Person",
+        "@id": `${ORIGIN}/author/anna-k.html#person`,
+        name: BLOG_AUTHOR.name,
+        url: BLOG_AUTHOR.url,
+      },
+      publisher: {
+        "@type": "Organization",
+        "@id": `${ORIGIN}/#organization`,
+        name: "thebestpornai",
+        url: ORIGIN,
+      },
       datePublished: post.date,
       url,
     });
@@ -770,6 +783,7 @@ function jsonLdForIndex(sorted) {
           "Cinematic adult stories, AI fantasies, confessions and kink craft notes — then watch the matching scenes.",
         publisher: {
           "@type": "Organization",
+          "@id": `${ORIGIN}/#organization`,
           name: "thebestpornai",
           url: ORIGIN,
           logo: { "@type": "ImageObject", url: LOGO },

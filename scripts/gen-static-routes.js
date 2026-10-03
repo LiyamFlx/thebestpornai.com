@@ -1118,7 +1118,7 @@ function genPornstarsHub() {
 function genPornstarProfiles() {
   for (const ps of PORNSTARS) {
     const guideSlug = ps.blogSlug || `${ps.slug}-ai-pornstar`;
-    const title = `${ps.name} AI Pornstar — Profile, 4K Videos &amp; Shorts | thebestpornai`;
+    const title = `${ps.name} AI Pornstar — Profile, 4K Videos & Shorts | thebestpornai`;
     const description = `${ps.bio} Watch full HD & 4K video scenes and mobile vertical Shorts starring ${ps.name}.`;
     const canonical = `${ORIGIN}/pornstars/${ps.slug}.html`;
     const avatarUrl = mediaUrl(ps.avatar);

@@ -14,9 +14,11 @@ import { POSTS } from "../src/blog/posts.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
 const AUTHOR_DIR = path.join(REPO, "author");
+const PUBLIC_AUTHOR_DIR = path.join(REPO, "public", "author");
 const ORIGIN = "https://www.thebestpornai.com";
 
 fs.mkdirSync(AUTHOR_DIR, { recursive: true });
+fs.mkdirSync(PUBLIC_AUTHOR_DIR, { recursive: true });
 
 function esc(s) {
   return String(s ?? "")
@@ -207,7 +209,8 @@ ${appShellHtml("blog", bodyContent)}
 `;
 
   fs.writeFileSync(path.join(AUTHOR_DIR, "anna-k.html"), html, "utf8");
-  console.log("wrote author/anna-k.html (E-E-A-T profile page)");
+  fs.writeFileSync(path.join(PUBLIC_AUTHOR_DIR, "anna-k.html"), html, "utf8");
+  console.log("wrote author/anna-k.html and public/author/anna-k.html (E-E-A-T profile page)");
 }
 
 generateAuthorPage();
