@@ -315,9 +315,139 @@
       box-shadow: 0 6px 22px rgba(229,9,20,0.45);
     }
 
+    /* Category Hero Header & Guide Banner */
+    .cat-hero-wrap {
+      margin: 0 0 24px;
+      padding: 16px 0 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .cat-editorial-tag {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .cat-hero-title {
+      font-size: 30px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0 0 10px;
+      line-height: 1.25;
+    }
+    .cat-hero-lead {
+      font-size: 15px;
+      color: #cbd5e1;
+      max-width: 900px;
+      line-height: 1.6;
+      margin: 0 0 16px;
+    }
+    .cat-guide-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: radial-gradient(120% 160% at 100% 50%, rgba(229,9,20,0.15), rgba(20,20,20,0.95) 75%);
+      border: 1px solid rgba(229,9,20,0.35);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .cat-guide-text {
+      font-size: 13.5px;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+    .cat-guide-text strong {
+      color: #fff;
+    }
+    .cat-guide-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 7px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      transition: background 0.15s, transform 0.15s;
+      flex: none;
+    }
+    .cat-guide-btn:hover {
+      background: var(--accent2);
+      transform: translateY(-1px);
+    }
+    /* Category Editorial Deep Dive */
+    .cat-editorial-deep {
+      margin: 48px 0 32px;
+      padding: 28px;
+      border-radius: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .cat-editorial-deep h2 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0 0 14px;
+    }
+    .cat-editorial-deep p {
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: #cbd5e1;
+      margin: 0 0 14px;
+    }
+    .cat-editorial-deep p:last-child {
+      margin-bottom: 0;
+    }
+    /* Category FAQ Accordion */
+    .cat-faq-section {
+      margin: 36px 0;
+    }
+    .cat-faq-section h2 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0 0 16px;
+    }
+    .cat-faq-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+    .cat-faq-item[open] {
+      border-color: rgba(229,9,20,0.4);
+    }
+    .cat-faq-item summary {
+      padding: 16px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      user-select: none;
+    }
+    .cat-faq-item p {
+      padding: 0 20px 18px;
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #94a3b8;
+    }
+
     @media(max-width: 768px) {
       .site-nav { display: none; }
       .page-hero h1 { font-size: 26px; }
+      .cat-hero-title { font-size: 24px; }
+      .cat-editorial-deep { padding: 20px; }
+      .cat-guide-banner { flex-direction: column; align-items: flex-start; }
+      .cat-guide-btn { width: 100%; justify-content: center; }
       .v-grid { grid-template-columns: 1fr; }
       .video-affiliate-box { flex-direction: column; align-items: flex-start; }
       .aff-cta-btn { width: 100%; justify-content: center; }

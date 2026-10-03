@@ -302,7 +302,7 @@ check("Generated pornstar and category HTML pages contain valid JSON-LD", () => 
       parsed = JSON.parse(match[1]);
     }, `${rel} JSON-LD must parse cleanly`);
     assert(parsed["@context"] === "https://schema.org", `${rel} context must be schema.org`);
-    assert(parsed["@type"], `${rel} must define @type`);
+    assert(parsed["@type"] || (Array.isArray(parsed["@graph"]) && parsed["@graph"].length > 0 && parsed["@graph"].every(n => n["@type"])), `${rel} must define @type or valid @graph with @type`);
   }
 });
 

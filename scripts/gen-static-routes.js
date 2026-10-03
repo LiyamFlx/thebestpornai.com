@@ -19,6 +19,7 @@ import { isoUploadDate } from "../src/shared/dates.js";
 import { playPath, searchPath } from "../src/shared/public-routes.js";
 import { ourdreamUrl, OURDREAM_REL } from "../src/shared/affiliates.js";
 import { FAVICON_LINKS, appShellHtml } from "./lib/site-chrome.mjs";
+import { TOP_CATEGORIES } from "./lib/category-metadata.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
@@ -685,25 +686,6 @@ const PORNSTARS = [
   },
 ];
 
-const TOP_CATEGORIES = [
-  { name: "AI Generated", desc: "Premium AI-generated adult scenes — photoreal models, uncensored motion, and the largest library on thebestpornai." },
-  { name: "Blonde", desc: "Stunning AI blonde beauties, natural babes, and high-energy blonde scenes in 4K." },
-  { name: "Latina", desc: "Passionate AI Latina models, curvy perfection, and spicy erotic clips." },
-  { name: "Big Ass", desc: "Top-tier PAWG and big booty AI scenes featuring hypnotic twerk and doggystyle angles." },
-  { name: "Big Tits", desc: "Huge natural boobs, cleavage close-ups, and busty AI babes in HD clarity." },
-  { name: "MILF", desc: "Experienced mature women and confident AI MILFs embracing pure desire." },
-  { name: "Amateur", desc: "Authentic, candid-style AI bedroom videos and homemade aesthetic clips." },
-  { name: "Anal", desc: "Intense backdoor action, close-ups, and tight anal penetration scenes." },
-  { name: "Blowjob", desc: "Passionate oral pleasure, deepthroat clips, and wet blowjob scenes." },
-  { name: "POV", desc: "First-person perspective immersive adult scenes that put you directly in the action." },
-  { name: "Redhead", desc: "Fiery ginger models, pale skin, and uninhibited AI redhead passion." },
-  { name: "Ebony", desc: "Gorgeous black AI models, dark skin perfection, and sensual curves." },
-  { name: "Asian", desc: "Exquisite Asian AI babes, petite frames, and delicate erotic scenes." },
-  { name: "Babe", desc: "Gorgeous modern AI supermodels and flawless solo aesthetic clips." },
-  { name: "Lesbian", desc: "Sensual female-on-female romance, passionate kissing, and dual orgasms." },
-  { name: "Creampie", desc: "Uncensored internal finishes, dripping climax shots, and intense breeding clips." },
-];
-
 function videoCardHtml(v, { eager = false, fetchpriority } = {}) {
   const thumbUrl = v.thumb ? mediaUrl(v.thumb) : "";
   const dur = v.duration ? `<span class="card-dur">${esc(v.duration)}</span>` : "";
@@ -1038,9 +1020,139 @@ function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, active
       box-shadow: 0 6px 22px rgba(229,9,20,0.45);
     }
 
+    /* Category Hero Header & Guide Banner */
+    .cat-hero-wrap {
+      margin: 0 0 24px;
+      padding: 16px 0 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .cat-editorial-tag {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .cat-hero-title {
+      font-size: 30px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0 0 10px;
+      line-height: 1.25;
+    }
+    .cat-hero-lead {
+      font-size: 15px;
+      color: #cbd5e1;
+      max-width: 900px;
+      line-height: 1.6;
+      margin: 0 0 16px;
+    }
+    .cat-guide-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: radial-gradient(120% 160% at 100% 50%, rgba(229,9,20,0.15), rgba(20,20,20,0.95) 75%);
+      border: 1px solid rgba(229,9,20,0.35);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .cat-guide-text {
+      font-size: 13.5px;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+    .cat-guide-text strong {
+      color: #fff;
+    }
+    .cat-guide-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 7px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      transition: background 0.15s, transform 0.15s;
+      flex: none;
+    }
+    .cat-guide-btn:hover {
+      background: var(--accent2);
+      transform: translateY(-1px);
+    }
+    /* Category Editorial Deep Dive */
+    .cat-editorial-deep {
+      margin: 48px 0 32px;
+      padding: 28px;
+      border-radius: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .cat-editorial-deep h2 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0 0 14px;
+    }
+    .cat-editorial-deep p {
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: #cbd5e1;
+      margin: 0 0 14px;
+    }
+    .cat-editorial-deep p:last-child {
+      margin-bottom: 0;
+    }
+    /* Category FAQ Accordion */
+    .cat-faq-section {
+      margin: 36px 0;
+    }
+    .cat-faq-section h2 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0 0 16px;
+    }
+    .cat-faq-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+    .cat-faq-item[open] {
+      border-color: rgba(229,9,20,0.4);
+    }
+    .cat-faq-item summary {
+      padding: 16px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      user-select: none;
+    }
+    .cat-faq-item p {
+      padding: 0 20px 18px;
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #94a3b8;
+    }
+
     @media(max-width: 768px) {
       .site-nav { display: none; }
       .page-hero h1 { font-size: 26px; }
+      .cat-hero-title { font-size: 24px; }
+      .cat-editorial-deep { padding: 20px; }
+      .cat-guide-banner { flex-direction: column; align-items: flex-start; }
+      .cat-guide-btn { width: 100%; justify-content: center; }
       .v-grid { grid-template-columns: 1fr; }
       .video-affiliate-box { flex-direction: column; align-items: flex-start; }
       .aff-cta-btn { width: 100%; justify-content: center; }
@@ -1174,11 +1286,11 @@ function genPornstarProfiles() {
 // 3. Generate /categories/index.html
 function genCategoriesHub() {
   const title = "AI Porn Categories — Browse All 4K Adult Niches | thebestpornai";
-  const description = "Explore 40+ curated AI adult categories: Blonde, Latina, Big Ass, MILF, POV, Blowjob, Lesbian, and more in stunning 4K streaming quality.";
+  const description = "Explore 16 curated adult AI genres: Blonde, Latina, Big Ass, MILF, POV, Blowjob, Lesbian, and more in stunning 4K streaming quality.";
   const canonical = `${ORIGIN}/categories/`;
 
   const cardsHtml = TOP_CATEGORIES.map((cat) => {
-    const slug = slugify(cat.name);
+    const slug = cat.slug || slugify(cat.name);
     const matches = VIDEOS.filter((v) =>
       (v.category && v.category.toLowerCase() === cat.name.toLowerCase()) ||
       (v.categories && v.categories.some((c) => c.toLowerCase() === cat.name.toLowerCase()))
@@ -1188,38 +1300,57 @@ function genCategoriesHub() {
     return `
       <a class="card" href="/categories/${slug}.html">
         <div class="video-thumb">
-          ${thumbUrl ? `<img class="thumb-video" src="${thumbUrl}" alt="" width="320" height="180" loading="lazy" decoding="async"/>` : ""}
+          ${thumbUrl ? `<img class="thumb-video" src="${thumbUrl}" alt="${esc(cat.name)} AI Porn" width="320" height="180" loading="lazy" decoding="async"/>` : ""}
+          <span class="quality-badge">4K</span>
         </div>
-        <div class="title">${esc(cat.name)}</div>
-        <div class="card-meta">${matches.length} videos</div>
+        <div class="card-text">
+          <h2 class="title" style="font-size:15px;margin:0 0 4px;font-weight:700">${esc(cat.name)}</h2>
+          <div class="card-meta" style="font-size:12px;color:rgba(255,255,255,0.6)">${matches.length} videos · 4K UHD</div>
+        </div>
       </a>`;
   }).join("\n");
 
-  const chips = TOP_CATEGORIES.map((cat) =>
-    `<a class="filter-pill" href="/categories/${slugify(cat.name)}.html">${esc(cat.name)}</a>`
-  ).join("");
+  const chips = TOP_CATEGORIES.map((cat) => {
+    const slug = cat.slug || slugify(cat.name);
+    return `<a class="filter-pill" href="/categories/${slug}.html">${esc(cat.name)}</a>`;
+  }).join("");
 
   const bodyContent = `
-    <h3 class="row-heading">Categories</h3>
-    <p class="sub">Browse scenes by niche</p>
+    <div class="cat-hero-wrap">
+      <div class="cat-editorial-tag">4K Streaming Directory</div>
+      <h1 class="cat-hero-title">AI Adult Video Categories</h1>
+      <p class="cat-hero-lead">Explore 16 curated adult AI genres in crisp 4K Ultra HD. From photorealistic blonde and Latina models to immersive first-person POV, hypnotic PAWG curves, and authentic amateur bedroom encounters.</p>
+    </div>
     <div class="home-chips-strip">${chips}</div>
-    <div class="v-grid">${cardsHtml}</div>`;
+    <div class="v-grid" style="margin-top:24px">${cardsHtml}</div>`;
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    "name": "AI Adult Categories",
-    "description": description,
-    "url": canonical,
-    "mainEntity": {
-      "@type": "ItemList",
-      "itemListElement": TOP_CATEGORIES.map((cat, i) => ({
-        "@type": "ListItem",
-        "position": i + 1,
-        "name": cat.name,
-        "url": `${ORIGIN}/categories/${slugify(cat.name)}.html`
-      }))
-    }
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": `${ORIGIN}/` },
+          { "@type": "ListItem", "position": 2, "name": "Categories", "item": canonical }
+        ]
+      },
+      {
+        "@type": "CollectionPage",
+        "@id": `${canonical}#page`,
+        "name": "AI Adult Video Categories",
+        "description": description,
+        "url": canonical,
+        "mainEntity": {
+          "@type": "ItemList",
+          "itemListElement": TOP_CATEGORIES.map((cat, i) => ({
+            "@type": "ListItem",
+            "position": i + 1,
+            "name": cat.name,
+            "url": `${ORIGIN}/categories/${cat.slug || slugify(cat.name)}.html`
+          }))
+        }
+      }
+    ]
   };
 
   const html = renderHtmlPage({
@@ -1238,50 +1369,118 @@ function genCategoriesHub() {
 // 4. Generate /categories/<slug>.html
 function genCategoryPages() {
   for (const cat of TOP_CATEGORIES) {
-    const slug = slugify(cat.name);
-    const title = cat.name === "AI Generated"
-      ? "AI Generated Porn Videos — Best 4K AI Scenes | thebestpornai"
-      : `${cat.name} AI Porn Videos — Best 4K ${cat.name} Scenes | thebestpornai`;
-    const description = cat.name === "AI Generated"
-      ? `Stream the best AI-generated porn videos in 4K resolution. ${cat.desc} Free high-speed streaming on thebestpornai.`
-      : `Stream the best ${cat.name} AI porn videos in 4K resolution. ${cat.desc} Free high-speed streaming on thebestpornai.`;
+    const slug = cat.slug || slugify(cat.name);
+    const title = `${cat.headline || `${cat.name} AI Porn Videos`} | thebestpornai`;
+    const description = cat.desc || `Stream the best ${cat.name} AI porn videos in 4K resolution. Free high-speed streaming on thebestpornai.`;
     const canonical = `${ORIGIN}/categories/${slug}.html`;
 
     const categoryVideos = VIDEOS.filter((v) =>
       (v.category && v.category.toLowerCase() === cat.name.toLowerCase()) ||
       (v.categories && v.categories.some((c) => c.toLowerCase() === cat.name.toLowerCase()))
-    ).slice(0, 36);
+    ).slice(0, 48);
 
     const videoCards = categoryVideos.map((v, i) => videoCardHtml(v, { eager: i < 4, fetchpriority: i === 0 ? "high" : undefined })).join("\n");
     const sampleThumb = categoryVideos[0]?.thumb ? mediaUrl(categoryVideos[0].thumb) : LOGO;
 
-    const chips = TOP_CATEGORIES.map((c) =>
-      `<a class="filter-pill${c.name === cat.name ? " active" : ""}" href="/categories/${slugify(c.name)}.html">${esc(c.name)}</a>`
-    ).join("");
+    const chips = TOP_CATEGORIES.map((c) => {
+      const cSlug = c.slug || slugify(c.name);
+      return `<a class="filter-pill${c.name === cat.name ? " active" : ""}" href="/categories/${cSlug}.html">${esc(c.name)}</a>`;
+    }).join("");
+
+    const neighborChips = TOP_CATEGORIES.filter((c) => c.name !== cat.name).slice(0, 8).map((c) => {
+      const cSlug = c.slug || slugify(c.name);
+      return `<a class="filter-pill" href="/categories/${cSlug}.html">${esc(c.name)}</a>`;
+    }).join("");
 
     const bodyContent = `
-      <div class="home-chips-strip">${chips}</div>
-      <h3 class="row-heading">${esc(cat.name)}</h3>
-      <p class="sub">${esc(cat.desc)}</p>
+      <div class="home-chips-strip" style="margin-bottom:12px">${chips}</div>
+
+      <div class="cat-hero-wrap">
+        <div class="cat-editorial-tag">Niche Collection · 4K Ultra HD</div>
+        <h1 class="cat-hero-title">${esc(cat.headline || `${cat.name} AI Porn Videos`)}</h1>
+        <p class="cat-hero-lead">${esc(cat.lead || cat.desc)}</p>
+        ${cat.guideSlug ? `
+        <div class="cat-guide-banner">
+          <div class="cat-guide-text">
+            📖 <strong>2026 Editor's Guide:</strong> Deep dive into top ${esc(cat.name)} AI performers, prompt engineering, and scene curation.
+          </div>
+          <a class="cat-guide-btn" href="/blog/${esc(cat.guideSlug)}.html">Read Guide →</a>
+        </div>` : ""}
+      </div>
+
       <div class="v-grid">
         ${videoCards.length ? videoCards : '<p class="sub">New scenes being generated daily.</p>'}
+      </div>
+
+      <section class="cat-editorial-deep">
+        <h2>The 2026 ${esc(cat.name)} AI Video Landscape</h2>
+        <p>${esc(cat.editorial1)}</p>
+        <p>${esc(cat.editorial2)}</p>
+      </section>
+
+      ${cat.faqs && cat.faqs.length ? `
+      <section class="cat-faq-section" id="faq">
+        <h2>Frequently Asked Questions about ${esc(cat.name)} AI Porn</h2>
+        <div class="cat-faq-list">
+          ${cat.faqs.map((f, i) => `
+          <details class="cat-faq-item"${i === 0 ? " open" : ""}>
+            <summary>${esc(f.q)}</summary>
+            <p>${esc(f.a)}</p>
+          </details>`).join("")}
+        </div>
+      </section>` : ""}
+
+      <div style="margin: 40px 0 16px;">
+        <h3 style="font-size:16px;font-weight:700;color:#fff;margin:0 0 12px;">Explore Related Adult AI Niches</h3>
+        <div class="home-chips-strip">
+          ${neighborChips}
+        </div>
       </div>`;
+
+    const graph = [
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": `${ORIGIN}/` },
+          { "@type": "ListItem", "position": 2, "name": "Categories", "item": `${ORIGIN}/categories/` },
+          { "@type": "ListItem", "position": 3, "name": cat.name, "item": canonical }
+        ]
+      },
+      {
+        "@type": "CollectionPage",
+        "@id": `${canonical}#page`,
+        "name": cat.headline || `${cat.name} AI Porn Videos`,
+        "description": description,
+        "url": canonical,
+        "mainEntity": {
+          "@type": "ItemList",
+          "itemListElement": categoryVideos.slice(0, 16).map((v, i) => ({
+            "@type": "ListItem",
+            "position": i + 1,
+            "url": `${ORIGIN}/video/${v.id}.html`,
+            "name": v.title
+          }))
+        }
+      }
+    ];
+
+    if (cat.faqs && cat.faqs.length) {
+      graph.push({
+        "@type": "FAQPage",
+        "mainEntity": cat.faqs.map((f) => ({
+          "@type": "Question",
+          "name": f.q,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": f.a
+          }
+        }))
+      });
+    }
 
     const jsonLd = {
       "@context": "https://schema.org",
-      "@type": "CollectionPage",
-      "name": `${cat.name} AI Porn Videos`,
-      "description": description,
-      "url": canonical,
-      "mainEntity": {
-        "@type": "ItemList",
-        "itemListElement": categoryVideos.slice(0, 12).map((v, i) => ({
-          "@type": "ListItem",
-          "position": i + 1,
-          "url": `${ORIGIN}/video/${v.id}.html`,
-          "name": v.title
-        }))
-      }
+      "@graph": graph
     };
 
     const html = renderHtmlPage({
