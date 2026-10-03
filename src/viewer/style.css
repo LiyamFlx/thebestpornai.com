@@ -435,6 +435,11 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
   color:#4ade80;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.28);
   padding:3px 8px;border-radius:6px;letter-spacing:.2px;
 }
+.home-hero-trust-pill{
+  display:inline-block;font-size:11px;font-weight:600;
+  color:#60a5fa;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.28);
+  padding:3px 8px;border-radius:6px;letter-spacing:.2px;
+}
 .home-hero-title{
   margin:0 0 8px;font-size:clamp(22px,3vw,32px);font-weight:800;letter-spacing:-.3px;
   line-height:1.15;text-shadow:0 2px 14px rgba(0,0,0,.75);
@@ -1722,7 +1727,7 @@ iframe.player{object-fit:contain}
   .home-hero-actions{width:100%}
   .home-hero-tag{font-size:8.5px;letter-spacing:.5px;padding:2.5px 7px}
   .home-hero-count{font-size:10px;padding:2px 6px}
-  .home-hero-free-pill{font-size:10px;padding:2px 6px}
+  .home-hero-free-pill, .home-hero-trust-pill{font-size:10px;padding:2px 6px}
   .blog-home-card{flex:0 0 168px;max-width:168px}
 
   /* ---- Touch-Snap Carousels with 85% Peek Effect ---- */
@@ -2754,6 +2759,53 @@ iframe.player{object-fit:contain}
   to {
     opacity: 0;
     transform: translateY(30px) scale(0.96);
+  }
+}
+
+/* ---- Homepage SEO Editorial Section ---- */
+.home-seo-editorial {
+  margin: 36px 0 24px;
+}
+.home-seo-editorial-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+}
+.home-seo-editorial-title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+.home-seo-editorial-text {
+  margin: 0 0 16px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.78);
+}
+.home-seo-editorial-text strong {
+  color: #fff;
+}
+.home-seo-editorial-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (max-width: 760px) {
+  .home-seo-editorial {
+    margin: 24px 0 16px;
+  }
+  .home-seo-editorial-card {
+    padding: 16px 18px;
+  }
+  .home-seo-editorial-title {
+    font-size: 16px;
+  }
+  .home-seo-editorial-text {
+    font-size: 12.5px;
+    line-height: 1.55;
   }
 }
 

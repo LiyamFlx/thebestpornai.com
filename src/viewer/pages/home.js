@@ -264,6 +264,7 @@ function homeHero(hero){
           <span class="home-hero-tag">✨ Featured</span>
           <span class="home-hero-count">4K Ultra HD · ${liveCount} Videos</span>
           <span class="home-hero-free-pill">100% Free · No Signup</span>
+          <span class="home-hero-trust-pill">🛡️ 100% Fictional Synthetic Personas · Zero Deepfakes · 18+ Consenting Adults</span>
         </div>
         <h1 class="home-hero-title">${esc(hero.title)}</h1>
         <p class="home-hero-meta">${esc(creatorName(hero.creator))} · ${fmt(displayViews(hero))} views${hero.uploaded ? ` · ${esc(relativeTime(hero.uploaded))}` : ''}</p>
@@ -341,6 +342,28 @@ function moreCategoriesBlock(cats, acts){
     </div>` : ""}`;
 }
 
+export function homeEditorialSection(){
+  return `
+    <section class="home-seo-editorial" aria-label="About thebestpornai">
+      <div class="home-seo-editorial-card">
+        <h2 class="home-seo-editorial-title">Free 4K AI Porn &amp; Uncensored Adult Streaming</h2>
+        <p class="home-seo-editorial-text">
+          Welcome to <strong>thebestpornai</strong>, the premier streaming destination for high-definition generative adult entertainment. Our growing library features over 6,000+ uncensored 4K AI porn scenes, full-length movies, and exclusive shorts rendered with hyper-realistic detail and 60fps fluidity. Powered by high-speed global edge infrastructure via Cloudflare R2, every video streams instantly with zero buffering and no registration or credit card required. Explore our signature character face packs featuring recurring virtual adult stars, or browse top categories including Blonde, Latina, MILF, POV, and House Originals. All performers are 100% synthetic, ethically generated fictional personas compliant with 18+ adult standards.
+        </p>
+        <div class="home-seo-editorial-links">
+          <a href="/categories/blonde.html" class="tag-chip">Blonde AI</a>
+          <a href="/categories/latina.html" class="tag-chip">Latina AI</a>
+          <a href="/categories/milf.html" class="tag-chip">MILF AI</a>
+          <a href="/categories/pov.html" class="tag-chip">POV AI</a>
+          <a href="/categories/big-ass.html" class="tag-chip">Big Ass</a>
+          <a href="/pornstars/" class="tag-chip">AI Pornstars Index</a>
+          <a href="/categories/" class="tag-chip">All Categories</a>
+          <a href="/blog/" class="tag-chip">AI Blog &amp; Guides</a>
+        </div>
+      </div>
+    </section>`;
+}
+
 function _renderHomeBody(){
   const pub = pubVideos();
   const hero = currentHero() || pub.find(v=>v.type==="original") || pub[0];
@@ -364,6 +387,7 @@ function _renderHomeBody(){
         ? `<div class="video-list">${shown.map(v=>videoCard(v,{layout:'row'})).join("")}</div>`
         : emptyState(`No ${cat} videos yet.`, POPULAR_TAGS.filter(t=>t!==cat).slice(0,8))}
       ${matches.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more</button>` : ''}
+      ${homeEditorialSection()}
     `;
     return { html, empty: !shown.length };
   }
@@ -379,6 +403,7 @@ function _renderHomeBody(){
         ? `<h3 class="row-heading">${icon} ${label} <span class="small">(${pub.length} videos)</span></h3><div class="video-list">${all.map(v=>videoCard(v,{layout:'row'})).join("")}</div>`
         : emptyState("No videos match this sort yet.", POPULAR_TAGS.slice(0, 8), { emoji: "📭" })}
       ${pub.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
+      ${homeEditorialSection()}
     `;
     return { html, empty: !all.length };
   }
@@ -387,26 +412,29 @@ function _renderHomeBody(){
     const allMovies = movies();
     const html = `${homeFilterBar()}${allMovies.length
       ? `<h3 class="row-heading">Movies <span class="small">(${allMovies.length})</span></h3><div class="video-list">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`, layout:'row'})).join("")}</div>`
-      : emptyState("No movies yet. Browse clips and scenes instead.", POPULAR_TAGS.slice(0, 6), { emoji: "🎬" })}`;
+      : emptyState("No movies yet. Browse clips and scenes instead.", POPULAR_TAGS.slice(0, 6), { emoji: "🎬" })}
+      ${homeEditorialSection()}`;
     return { html, empty: !allMovies.length };
   }
   if(filter==="scenes"){
     const allScenes = pub.filter(v=>v.level==="scene");
     const html = `${homeFilterBar()}${allScenes.length
       ? rowSection("Scenes", allScenes.slice(0, ROW_MAX), {layout:'row'})
-      : emptyState("No scenes tagged yet.", POPULAR_TAGS.slice(0, 6), { emoji: "🎞" })}`;
+      : emptyState("No scenes tagged yet.", POPULAR_TAGS.slice(0, 6), { emoji: "🎞" })}
+      ${homeEditorialSection()}`;
     return { html, empty: !allScenes.length };
   }
   if(filter==="clips"){
     const allClips = pub.filter(v=>v.level==="clip");
     const html = `${homeFilterBar()}${allClips.length
       ? rowSection("Clips", allClips.slice(0, ROW_MAX), {layout:'row'})
-      : emptyState("No clips tagged yet.", POPULAR_TAGS.slice(0, 6), { emoji: "📎" })}`;
+      : emptyState("No clips tagged yet.", POPULAR_TAGS.slice(0, 6), { emoji: "📎" })}
+      ${homeEditorialSection()}`;
     return { html, empty: !allClips.length };
   }
   if(filter==="pornstars"){
     const stars = pornstars();
-    const html = `${homeFilterBar()}${pornstarsFilterBody()}`;
+    const html = `${homeFilterBar()}${pornstarsFilterBody()}${homeEditorialSection()}`;
     return { html, empty: !stars.length };
   }
 
@@ -414,11 +442,6 @@ function _renderHomeBody(){
   const top = trending();
   const allMovies = movies();
   const historySet = new Set(vstate.history);
-  // Cap like every other home row so long history does not dump 50 full cards.
-  // Drop any history id that no longer resolves to a real video (deleted,
-  // unpublished, or plain corrupted localStorage data) — don't just hide it
-  // from this render, prune it from vstate.history for good so it can't keep
-  // reappearing every time this page renders.
   const resolvedHistory = [];
   const validHistoryIds = [];
   for(const id of vstate.history){
@@ -474,6 +497,7 @@ function homeAffiliatePromoStrip(){
     ${allMovies.length ? moviesRow(allMovies) : ""}
     ${topCreatorsRow()}
     ${moreCategoriesBlock(cats, acts)}
+    ${homeEditorialSection()}
   `;
   return { html, empty: false };
 }

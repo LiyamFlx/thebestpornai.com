@@ -1418,11 +1418,121 @@ function genVideoPages() {
   console.log(`✔ Generated ${prioritized.length} static video pages in video/`);
 }
 
+// 6. Prerender static skeleton into index.html for search crawlers & initial paint
+function prerenderHomepageSkeleton() {
+  const indexPath = path.join(REPO, "index.html");
+  if (!fs.existsSync(indexPath)) return;
+  let html = fs.readFileSync(indexPath, "utf8");
+
+  // Pick top 8 featured videos with working media/thumbs, prioritizing prominent scenes
+  const targetIds = [5962, 5169, 63, 270, 405, 28, 404, 5170];
+  const featured = [];
+  for (const tid of targetIds) {
+    const v = VIDEOS.find(x => x.id === tid);
+    if (v) featured.push(v);
+  }
+  if (featured.length < 8) {
+    const fallback = VIDEOS.filter(v => v.src && v.thumb && !v.flagged && v.status !== "private" && v.status !== "pending");
+    for (const fb of fallback) {
+      if (!featured.some(f => f.id === fb.id)) featured.push(fb);
+      if (featured.length >= 8) break;
+    }
+  }
+
+  const featuredCards = featured.map(v => {
+    const thumbUrl = v.thumb ? mediaUrl(v.thumb) : LOGO;
+    const dur = v.duration ? esc(v.duration) : "";
+    const views = fmtViews(v.views || 1200);
+    return `        <article class="card">
+          <a href="/video/${v.id}.html" title="${esc(v.title)}" style="text-decoration:none;color:inherit;display:block">
+            <div class="video-thumb">
+              <img class="thumb-video" src="${thumbUrl}" alt="${esc(v.title)}" width="320" height="180" loading="lazy" decoding="async"/>
+              <span class="quality-badge" style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.7);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">4K</span>
+              ${dur ? `<span class="dur-badge" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.8);color:#fff;font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px">${dur}</span>` : ""}
+            </div>
+            <div class="card-text">
+              <h3 class="title" style="margin:0 0 6px;font-size:14px;font-weight:600;line-height:1.3">${esc(v.title)}</h3>
+              <div class="card-meta" style="font-size:12px;color:rgba(255,255,255,0.6)">${esc(v.category || "AI")} · ${views} views</div>
+            </div>
+          </a>
+        </article>`;
+  }).join("\n");
+
+  const skeleton = `<!-- PRERENDER_HOMEPAGE_START -->
+      <header class="home-prerender-header" style="margin-bottom:24px">
+        <h1 style="font-size:clamp(22px,3vw,32px);font-weight:800;margin:0 0 8px;line-height:1.2;color:#fff">thebestpornai — Free 4K AI Porn &amp; Uncensored Adult Streaming</h1>
+        <div class="home-hero-badge-row" style="margin-bottom:12px">
+          <span class="home-hero-tag">✨ Featured</span>
+          <span class="home-hero-count">4K Ultra HD · 6,000+ Videos</span>
+          <span class="home-hero-free-pill">100% Free · No Signup</span>
+          <span class="home-hero-trust-pill">🛡️ 100% Fictional Synthetic Personas · Zero Deepfakes · 18+ Consenting Adults</span>
+        </div>
+        <p style="font-size:14px;color:rgba(255,255,255,0.8);max-width:800px;margin:0 0 16px;line-height:1.5">
+          Stream over 6,000+ high-definition AI generated adult videos, photorealistic face packs, uncensored movies, and exclusive clips. Instant high-speed cloud playback with zero buffering.
+        </p>
+        <nav class="home-prerender-nav" aria-label="Popular Categories" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
+          <a href="/categories/blonde.html" class="filter-pill">Blonde</a>
+          <a href="/categories/latina.html" class="filter-pill">Latina</a>
+          <a href="/categories/milf.html" class="filter-pill">MILF</a>
+          <a href="/categories/pov.html" class="filter-pill">POV</a>
+          <a href="/categories/big-ass.html" class="filter-pill">Big Ass</a>
+          <a href="/categories/big-tits.html" class="filter-pill">Big Tits</a>
+          <a href="/categories/asian.html" class="filter-pill">Asian</a>
+          <a href="/categories/amateur.html" class="filter-pill">Amateur</a>
+          <a href="/categories/blowjob.html" class="filter-pill">Blowjob</a>
+          <a href="/categories/creampie.html" class="filter-pill">Creampie</a>
+          <a href="/categories/ebony.html" class="filter-pill">Ebony</a>
+          <a href="/categories/lesbian.html" class="filter-pill">Lesbian</a>
+          <a href="/categories/redhead.html" class="filter-pill">Redhead</a>
+          <a href="/categories/ai-generated.html" class="filter-pill">AI Generated</a>
+          <a href="/pornstars/" class="filter-pill" style="border-color:var(--accent);color:#fff">⭐ AI Pornstars</a>
+          <a href="/categories/" class="filter-pill">All Categories</a>
+        </nav>
+      </header>
+
+      <section class="home-prerender-featured" aria-label="Featured Videos" style="margin-bottom:32px">
+        <h2 class="row-heading" style="margin-bottom:16px">Featured &amp; Trending 4K AI Videos</h2>
+        <div class="video-list">
+${featuredCards}
+        </div>
+      </section>
+
+      <section class="home-seo-editorial" aria-label="About thebestpornai">
+        <div class="home-seo-editorial-card">
+          <h2 class="home-seo-editorial-title">Free 4K AI Porn &amp; Uncensored Adult Streaming</h2>
+          <p class="home-seo-editorial-text">
+            Welcome to <strong>thebestpornai</strong>, the premier streaming destination for high-definition generative adult entertainment. Our growing library features over 6,000+ uncensored 4K AI porn scenes, full-length movies, and exclusive shorts rendered with hyper-realistic detail and 60fps fluidity. Powered by high-speed global edge infrastructure via Cloudflare R2, every video streams instantly with zero buffering and no registration or credit card required. Explore our signature character face packs featuring recurring virtual adult stars, or browse top categories including Blonde, Latina, MILF, POV, and House Originals. All performers are 100% synthetic, ethically generated fictional personas compliant with 18+ adult standards.
+          </p>
+          <div class="home-seo-editorial-links">
+            <a href="/categories/blonde.html" class="tag-chip">Blonde AI</a>
+            <a href="/categories/latina.html" class="tag-chip">Latina AI</a>
+            <a href="/categories/milf.html" class="tag-chip">MILF AI</a>
+            <a href="/categories/pov.html" class="tag-chip">POV AI</a>
+            <a href="/categories/big-ass.html" class="tag-chip">Big Ass</a>
+            <a href="/pornstars/" class="tag-chip">AI Pornstars Index</a>
+            <a href="/categories/" class="tag-chip">All Categories</a>
+            <a href="/blog/" class="tag-chip">AI Blog &amp; Guides</a>
+          </div>
+        </div>
+      </section>
+      <!-- PRERENDER_HOMEPAGE_END -->`;
+
+  const markerRegex = /<!-- PRERENDER_HOMEPAGE_START -->[\s\S]*?<!-- PRERENDER_HOMEPAGE_END -->/;
+  if (markerRegex.test(html)) {
+    html = html.replace(markerRegex, skeleton);
+  } else {
+    html = html.replace('<div class="content" id="view"></div>', `<div class="content" id="view">\n      ${skeleton}\n    </div>`);
+  }
+  fs.writeFileSync(indexPath, html);
+  console.log("✔ index.html homepage prerender updated");
+}
+
 // Run generators
 genPornstarsHub();
 genPornstarProfiles();
 genCategoriesHub();
 genCategoryPages();
 genVideoPages();
+prerenderHomepageSkeleton();
 
 console.log("🎉 All static routes generated successfully.");
