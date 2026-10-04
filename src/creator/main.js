@@ -424,7 +424,9 @@ async function uPublish(){
   try {
     const seedViews = 10000 + Math.floor(Math.random()*5001);
     const seedLikes = 100 + Math.floor(Math.random()*201);
-    const localId = Date.now();
+    // Unix seconds timestamp fits safely in Postgres 32-bit integer (< 2,147,483,647)
+    // while remaining unique per second and cleanly distinct from catalog videos (1..7000).
+    const localId = Math.floor(Date.now() / 1000);
 
     // Optimistic local entry
     DATA.videos.unshift({

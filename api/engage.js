@@ -14,6 +14,20 @@ function limited(ip, max) {
   return false;
 }
 
+function toDbVideoId(videoId) {
+  const n = Number(videoId);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  if (n <= 2147483647) return Math.floor(n);
+  let str = String(n);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  const positive = h >>> 1;
+  return 100_000_000 + (positive % 1_900_000_000);
+}
+
 export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST") return res.status(405).json({ ok: false });
@@ -26,9 +40,9 @@ export default async function handler(req, res) {
     try { payload = JSON.parse(payload); } catch { payload = {}; }
   }
   const action = String(payload?.action || "");
-  const videoId = Number(payload?.videoId);
+  const videoId = toDbVideoId(payload?.videoId);
   const clientId = String(payload?.clientId || "anon").slice(0, 80);
-  if (!Number.isFinite(videoId) || videoId <= 0) return res.status(400).json({ ok: false });
+  if (!videoId) return res.status(400).json({ ok: false });
 
   try {
     if (action === "like") {

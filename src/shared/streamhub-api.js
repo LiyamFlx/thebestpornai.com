@@ -34,6 +34,25 @@ function shClientId(){
   return id;
 }
 
+/* Deterministically map any videoId to a valid Postgres signed 32-bit integer (INT4).
+   Postgres integer columns range from 1 to 2,147,483,647.
+   Catalog video IDs (1..7000+) are preserved as-is.
+   Timestamp IDs (> 2,147,483,647, e.g. 1784510147745 from Date.now()) are folded
+   deterministically into [100,000,000 .. 2,000,000,000] to prevent "out of range for type integer" 400 errors. */
+function toDbVideoId(videoId) {
+  const n = Number(videoId);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  if (n <= 2147483647) return Math.floor(n);
+  let str = String(n);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  const positive = h >>> 1;
+  return 100_000_000 + (positive % 1_900_000_000);
+}
+
 /* Low-level fetch with a short timeout so a hung request can't freeze the UI.
    `_reqRaw` exposes status so callers can tell 409 (unique) / 401 (RLS) from
    a network miss. `_req` stays the old "body or null" helper. */
@@ -250,14 +269,18 @@ const ShAPI = {
 
   /* ---- LIKES (count rows; concurrency-safe) ---- */
   async likeCounts(videoId){
+    const id = toDbVideoId(videoId);
+    if (!id) return { like: 0, dislike: 0 };
     const [like, dislike] = await Promise.all([
-      _count(`/likes?video_id=eq.${videoId}&kind=eq.like&select=id`),
-      _count(`/likes?video_id=eq.${videoId}&kind=eq.dislike&select=id`),
+      _count(`/likes?video_id=eq.${id}&kind=eq.like&select=id`),
+      _count(`/likes?video_id=eq.${id}&kind=eq.dislike&select=id`),
     ]);
     return { like, dislike };
   },
   async addLike(videoId, kind="like"){
-    const viaApi = await _engage({ action: "like", videoId, kind, clientId: shClientId() });
+    const id = toDbVideoId(videoId);
+    if (!id) return false;
+    const viaApi = await _engage({ action: "like", videoId: id, kind, clientId: shClientId() });
     if (viaApi.status === 200) return true;
     if (viaApi.status === 429) return false;
     const r = await _reqRaw(
@@ -265,7 +288,7 @@ const ShAPI = {
       {
         method: "POST",
         headers: { "Prefer": "resolution=ignore-duplicates,return=minimal" },
-        body: JSON.stringify({ video_id: videoId, kind, client_id: shClientId() }),
+        body: JSON.stringify({ video_id: id, kind, client_id: shClientId() }),
       }
     );
     if (r.ok || r.status === 409) return true;
@@ -273,26 +296,30 @@ const ShAPI = {
       const retry = await _reqRaw(`/likes`, {
         method: "POST",
         headers: { "Prefer": "return=minimal" },
-        body: JSON.stringify({ video_id: videoId, kind, client_id: shClientId() }),
+        body: JSON.stringify({ video_id: id, kind, client_id: shClientId() }),
       });
       return retry.ok || retry.status === 409;
     }
     return false;
   },
   async removeLike(videoId, kind="like"){
-    const viaApi = await _engage({ action: "unlike", videoId, kind, clientId: shClientId() });
+    const id = toDbVideoId(videoId);
+    if (!id) return false;
+    const viaApi = await _engage({ action: "unlike", videoId: id, kind, clientId: shClientId() });
     if (viaApi.status === 200) return true;
     if (viaApi.status === 429) return false;
     const cid = encodeURIComponent(shClientId());
     const r = await _reqRaw(
-      `/likes?video_id=eq.${Number(videoId)}&client_id=eq.${cid}&kind=eq.${kind}`,
+      `/likes?video_id=eq.${id}&client_id=eq.${cid}&kind=eq.${kind}`,
       { method: "DELETE", headers: { "Prefer": "return=minimal" } }
     );
     return r.ok;
   },
   async myVote(videoId){
+    const id = toDbVideoId(videoId);
+    if (!id) return null;
     const cid = encodeURIComponent(shClientId());
-    const rows = await _req(`/likes?video_id=eq.${Number(videoId)}&client_id=eq.${cid}&select=kind`) || [];
+    const rows = await _req(`/likes?video_id=eq.${id}&client_id=eq.${cid}&select=kind`) || [];
     if (!Array.isArray(rows) || !rows.length) return null;
     // Prefer like if a stale pair exists (pre-toggle schema allowed both).
     if (rows.some(r => r.kind === "like")) return "like";
@@ -302,12 +329,16 @@ const ShAPI = {
 
   /* ---- COMMENTS ---- */
   async listComments(videoId){
-    return (await _req(`/comments?video_id=eq.${videoId}&select=*&order=created_at.desc`)) || [];
+    const id = toDbVideoId(videoId);
+    if (!id) return [];
+    return (await _req(`/comments?video_id=eq.${id}&select=*&order=created_at.desc`)) || [];
   },
   async addComment(videoId, author, body){
+    const id = toDbVideoId(videoId);
+    if (!id) return { ok: false, row: null, status: 400 };
     const viaApi = await _engage({
       action: "comment",
-      videoId,
+      videoId: id,
       author: author || "Guest",
       body,
       clientId: shClientId(),
@@ -318,7 +349,7 @@ const ShAPI = {
     if (viaApi.status === 429) {
       return { ok: false, row: null, status: 429, rateLimited: true };
     }
-    const payload = { video_id: videoId, author: author || "Guest", body, client_id: shClientId() };
+    const payload = { video_id: id, author: author || "Guest", body, client_id: shClientId() };
     let r = await _reqRaw(`/comments`, {
       method: "POST",
       headers: { Prefer: "return=representation" },
@@ -328,7 +359,7 @@ const ShAPI = {
       r = await _reqRaw(`/comments`, {
         method: "POST",
         headers: { Prefer: "return=representation" },
-        body: JSON.stringify({ video_id: videoId, author: author || "Guest", body }),
+        body: JSON.stringify({ video_id: id, author: author || "Guest", body }),
       });
     }
     if (r.ok) {
@@ -356,8 +387,8 @@ const ShAPI = {
           the unique-day index migration is applied (schema-views-upsert.sql).
   */
   async addView(videoId){
-    const id = Number(videoId);
-    if(!Number.isFinite(id)) return;
+    const id = toDbVideoId(videoId);
+    if(!id) return;
     const day = new Date().toISOString().slice(0, 10); // UTC day key
     const lsKey = "sh_viewed_" + day;
     let seen = [];
@@ -377,7 +408,9 @@ const ShAPI = {
     });
   },
   async viewCount(videoId){
-    return _count(`/views?video_id=eq.${videoId}&select=id`);
+    const id = toDbVideoId(videoId);
+    if (!id) return 0;
+    return _count(`/views?video_id=eq.${id}&select=id`);
   },
 
   /* ---- MODERATION (real moderator decisions; requires sign-in — RLS
@@ -400,7 +433,9 @@ const ShAPI = {
 
   /* ---- FAVORITE COUNT (how many people favorited a video) ---- */
   async favoriteCount(videoId){
-    return _count(`/favorites?video_id=eq.${videoId}&select=id`);
+    const id = toDbVideoId(videoId);
+    if (!id) return 0;
+    return _count(`/favorites?video_id=eq.${id}&select=id`);
   },
 
   /* ---- VIDEO UPLOAD (direct-to-R2 via presigned PUT) ----
@@ -538,11 +573,15 @@ const ShAPI = {
     return (rows||[]).map(r=>r.video_id);
   },
   async addFavorite(videoId){
-    await _req(`/favorites`, { method:"POST", body: JSON.stringify({ video_id: videoId, client_id: shClientId() }) });
+    const id = toDbVideoId(videoId);
+    if (!id) return;
+    await _req(`/favorites`, { method:"POST", body: JSON.stringify({ video_id: id, client_id: shClientId() }) });
   },
   async removeFavorite(videoId){
-    await _req(`/favorites?video_id=eq.${videoId}&client_id=eq.${encodeURIComponent(shClientId())}`, { method:"DELETE" });
+    const id = toDbVideoId(videoId);
+    if (!id) return;
+    await _req(`/favorites?video_id=eq.${id}&client_id=eq.${encodeURIComponent(shClientId())}`, { method:"DELETE" });
   },
 };
 
-export { ShAuth, ShAPI, SH_API_ENABLED, shClientId };
+export { ShAuth, ShAPI, SH_API_ENABLED, shClientId, toDbVideoId };
