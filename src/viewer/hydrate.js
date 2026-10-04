@@ -25,8 +25,57 @@ export function persist(promiseFn){
    same video (back/forward, related-row loops) and must not inflate counts. */
 const _viewed = new Set();
 
-/* Pull persisted likes/comments from Supabase and patch the already-rendered
-   watch page. Best-effort: any failure leaves the seeded values in place.
+/** Patch any card/Up-Next DOM nodes for a given video ID with its latest displayViews */
+export function patchCardViewsInDOM(vid) {
+  if (typeof document === "undefined") return;
+  const num = fmt(displayViews(vid));
+  // 1. Regular grid/row video cards (snippet cards)
+  document.querySelectorAll(`.card[data-video-id="${vid}"] .card-views-num`).forEach(el => {
+    el.textContent = num;
+  });
+  // 2. Up Next cards
+  document.querySelectorAll(`.upnext-card[data-video-id="${vid}"] .upnext-views-num`).forEach(el => {
+    el.textContent = `${num} views`;
+  });
+  // 3. Home hero banner
+  document.querySelectorAll(`.hero-views-num[data-hero-views="${vid}"]`).forEach(el => {
+    el.textContent = `${num} views`;
+  });
+}
+
+// In-flight ID tracking to prevent duplicate network calls across rapid renders/scrolling
+const _inFlightHydration = new Set();
+
+/** Hydrate views for an array of card video IDs in the background */
+export async function hydrateCardViews(videoIds) {
+  if (typeof ShAPI === "undefined" || !ShAPI.enabled || !ShAPI.batchViewCounts) return;
+  if (!Array.isArray(videoIds) || !videoIds.length) return;
+  const unhydrated = Array.from(new Set(videoIds.map(Number))).filter(
+    id => id > 0 && !_inFlightHydration.has(id) && (!vstate.live[id] || typeof vstate.live[id].views !== "number")
+  );
+  if (!unhydrated.length) return;
+  // Mark in-flight immediately
+  for (const id of unhydrated) _inFlightHydration.add(id);
+
+  try {
+    const counts = await ShAPI.batchViewCounts(unhydrated);
+    for (const vid of unhydrated) {
+      const seed = DATA.videos.find(x => x.id === vid);
+      const seedViews = seed && Number.isFinite(Number(seed.views)) ? Number(seed.views) : 0;
+      const sViews = counts[vid] || 0;
+      const L = vstate.live[vid] = vstate.live[vid] || { like: 0, dislike: 0 };
+      L.views = seedViews + sViews;
+      patchCardViewsInDOM(vid);
+    }
+  } catch (_) {
+    /* offline / API down -> keep seeded values */
+  } finally {
+    for (const id of unhydrated) _inFlightHydration.delete(id);
+  }
+}
+
+/* Pull persisted likes/comments/views from Supabase and patch the already-rendered
+   watch page and its Up Next cards. Best-effort: any failure leaves the seeded values in place.
    Also records the view here so it fires on BOTH the click path (openVideo) and
    the direct-link/refresh path (applyHash -> render -> pending hydrate).
 
@@ -39,15 +88,30 @@ export async function hydrateWatch(id){
     _viewed.add(id);
     await persist(()=> ShAPI.addView(id));
   }
+
+  // Collect related video IDs from Up Next DOM cards
+  const upNextEls = typeof document !== "undefined" ? document.querySelectorAll(".upnext-card[data-video-id]") : [];
+  const relatedIds = Array.from(upNextEls).map(el => +el.dataset.videoId).filter(Boolean);
+  const allIdsToFetch = Array.from(new Set([id, ...relatedIds]));
+
   try {
-    const [counts, comments, serverViews, serverVote] = await Promise.all([
-      ShAPI.likeCounts(id), ShAPI.listComments(id), ShAPI.viewCount(id), ShAPI.myVote(id)
+    const [counts, comments, serverViews, serverVote, batchCounts] = await Promise.all([
+      ShAPI.likeCounts(id),
+      ShAPI.listComments(id),
+      ShAPI.viewCount(id),
+      ShAPI.myVote(id),
+      allIdsToFetch.length && ShAPI.batchViewCounts
+        ? ShAPI.batchViewCounts(allIdsToFetch).catch(() => ({}))
+        : Promise.resolve({})
     ]);
     const seed = DATA.videos.find(x => x.id === id) || vstate.current;
     const seedViews = seed && Number.isFinite(Number(seed.views)) ? Number(seed.views) : 0;
     // Server returns total engagement rows; seed is catalog baseline (often 0).
     // Combined total is what the watch page has always shown (seed + server).
-    const totalViews = seedViews + (serverViews || 0);
+    const sViews = (typeof serverViews === "number" && serverViews > 0)
+      ? serverViews
+      : (batchCounts[id] || 0);
+    const totalViews = seedViews + sViews;
 
     const L = vstate.live[id] = vstate.live[id] || { like: 0, dislike: 0 };
     L.like = counts.like || 0;
@@ -55,6 +119,21 @@ export async function hydrateWatch(id){
     L.views = totalViews;
     L.myVote = serverVote || storedVoteFor(id);
     if (L.myVote) writeStoredVote(id, L.myVote);
+
+    // Also hydrate related Up Next videos so their cards match real counts
+    if (batchCounts) {
+      for (const relId of relatedIds) {
+        const seedRel = DATA.videos.find(x => x.id === relId);
+        const seedRelViews = seedRel && Number.isFinite(Number(seedRel.views)) ? Number(seedRel.views) : 0;
+        const relServerViews = batchCounts[relId] || 0;
+        const LRel = vstate.live[relId] = vstate.live[relId] || { like: 0, dislike: 0 };
+        LRel.views = seedRelViews + relServerViews;
+        patchCardViewsInDOM(relId);
+      }
+    }
+
+    // Patch current video's cards in DOM (e.g. if present in any grid/list)
+    patchCardViewsInDOM(id);
 
     if(vstate.current && vstate.current.id===id && onWatch()){
       const v = vstate.current;

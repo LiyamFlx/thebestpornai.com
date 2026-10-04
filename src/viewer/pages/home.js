@@ -267,7 +267,7 @@ function homeHero(hero){
           <span class="home-hero-trust-pill">🛡️ 100% Fictional Synthetic Personas · Zero Deepfakes · 18+ Consenting Adults</span>
         </div>
         <h1 class="home-hero-title">${esc(hero.title)}</h1>
-        <p class="home-hero-meta">${esc(creatorName(hero.creator))} · ${fmt(displayViews(hero))} views${hero.uploaded ? ` · ${esc(relativeTime(hero.uploaded))}` : ''}</p>
+        <p class="home-hero-meta">${esc(creatorName(hero.creator))} · <span class="hero-views-num" data-hero-views="${hero.id}">${fmt(displayViews(hero))} views</span>${hero.uploaded ? ` · ${esc(relativeTime(hero.uploaded))}` : ''}</p>
         <div class="home-hero-actions">
           <button type="button" class="btn home-hero-play" onclick="openVideo(${hero.id})">
             <span class="play-ico">▶</span> Play Now

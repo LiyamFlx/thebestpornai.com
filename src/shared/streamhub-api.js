@@ -412,6 +412,24 @@ const ShAPI = {
     if (!id) return 0;
     return _count(`/views?video_id=eq.${id}&select=id`);
   },
+  async batchViewCounts(videoIds){
+    if(!Array.isArray(videoIds) || !videoIds.length) return {};
+    const valid = videoIds.map(toDbVideoId).filter(n => Number.isFinite(n) && n > 0);
+    const unique = [...new Set(valid)];
+    if(!unique.length) return {};
+    const CHUNK = 50;
+    const counts = {};
+    for (let i = 0; i < unique.length; i += CHUNK) {
+      const slice = unique.slice(i, i + CHUNK);
+      const rows = await _req(`/views?video_id=in.(${slice.join(",")})&select=video_id`);
+      if (Array.isArray(rows)) {
+        for (const r of rows) {
+          counts[r.video_id] = (counts[r.video_id] || 0) + 1;
+        }
+      }
+    }
+    return counts;
+  },
 
   /* ---- MODERATION (real moderator decisions; requires sign-in — RLS
      restricts moderation inserts to the `authenticated` role) ---- */

@@ -27,3 +27,10 @@ test("toDbVideoId - safely handles invalid or zero IDs", () => {
   assert.equal(toDbVideoId(undefined), 0);
   assert.equal(toDbVideoId("abc"), 0);
 });
+
+test("batchViewCounts - safely handles invalid inputs without network calls", async () => {
+  const { ShAPI } = await import("./streamhub-api.js");
+  assert.deepEqual(await ShAPI.batchViewCounts([]), {});
+  assert.deepEqual(await ShAPI.batchViewCounts(null), {});
+  assert.deepEqual(await ShAPI.batchViewCounts([0, -5, NaN, "abc"]), {});
+});

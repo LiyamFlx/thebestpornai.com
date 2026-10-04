@@ -7,17 +7,19 @@ import { vstate } from "./state.js";
 /** Total views to display: seed + live server count once hydrated. */
 export function displayViews(v) {
   if (!v) return 0;
-  const live = vstate.live[v.id];
+  const id = typeof v === "object" ? v.id : v;
+  const live = vstate.live[id];
   if (live && typeof live.views === "number" && Number.isFinite(live.views)) {
     return live.views;
   }
-  return Number(v.views) || 0;
+  return typeof v === "object" ? (Number(v.views) || 0) : 0;
 }
 
 /** Total likes to display: seed + live overlay delta from likeCounts. */
 export function displayLikes(v) {
   if (!v) return 0;
-  const live = vstate.live[v.id];
+  const id = typeof v === "object" ? v.id : v;
+  const live = vstate.live[id];
   const extra = live && typeof live.like === "number" ? live.like : 0;
-  return (Number(v.likes) || 0) + extra;
+  return (typeof v === "object" ? (Number(v.likes) || 0) : 0) + extra;
 }

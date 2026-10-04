@@ -105,7 +105,7 @@ export function videoCard(v, opts={}){
   const when = relativeTime(v.uploaded);
   const topRow = `<div class="card-top-row">
       <span class="card-creator">${esc(cName)}${isVerified ? `<span class="card-verified" title="Verified"><svg class="ico"><use href="#icon-verified-check"/></svg></span>` : ''}</span>
-      <span class="card-views"><svg class="ico"><use href="#icon-eye"/></svg>${fmt(displayViews(v))}${when ? `<span class="card-when"> · ${esc(when)}</span>` : ''}</span>
+      <span class="card-views" data-views-vid="${v.id}"><svg class="ico"><use href="#icon-eye"/></svg><span class="card-views-num">${fmt(displayViews(v))}</span>${when ? `<span class="card-when"> · ${esc(when)}</span>` : ''}</span>
     </div>`;
   const metaBlock = isRow
     ? `<div class="card-text">

@@ -18,7 +18,7 @@ import { takePendingHydrate } from "./router.js";
 import { relativeTime } from "./util.js";
 import { isoUploadDate as isoDate } from "../shared/dates.js";
 // takePendingFeedFocus is consumed inside attachFeedObserver (pages/feed.js)
-import { hydrateWatch } from "./hydrate.js";
+import { hydrateWatch, hydrateCardViews } from "./hydrate.js";
 import { attachPlayerControlsV2 } from "./player-controls-v2.js";
 import { renderHome, nextHero } from "./pages/home.js";
 import { renderWatch, attachWatchHandlers } from "./pages/watch.js";
@@ -85,6 +85,13 @@ export function render(){
 
   const pending = takePendingHydrate();
   if(pending!=null) hydrateWatch(pending);
+
+  // Hydrate views for visible video cards on the page (home, categories, search, etc.)
+  const cardNodes = document.querySelectorAll(".card[data-video-id]");
+  if (cardNodes.length) {
+    const ids = Array.from(cardNodes).map(c => +c.dataset.videoId).filter(Boolean);
+    hydrateCardViews(ids);
+  }
 
   // Deferred to next frame / idle: keeps rAF under 2ms to eliminate animation frame violations
   requestAnimationFrame(() => {
@@ -435,8 +442,13 @@ function lazyLoadThumbs(){
 setGridAppendHook((added) => {
   const favs = new Set(vstate.favorites);
   const later = new Set(vstate.later);
+  const addedIds = [];
   for(const node of added){
     if(!node || node.nodeType !== 1) continue;
+    if (node.dataset?.videoId) addedIds.push(+node.dataset.videoId);
+    node.querySelectorAll?.("[data-video-id]").forEach(el => {
+      if (el.dataset.videoId) addedIds.push(+el.dataset.videoId);
+    });
     node.querySelectorAll("video.thumb-video.lazy[data-src]").forEach(el => {
       if(_lazyObserver) _lazyObserver.observe(el); else revealThumb(el);
     });
@@ -449,6 +461,7 @@ setGridAppendHook((added) => {
       b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false");
     });
   }
+  if (addedIds.length) hydrateCardViews(addedIds);
 });
 
 /* Event delegation on document: handles all cards, chips, and quick-actions */

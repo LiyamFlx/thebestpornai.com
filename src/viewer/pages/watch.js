@@ -38,7 +38,7 @@ function upNextCard(u){
       <div class="upnext-info">
         <h3 class="upnext-title">${esc(u.title)}</h3>
         <p class="upnext-creator">${esc(creatorName(u.creator))}</p>
-        <p class="upnext-meta">${fmt(displayViews(u))} views <span class="dot-sep">•</span> ${esc(u.uploaded)}</p>
+        <p class="upnext-meta"><span class="upnext-views-num">${fmt(displayViews(u))} views</span> <span class="dot-sep">•</span> ${esc(u.uploaded)}</p>
       </div>
       <button type="button" class="upnext-more" data-act="upnext-more" data-toast="Added to queue" aria-label="More options">
         <svg class="ico"><use href="#icon-more"/></svg>
