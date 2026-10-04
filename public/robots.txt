@@ -1,3 +1,4 @@
+# Search Engine & General Crawlers
 User-agent: *
 Allow: /
 Disallow: /creator/
@@ -10,6 +11,23 @@ Disallow: /browse/
 Disallow: /library/
 Disallow: /movie/
 Disallow: /api/
+
+# AI Search & Retrieval Crawlers (Explicitly Allowed for Citations & AI Answer Engines)
+User-agent: ChatGPT-User
+User-agent: GPTBot
+User-agent: PerplexityBot
+User-agent: ClaudeBot
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /creator/
+Disallow: /manager/
+Disallow: /internal/
+Disallow: /api/
+
+# Aggressive Training Scrapers & Bulk Harvesters (Disallowed to Conserve Edge Resources)
+User-agent: Bytespider
+User-agent: CCBot
+Disallow: /
 
 Sitemap: https://www.thebestpornai.com/sitemap-index.xml
 Sitemap: https://www.thebestpornai.com/sitemap.xml

@@ -109,6 +109,7 @@ export default defineConfig({
         legalPrivacy: resolve(__dirname, "legal/privacy.html"),
         legalDmca: resolve(__dirname, "legal/dmca.html"),
         legal2257: resolve(__dirname, "legal/2257.html"),
+        notFound: resolve(__dirname, "404.html"),
         blogIndex: resolve(__dirname, "blog/index.html"),
         ...blogPostInputs,
         ...pornstarInputs,

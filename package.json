@@ -17,6 +17,7 @@
     "publish": "node scripts/publish-folder.js",
     "publish:doctor": "node scripts/publish-doctor.js",
     "sitemap": "node scripts/gen-sitemap.js",
+    "indexnow": "node scripts/submit-indexnow.js",
     "check-catalog-ids": "node scripts/check-catalog-ids.js",
     "test": "node scripts/check-catalog-ids.js && node scripts/publish-doctor.js && node --test src/ scripts/lib/*.test.mjs && node scripts/regression-suite.mjs",
     "test:regression": "node scripts/regression-suite.mjs",
