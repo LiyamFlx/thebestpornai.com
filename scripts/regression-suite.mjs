@@ -381,6 +381,60 @@ check("Service worker (public/sw.js) contains required event listeners", () => {
   assert(content.includes('addEventListener("activate"'), "Must handle activate event");
   assert(content.includes('addEventListener("fetch"'), "Must handle fetch event");
   assert(content.includes('.mp4'), "Must bypass video media from cache");
+  assert(content.includes("isSameOrigin"), "Must filter for same-origin requests to avoid breaking third-party APIs");
+  assert(content.includes("new Response("), "Must provide guaranteed Response object fallback for navigation");
+});
+
+check("Database ID mapping (toDbVideoId) safely handles extreme edge cases", async () => {
+  const { toDbVideoId } = await import("../src/shared/streamhub-api.js");
+  const edgeCases = [
+    { input: 1, expected: 1 },
+    { input: 6524, expected: 6524 },
+    { input: "6524", expected: 6524 },
+    { input: 2147483647, expected: 2147483647 },
+    { input: 2147483648, isFolded: true },
+    { input: 1784510147745, isFolded: true },
+    { input: Number.MAX_SAFE_INTEGER, isFolded: true },
+    { input: 0, expected: 0 },
+    { input: -100, expected: 0 },
+    { input: NaN, expected: 0 },
+    { input: null, expected: 0 },
+    { input: undefined, expected: 0 },
+    { input: Infinity, expected: 0 },
+    { input: -Infinity, expected: 0 },
+    { input: "not-a-number", expected: 0 },
+  ];
+
+  for (const { input, expected, isFolded } of edgeCases) {
+    const res = toDbVideoId(input);
+    if (expected !== undefined) {
+      assert.equal(res, expected, `toDbVideoId(${input}) should equal ${expected}`);
+    }
+    if (isFolded) {
+      assert(res > 0 && res <= 2147483647, `toDbVideoId(${input}) -> ${res} must fit in Postgres INT4`);
+      assert.equal(res, toDbVideoId(input), `toDbVideoId(${input}) must be deterministic`);
+    }
+  }
+});
+
+check("Global HTTP security headers and 404 error page exist and are valid", () => {
+  const vercelPath = path.join(REPO, "vercel.json");
+  assert(fs.existsSync(vercelPath), "vercel.json must exist");
+  const vercel = JSON.parse(fs.readFileSync(vercelPath, "utf8"));
+  const globalHeader = vercel.headers?.find(h => h.source === "/(.*)");
+  assert(globalHeader, "vercel.json must contain global security headers for /(.*)");
+  const headerKeys = globalHeader.headers.map(h => h.key);
+  assert(headerKeys.includes("Strict-Transport-Security"), "Must include HSTS");
+  assert(headerKeys.includes("X-Content-Type-Options"), "Must include X-Content-Type-Options");
+  assert(headerKeys.includes("X-Frame-Options"), "Must include X-Frame-Options");
+  assert(headerKeys.includes("Referrer-Policy"), "Must include Referrer-Policy");
+
+  const notFoundPath = path.join(REPO, "404.html");
+  assert(fs.existsSync(notFoundPath), "404.html must exist");
+  const notFoundHtml = fs.readFileSync(notFoundPath, "utf8");
+  assert(notFoundHtml.includes("<!DOCTYPE html>"), "404.html must have DOCTYPE");
+  assert(notFoundHtml.includes('content="noindex, follow"'), "404.html must be noindexed");
+  assert(notFoundHtml.includes('id="searchInput"'), "404.html must have search input");
 });
 
 // --- SECTION 6: Tooling & CLI Scripts Non-Destructive Invariance ---
