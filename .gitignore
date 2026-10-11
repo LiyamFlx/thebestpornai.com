@@ -22,7 +22,8 @@ dist/
 node_modules/
 video/*.html
 
-# Local bulk-upload staging — videos live on Bunny CDN, not in repo
+# Local bulk-upload staging — videos live on R2, not in the repo
+NEW VID/
 media/new balk uplode/
 media/**/*.mp4
 media/**/*.mov
