@@ -177,6 +177,15 @@
       ]
     },
     {
+      "source": "/(creator|manager)/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'none'"
+        }
+      ]
+    },
+    {
       "source": "/r2/(.*)",
       "headers": [
         {

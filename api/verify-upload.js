@@ -200,9 +200,12 @@ export default async function handler(req, res) {
         title: String(title || "Untitled").slice(0, 200),
         status,
         sha256_head: sha256,
-        duration_s: Number.isFinite(durationS) ? durationS : null,
-        width: Number.isFinite(width) ? width : null,
-        height: Number.isFinite(height) ? height : null,
+        // duration_s/width/height are integer columns; the browser reports
+        // fractional values (e.g. video.duration = 10.04), which Postgres
+        // rejects ("invalid input syntax for type integer") -> 400 -> 502.
+        duration_s: Number.isFinite(durationS) ? Math.round(durationS) : null,
+        width: Number.isFinite(width) ? Math.round(width) : null,
+        height: Number.isFinite(height) ? Math.round(height) : null,
         // Omit the field (not a guessed default) when either dimension is
         // missing — the column's own default ('horizontal') applies then.
         ...(deriveOrientation(width, height) ? { orientation: deriveOrientation(width, height) } : {}),

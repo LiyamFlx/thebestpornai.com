@@ -222,7 +222,7 @@ function uProbeQueueItem(u){
     if(metaTimedOut) return;   // timeout already gave up and rendered; ignore late event
     clearTimeout(metaTimer);
     u.duration = fmtDur(v.duration);
-    u.durationSec = isFinite(v.duration) ? v.duration : 0;
+    u.durationSec = isFinite(v.duration) ? Math.round(v.duration) : 0;
     u.width = v.videoWidth;
     u.height = v.videoHeight;
     if (v.videoHeight && v.videoWidth) {
