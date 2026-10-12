@@ -1,6 +1,12 @@
 /* Hydrates interactivity on a generated post page (blog/<slug>.html).
    Article content is baked into static HTML by scripts/gen-blog-posts.js. */
 import "./blog.css";
+import { affiliateChoiceHtml } from "../shared/affiliates.js";
+
+const articleBody = document.querySelector(".blog-article-body");
+if (articleBody && !document.querySelector(".partner-choice")) {
+  articleBody.insertAdjacentHTML("afterend", affiliateChoiceHtml("blog-post"));
+}
 
 /* Hover zoom is CSS-only (see .blog-card / .blog-hero) — no JS listeners. */
 

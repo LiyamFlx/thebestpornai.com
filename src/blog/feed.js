@@ -4,6 +4,7 @@
  */
 import "./blog.css";
 import { esc } from "../shared/catalog.js";
+import { affiliateChoiceHtml } from "../shared/affiliates.js";
 import { POSTS, getFeaturedPost, postsForHub } from "./posts.js";
 import { postCardHtml, postCardSkeletonHtml, postCoverUrl, formatDate } from "./card.js";
 
@@ -69,6 +70,12 @@ function filteredPosts() {
   }
 
   return list;
+}
+
+function renderPartnerChoice() {
+  const hero = document.getElementById("blog-hero");
+  if (!hero || document.querySelector(".partner-choice")) return;
+  hero.insertAdjacentHTML("afterend", affiliateChoiceHtml("blog-home"));
 }
 
 function renderHero() {
@@ -353,6 +360,7 @@ function ensureLiveRegion() {
 ensureLiveRegion();
 readUrlState();
 renderHero();
+renderPartnerChoice();
 renderPills();
 renderCards();
 initSearch();

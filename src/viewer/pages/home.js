@@ -13,7 +13,7 @@ import {
   actNames, clipsByAct, highlights, originals, byViewsDesc,
   byUploadedDesc, newestUploads, videoById, relatedTo, pornstars,
 } from "../catalog-queries.js";
-import { getAffiliateOffer, AFFILIATE_REL } from "../../shared/affiliates.js";
+import { affiliateChoiceHtml } from "../../shared/affiliates.js";
 
 // Homepage hero rotates through a small, high-signal pool of catalog videos
 // (top performers with a real playable file — no YouTube embeds, no vertical
@@ -461,23 +461,7 @@ function _renderHomeBody(){
   const acts = actNames();
 
 function homeAffiliatePromoStrip(){
-  const offer = getAffiliateOffer({ category: "Babe", src: "home-banner" });
-  const isCandy = offer.network === "candy";
-  const bannerImg = isCandy ? "/affiliate/candy/Candy.ai 728x90/asset10.gif" : "/ourdream-banner-ad.jpg?v=20260821";
-  const bannerAlt = isCandy ? "Candy.ai — Create Your Dream AI Companion &amp; Chat in Seconds" : "OurDream.ai — Create Your Dream AI Companion &amp; Chat in Seconds";
-
-  return `
-    <section class="home-affiliate-section">
-      <div class="row-heading-wrap">
-        <h3 class="row-heading">Featured AI Companion</h3>
-        <span class="sponsored-badge">Sponsored</span>
-      </div>
-      <a href="${offer.url}" target="_blank" rel="${AFFILIATE_REL}" class="ourdream-promo-link" aria-label="${bannerAlt}">
-        <div class="ourdream-promo-card">
-          <img src="${bannerImg}" alt="${bannerAlt}" class="ourdream-promo-img" loading="lazy" decoding="async" width="2176" height="912"/>
-        </div>
-      </a>
-    </section>`;
+  return affiliateChoiceHtml("home");
 }
 
   const html = `

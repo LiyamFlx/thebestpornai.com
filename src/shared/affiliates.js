@@ -71,7 +71,7 @@ export function getAffiliateOffer(opts = {}) {
   if (catLower.includes("goth") || tagsLower.some(t => t.includes("goth") || t.includes("alt"))) {
     return { name: "Candy AI (Goth)", url: candyAiUrl("goth1", src), network: "candy" };
   }
-  if (catLower.includes("solo") || tagsLower.some(t => t.includes("solo") || t.includes("babe"))) {
+  if (catLower === "solo" || tagsLower.some(t => t === "solo")) {
     return { name: "Candy AI (Solo)", url: candyAiUrl("solo", src), network: "candy" };
   }
   if (catLower.includes("hentai") || catLower.includes("anime") || tagsLower.some(t => t.includes("hentai") || t.includes("chat"))) {
@@ -83,3 +83,20 @@ export function getAffiliateOffer(opts = {}) {
 
 export const AFFILIATE_REL = "noopener sponsored nofollow";
 export const OURDREAM_REL = AFFILIATE_REL;
+
+/** Two disclosed partner offers. OurDream for one character across chat and video; Candy for a faster companion. */
+export function affiliateChoiceHtml(src = "site") {
+  const od = ourdreamUrl("home", src + "-ourdream");
+  const candy = candyAiUrl("home", src + "-candy");
+  return `<section class="partner-choice" aria-label="Sponsored AI tools">
+    <div class="partner-choice-copy">
+      <p class="partner-choice-kicker">Sponsored</p>
+      <h2 class="partner-choice-title">Watch here. Build a character there.</h2>
+      <p class="partner-choice-note">thebestpornai is the library. These partners generate a companion. We may earn a commission if you sign up.</p>
+    </div>
+    <div class="partner-choice-actions">
+      <a class="partner-choice-btn" href="${od}" target="_blank" rel="${AFFILIATE_REL}">OurDream — one character across chat and video</a>
+      <a class="partner-choice-btn partner-choice-btn-alt" href="${candy}" target="_blank" rel="${AFFILIATE_REL}">Candy AI — faster companion chat</a>
+    </div>
+  </section>`;
+}
