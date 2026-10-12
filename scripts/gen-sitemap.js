@@ -39,6 +39,28 @@ function mediaUrl(src) {
   return MEDIA_BASE.replace(/\/$/, "") + "/" + path_;
 }
 
+// Crawler-facing thumbnails go through the first-party /r2/* proxy
+// (vercel.json): Google's fetchers often fail on pub-*.r2.dev. Video bytes
+// (content_loc) stay on R2 so mp4 traffic is not proxied through Vercel.
+function thumbProxyUrl(src) {
+  if (!src) return "";
+  if (/^https?:\/\//i.test(src)) return src;
+  const rel = src.replace(/^(\.\.\/)?media\//, "");
+  return `${ORIGIN}/r2/media/` + rel.split("/").map(encodeURIComponent).join("/");
+}
+
+// "m:ss" / "h:mm:ss" -> whole seconds (video:duration must be 1..28800).
+function durationSeconds(d) {
+  const parts = String(d || "").split(":").map((n) => parseInt(n, 10));
+  if (!parts.length || parts.some((n) => !Number.isFinite(n))) return null;
+  const sec = parts.reduce((acc, n) => acc * 60 + n, 0);
+  return sec >= 1 && sec <= 28800 ? sec : null;
+}
+
+function slugOf(text) {
+  return String(text || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
 function xmlEsc(s) {
   if (!s) return "";
   return String(s)
@@ -106,6 +128,36 @@ if (fs.existsSync(blogDir)) {
   }
 }
 
+// Real lastmod values (derived from content dates, NOT the build date — a
+// lastmod that changes on every deploy teaches Google to ignore the field).
+const dayOf = (d) => String(d || "").slice(0, 10);
+const newest = (days) => days.filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().pop();
+const catalogNewest = newest(VIDEOS.map((v) => dayOf(v.uploaded)));
+const postsNewest = newest(POSTS.map((p) => dayOf(p.dateModified || p.date)));
+const siteNewest = newest([catalogNewest, postsNewest]) || today;
+
+function lastmodFor(loc) {
+  let m;
+  if (loc === "/" || loc === "/categories/" || loc === "/pornstars/") return catalogNewest || siteNewest;
+  if (loc === "/blog/" || loc.startsWith("/blog/best-ai-")) return postsNewest || siteNewest;
+  if (loc === "/The-Best-Porn-AI-in-2026" || loc.startsWith("/author/")) return postsNewest || siteNewest;
+  if ((m = loc.match(/^\/categories\/(.+)\.html$/))) {
+    const inCat = VIDEOS.filter((v) =>
+      [v.category, ...(v.categories || [])].some((c) => slugOf(c) === m[1])
+    );
+    return newest(inCat.map((v) => dayOf(v.uploaded))) || catalogNewest || siteNewest;
+  }
+  if ((m = loc.match(/^\/pornstars\/(.+)\.html$/))) {
+    const own = VIDEOS.filter((v) => v.creator === `ps-${m[1]}`);
+    return newest(own.map((v) => dayOf(v.uploaded))) || catalogNewest || siteNewest;
+  }
+  return null;
+}
+for (const p of pages) {
+  const real = lastmodFor(p.loc);
+  if (real) p.lastmod = real;
+}
+
 // Videos live ONLY in sitemap-video.xml (not duplicated in sitemap.xml).
 const videoDir = path.join(REPO, "video");
 const videoSitemapEntries = [];
@@ -169,12 +221,13 @@ if (fs.existsSync(videoDir)) {
   for (const v of selected) {
     const vf = `${v.id}.html`;
     const loc = `${ORIGIN}/video/${vf}`;
-    const thumbLoc = mediaUrl(v.thumb);
+    const thumbLoc = thumbProxyUrl(v.thumb);
     const contentLoc = mediaUrl(v.src);
     const title = v.title;
     const desc = v.desc || `Watch ${title} in 4K on thebestpornai.`;
     const pubDate = isoUploadDate(v.uploaded);
-    const lastmod = (v.uploaded && String(v.uploaded).slice(0, 10)) || today;
+    const lastmod = (v.uploaded && String(v.uploaded).slice(0, 10)) || siteNewest;
+    const secs = durationSeconds(v.duration);
 
     videoSitemapEntries.push(`  <url>
     <loc>${loc}</loc>
@@ -184,7 +237,7 @@ if (fs.existsSync(videoDir)) {
       <video:title>${xmlEsc(title)}</video:title>
       <video:description>${xmlEsc(desc)}</video:description>
       <video:content_loc>${xmlEsc(contentLoc)}</video:content_loc>
-      <video:publication_date>${pubDate}</video:publication_date>
+${secs ? `      <video:duration>${secs}</video:duration>\n` : ""}      <video:publication_date>${pubDate}</video:publication_date>
       <video:family_friendly>no</video:family_friendly>
     </video:video>
   </url>`);
@@ -229,11 +282,11 @@ const indexXml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
     <loc>${ORIGIN}/sitemap.xml</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${siteNewest}</lastmod>
   </sitemap>
   <sitemap>
     <loc>${ORIGIN}/sitemap-video.xml</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${siteNewest}</lastmod>
   </sitemap>
 </sitemapindex>
 `;

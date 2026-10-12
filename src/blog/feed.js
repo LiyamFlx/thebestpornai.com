@@ -6,7 +6,8 @@ import "./blog.css";
 import { esc } from "../shared/catalog.js";
 import { affiliateChoiceHtml } from "../shared/affiliates.js";
 import { POSTS, getFeaturedPost, postsForHub } from "./posts.js";
-import { postCardHtml, postCardSkeletonHtml, postCoverUrl, formatDate } from "./card.js";
+import { postCardHtml, postCardSkeletonHtml, postCoverUrl, formatDate, setVideoSource } from "./card.js";
+import { VIDEOS } from "../shared/catalog-videos.js";
 
 const PAGE_SIZE = 9;
 const CATEGORIES = ["All", "Reviews", "Guides", "Stories", "Fantasies", "Confessions", "Kink Lab"];
@@ -359,6 +360,7 @@ function ensureLiveRegion() {
 // Boot
 ensureLiveRegion();
 readUrlState();
+setVideoSource(VIDEOS);
 renderHero();
 renderPartnerChoice();
 renderPills();

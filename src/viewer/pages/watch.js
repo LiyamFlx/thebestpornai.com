@@ -11,7 +11,6 @@ import { jsq } from "../util.js";
 import { displayViews } from "../display-metrics.js";
 import { pubVideos, trending, relatedTo, creatorById } from "../catalog-queries.js";
 import { renderCommentList, commentsFor } from "../comments.js";
-import { postsForVideoId } from "../../blog/posts.js";
 import { getAffiliateOffer, AFFILIATE_REL } from "../../shared/affiliates.js";
 
 const MOBILE = "(max-width:760px)";
@@ -259,11 +258,27 @@ function creatorRowMobile(c, hasCreator, subbed){
     </div>`;
 }
 
-function blogStoryChip(v){
-  const posts = postsForVideoId(v.id);
+// blog/posts.js (~600 KB of article bodies) is fetched on demand: the chip is
+// optional and appears a moment after render rather than bloating the player bundle.
+let blogMod = null;
+let blogLoad = null;
+function storyChipHtml(id){
+  const posts = blogMod.postsForVideoId(id);
   if(!posts.length) return "";
-  const p = posts[0];
-  return `<a class="watch-blog-chip" href="/blog/${esc(p.slug)}.html">📖 Story behind this scene</a>`;
+  return `<a class="watch-blog-chip" href="/blog/${esc(posts[0].slug)}.html">📖 Story behind this scene</a>`;
+}
+function blogStoryChip(v){
+  if(blogMod) return storyChipHtml(v.id);
+  blogLoad = blogLoad || import("../../blog/posts.js");
+  blogLoad.then((m) => {
+    blogMod = m;
+    setTimeout(() => {
+      document.querySelectorAll(`.watch-blog-slot[data-vid="${v.id}"]`).forEach((el) => {
+        el.outerHTML = storyChipHtml(v.id);
+      });
+    }, 0);
+  }).catch(() => { blogLoad = null; });
+  return `<span class="watch-blog-slot" data-vid="${v.id}" hidden></span>`;
 }
 
 function affiliatePromoBanner(v){

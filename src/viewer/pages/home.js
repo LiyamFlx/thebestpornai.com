@@ -1,9 +1,8 @@
 /* Home page: unified hero, filter/sort bars, curated rows + expand for more. */
-import { DATA, esc, creatorName, fmt, mediaUrl, ytId } from "../../shared/catalog.js";
+import { DATA, esc, creatorName, fmt, mediaUrl, ytId, loadFullCatalog } from "../../shared/catalog.js";
 import { videoCard, rowSection, emptyState } from "../../shared/ui.js";
 import { CATEGORIES, POPULAR_TAGS } from "../../shared/taxonomy.js";
 import { browsePath, homeFilterHref } from "../../shared/public-routes.js";
-import { POSTS, postsForHub, isFeaturedPost } from "../../blog/posts.js";
 import { postCoverThumbUrl } from "../../blog/card.js";
 import { vstate, persistState } from "../state.js";
 import { jsq, relativeTime } from "../util.js";
@@ -292,7 +291,27 @@ function becauseYouWatchedRow(){
 }
 
 /* Editorial teasers linking into /blog/ — keeps the product ↔ content loop warm. */
+// blog/posts.js is ~600 KB of article bodies and only feeds this below-the-fold
+// row, so it is fetched on demand instead of living in the eager home bundle.
+// The first call returns a fixed-height slot and swaps the real row in once the
+// posts (and the full catalog, for cover-video lookups) have loaded.
+let blogMod = null;
+let blogLoad = null;
+function loadBlogMod(){
+  return blogLoad || (blogLoad = Promise.all([import("../../blog/posts.js"), loadFullCatalog()])
+    .then(([m]) => (blogMod = m))
+    .catch((e) => { blogLoad = null; throw e; }));
+}
+
 function fromTheBlogRow(){
+  if(!blogMod){
+    loadBlogMod().then(() => setTimeout(() => {
+      const slot = document.getElementById("homeBlogSlot");
+      if(slot) slot.outerHTML = fromTheBlogRow();
+    }, 0)).catch(() => {});
+    return `<div id="homeBlogSlot" style="min-height:190px"></div>`;
+  }
+  const { POSTS, postsForHub, isFeaturedPost } = blogMod;
   if(!POSTS || !POSTS.length) return "";
   // Featured generators guide first, then newest others (matches /blog/ hub).
   const posts = postsForHub(POSTS).slice(0, 8);

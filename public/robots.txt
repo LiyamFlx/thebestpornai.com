@@ -18,10 +18,20 @@ User-agent: GPTBot
 User-agent: PerplexityBot
 User-agent: ClaudeBot
 User-agent: Applebot-Extended
+User-agent: OAI-SearchBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: Google-Extended
 Allow: /
 Disallow: /creator/
 Disallow: /manager/
 Disallow: /internal/
+Disallow: /watch/
+Disallow: /shorts/
+Disallow: /search/
+Disallow: /browse/
+Disallow: /library/
+Disallow: /movie/
 Disallow: /api/
 
 # Aggressive Training Scrapers & Bulk Harvesters (Disallowed to Conserve Edge Resources)

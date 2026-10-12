@@ -66,6 +66,17 @@ function mediaUrl(src) {
   return MEDIA_BASE.replace(/\/$/, "") + "/" + path_;
 }
 
+// First-party image URL (vercel.json /r2/* proxy → R2) for schema, og:image and
+// other crawler-facing fields. Google's fetchers often fail on pub-*.r2.dev; the
+// blog generator already does this. Video bytes still use mediaUrl() so mp4
+// traffic is not proxied through Vercel.
+function imgUrl(src) {
+  if (!src) return "";
+  if (/^https?:\/\//i.test(src)) return src;
+  const rel = src.replace(/^(\.\.\/)?media\//, "");
+  return `${ORIGIN}/r2/media/` + rel.split("/").map(encodeURIComponent).join("/");
+}
+
 function slugify(text) {
   return String(text || "")
     .toLowerCase()
@@ -1205,7 +1216,7 @@ function genPornstarsHub() {
   }).join("\n");
 
   const bodyContent = `
-    <h3 class="row-heading">Pornstars</h3>
+    <h1 class="row-heading">AI Pornstars Directory</h1>
     <p class="sub">Intro + Shorts packs — tap a star to open their page</p>
     <div class="v-grid">${cardsHtml}</div>`;
 
@@ -1224,7 +1235,7 @@ function genPornstarsHub() {
           "@type": "Person",
           "name": ps.name,
           "url": `${ORIGIN}/pornstars/${ps.slug}.html`,
-          "image": mediaUrl(ps.avatar),
+          "image": imgUrl(ps.avatar),
           "description": ps.bio
         }
       }))
@@ -1251,7 +1262,7 @@ function genPornstarProfiles() {
     const title = `${ps.name} AI Pornstar — Profile, 4K Videos & Shorts | thebestpornai`;
     const description = `${ps.bio} Watch full HD & 4K video scenes and mobile vertical Shorts starring ${ps.name}.`;
     const canonical = `${ORIGIN}/pornstars/${ps.slug}.html`;
-    const avatarUrl = mediaUrl(ps.avatar);
+    const avatarUrl = imgUrl(ps.avatar);
     const bannerUrl = mediaUrl(ps.banner);
 
     // Find videos for this creator
@@ -1398,7 +1409,7 @@ function genCategoryPages() {
     ).slice(0, 48);
 
     const videoCards = categoryVideos.map((v, i) => videoCardHtml(v, { eager: i < 4, fetchpriority: i === 0 ? "high" : undefined })).join("\n");
-    const sampleThumb = categoryVideos[0]?.thumb ? mediaUrl(categoryVideos[0].thumb) : LOGO;
+    const sampleThumb = categoryVideos[0]?.thumb ? imgUrl(categoryVideos[0].thumb) : LOGO;
 
     const chips = TOP_CATEGORIES.map((c) => {
       const cSlug = c.slug || slugify(c.name);
@@ -1540,6 +1551,7 @@ function genVideoPages() {
     const description = v.desc || `Watch ${v.title} in 4K Ultra HD on thebestpornai. Free AI adult video stream featuring ${v.category || 'curated'} scenes with instant playback and no signups.`;
     const canonical = `${ORIGIN}/video/${v.id}.html`;
     const thumbUrl = v.thumb ? mediaUrl(v.thumb) : LOGO;
+    const seoThumb = v.thumb ? imgUrl(v.thumb) : LOGO;
     const catSlug = slugify(v.category || "ai");
 
     // Related 6 videos in same category or overall
@@ -1606,13 +1618,12 @@ function genVideoPages() {
       "@type": "VideoObject",
       "name": v.title,
       "description": description,
-      "thumbnailUrl": [thumbUrl],
+      "thumbnailUrl": [seoThumb],
       "uploadDate": isoUploadDate(v.uploaded),
       "duration": isoDuration(v.duration),
       "url": canonical,
-      "embedUrl": canonical,
       ...(mediaStreamUrl ? { "contentUrl": mediaStreamUrl } : {}),
-      "isFamilyFriendly": "false",
+      "isFamilyFriendly": false,
       "interactionStatistic": {
         "@type": "InteractionCounter",
         "interactionType": { "@type": "WatchAction" },
@@ -1624,7 +1635,7 @@ function genVideoPages() {
       title,
       description,
       canonical,
-      ogImage: thumbUrl,
+      ogImage: seoThumb,
       jsonLd,
       activeNav: "home",
       bodyContent,

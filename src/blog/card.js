@@ -1,9 +1,18 @@
-import { esc, mediaUrl, fmt } from "../shared/catalog.js";
-import { VIDEOS } from "../shared/catalog-videos.js";
+import { DATA, esc, mediaUrl, fmt } from "../shared/catalog.js";
 import { playPath } from "../shared/public-routes.js";
 
+// Importing the full catalog here (3 MB) would pull it into every bundle that
+// shares this module, including the home page's eager graph. Default to the
+// live DATA.videos list (seed, then full catalog once loadFullCatalog() resolves)
+// and let callers that already ship the full list (blog index, Node generator)
+// inject it via setVideoSource().
+let videoSource = null;
+export function setVideoSource(list) {
+  videoSource = list;
+}
+
 function findVideo(id) {
-  return VIDEOS.find((v) => v.id === id);
+  return (videoSource || DATA.videos).find((v) => v.id === id);
 }
 
 /** In-app player URL (Watch or Shorts). */
