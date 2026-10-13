@@ -1,0 +1,48 @@
+name: Daily Review
+
+# Read-only health check of the live site. Only opens a GitHub issue when
+# something fails (GitHub emails the repo owner), and closes it once green.
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run review
+        id: review
+        continue-on-error: true
+        run: node scripts/daily-review.mjs | tee report.md
+      - name: Publish report to job summary
+        run: cat report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Open or update issue on failure
+        if: steps.review.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          existing=$(gh issue list --label daily-review --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file report.md
+          else
+            gh label create daily-review --color D93F0B 2>/dev/null || true
+            gh issue create --title "Daily review: site check failing" --label daily-review --body-file report.md
+          fi
+      - name: Close issue when green
+        if: steps.review.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for n in $(gh issue list --label daily-review --state open --json number --jq '.[].number'); do
+            gh issue close "$n" --comment "Back to green."
+          done
