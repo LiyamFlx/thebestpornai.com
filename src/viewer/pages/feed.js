@@ -3,7 +3,8 @@ import { pubVerticalVideos, creatorById, visible } from "../catalog-queries.js";
 import { vstate, markFeedWatched } from "../state.js";
 
 import { renderCommentList, commentsFor } from "../comments.js";
-import { likeVideo, subscribe, addComment, openCreator, shareVideo, go } from "../actions.js";
+import { likeVideo, subscribe, addComment, openCreator, shareVideo, go, patchVoteUi } from "../actions.js";
+import { storedVoteFor, writeStoredVote } from "../../shared/vote-logic.js";
 import { ShAPI } from "../../shared/streamhub-api.js";
 import { setHash, takePendingFeedFocus } from "../router.js";
 
@@ -221,6 +222,9 @@ export function renderFeed() {
   _feedData = videos.map((v) => {
     const c = creatorById(v.creator) || { name: "Unknown", id: "", verified: false };
     const live = vstate.live[v.id] || { like: 0, dislike: 0 };
+    // Filled heart after a reload: the vote is remembered locally; server
+    // counts + the authoritative vote arrive via hydrateFeedVote().
+    if (!live.myVote) live.myVote = storedVoteFor(v.id);
     return {
       v, c, live,
       commentCount: commentCountByVideo.get(v.id) || 0,
@@ -438,6 +442,7 @@ export function attachFeedObserver() {
         // scrolled out of the window; this also injects the active item's
         // <video> if it wasn't already hydrated.
         hydrateWindow(container, index);
+        hydrateFeedVote(DATA.videos.find(x => x.id === videoId));
 
         const dataSaver = isDataSaverMode();
         const videoEl = el.querySelector(".feed-video");
@@ -657,6 +662,30 @@ function closeFeedComments() {
   const backdrop = document.getElementById("feedCommentsBackdrop");
   if (drawer) drawer.classList.remove("open");
   if (backdrop) backdrop.classList.remove("show");
+}
+
+/* Shorts never fetched saved likes: after a reload the heart was empty and the
+   count showed only the catalog seed even though the like was stored (the watch
+   page hydrates via hydrateWatch(); the feed had no equivalent). Runs once per
+   video when it becomes the active reel. */
+const _voteHydrated = new Set();
+async function hydrateFeedVote(v) {
+  if (!v || !ShAPI || !ShAPI.enabled || _voteHydrated.has(v.id)) return;
+  _voteHydrated.add(v.id);
+  const L = vstate.live[v.id] = vstate.live[v.id] || { like: 0, dislike: 0 };
+  const before = L.myVote || null;
+  try {
+    const [counts, mine] = await Promise.all([ShAPI.likeCounts(v.id), ShAPI.myVote(v.id)]);
+    // The viewer voted while this was in flight: their optimistic state wins.
+    if ((L.myVote || null) !== before) return;
+    L.like = counts.like || 0;
+    L.dislike = counts.dislike || 0;
+    L.myVote = mine || storedVoteFor(v.id);
+    writeStoredVote(v.id, L.myVote);
+    patchVoteUi(v, L);
+  } catch (_) {
+    _voteHydrated.delete(v.id);
+  }
 }
 
 async function hydrateFeedComments(v) {

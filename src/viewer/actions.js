@@ -412,7 +412,7 @@ export async function download(id){
 
 const _voting = new Set();
 
-function patchVoteUi(v, L){
+export function patchVoteUi(v, L){
   const likeVal = fmt((v.likes || 0) + (L.like || 0));
   const likeNum = document.getElementById("likeNum");
   if(likeNum) likeNum.textContent = likeVal;
