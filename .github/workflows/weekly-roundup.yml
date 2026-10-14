@@ -1,0 +1,47 @@
+name: Weekly Roundup
+
+# Builds a data-driven "New on thebestpornai" post from the last 7 days of
+# catalog uploads and opens a PR. Nothing publishes until the PR is merged
+# (merge -> Deploy to Production). Skips quietly if there is too little new
+# content for a worthwhile post.
+on:
+  schedule:
+    - cron: "0 8 * * 1"   # Mondays 08:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  roundup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Generate post
+        run: node scripts/weekly-roundup.mjs
+      - name: Build (regenerates static pages, RSS, sitemap)
+        run: npm run build
+      - name: Open PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
+            echo "No changes — nothing to propose."; exit 0
+          fi
+          branch="auto/weekly-roundup-$(date -u +%Y-%m-%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add -A
+          git commit -m "content: weekly roundup $(date -u +%Y-%m-%d)"
+          git push -u origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "Weekly roundup $(date -u +%Y-%m-%d)" \
+            --body "Auto-generated from catalog uploads in the last 7 days. Review the post under /blog/, then merge to publish (deploys automatically)."
