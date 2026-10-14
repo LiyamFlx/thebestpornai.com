@@ -86,3 +86,9 @@ jobs:
           done
           echo "::error::www.thebestpornai.com is NOT serving commit $expected after 2 minutes (last seen: '${served:-<none>}'). Deployment call reported success (${{ steps.deploy.outputs.deployment_url }}) but the live domain didn't update — investigate the Vercel project's Git integration / production alias."
           exit 1
+
+      - name: Ping IndexNow for pages changed in the last 2 days
+        # Best-effort: never fails the deploy. Only URLs whose sitemap lastmod
+        # is recent are sent, so a normal deploy pings a handful of pages.
+        continue-on-error: true
+        run: node scripts/submit-indexnow.js --since 2 --limit 200

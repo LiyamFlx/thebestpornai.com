@@ -4,7 +4,10 @@
  * Submits updated URLs from sitemap.xml to the IndexNow protocol endpoint.
  *
  * Usage:
- *   node scripts/submit-indexnow.js [--dry-run] [--limit <n>]
+ *   node scripts/submit-indexnow.js [--dry-run] [--limit <n>] [--since <days>]
+ *
+ * --since N submits only URLs whose sitemap <lastmod> is within the last N days
+ * (used after each deploy so only new/changed pages are pinged).
  */
 
 import fs from "fs";
@@ -23,6 +26,10 @@ const isDryRun = process.argv.includes("--dry-run");
 const limitIdx = process.argv.indexOf("--limit");
 const limit = limitIdx !== -1 && process.argv[limitIdx + 1] ? parseInt(process.argv[limitIdx + 1], 10) : 100;
 
+const sinceIdx = process.argv.indexOf("--since");
+const sinceDays = sinceIdx !== -1 ? parseInt(process.argv[sinceIdx + 1], 10) : null;
+const cutoff = sinceDays != null ? new Date(Date.now() - sinceDays * 864e5).toISOString().slice(0, 10) : null;
+
 function parseSitemapUrls() {
   if (!fs.existsSync(SITEMAP_PATH)) {
     console.error(`Sitemap not found at ${SITEMAP_PATH}. Run 'npm run sitemap' first.`);
@@ -30,10 +37,14 @@ function parseSitemapUrls() {
   }
   const xml = fs.readFileSync(SITEMAP_PATH, "utf8");
   const urls = [];
-  const locRegex = /<loc>(https:\/\/[^<]+)<\/loc>/g;
-  let match;
-  while ((match = locRegex.exec(xml)) !== null) {
-    urls.push(match[1]);
+  const blockRegex = /<url>([\s\S]*?)<\/url>/g;
+  let block;
+  while ((block = blockRegex.exec(xml)) !== null) {
+    const loc = /<loc>(https:\/\/[^<]+)<\/loc>/.exec(block[1]);
+    if (!loc) continue;
+    const lastmod = /<lastmod>([^<]+)<\/lastmod>/.exec(block[1])?.[1];
+    if (cutoff && !(lastmod && lastmod.slice(0, 10) >= cutoff)) continue;
+    urls.push(loc[1]);
   }
   return urls;
 }
