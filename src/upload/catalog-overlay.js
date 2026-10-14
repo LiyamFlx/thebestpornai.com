@@ -104,6 +104,10 @@ export async function mergeLiveUploads() {
     // Also de-dupe against catalog src so a published seed entry isn't doubled.
     const haveSrc = new Set(DATA.videos.map((v) => v.src).filter(Boolean));
     for (const row of rows) {
+      // Junk guard: real uploads always get a probed duration from the
+      // browser; rows without one are failed/test inserts (they render as
+      // broken cards linking to dead /watch pages).
+      if (!(row.duration_s > 0)) continue;
       const video = rowToVideo(row);
       if (!video) continue;
       if (have.has(video._bunnyPath) || haveSrc.has(video.src)) continue;
