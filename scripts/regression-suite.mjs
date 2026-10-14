@@ -344,8 +344,9 @@ await asyncCheck("Social unfurl gateway (api/video-share.js) generates complete 
   assert(headers["Content-Type"].includes("text/html"));
   assert(body.includes('property="og:title"'));
   assert(body.includes('property="og:video"'));
-  assert(body.includes('name="twitter:card" content="player"'));
-  assert(body.includes('name="twitter:player"'));
+  // large-image card (the player card needs Twitter whitelisting and pointed at the SPA shell)
+  assert(body.includes('name="twitter:card" content="summary_large_image"'));
+  assert(body.includes('property="og:image" content="https://www.thebestpornai.com/'));
   assert(body.includes('https://schema.org'));
   assert(body.includes('/shorts/1') || body.includes('/watch/1'));
 
