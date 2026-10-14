@@ -74,6 +74,11 @@
       "destination": "/index.html"
     },
     {
+      "source": "/watch/:id(\\d+)",
+      "has": [{ "type": "header", "key": "user-agent", "value": ".*([Ff]acebookexternalhit|[Tt]witterbot|[Dd]iscordbot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ss]lackbot|[Ll]inked[Ii]n[Bb]ot|[Pp]interest|[Aa]pplebot|[Ss]kypeuri|[Rr]edditbot|[Ss]ignal|[Ss]nap[Cc]hat|[Mm]astodon|[Ii]Message|[Vv]iber|[Ll]ine-Poker).*" }],
+      "destination": "/api/video-share?id=:id"
+    },
+    {
       "source": "/watch/:id",
       "destination": "/index.html"
     },
@@ -84,6 +89,11 @@
     {
       "source": "/shorts",
       "destination": "/index.html"
+    },
+    {
+      "source": "/shorts/:id(\\d+)",
+      "has": [{ "type": "header", "key": "user-agent", "value": ".*([Ff]acebookexternalhit|[Tt]witterbot|[Dd]iscordbot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ss]lackbot|[Ll]inked[Ii]n[Bb]ot|[Pp]interest|[Aa]pplebot|[Ss]kypeuri|[Rr]edditbot|[Ss]ignal|[Ss]nap[Cc]hat|[Mm]astodon|[Ii]Message|[Vv]iber|[Ll]ine-Poker).*" }],
+      "destination": "/api/video-share?id=:id"
     },
     {
       "source": "/shorts/:id",

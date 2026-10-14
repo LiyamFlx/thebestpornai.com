@@ -55,12 +55,15 @@ export default function handler(req, res) {
 
   const title = v.title || "AI Video";
   const desc = v.desc || `Watch ${title} in 4K on thebestpornai.`;
-  const thumbUrl = v.thumb ? mediaUrl(v.thumb) : LOGO;
+  // First-party /r2/ proxy URL: r2.dev is rate-limited and some scrapers
+  // (Facebook, Telegram) fail on it. Same path shape as gen-static-routes imgUrl().
+  const thumbUrl = v.thumb
+    ? `${ORIGIN}/r2/media/${v.thumb.replace(/^(\.\.\/)?media\//, "").split("/").map(encodeURIComponent).join("/")}`
+    : LOGO;
   const videoStreamUrl = v.src ? mediaUrl(v.src) : "";
   const shareUrl = `${ORIGIN}/v/${v.id}`;
   const seoUrl = `${ORIGIN}/video/${v.id}.html`;
   const directWatchUrl = `${ORIGIN}${playPath(v)}`;
-  const embedUrl = `${ORIGIN}${playPath(v)}`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -101,8 +104,6 @@ export default function handler(req, res) {
   <meta property="og:image" content="${thumbUrl}"/>
   <meta property="og:image:secure_url" content="${thumbUrl}"/>
   <meta property="og:image:type" content="image/jpeg"/>
-  <meta property="og:image:width" content="1280"/>
-  <meta property="og:image:height" content="720"/>
   ${videoStreamUrl ? `
   <meta property="og:video" content="${videoStreamUrl}"/>
   <meta property="og:video:secure_url" content="${videoStreamUrl}"/>
@@ -110,15 +111,12 @@ export default function handler(req, res) {
   <meta property="og:video:width" content="1280"/>
   <meta property="og:video:height" content="720"/>` : ""}
 
-  <!-- Twitter Player Card Metadata (Twitter/X) -->
-  <meta name="twitter:card" content="player"/>
+  <!-- Twitter/X large-image card (the player card needs Twitter whitelisting) -->
+  <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:site" content="@thebestpornai"/>
   <meta name="twitter:title" content="${esc(title)}"/>
   <meta name="twitter:description" content="${esc(desc)}"/>
   <meta name="twitter:image" content="${thumbUrl}"/>
-  <meta name="twitter:player" content="${embedUrl}"/>
-  <meta name="twitter:player:width" content="1280"/>
-  <meta name="twitter:player:height" content="720"/>
 
   <!-- Schema.org JSON-LD -->
   <script type="application/ld+json">
