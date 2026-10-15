@@ -34,6 +34,18 @@ function shClientId(){
   return id;
 }
 
+/* Likes follow the signed-in account (like YouTube): the voter id is the
+   user's id when signed in, so the same like shows on every device. Signed-out
+   viewers keep the per-browser id. Other engagement (views, favorites) keeps
+   shClientId() so existing rows stay attached. */
+function accountVoterId(){
+  try {
+    const u = JSON.parse(localStorage.getItem("sh_session") || "null")?.user;
+    return u && u.id ? "u_" + u.id : null;
+  } catch(_) { return null; }
+}
+function voterId(){ return accountVoterId() || shClientId(); }
+
 /* Deterministically map any videoId to a valid Postgres signed 32-bit integer (INT4).
    Postgres integer columns range from 1 to 2,147,483,647.
    Catalog video IDs (1..7000+) are preserved as-is.
@@ -280,7 +292,7 @@ const ShAPI = {
   async addLike(videoId, kind="like"){
     const id = toDbVideoId(videoId);
     if (!id) return false;
-    const viaApi = await _engage({ action: "like", videoId: id, kind, clientId: shClientId() });
+    const viaApi = await _engage({ action: "like", videoId: id, kind, clientId: voterId() });
     if (viaApi.status === 200) return true;
     if (viaApi.status === 429) return false;
     const r = await _reqRaw(
@@ -288,7 +300,7 @@ const ShAPI = {
       {
         method: "POST",
         headers: { "Prefer": "resolution=ignore-duplicates,return=minimal" },
-        body: JSON.stringify({ video_id: id, kind, client_id: shClientId() }),
+        body: JSON.stringify({ video_id: id, kind, client_id: voterId() }),
       }
     );
     if (r.ok || r.status === 409) return true;
@@ -296,7 +308,7 @@ const ShAPI = {
       const retry = await _reqRaw(`/likes`, {
         method: "POST",
         headers: { "Prefer": "return=minimal" },
-        body: JSON.stringify({ video_id: id, kind, client_id: shClientId() }),
+        body: JSON.stringify({ video_id: id, kind, client_id: voterId() }),
       });
       return retry.ok || retry.status === 409;
     }
@@ -305,10 +317,14 @@ const ShAPI = {
   async removeLike(videoId, kind="like"){
     const id = toDbVideoId(videoId);
     if (!id) return false;
-    const viaApi = await _engage({ action: "unlike", videoId: id, kind, clientId: shClientId() });
+    // Signed in: also clear a pre-account like made from this browser, so
+    // unliking really unlikes (myVote() reads both ids).
+    const acct = accountVoterId();
+    if (acct) _engage({ action: "unlike", videoId: id, kind, clientId: shClientId() });
+    const viaApi = await _engage({ action: "unlike", videoId: id, kind, clientId: voterId() });
     if (viaApi.status === 200) return true;
     if (viaApi.status === 429) return false;
-    const cid = encodeURIComponent(shClientId());
+    const cid = encodeURIComponent(voterId());
     const r = await _reqRaw(
       `/likes?video_id=eq.${id}&client_id=eq.${cid}&kind=eq.${kind}`,
       { method: "DELETE", headers: { "Prefer": "return=minimal" } }
@@ -318,8 +334,9 @@ const ShAPI = {
   async myVote(videoId){
     const id = toDbVideoId(videoId);
     if (!id) return null;
-    const cid = encodeURIComponent(shClientId());
-    const rows = await _req(`/likes?video_id=eq.${id}&client_id=eq.${cid}&select=kind`) || [];
+    const acct = accountVoterId();
+    const ids = [shClientId(), ...(acct ? [acct] : [])].map(encodeURIComponent).join(",");
+    const rows = await _req(`/likes?video_id=eq.${id}&client_id=in.(${ids})&select=kind`) || [];
     if (!Array.isArray(rows) || !rows.length) return null;
     // Prefer like if a stale pair exists (pre-toggle schema allowed both).
     if (rows.some(r => r.kind === "like")) return "like";
