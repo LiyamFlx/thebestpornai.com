@@ -440,6 +440,7 @@ async function uPublish(){
       flagged:false
     });
 
+    let step = "uploading file";
     try {
       // Upload the main video, thumbnail, and sample clips ALL IN PARALLEL —
       // each goes directly to R2 via a presigned PUT, so they don't contend for
@@ -493,6 +494,7 @@ async function uPublish(){
       // large file (server streams it back from R2 to hash it) — flag this
       // distinct phase so the UI doesn't look stuck at a static "Saving
       // metadata..." for minutes with no explanation.
+      step = "verifying file";
       u.verifying = true; render();
       const verified = await ShAPI.verifyUpload({
         path: uploadInfo.path,
@@ -502,6 +504,7 @@ async function uPublish(){
         durationS: u.durationSec || null,
       });
       u.verifying = false;
+      step = "saving to catalog";
 
       // Save to the manifest via the secure serverless endpoint so the video
       // appears for visitors — status is decided by verifyUpload's result
@@ -567,7 +570,7 @@ async function uPublish(){
         const failedVid = DATA.videos.find(v=>v.id===localId);
         if(failedVid) failedVid.status = "upload-failed";
         console.error("Upload remote step failed:", e);
-        toast("Upload failed: " + (e.message || "see console") + " — you can retry from Content.");
+        toast("Upload failed while " + step + ": " + (e.message || "see console") + " — you can retry from Content.");
       }
     }
 

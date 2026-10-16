@@ -554,7 +554,10 @@ const ShAPI = {
     }, { timeoutMs: 320000 });
     const j = await r.json().catch(()=>({}));
     if(!r.ok || j.ok === false){
-      throw new Error(j.reason || j.error || ("verify-upload " + r.status));
+      // Keep the server's `detail` (the real DB/R2 error) — dropping it is why
+      // upload failures were undiagnosable from the UI.
+      const base = j.reason || j.error || ("verify-upload " + r.status);
+      throw new Error(j.detail ? base + ": " + String(j.detail).slice(0, 200) : base);
     }
     return j;   // { ok:true, uploadId, status: 'live'|'held', sha256 }
   },
@@ -564,7 +567,7 @@ const ShAPI = {
     const presignRes = await this._uploadApiFetch("/api/presign", { filename: file.name || "video.mp4", size: file.size }, { timeoutMs: 15000 });
     if(!presignRes.ok){
       let msg = "presign " + presignRes.status;
-      try { const j = await presignRes.json(); if(j.error) msg = j.error; } catch(_){}
+      try { const j = await presignRes.json(); if(j.error) msg = j.detail ? j.error + ": " + String(j.detail).slice(0, 200) : j.error; } catch(_){}
       throw new Error(msg);
     }
     const { putUrl, contentType, src, url, path } = await presignRes.json();
@@ -596,7 +599,7 @@ const ShAPI = {
     const r = await this._uploadApiFetch("/api/save-upload", entry, { timeoutMs: 30000 });
     if(!r.ok){
       let msg = "save manifest HTTP " + r.status;
-      try { const j = await r.json(); if(j.error) msg = j.error; } catch(_){}
+      try { const j = await r.json(); if(j.error) msg = j.detail ? j.error + ": " + String(j.detail).slice(0, 200) : j.error; } catch(_){}
       throw new Error(msg);
     }
     return await r.json();
