@@ -510,7 +510,7 @@ export const SEED_POSTS = [
             </tr>
             <tr>
               <td>2</td>
-              <td><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow">OurDream AI</a></td>
+              <td><a href="https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog" target="_blank" rel="noopener nofollow">OurDream AI</a></td>
               <td>Create + companion</td>
               <td>Photorealism &amp; 3D interaction</td>
               <td>$19.99/mo</td>
@@ -592,7 +592,7 @@ export const SEED_POSTS = [
         <p class="best-for"><strong>Best for:</strong> Photorealistic stills + interactive 3D companions.</p>
         <p>Strongest overall package when realism and presence both matter. Skin, lighting, and multi-angle consistency are among the best available. Higher entry price than pure image tools, but it covers stills and companion interaction in one place.</p>
         <div class="takeaway"><strong>Key takeaway:</strong> Pick OurDream when quality and interactive feel beat lowest price.</div>
-        <div class="links"><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow">Official site</a></div>
+        <div class="links"><a href="https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog" target="_blank" rel="noopener nofollow">Official site</a></div>
       </div>
 
       <div class="rank-card">
@@ -1978,7 +1978,7 @@ export const SEED_POSTS = [
     itemList: [
       { "@type": "ListItem", position: 1, name: "thebestpornai.com", url: "https://www.thebestpornai.com" },
       { "@type": "ListItem", position: 2, name: "Candy AI", url: "https://candyai.gg/home2?via=jeycxz" },
-      { "@type": "ListItem", position: 3, name: "OurDream AI", url: "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" },
+      { "@type": "ListItem", position: 3, name: "OurDream AI", url: "https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog" },
       { "@type": "ListItem", position: 4, name: "Xotic AI", url: "https://xotic.ai" },
       { "@type": "ListItem", position: 5, name: "Joi AI", url: "https://joi.ai" }
     ],
@@ -2014,7 +2014,7 @@ export const SEED_POSTS = [
               <td>Yes (Free to browse &amp; stream)</td>
             </tr>
             <tr>
-              <td><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow"><strong>OurDream AI</strong></a></td>
+              <td><a href="https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog" target="_blank" rel="noopener nofollow"><strong>OurDream AI</strong></a></td>
               <td>Best Generator Overall — Photorealistic Stills</td>
               <td>Fine-tuned diffusion (FLUX/SDXL)</td>
               <td>Client-side session clearing</td>
@@ -2103,7 +2103,7 @@ export const SEED_POSTS = [
           <li><strong>Limitations:</strong> Minimal conversational features; built for static/short output, not a streaming library.</li>
         </ul>
         <div class="takeaway"><strong>Key takeaway:</strong> The benchmark standard for single-frame photorealism and custom LoRA rendering.</div>
-        <div class="links"><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow">Official site</a></div>
+        <div class="links"><a href="https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog" target="_blank" rel="noopener nofollow">Official site</a></div>
       </div>
 
       <div class="rank-card">
@@ -2261,7 +2261,7 @@ export const SEED_POSTS = [
             </tr>
             <tr>
               <td>3</td>
-              <td><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow">OurDream AI</a></td>
+              <td><a href="https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog" target="_blank" rel="noopener nofollow">OurDream AI</a></td>
               <td>Generate</td>
               <td>Trial images / limited free use</td>
               <td>Often no for trial</td>
@@ -2317,7 +2317,7 @@ export const SEED_POSTS = [
         <p class="best-for"><strong>Best for:</strong> Checking photoreal quality and companion interaction before subscribing.</p>
         <p>Free or trial access is limited but useful for judging skin, lighting, and motion samples. Full value sits on paid plans.</p>
         <div class="takeaway"><strong>Key takeaway:</strong> Use the free window to decide if the quality ceiling is worth the subscription.</div>
-        <div class="links"><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow">Official site</a></div>
+        <div class="links"><a href="https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog" target="_blank" rel="noopener nofollow">Official site</a></div>
       </div>
 
       <div class="rank-card">
@@ -2448,7 +2448,7 @@ export const SEED_POSTS = [
     itemList: [
       { "@type": "ListItem", position: 1, name: "Candy AI", url: "https://candyai.gg/home2?via=jeycxz" },
       { "@type": "ListItem", position: 2, name: "Xotic AI", url: "https://xotic.ai" },
-      { "@type": "ListItem", position: 3, name: "OurDream AI", url: "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" },
+      { "@type": "ListItem", position: 3, name: "OurDream AI", url: "https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog" },
       { "@type": "ListItem", position: 4, name: "Joi AI", url: "https://joi.ai" },
       { "@type": "ListItem", position: 5, name: "thebestpornai.com", url: "https://www.thebestpornai.com" }
     ],
@@ -2475,7 +2475,7 @@ export const SEED_POSTS = [
           </thead>
           <tbody>
             <tr>
-              <td><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow"><strong>OurDream AI</strong></a></td>
+              <td><a href="https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog" target="_blank" rel="noopener nofollow"><strong>OurDream AI</strong></a></td>
               <td>Best Overall — All-In-One Generation &amp; Companion</td>
               <td>9.7 / 10</td>
               <td>High</td>
@@ -2532,7 +2532,7 @@ export const SEED_POSTS = [
           <li><strong>Browser-Based &amp; Discreet:</strong> No installs, discreet billing, and straightforward account deletion.</li>
         </ul>
         <div class="takeaway"><strong>Key takeaway:</strong> The most complete package in adult generative AI — #1 of 42 in our 2026 benchmark at 9.8/10.</div>
-        <div class="links"><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow">Try OurDream AI →</a></div>
+        <div class="links"><a href="https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog" target="_blank" rel="noopener nofollow">Try OurDream AI →</a></div>
       </div>
 
       <div class="rank-card">
@@ -2651,7 +2651,7 @@ export const SEED_POSTS = [
       "prompt engineering"
     ],
     itemList: [
-      { "@type": "ListItem", position: 1, name: "OurDream AI", url: "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" },
+      { "@type": "ListItem", position: 1, name: "OurDream AI", url: "https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog" },
       { "@type": "ListItem", position: 2, name: "Candy AI", url: "https://candyai.gg/home2?via=jeycxz" },
       { "@type": "ListItem", position: 3, name: "Perchance", url: "https://perchance.org" },
       { "@type": "ListItem", position: 4, name: "Kindroid", url: "https://kindroid.ai" },
@@ -2680,7 +2680,7 @@ export const SEED_POSTS = [
           </thead>
           <tbody>
             <tr>
-              <td><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow"><strong>OurDream AI</strong></a></td>
+              <td><a href="https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog" target="_blank" rel="noopener nofollow"><strong>OurDream AI</strong></a></td>
               <td>Best Overall — All-In-One Generation &amp; Companion Suite</td>
               <td>9.7 / 10</td>
               <td>Excellent</td>
@@ -2753,7 +2753,7 @@ export const SEED_POSTS = [
           <li><strong>Custom Character Suite:</strong> Build from scratch or remix the public discovery feed.</li>
         </ul>
         <div class="takeaway"><strong>Key takeaway:</strong> The strongest all-around package — #1 of 42 in our 2026 benchmark at 9.8/10.</div>
-        <div class="links"><a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog" target="_blank" rel="noopener nofollow">Visit OurDream AI →</a></div>
+        <div class="links"><a href="https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog" target="_blank" rel="noopener nofollow">Visit OurDream AI →</a></div>
       </div>
 
       <div class="rank-card">

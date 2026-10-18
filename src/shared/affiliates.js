@@ -3,11 +3,11 @@
  * Configured with live referral tracking links (OurDream, Candy.ai, etc.).
  */
 
-const OURDREAM_CPA = "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/";
+const OURDREAM_CPA = "https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1";
 
 export const OURDREAM = {
-  home: `${OURDREAM_CPA}?uid=3`,
-  create: `${OURDREAM_CPA}?uid=172`,
+  home: OURDREAM_CPA,
+  create: OURDREAM_CPA,
 };
 
 export const CANDY_AI = {
@@ -29,7 +29,7 @@ export function ourdreamUrl(kind = "home", src = "") {
   const base = OURDREAM[kind] || OURDREAM.home;
   const s = String(src || "").trim();
   if (!s) return base;
-  return `${base}&s1=${encodeURIComponent(s)}`;
+  return `${base}&sub1=${encodeURIComponent(s)}`;
 }
 
 /**

@@ -600,7 +600,7 @@ function renderPost(post) {
         }`
     : `
         <div class="blog-featured-promo" style="margin: 36px 0 28px;">
-          <a href="${esc(cta.external ? cta.href : "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=blog-bottom-banner")}" target="_blank" rel="noopener sponsored nofollow" class="ourdream-promo-link" aria-label="Try OurDream AI">
+          <a href="${esc(cta.external ? cta.href : "https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog-bottom-banner")}" target="_blank" rel="noopener sponsored nofollow" class="ourdream-promo-link" aria-label="Try OurDream AI">
             <div class="ourdream-promo-card">
               <img src="/blog-assets/ourdream-official-promo.jpg" alt="OurDream.ai - #1 Uncensored AI Companion & Character Platform" class="ourdream-promo-img" width="1024" height="429" loading="lazy" />
             </div>
@@ -1008,8 +1008,8 @@ function hydrateClusterBodies(posts) {
     const extra = bySlug.get(post.slug);
     if (!extra || !extra.body) return post;
     let body = extra.body
-      .replace(/https:\/\/ourdream\.ai\/?\?ref=thebestpornai/g, "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog")
-      .replace(/https:\/\/ourdream\.ai(?=[^a-zA-Z0-9])/g, "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=blog")
+      .replace(/https:\/\/ourdream\.ai\/?\?ref=thebestpornai/g, "https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog")
+      .replace(/https:\/\/ourdream\.ai(?=[^a-zA-Z0-9])/g, "https://ourdreamai.everflowclient.io/affiliate/signup/?p=HWH86HD1&sub1=blog")
       .replace(/https:\/\/(www\.)?candy\.ai\/?(?=["'\s<>]|$)/g, "https://candyai.gg/home2?via=jeycxz")
       .replace(/<nav class="breadcrumb"[\s\S]*?<\/nav>/i, "")
       .replace(/<h1[\s\S]*?<\/h1>/i, "")
