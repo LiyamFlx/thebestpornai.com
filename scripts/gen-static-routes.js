@@ -1259,7 +1259,7 @@ function genPornstarsHub() {
 function genPornstarProfiles() {
   for (const ps of PORNSTARS) {
     const guideSlug = ps.blogSlug || `${ps.slug}-ai-pornstar`;
-    const title = `${ps.name} AI Pornstar — Profile, 4K Videos & Shorts | thebestpornai`;
+    const title = `${ps.name} AI Pornstar — 4K Videos & Shorts | thebestpornai`;
     const description = `${ps.bio} Watch full HD & 4K video scenes and mobile vertical Shorts starring ${ps.name}.`;
     const canonical = `${ORIGIN}/pornstars/${ps.slug}.html`;
     const avatarUrl = imgUrl(ps.avatar);
@@ -1273,28 +1273,49 @@ function genPornstarProfiles() {
     const videoCards = creatorVideos.map((v, i) => videoCardHtml(v, { eager: i < 4, fetchpriority: i === 0 ? "high" : undefined })).join("\n");
 
     const bodyContent = `
-      <h3 class="row-heading">${esc(ps.name)} AI Pornstar</h3>
-      <p class="sub">${esc(ps.bio)}</p>
-      <p class="sub"><a href="/blog/${guideSlug}.html">${esc(ps.name)} AI pornstar guide</a></p>
+      <header class="ps-profile-hero" style="margin-bottom: 24px;">
+        <h1 class="row-heading" style="font-size:26px;font-weight:800;color:#fff;margin:0 0 8px;">${esc(ps.name)} — AI Pornstar</h1>
+        <p class="sub" style="font-size:14.5px;color:#cbd5e1;line-height:1.5;margin:0 0 12px;">${esc(ps.bio)}</p>
+        <p class="sub"><a href="/blog/${guideSlug}.html" style="color:var(--accent);font-weight:600;">Explore the ${esc(ps.name)} AI Pornstar Guide &amp; Face Pack &rarr;</a></p>
+      </header>
+      <h2 class="sub" style="font-size:16px;font-weight:700;color:#fff;margin:24px 0 14px;">4K Scenes &amp; Shorts Starring ${esc(ps.name)}</h2>
       <div class="v-grid">
         ${videoCards.length ? videoCards : '<p class="sub">More videos coming soon.</p>'}
       </div>`;
 
     const jsonLd = {
       "@context": "https://schema.org",
-      "@type": "Person",
-      "name": ps.name,
-      "url": canonical,
-      "image": avatarUrl,
-      "description": ps.bio,
-      "sameAs": [
-        `${ORIGIN}/blog/${guideSlug}.html`
-      ].filter(Boolean),
-      "subjectOf": creatorVideos.slice(0, 12).map((v) => ({
-        "@type": "WebPage",
-        "name": v.title,
-        "url": `${ORIGIN}/video/${v.id}.html`
-      }))
+      "@graph": [
+        {
+          "@type": "ProfilePage",
+          "@id": `${canonical}#webpage`,
+          "url": canonical,
+          "name": `${ps.name} AI Pornstar Profile & Videos`,
+          "isPartOf": {
+            "@type": "WebSite",
+            "name": "thebestpornai",
+            "url": `${ORIGIN}/`
+          },
+          "mainEntity": {
+            "@type": "Person",
+            "name": ps.name,
+            "url": canonical,
+            "image": avatarUrl,
+            "description": ps.bio,
+            "sameAs": [
+              `${ORIGIN}/blog/${guideSlug}.html`
+            ].filter(Boolean)
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": `${ORIGIN}/` },
+            { "@type": "ListItem", "position": 2, "name": "AI Pornstars", "item": `${ORIGIN}/pornstars/` },
+            { "@type": "ListItem", "position": 3, "name": ps.name, "item": canonical }
+          ]
+        }
+      ]
     };
 
     const html = renderHtmlPage({
@@ -1605,7 +1626,7 @@ function genVideoPages() {
         </div>
 
         <div style="margin-top:40px">
-          <h3 style="font-size:18px;font-weight:700;margin-bottom:20px;color:#fff">Related 4K Scenes</h3>
+          <h2 style="font-size:18px;font-weight:700;margin-bottom:20px;color:#fff">Related 4K Scenes</h2>
           <div class="v-grid">
             ${relatedCards}
           </div>
@@ -1615,20 +1636,32 @@ function genVideoPages() {
     const mediaStreamUrl = v.src ? mediaUrl(v.src) : null;
     const jsonLd = {
       "@context": "https://schema.org",
-      "@type": "VideoObject",
-      "name": v.title,
-      "description": description,
-      "thumbnailUrl": [seoThumb],
-      "uploadDate": isoUploadDate(v.uploaded),
-      "duration": isoDuration(v.duration),
-      "url": canonical,
-      ...(mediaStreamUrl ? { "contentUrl": mediaStreamUrl } : {}),
-      "isFamilyFriendly": false,
-      "interactionStatistic": {
-        "@type": "InteractionCounter",
-        "interactionType": { "@type": "WatchAction" },
-        "userInteractionCount": v.views || 2500
-      }
+      "@graph": [
+        {
+          "@type": "VideoObject",
+          "name": v.title,
+          "description": description,
+          "thumbnailUrl": [seoThumb],
+          "uploadDate": isoUploadDate(v.uploaded),
+          "duration": isoDuration(v.duration),
+          "url": canonical,
+          ...(mediaStreamUrl ? { "contentUrl": mediaStreamUrl } : {}),
+          "isFamilyFriendly": false,
+          "interactionStatistic": {
+            "@type": "InteractionCounter",
+            "interactionType": { "@type": "WatchAction" },
+            "userInteractionCount": v.views || 2500
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": `${ORIGIN}/` },
+            { "@type": "ListItem", "position": 2, "name": v.category || "AI", "item": `${ORIGIN}/categories/${catSlug}.html` },
+            { "@type": "ListItem", "position": 3, "name": v.title, "item": canonical }
+          ]
+        }
+      ]
     };
 
     const html = renderHtmlPage({

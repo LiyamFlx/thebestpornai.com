@@ -1,0 +1,60 @@
+{
+  "summary": {
+    "health_score": 74,
+    "business_type": "Adult video platform + editorial blog + AI tool comparison hub (publisher/media)",
+    "top_findings": [
+      "Video sitemap capped at 500 of ~7,000 videos (gen-sitemap.js VIDEO_SITEMAP_LIMIT)",
+      "Video thumbnails/content URLs served from Cloudflare r2.dev public dev URL",
+      "/pornstars/ has no H1",
+      "Sitemap lastmod partially set to build date (104/227 URLs = today)",
+      "Homepage SearchAction targets a robots-blocked /search path"
+    ],
+    "quick_wins": [
+      "Raise video sitemap limit and add video:duration",
+      "Add H1 to /pornstars/",
+      "Remove dead SearchAction",
+      "Shorten homepage title/description",
+      "Add Permissions-Policy and security.txt"
+    ]
+  },
+  "categories": [
+    {"name": "Technical SEO", "score": 78, "what_works": ["HTTPS+HSTS preload", "308 redirects http/apex to www", "real 404s", "self-referencing canonicals", "sitemap index + video sitemap", "Brotli"], "findings": [
+      {"title": "CSP only via meta tag with unsafe-inline", "severity": "Medium", "description": "No CSP response header; meta CSP cannot enforce frame-ancestors.", "recommendation": "Move to header; remove inline handlers then unsafe-inline."},
+      {"title": "AI-bot robots group omits utility-path disallows", "severity": "Low", "description": "GPTBot/ClaudeBot group lacks /watch/ /search/ /shorts/ disallows.", "recommendation": "Mirror the * group disallows."}
+    ]},
+    {"name": "Content Quality", "score": 72, "what_works": ["1.4k-2.7k words on sampled templates", "unique titles/descriptions", "citable pillar page"], "findings": [
+      {"title": "Templated profile/category copy", "severity": "Medium", "description": "Same template with swapped nouns across 65 profiles and 17 categories.", "recommendation": "Add unique editorial detail or consolidate."},
+      {"title": "Thin E-E-A-T signals", "severity": "Medium", "description": "Single author, no methodology/disclosure on comparison pillar.", "recommendation": "Add methodology, review dates, disclosure."}
+    ]},
+    {"name": "On-Page SEO", "score": 74, "what_works": ["strong internal linking", "breadcrumbs", "unique titles"], "findings": [
+      {"title": "/pornstars/ missing H1", "severity": "Medium", "description": "82KB page has zero H1/H2.", "recommendation": "Add H1 and section H2s."},
+      {"title": "Homepage title/H1/description misaligned and long", "severity": "Low", "description": "Title 'Watch, Stroke, Repeat' vs H1 'Free 4K AI Porn'; description ~190 chars.", "recommendation": "Align on one primary keyword; <=155 char description."}
+    ]},
+    {"name": "Schema / Structured Data", "score": 70, "what_works": ["complete VideoObject", "BlogPosting+FAQ+Breadcrumb", "CollectionPage+ItemList"], "findings": [
+      {"title": "Dead SearchAction", "severity": "Medium", "description": "Target /search?q= is disallowed in robots.txt; sitelinks searchbox retired.", "recommendation": "Remove."},
+      {"title": "VideoObject field issues", "severity": "Medium", "description": "isFamilyFriendly string, embedUrl equals page URL, assets on r2.dev.", "recommendation": "Use boolean, real embed URL, custom media domain."}
+    ]},
+    {"name": "Performance (CWV)", "score": 62, "what_works": ["poster images instead of video thumbs", "lazy images"], "findings": [
+      {"title": "~450KB gz JS on homepage (estimated)", "severity": "Medium", "description": "card (191KB) + catalog-videos (195KB) + index (41KB); no field data available.", "recommendation": "Inspect bundle; confirm catalog data is not in card chunk; connect CrUX."}
+    ]},
+    {"name": "AI Search Readiness", "score": 82, "what_works": ["llms.txt", "AI crawlers allowed", "RSS", "FAQ/Answer markup"], "findings": [
+      {"title": "Missing explicit search-bot entries and sameAs entity links", "severity": "Low", "description": "No OAI-SearchBot/Claude-SearchBot/Google-Extended rules; no sameAs.", "recommendation": "Add rules and sameAs."}
+    ]},
+    {"name": "Images", "score": 80, "what_works": ["0 missing alt on sampled pages", "JPEG posters"], "findings": [
+      {"title": "No modern formats; logo as home OG image", "severity": "Low", "description": "Only JPEG/PNG served.", "recommendation": "WebP/AVIF + branded 1200x630 OG."}
+    ]},
+    {"name": "Video Indexing", "score": 55, "what_works": ["video sitemap exists", "per-video pages with VideoObject"], "findings": [
+      {"title": "Video sitemap capped at 500 of ~7,000", "severity": "High", "description": "scripts/gen-sitemap.js:30 VIDEO_SITEMAP_LIMIT = 500; sitemap.xml has no /video/ URLs.", "recommendation": "Chunk into multiple files up to 10k each; add video:duration."},
+      {"title": "Media on r2.dev dev URL", "severity": "High", "description": "thumbnail_loc/content_loc/contentUrl/og:image use pub-*.r2.dev (rate-limited, non-production).", "recommendation": "Attach custom domain to the R2 bucket."}
+    ]}
+  ],
+  "action_plan": {
+    "phases": [
+      {"name": "Phase 1: Critical Fixes", "timeframe": "Week 1", "items": ["Expand video sitemap to all videos", "Move media to a custom R2 domain"]},
+      {"name": "Phase 2: High-Impact Improvements", "timeframe": "Weeks 2-3", "items": ["H1 on /pornstars/", "Real lastmod", "Remove SearchAction", "Fix VideoObject fields"]},
+      {"name": "Phase 3: Content & Authority", "timeframe": "Month 2", "items": ["Differentiate templated copy", "E-E-A-T methodology + disclosure", "JS bundle audit"]},
+      {"name": "Phase 4: Monitoring & Iteration", "timeframe": "Ongoing", "items": ["Connect Search Console/CrUX", "Track video indexation", "Re-audit quarterly"]}
+    ]
+  },
+  "artifacts": {"findings_dir": "findings/", "screenshots_dir": "screenshots/"}
+}

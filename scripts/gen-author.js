@@ -175,8 +175,8 @@ function generateAuthorPage() {
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Anna K. — Reviews Editor &amp; Adult AI Benchmark Lead | thebestpornai</title>
-<meta name="description" content="Meet Anna K., Reviews Editor at thebestpornai. Dedicated 7-day paid testing protocol, ethical guidelines, and in-depth benchmarks of 40+ adult generative AI platforms."/>
+<title>Anna K. — Reviews Editor &amp; Adult AI Lead | thebestpornai</title>
+<meta name="description" content="Meet Anna K., Reviews Editor at thebestpornai. Dedicated 7-day hands-on benchmarks and testing protocols for 40+ adult generative AI platforms."/>
 <meta name="theme-color" content="#0A0A0A"/>
 <link rel="canonical" href="${ORIGIN}/author/anna-k.html"/>
 ${FAVICON_LINKS}
@@ -184,8 +184,8 @@ ${FAVICON_LINKS}
 <link rel="preconnect" href="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev" crossorigin/>
 <meta property="og:type" content="profile"/>
 <meta property="og:site_name" content="thebestpornai"/>
-<meta property="og:title" content="Anna K. — Reviews Editor &amp; Adult AI Benchmark Lead"/>
-<meta property="og:description" content="Meet Anna K., Reviews Editor at thebestpornai. Dedicated 7-day paid testing protocol, ethical guidelines, and in-depth benchmarks of 40+ adult generative AI platforms."/>
+<meta property="og:title" content="Anna K. — Reviews Editor &amp; Adult AI Lead"/>
+<meta property="og:description" content="Meet Anna K., Reviews Editor at thebestpornai. Dedicated 7-day hands-on benchmarks and testing protocols for 40+ adult generative AI platforms."/>
 <meta property="og:url" content="${ORIGIN}/author/anna-k.html"/>
 <meta property="og:image" content="${ORIGIN}/logo.png"/>
 <meta name="twitter:card" content="summary"/>

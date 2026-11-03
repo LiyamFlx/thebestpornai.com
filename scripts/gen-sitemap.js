@@ -26,8 +26,8 @@ const REPO = path.join(__dirname, "..");
 const ORIGIN = "https://www.thebestpornai.com";
 const MEDIA_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media";
 const today = new Date().toISOString().slice(0, 10);
-/** Max /video/*.html URLs in sitemap-video.xml (crawl-budget control). */
-const VIDEO_SITEMAP_LIMIT = 500;
+/** Max /video/*.html URLs in sitemap-video.xml (Google allows up to 50,000 URLs per sitemap). */
+const VIDEO_SITEMAP_LIMIT = 50000;
 /** Reserve slots for recent structured / star-pack clips inside the cap. */
 const VIDEO_SITEMAP_RECENT_SLOTS = 80;
 

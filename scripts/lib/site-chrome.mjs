@@ -19,6 +19,7 @@ export function sharedHeaderHtml(activeNav = "") {
         <a class="site-nav-link${on("home")}" href="/">Home</a>
         <a class="site-nav-link${on("pornstars")}" href="/pornstars/">AI Pornstars</a>
         <a class="site-nav-link${on("categories")}" href="/categories/">Categories</a>
+        <a class="site-nav-link${on("compare")}" href="/The-Best-Porn-AI-in-2026">Top AI Tools</a>
         <a class="site-nav-link${on("blog")}" href="/blog/"${activeNav === "blog" ? ' aria-current="page"' : ""}>Editorial &amp; Guides</a>
       </nav>
       <div class="site-header-actions">
@@ -57,6 +58,7 @@ export function appShellHtml(activeNav, bodyContent) {
       <a href="/subscriptions" aria-label="Subscriptions">${ICO.subs}<span class="nav-label">Subs</span></a>
       <a href="/explore" aria-label="Explore">${ICO.explore}<span class="nav-label">Explore</span></a>
       <a href="/pornstars/" class="${on("pornstars")}" aria-label="Pornstars"${activeNav === "pornstars" ? ' aria-current="page"' : ""}>${ICO.you}<span class="nav-label">Stars</span></a>
+      <a href="/The-Best-Porn-AI-in-2026" class="${on("compare")}" aria-label="Top AI Tools"${activeNav === "compare" ? ' aria-current="page"' : ""}>${ICO.explore}<span class="nav-label">Top AI</span></a>
       <a href="/blog/" class="${on("blog")}" aria-label="Blog"${activeNav === "blog" ? ' aria-current="page"' : ""}>${ICO.comment}<span class="nav-label">Blog</span></a>
       <a href="/choose.html" aria-label="Creator Studio">${ICO.studio}<span class="nav-label">Studio</span></a>
     </nav>

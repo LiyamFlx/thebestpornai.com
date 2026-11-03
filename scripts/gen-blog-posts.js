@@ -615,12 +615,25 @@ function renderPost(post) {
           </div>
         </aside>`;
 
+  const brandSuffix = " | thebestpornai";
+  let metaTitle = post.metaTitle;
+  if (!metaTitle) {
+    if (cleanPostTitle.length + brandSuffix.length <= 60) {
+      metaTitle = `${cleanPostTitle}${brandSuffix}`;
+    } else if (cleanPostTitle.length <= 60) {
+      metaTitle = cleanPostTitle;
+    } else {
+      const truncated = cleanPostTitle.slice(0, 57).replace(/\s+\S*$/, "");
+      metaTitle = `${truncated}…`;
+    }
+  }
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>${esc(post.metaTitle || `${cleanPostTitle} | thebestpornai Blog`)}</title>
+<title>${esc(metaTitle)}</title>
 <meta name="description" content="${esc(description)}"/>
 <meta name="theme-color" content="#0A0A0A"/>
 
@@ -930,7 +943,7 @@ ${wrapBlogPage(`
   </div>
 
   <details class="blog-crawl-index">
-    <summary>All ${sorted.length} articles</summary>
+    <summary>All ${sorted.length + NICHE_GUIDE_LINKS.length} articles &amp; niche guides</summary>
     <div class="blog-crawl-body">
       <p class="blog-crawl-desc">Full title list for browsing and search engines.</p>
       <div class="blog-crawl-grid">
@@ -946,6 +959,14 @@ ${wrapBlogPage(`
             </a>`
         )
         .join("\n")}
+      ${NICHE_GUIDE_LINKS.map((g) => `
+        <a class="blog-crawl-card" href="/blog/${esc(g.slug)}.html">
+          <div class="blog-crawl-card-header">
+            <span class="blog-crawl-card-cat">${esc(g.cat)} Guide</span>
+            <span class="blog-crawl-card-date">2026</span>
+          </div>
+          <span class="blog-crawl-card-title">${esc(g.title)}</span>
+        </a>`).join("\n")}
       </div>
     </div>
   </details>
@@ -999,6 +1020,36 @@ ${items}
 `;
 }
 
+const NICHE_GUIDE_LINKS = [
+  { slug: "best-ai-blonde-porn-scenes-2026", title: "Best AI Blonde Porn Scenes & Models in 2026", cat: "Blonde" },
+  { slug: "best-ai-latina-porn-scenes-2026", title: "Best AI Latina Porn Scenes & Models in 2026", cat: "Latina" },
+  { slug: "best-ai-big-tits-scenes-2026", title: "Top AI Big Tits & Busty Video Scenes in 2026", cat: "Big Tits" },
+  { slug: "best-ai-big-ass-scenes-2026", title: "Best AI Big Ass & PAWG Video Scenes in 2026", cat: "Big Ass" },
+  { slug: "best-ai-milf-porn-scenes-2026", title: "Best AI MILF & Mature Video Scenes in 2026", cat: "MILF" },
+  { slug: "best-ai-redhead-porn-scenes-2026", title: "Top AI Redhead & Ginger Video Scenes in 2026", cat: "Redhead" },
+  { slug: "best-ai-ebony-porn-scenes-2026", title: "Best AI Ebony Video Scenes & Models in 2026", cat: "Ebony" },
+  { slug: "best-ai-asian-porn-scenes-2026", title: "Best AI Asian Video Scenes & Models in 2026", cat: "Asian" },
+  { slug: "best-ai-hentai-porn-scenes-2026", title: "Best AI Hentai & Anime Video Scenes in 2026", cat: "Hentai" },
+  { slug: "best-ai-pov-porn-scenes-2026", title: "Top First-Person POV AI Video Scenes in 2026", cat: "POV" },
+  { slug: "best-ai-amateur-porn-scenes-2026", title: "Best AI Amateur & Bedroom Videos in 2026", cat: "Amateur" },
+  { slug: "best-ai-bdsm-porn-scenes-2026", title: "Top AI BDSM & Kink Video Scenes in 2026", cat: "BDSM" },
+  { slug: "best-ai-generated-porn-scenes-2026", title: "Best AI Generated Porn Scenes in 2026", cat: "AI Generated" },
+  { slug: "best-ai-babe-porn-scenes-2026", title: "Best AI Babe Porn Scenes in 2026", cat: "Babe" },
+  { slug: "best-ai-lesbian-porn-scenes-2026", title: "Best AI Lesbian Porn Scenes in 2026", cat: "Lesbian" },
+  { slug: "best-ai-anal-porn-scenes-2026", title: "Best AI Anal Porn Scenes in 2026", cat: "Anal" },
+  { slug: "best-ai-blowjob-porn-scenes-2026", title: "Best AI Blowjob Porn Scenes in 2026", cat: "Blowjob" },
+  { slug: "best-ai-creampie-porn-scenes-2026", title: "Best AI Creampie Porn Scenes in 2026", cat: "Creampie" },
+];
+
+function extractFaqsFromBody(body) {
+  if (!body) return [];
+  const matches = [...body.matchAll(/<div class="faq-q">([\s\S]*?)<\/div>\s*<div class="faq-a">([\s\S]*?)<\/div>/gi)];
+  return matches.map((m) => ({
+    q: plainText(m[1]).trim(),
+    a: plainText(m[2]).trim(),
+  })).filter((f) => f.q && f.a);
+}
+
 function hydrateClusterBodies(posts) {
   const importedPath = path.join(__dirname, "../src/cluster/imported-pages.json");
   if (!fs.existsSync(importedPath)) return posts;
@@ -1019,13 +1070,14 @@ function hydrateClusterBodies(posts) {
       .replace(/<div class="related"[\s\S]*$/i, "")
       .replace(/<div class="final-box"[\s\S]*?<\/div>\s*<\/div>/i, "")
       .replace(/<section class="related[\s\S]*$/i, "");
+    const extractedFaqs = (!extra.faqs || !extra.faqs.length) ? extractFaqsFromBody(extra.body) : extra.faqs;
     return {
       ...post,
       title: extra.title || post.title,
       excerpt: extra.excerpt || post.excerpt,
       metaTitle: extra.metaTitle || post.metaTitle,
       microcopy: extra.microcopy || post.microcopy,
-      faqs: extra.faqs || post.faqs,
+      faqs: (extractedFaqs && extractedFaqs.length) ? extractedFaqs : post.faqs,
       review: extra.review || post.review,
       dateModified: extra.dateModified || post.dateModified,
       readMins: Math.max(4, calcReadMins(wordCount(extra.body))),
