@@ -94,6 +94,21 @@ await asyncCheck("loadFullCatalog hydrates all 5,141 videos and videoById finds 
   }
 });
 
+check("Pornstar profiles have valid schema contracts (id, slug, name, avatar, introVideoId)", () => {
+  const pornstars = DATA.creators.filter(c => c.kind === "pornstar");
+  assert(pornstars.length >= 20, `Expected >= 20 pornstars, got ${pornstars.length}`);
+  const slugs = new Set();
+  for (const ps of pornstars) {
+    assert(ps.id && ps.id.startsWith("ps-"), `Pornstar id must start with ps-: ${ps.id}`);
+    assert(ps.name && typeof ps.name === "string", `Pornstar must have name: ${ps.id}`);
+    assert(ps.slug && typeof ps.slug === "string", `Pornstar must have slug: ${ps.id}`);
+    assert(!slugs.has(ps.slug), `Duplicate pornstar slug: ${ps.slug}`);
+    slugs.add(ps.slug);
+    assert(ps.avatar && typeof ps.avatar === "string", `Pornstar must have avatar: ${ps.id}`);
+    assert(Number.isInteger(ps.introVideoId) && ps.introVideoId > 0, `Pornstar introVideoId must be positive integer: ${ps.id}`);
+  }
+});
+
 check("All query selectors tolerate minimalist edge-case video objects (null/undefined fields)", () => {
   const orig = DATA.videos;
   try {
@@ -277,6 +292,7 @@ check("Generated pornstar and category HTML pages contain valid JSON-LD", () => 
     "pornstars/mia-nympo.html",
     "pornstars/sabrina-ass.html",
     "pornstars/marsha-banks.html",
+    "pornstars/vixen.html",
   ];
   const categoryFiles = [
     "categories/index.html",
