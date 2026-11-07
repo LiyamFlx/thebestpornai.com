@@ -28,6 +28,8 @@ let cstate = {
   batchRightsConfirmed: false,
   isBatchUploading: false,
   batchProgress: 0,
+  batchCompleted: false,
+  lastBatchResults: null,
   editingProfile: false
 };
 // Inline oninput/onclick/onchange handlers in the rendered HTML run in GLOBAL
@@ -996,12 +998,23 @@ async function uPublishBatch() {
         }
 
         item.status = "live";
+        item.publishedId = localId;
         successCount++;
         const cardDone = document.getElementById("q_card_" + item.id);
         if (cardDone) {
           cardDone.className = "queue-card live";
           const col = cardDone.querySelector(".queue-status-col");
-          if (col) col.innerHTML = `<span class="tag-pill green" style="font-size:11px;">✓ Live</span>`;
+          if (col) {
+            col.innerHTML = `
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+                <span class="tag-pill green" style="font-size:11px;">✓ Live</span>
+                <div style="display:flex;gap:4px;">
+                  <a href="/video/${localId}.html" target="_blank" class="btn ghost sm" style="padding:2px 7px;font-size:11px;text-decoration:none;" title="Watch live video">▶ Watch</a>
+                  <button type="button" class="btn ghost sm" style="padding:2px 7px;font-size:11px;" onclick="go('content')" title="Manage in Content Manager">Manage</button>
+                </div>
+              </div>
+            `;
+          }
         }
       } catch (err) {
         console.error("Failed to upload " + item.title, err);
@@ -1024,6 +1037,25 @@ async function uPublishBatch() {
 
   cstate.isBatchUploading = false;
   syncCreatorManifest();
+
+  if (successCount > 0) {
+    const liveItems = cstate.queue.filter(i => i.status === "live");
+    cstate.batchCompleted = true;
+    cstate.lastBatchResults = {
+      total,
+      successCount,
+      failedCount: total - successCount,
+      items: liveItems.map(i => ({
+        id: i.publishedId || i.id,
+        title: i.title || "Untitled",
+        thumb: i.thumb || "",
+        duration: i.duration || "0:15",
+        category: (i.categories && i.categories[0]) || "Amateur",
+        visibility: i.visibility || "public"
+      }))
+    };
+  }
+
   render();
 
   if (successCount === total) {
@@ -1115,7 +1147,13 @@ function renderQueueItemCard(item, idx) {
           ` : isVerifying ? `
             <span class="tag-pill blue" style="font-size:11px;">Verifying…</span>
           ` : isLive ? `
-            <span class="tag-pill green" style="font-size:11px;">✓ Live</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+              <span class="tag-pill green" style="font-size:11px;">✓ Live</span>
+              <div style="display:flex;gap:4px;">
+                <a href="/video/${item.publishedId || item.id}.html" target="_blank" class="btn ghost sm" style="padding:2px 7px;font-size:11px;text-decoration:none;" title="Watch live video">▶ Watch</a>
+                <button type="button" class="btn ghost sm" style="padding:2px 7px;font-size:11px;" onclick="go('content')" title="Manage in Content Manager">Manage</button>
+              </div>
+            </div>
           ` : isFailed ? `
             <span class="tag-pill red" style="font-size:11px;" title="${esc(item.error || 'Failed')}">✕ Failed</span>
           ` : `
@@ -1333,9 +1371,105 @@ function renderSingleUploadEditor() {
   `;
 }
 
+function uStartNewUploadBatch() {
+  cstate.batchCompleted = false;
+  cstate.lastBatchResults = null;
+  uClearQueue();
+  render();
+}
+
+function renderBatchSuccess() {
+  const res = cstate.lastBatchResults || { successCount: 0, total: 0, items: [] };
+  const firstId = res.items.length ? res.items[0].id : null;
+
+  return `
+    <div class="upload-success-container">
+      <div class="upload-success-badge">🎉 BATCH PUBLISH COMPLETE</div>
+      <h1 style="margin:0 0 10px;font-size:30px;">All ${res.successCount} Videos Are Live!</h1>
+      <p class="sub" style="margin:0 auto 28px;max-width:620px;font-size:15px;line-height:1.6;">
+        Your videos are now encoded, verified, and distributed across the global edge CDN. Viewers can stream them immediately in high-definition 4K.
+      </p>
+
+      <!-- Primary Next Steps Grid -->
+      <div class="success-actions-grid">
+        <div class="success-action-card" onclick="go('content')">
+          <span class="action-card-ico">🎬</span>
+          <div class="action-card-content">
+            <h3>Content Manager</h3>
+            <p>Edit titles, tags, descriptions, change visibility, or track views.</p>
+            <span class="action-card-btn">Manage Videos →</span>
+          </div>
+        </div>
+
+        <div class="success-action-card" onclick="go('profile')">
+          <span class="action-card-ico">👤</span>
+          <div class="action-card-content">
+            <h3>Creator Profile</h3>
+            <p>Check your public channel presence, subscriber count, and bio.</p>
+            <span class="action-card-btn">View Profile →</span>
+          </div>
+        </div>
+
+        <div class="success-action-card" onclick="${firstId ? `window.open('/video/${firstId}.html','_blank')` : `window.location.href='/'`}">
+          <span class="action-card-ico">👁</span>
+          <div class="action-card-content">
+            <h3>Watch on Live Site</h3>
+            <p>Preview your new uploads directly on the live player experience.</p>
+            <span class="action-card-btn">Watch Scene →</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Published Videos Showcase List -->
+      <div class="success-published-showcase">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <h3 style="margin:0;font-size:18px;">Published Videos (${res.items.length})</h3>
+          <button class="btn sm" onclick="uStartNewUploadBatch()">＋ Upload More Videos</button>
+        </div>
+
+        <div class="success-video-list">
+          ${res.items.map(item => `
+            <div class="success-video-row">
+              <div class="success-video-thumb">
+                ${item.thumb ? `<img src="${item.thumb}" alt="${esc(item.title)}"/>` : `<div style="width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;color:#666;">4K</div>`}
+                <span class="tag-pill green" style="position:absolute;top:6px;left:6px;font-size:10px;padding:2px 6px;">✓ LIVE</span>
+                <span class="tag-pill dark" style="position:absolute;bottom:6px;right:6px;font-size:10px;padding:2px 6px;">${esc(item.duration || '0:15')}</span>
+              </div>
+              <div class="success-video-details">
+                <div class="success-video-title">${esc(item.title)}</div>
+                <div class="success-video-meta">
+                  <span class="tag-pill muted">${esc(item.category || 'Amateur')}</span>
+                  <span class="small" style="color:var(--muted);text-transform:capitalize;">${esc(item.visibility || 'public')} · Edge Cached</span>
+                </div>
+              </div>
+              <div class="success-video-links">
+                <a href="/video/${item.id}.html" target="_blank" class="btn sm ghost" style="text-decoration:none;">▶ Watch</a>
+                <button class="btn sm" onclick="go('content')">Manage</button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <div style="margin-top:32px;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
+        <button class="btn" style="padding:12px 32px;font-weight:700;" onclick="uStartNewUploadBatch()">
+          ⬆ Upload Another Batch
+        </button>
+        <button class="btn ghost" style="padding:12px 28px;" onclick="go('dashboard')">
+          Return to Studio Dashboard
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function renderUpload() {
   if (cstate.singleView && cstate.upload && cstate.upload.file) {
     return renderSingleUploadEditor();
+  }
+
+  if (cstate.batchCompleted && cstate.lastBatchResults) {
+    return renderBatchSuccess();
   }
 
   if (!cstate.queue.length) {
@@ -1451,22 +1585,39 @@ function renderUpload() {
       ` : ''}
 
       <div class="panel queue-publish-bar" style="margin-top:24px;padding:20px;">
-        <label class="small" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;">
-          <input type="checkbox" id="batchRightsConfirm" ${cstate.batchRightsConfirmed ? 'checked' : ''}
-            onchange="uSetBatchRightsConfirmed(this.checked)" style="margin-top:2px;" ${cstate.isBatchUploading ? 'disabled' : ''}/>
-          <span><strong>18+ Age & Rights Confirmation:</strong> I confirm all performers depicted in these videos are 18+ years of age, I hold the rights to upload this content, and any required 2257 documentation is on file.</span>
-        </label>
-        <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-top:1px solid var(--border);padding-top:16px;">
-          <div class="small" style="color:var(--muted);">
-            ${cstate.queue.filter(i => i.status === 'live').length} of ${cstate.queue.length} published
+        ${cstate.queue.every(i => i.status === 'live') ? `
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-size:26px;">🎉</span>
+              <div>
+                <strong style="font-size:15px;color:#2ed573;">All ${cstate.queue.length} videos published successfully!</strong>
+                <div class="small" style="color:var(--muted)">Content is live and distributed across Cloudflare CDN.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button type="button" class="btn" onclick="go('content')">🎬 View in Content Manager</button>
+              <button type="button" class="btn ghost" onclick="go('profile')">👤 Creator Profile</button>
+              <button type="button" class="btn ghost" onclick="uStartNewUploadBatch()">⬆ Upload More</button>
+            </div>
           </div>
-          <div style="display:flex;gap:10px;">
-            <button type="button" class="btn" style="padding:10px 28px;font-weight:700;" onclick="uPublishBatch()"
-              ${cstate.isBatchUploading || !cstate.batchRightsConfirmed ? 'disabled' : ''}>
-              ${cstate.isBatchUploading ? '⏳ Uploading…' : `🚀 Publish All (${cstate.queue.length}) Videos`}
-            </button>
+        ` : `
+          <label class="small" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;">
+            <input type="checkbox" id="batchRightsConfirm" ${cstate.batchRightsConfirmed ? 'checked' : ''}
+              onchange="uSetBatchRightsConfirmed(this.checked)" style="margin-top:2px;" ${cstate.isBatchUploading ? 'disabled' : ''}/>
+            <span><strong>18+ Age & Rights Confirmation:</strong> I confirm all performers depicted in these videos are 18+ years of age, I hold the rights to upload this content, and any required 2257 documentation is on file.</span>
+          </label>
+          <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-top:1px solid var(--border);padding-top:16px;">
+            <div class="small" style="color:var(--muted);">
+              ${cstate.queue.filter(i => i.status === 'live').length} of ${cstate.queue.length} published
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button type="button" class="btn" style="padding:10px 28px;font-weight:700;" onclick="uPublishBatch()"
+                ${cstate.isBatchUploading || !cstate.batchRightsConfirmed ? 'disabled' : ''}>
+                ${cstate.isBatchUploading ? '⏳ Uploading…' : `🚀 Publish All (${cstate.queue.length}) Videos`}
+              </button>
+            </div>
           </div>
-        </div>
+        `}
       </div>
     </div>
   `;
@@ -1778,3 +1929,5 @@ window.uUpdateScrub = uUpdateScrub;
 window.uCancelUpload = uCancelUpload;
 window.openVideoEditor = openVideoEditor;
 window.uSetRightsConfirmed = uSetRightsConfirmed;
+window.uStartNewUploadBatch = uStartNewUploadBatch;
+window.go = go;
