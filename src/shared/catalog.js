@@ -1086,6 +1086,21 @@ const DATA = {
       banner: "../media/thumbs/Redhead getting fuck COMPILATION/REDHED COMPLITION00001.jpg",
       introVideoId: 1380,
     },
+    {
+      id: "ps-vixen",
+      kind: "pornstar",
+      name: "Vixen",
+      handle: "@vixen",
+      slug: "vixen",
+      subs: 5400,
+      verified: true,
+      bio: "Photoreal AI model & pornstar — stunning gaze, seductive curves, and high-detail 4K vertical shorts.",
+      tags: ["Vixen", "Pornstar", "Babe", "AI", "Solo"],
+      categories: ["Babe", "AI Generated"],
+      avatar: "../media/Vixen/avatar.jpg",
+      banner: "../media/Vixen/banner.jpg",
+      introVideoId: 7114,
+    },
   ],
 
   // Homepage rows / sidebar / filter bar taxonomy — sourced from taxonomy.js
