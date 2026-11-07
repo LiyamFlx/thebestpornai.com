@@ -26,7 +26,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import "dotenv/config";
 import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
-import { posterPaths, generatePoster, hasFfmpeg } from "./lib/posters.js";
+import { posterPaths, generatePoster, hasFfmpeg, relFromSrc } from "./lib/posters.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
@@ -118,15 +118,18 @@ const generated = new Map();   // catalog src -> thumb path (to write back)
 let made = 0, uploaded = 0, skippedNoLocal = 0, failed = 0, existed = 0;
 
 async function processOne(v) {
-  const localPath = localForSrc(v.src);
-  if (!localPath) { skippedNoLocal++; return; }
+  let videoSource = localForSrc(v.src);
+  if (!videoSource) {
+    const rel = relFromSrc(v.src);
+    videoSource = `https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/${rel.split("/").map(encodeURIComponent).join("/")}`;
+  }
   const { thumb, key, relJpg } = posterPaths(v.src);
   const outJpg = path.join(REPO, "media", "thumbs", relJpg);
   try {
     if (dryRun) { generated.set(v.src, thumb); made++; return; }
 
     if (force || !fs.existsSync(outJpg) || fs.statSync(outJpg).size === 0) {
-      generatePoster(localPath, outJpg, { width: 480, seek: 1 });
+      generatePoster(videoSource, outJpg, { width: 480, seek: 1 });
       made++;
     } else { existed++; }
 
