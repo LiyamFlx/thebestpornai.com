@@ -4,7 +4,7 @@ import { playPath } from "../src/shared/public-routes.js";
 
 const ORIGIN = "https://www.thebestpornai.com";
 const MEDIA_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media";
-const LOGO = `${ORIGIN}/logo.png`;
+const LOGO = `${ORIGIN}/logo.webp`;
 
 function esc(s) {
   if (s === null || s === undefined) return "";

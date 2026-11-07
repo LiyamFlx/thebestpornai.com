@@ -2,7 +2,7 @@
  * Ensures high-speed shell caching while guaranteeing 100% catalog freshness.
  */
 
-const CACHE_NAME = "streamhub-pwa-v4";
+const CACHE_NAME = "streamhub-pwa-v5";
 
 const STATIC_PRECACHE = [
   "/",
@@ -12,6 +12,8 @@ const STATIC_PRECACHE = [
   "/icon-192.png",
   "/icon-512.png",
   "/site.webmanifest",
+  "/logo.webp",
+  "/logo-wordmark.webp",
   "/logo.png"
 ];
 
