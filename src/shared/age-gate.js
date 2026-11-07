@@ -6,7 +6,7 @@
    point, before any content-rendering code runs.
    ============================================================ */
 
-import logoUrl from "./assets/logo.png";
+import logoUrl from "./assets/logo.webp";
 
 const AGE_GATE_KEY = "sh_age_verified";
 

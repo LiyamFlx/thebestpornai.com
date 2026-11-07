@@ -13,7 +13,7 @@ export function sharedHeaderHtml(activeNav = "") {
   <header class="site-header">
     <div class="site-header-inner">
       <a class="site-brand" href="/" aria-label="thebestpornai home">
-        <img class="site-brand-img" src="/logo-wordmark.png" alt="thebestpornai" width="160" height="24"/>
+        <img class="site-brand-img" src="/logo-wordmark.webp" alt="thebestpornai" width="160" height="24" decoding="async"/>
       </a>
       <nav class="site-nav" aria-label="Primary">
         <a class="site-nav-link${on("home")}" href="/">Home</a>
@@ -53,22 +53,22 @@ export function appShellHtml(activeNav, bodyContent) {
     <a class="brand" href="/" aria-label="thebestpornai home"><img src="/favicon-64.png" width="32" height="32" alt="thebestpornai"/></a>
     <nav class="nav" aria-label="Primary">
       <a href="/" class="${on("home")}" aria-label="Home"${activeNav === "home" ? ' aria-current="page"' : ""}>${ICO.home}<span class="nav-label">Home</span></a>
-      <a href="/shorts" aria-label="Shorts">${ICO.shorts}<span class="nav-label">Shorts</span></a>
-      <a href="/library" aria-label="Library">${ICO.save}<span class="nav-label">Library</span></a>
-      <a href="/subscriptions" aria-label="Subscriptions">${ICO.subs}<span class="nav-label">Subs</span></a>
+      <a href="/shorts" aria-label="Shorts" rel="nofollow">${ICO.shorts}<span class="nav-label">Shorts</span></a>
+      <a href="/library" aria-label="Library" rel="nofollow">${ICO.save}<span class="nav-label">Library</span></a>
+      <a href="/subscriptions" aria-label="Subscriptions" rel="nofollow">${ICO.subs}<span class="nav-label">Subs</span></a>
       <a href="/explore" aria-label="Explore">${ICO.explore}<span class="nav-label">Explore</span></a>
       <a href="/pornstars/" class="${on("pornstars")}" aria-label="Pornstars"${activeNav === "pornstars" ? ' aria-current="page"' : ""}>${ICO.you}<span class="nav-label">Stars</span></a>
       <a href="/The-Best-Porn-AI-in-2026" class="${on("compare")}" aria-label="Top AI Tools"${activeNav === "compare" ? ' aria-current="page"' : ""}>${ICO.explore}<span class="nav-label">Top AI</span></a>
       <a href="/blog/" class="${on("blog")}" aria-label="Blog"${activeNav === "blog" ? ' aria-current="page"' : ""}>${ICO.comment}<span class="nav-label">Blog</span></a>
-      <a href="/choose.html" aria-label="Creator Studio">${ICO.studio}<span class="nav-label">Studio</span></a>
+      <a href="/choose.html" aria-label="Creator Studio" rel="nofollow">${ICO.studio}<span class="nav-label">Studio</span></a>
     </nav>
-    <a class="sidebar-you" href="/profile" aria-label="Your account">${ICO.you}<span class="nav-label">You</span></a>
+    <a class="sidebar-you" href="/profile" aria-label="Your account" rel="nofollow">${ICO.you}<span class="nav-label">You</span></a>
   </aside>
   <div class="main">
     <div class="topbar">
       <div class="left">
         <a href="/" class="topbar-brand" aria-label="thebestpornai home">
-          <img src="/logo-wordmark.png" alt="thebestpornai" width="160" height="24"/>
+          <img src="/logo-wordmark.webp" alt="thebestpornai" width="160" height="24" decoding="async"/>
         </a>
       </div>
       <div class="topbar-actions">
@@ -76,7 +76,7 @@ export function appShellHtml(activeNav, bodyContent) {
           <input class="search-input" type="search" name="q" placeholder="Search videos, creators, tags…" aria-label="Search" autocomplete="off"/>
           <button class="search-go" type="submit" aria-label="Search">${ICO.search}</button>
         </form>
-        <a href="/creator/index.html?page=upload" class="topbar-upload-btn" aria-label="Upload videos" style="text-decoration:none;">
+        <a href="/creator/index.html?page=upload" class="topbar-upload-btn" aria-label="Upload videos" style="text-decoration:none;" rel="nofollow">
           <span class="upload-ico">⬆</span>
           <span class="upload-text">Upload</span>
         </a>
@@ -100,7 +100,7 @@ export function sharedFooterHtml() {
   <footer class="site-footer">
     <div class="site-footer-inner">
       <div class="site-footer-brand">
-        <img class="site-footer-logo" src="/logo-wordmark.png" alt="thebestpornai" width="160" height="24"/>
+        <img class="site-footer-logo" src="/logo-wordmark.webp" alt="thebestpornai" width="160" height="24" decoding="async"/>
         <p class="site-footer-tagline">Curated AI adult entertainment and high-definition streaming.</p>
         <p class="site-footer-compliance">18+ only. All performers are 100% synthetically generated AI personas.</p>
       </div>
