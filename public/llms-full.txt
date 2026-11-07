@@ -1,0 +1,40 @@
+# thebestpornai.com — Full Platform Context & Knowledge Base
+
+> Adult video streaming platform featuring AI-generated and community content, model profiles, and in-depth editorial guides on generative adult synthetic media, video diffusion models, and platform comparisons.
+
+## Platform Architecture & Surfaces
+
+- [Homepage & Watch Library](https://www.thebestpornai.com/): Free 4K AI video streaming and catalog with instant watch playback.
+- [Blog & Editorial Hub](https://www.thebestpornai.com/blog/): Technology guides, platform benchmarks, safety deep dives, and industry trends.
+- [AI Pornstars Directory](https://www.thebestpornai.com/pornstars/): Dedicated profile pages for AI-generated personas, complete with biographies, galleries, and related scenes.
+- [Categories Directory](https://www.thebestpornai.com/categories/): Browse by niche tags, model identities, styles, and scenarios.
+- [Editorial Team & Author Profile](https://www.thebestpornai.com/author/anna-k.html): Anna K. and the editorial team covering AI synthetic media benchmarks.
+- [Sitemap Index](https://www.thebestpornai.com/sitemap-index.xml): Master index for XML sitemaps.
+- [Content Sitemap](https://www.thebestpornai.com/sitemap.xml): Index of all static pages, blogs, and categories.
+- [Video Sitemap](https://www.thebestpornai.com/sitemap-video.xml): Comprehensive index of video watch pages with complete Schema.org VideoObject metadata.
+
+## Core Editorial Benchmark: Best AI Porn Generators in 2026
+
+- URL: https://www.thebestpornai.com/blog/best-ai-porn-generators-2026.html
+- Summary: In-depth benchmark of leading AI adult image and video generation tools evaluated across prompt fidelity, motion coherence, temporal stability, character identity consistency, privacy posture, and pricing models.
+- Key findings:
+  1. Temporal Consistency: Video generation has advanced beyond single-frame diffusion to multi-frame latent consistency pipelines.
+  2. Privacy & Data Handling: Cloud-based generators vary widely in image retention and moderation policies; zero-logging and self-hosting options provide highest confidentiality.
+  3. Platform Differentiation: Curated watch platforms (such as thebestpornai.com) focus on pre-rendered, high-fidelity streaming, whereas generation engines focus on user-prompt synthesis.
+
+## Persona Profiles & Case Studies
+
+- [AI Pornstar Profiles: Mia Nympo Case Study](https://www.thebestpornai.com/blog/ai-pornstar-profiles-mia-nympo-case-study.html): Technical analysis of character LoRA training, face consistency, and persona branding.
+- [Sabrina Ass Profile & Shorts Guide](https://www.thebestpornai.com/blog/sabrina-ass-ai-pornstar-profile-intro-shorts.html): Examination of short-form video generation pipelines.
+- [Marsha Banks Profile & Shorts Guide](https://www.thebestpornai.com/blog/marsha-banks-ai-pornstar-profile-intro-shorts.html): Workflow review for persistent character styling across diverse scene lighting.
+
+## Technical & Streaming Specifications
+
+- Video Hosting: Low-latency first-party reverse proxy (`/r2/media/...`) with global edge caching and CDN distribution.
+- Metadata: High-precision Schema.org VideoObject JSON-LD markup on every watch page (`/video/<id>.html`), featuring verified `thumbnailUrl`, `contentUrl`, `uploadDate`, and `duration`.
+- Accessibility & Performance: Zero render-blocking assets, pre-warmed image caches, responsive WebP/JPEG thumbnails, and strict contrast standards.
+- Regulatory Compliance: RTA label metadata (`RTA-5042-1996-1400-1577-RTA`), 18+ age verification gate, and strict content attestations.
+
+## Contact & Inquiries
+
+- General Contact: contact@thebestpornai.com
