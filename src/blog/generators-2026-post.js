@@ -3,7 +3,7 @@ import { ourdreamUrl } from "../shared/affiliates.js";
 const OD = ourdreamUrl("home", "blog-generators");
 const KUPID = "https://ho.kupid.ai/go/r?src_ref=80101de29&sub_id=blog-generators-2026";
 const logo = (file, alt) =>
-  `https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/blog/logos/${file}?v=2`;
+  `https://www.thebestpornai.com/r2/media/blog/logos/${file}?v=2`;
 
 function ext(href, label) {
   const rel = href.includes("ourdream") || href.includes("ourdreamersai13") || href.includes("kupid")

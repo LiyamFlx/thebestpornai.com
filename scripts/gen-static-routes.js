@@ -72,6 +72,10 @@ function mediaUrl(src) {
 // traffic is not proxied through Vercel.
 function imgUrl(src) {
   if (!src) return "";
+  if (/^https?:\/\/pub-[a-f0-9]+\.r2\.dev\/media\//i.test(src)) {
+    const rel = src.replace(/^https?:\/\/pub-[a-f0-9]+\.r2\.dev\/media\//i, "");
+    return `${ORIGIN}/r2/media/` + rel.split("/").map(encodeURIComponent).join("/");
+  }
   if (/^https?:\/\//i.test(src)) return src;
   const rel = src.replace(/^(\.\.\/)?media\//, "");
   return `${ORIGIN}/r2/media/` + rel.split("/").map(encodeURIComponent).join("/");
@@ -717,7 +721,7 @@ const PORNSTARS = [
 ];
 
 function videoCardHtml(v, { eager = false, fetchpriority } = {}) {
-  const thumbUrl = v.thumb ? mediaUrl(v.thumb) : "";
+  const thumbUrl = v.thumb ? imgUrl(v.thumb) : "";
   const dur = v.duration ? `<span class="card-dur">${esc(v.duration)}</span>` : "";
   const views = fmtViews(v.views || 1200);
   const loading = eager ? "eager" : "lazy";
@@ -1205,7 +1209,7 @@ function genPornstarsHub() {
   const canonical = `${ORIGIN}/pornstars/`;
 
   const cardsHtml = PORNSTARS.map((ps) => {
-    const bannerUrl = mediaUrl(ps.banner);
+    const bannerUrl = imgUrl(ps.banner);
     return `
       <a class="card" href="/pornstars/${ps.slug}.html">
         <div class="video-thumb">
@@ -1264,7 +1268,7 @@ function genPornstarProfiles() {
     const description = `${ps.bio} Watch full HD & 4K video scenes and mobile vertical Shorts starring ${ps.name}.`;
     const canonical = `${ORIGIN}/pornstars/${ps.slug}.html`;
     const avatarUrl = imgUrl(ps.avatar);
-    const bannerUrl = mediaUrl(ps.banner);
+    const bannerUrl = imgUrl(ps.banner);
 
     // Find videos for this creator
     const creatorVideos = VIDEOS.filter((v) =>
@@ -1347,7 +1351,7 @@ function genCategoriesHub() {
       (v.categories && v.categories.some((c) => c.toLowerCase() === cat.name.toLowerCase()))
     );
     const thumb = matches.find((v) => v.thumb)?.thumb;
-    const thumbUrl = thumb ? mediaUrl(thumb) : "";
+    const thumbUrl = thumb ? imgUrl(thumb) : "";
     return `
       <a class="card" href="/categories/${slug}.html">
         <div class="video-thumb">
@@ -1572,7 +1576,7 @@ function genVideoPages() {
     const title = `${v.title} — 4K AI Porn Video | thebestpornai`;
     const description = v.desc || `Watch ${v.title} in 4K Ultra HD on thebestpornai. Free AI adult video stream featuring ${v.category || 'curated'} scenes with instant playback and no signups.`;
     const canonical = `${ORIGIN}/video/${v.id}.html`;
-    const thumbUrl = v.thumb ? mediaUrl(v.thumb) : LOGO;
+    const thumbUrl = v.thumb ? imgUrl(v.thumb) : LOGO;
     const seoThumb = v.thumb ? imgUrl(v.thumb) : LOGO;
     const catSlug = slugify(v.category || "ai");
 
@@ -1702,7 +1706,7 @@ function prerenderHomepageSkeleton() {
   }
 
   const featuredCards = featured.map(v => {
-    const thumbUrl = v.thumb ? mediaUrl(v.thumb) : LOGO;
+    const thumbUrl = v.thumb ? imgUrl(v.thumb) : LOGO;
     const dur = v.duration ? esc(v.duration) : "";
     const views = fmtViews(v.views || 1200);
     return `        <article class="card">

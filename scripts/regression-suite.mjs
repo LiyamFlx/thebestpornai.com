@@ -467,6 +467,22 @@ await asyncCheck("Check catalog IDs script runs with zero errors", async () => {
   assert(output.includes("unique video ids, no duplicates"), "check-catalog-ids must pass");
 });
 
+await asyncCheck("Media URL proxy contract: thumbnails and images route to /r2/ proxy", async () => {
+  const { mediaUrl } = await import("../src/shared/catalog.js");
+  assert.equal(mediaUrl("../media/thumbs/Vixen/Vixen 34.jpg"), "/r2/media/thumbs/Vixen/Vixen%2034.jpg");
+  assert.equal(
+    mediaUrl("https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/Vixen/Vixen%2034.jpg"),
+    "/r2/media/thumbs/Vixen/Vixen%2034.jpg"
+  );
+  assert.equal(
+    mediaUrl("https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/uploads/up_123.jpg"),
+    "/r2/media/uploads/up_123.jpg"
+  );
+  // Video streams must stay direct R2 or MEDIA_BASE
+  assert(mediaUrl("../media/Vixen/Vixen 34.mp4").includes(".mp4"));
+  assert(mediaUrl("../media/Vixen/Vixen 34.mp4").startsWith("https://pub-"));
+});
+
 // --- SUMMARY ---
 console.log("\n==================================================");
 console.log(`Regression Test Summary: ${passed} PASSED, ${failed} FAILED`);

@@ -8,7 +8,7 @@ const PROMPTCHAN = "https://promptchan.com";
 const SOULGEN = "https://www.soulgen.ai";
 
 const logo = (file) =>
-  `https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/blog/logos/${file}?v=3`;
+  `https://www.thebestpornai.com/r2/media/blog/logos/${file}?v=3`;
 
 function ext(href, label) {
   const rel =

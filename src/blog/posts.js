@@ -1561,7 +1561,7 @@ export const SEED_POSTS = [
       </div>
 
       <a href="/pornstars/" class="blog-embed">
-        <div class="blog-embed-thumb" style="background-image:url('https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/Marsha%20Banks/Marsha%20Banks%20Intro.jpg')"></div>
+        <div class="blog-embed-thumb" style="background-image:url('https://www.thebestpornai.com/r2/media/thumbs/Marsha%20Banks/Marsha%20Banks%20Intro.jpg')"></div>
         <div class="blog-embed-info">
           <div class="blog-embed-label">Stream Free on thebestpornai</div>
           <div class="blog-embed-title">Experience Verified AI Pornstar Profiles & 1080p Video</div>
@@ -1905,7 +1905,7 @@ export const SEED_POSTS = [
       </ul>
 
       <a href="/shorts" class="blog-embed">
-        <div class="blog-embed-thumb" style="background-image:url('https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media/thumbs/Sabrina%20Ass/Sabrina%20Ass%20Intro.jpg')"></div>
+        <div class="blog-embed-thumb" style="background-image:url('https://www.thebestpornai.com/r2/media/thumbs/Sabrina%20Ass/Sabrina%20Ass%20Intro.jpg')"></div>
         <div class="blog-embed-info">
           <div class="blog-embed-label">Free Unlimited Stream</div>
           <div class="blog-embed-title">Browse Free AI Shorts & Full Video Scenes</div>

@@ -57,8 +57,9 @@ export default function handler(req, res) {
   const desc = v.desc || `Watch ${title} in 4K on thebestpornai.`;
   // First-party /r2/ proxy URL: r2.dev is rate-limited and some scrapers
   // (Facebook, Telegram) fail on it. Same path shape as gen-static-routes imgUrl().
-  const thumbUrl = v.thumb
-    ? `${ORIGIN}/r2/media/${v.thumb.replace(/^(\.\.\/)?media\//, "").split("/").map(encodeURIComponent).join("/")}`
+  const thumbClean = (v.thumb || "").replace(/^https?:\/\/pub-[a-f0-9]+\.r2\.dev\/media\//i, "");
+  const thumbUrl = thumbClean
+    ? `${ORIGIN}/r2/media/${thumbClean.replace(/^(\.\.\/)?media\//, "").split("/").map(encodeURIComponent).join("/")}`
     : LOGO;
   const videoStreamUrl = v.src ? mediaUrl(v.src) : "";
   const shareUrl = `${ORIGIN}/v/${v.id}`;

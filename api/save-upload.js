@@ -84,7 +84,9 @@ export default async function handler(req, res) {
     creator: String(entry.creator || "").slice(0, 80),
     type: entry.type === "original" ? "original" : "ugc",
     src: String(entry.src).slice(0, 500),
-    thumb: String(entry.thumb || "").slice(0, 500),
+    thumb: String(entry.thumb || "")
+      .replace(/^https?:\/\/pub-[a-f0-9]+\.r2\.dev\/media\//i, "https://www.thebestpornai.com/r2/media/")
+      .slice(0, 500),
     category: String(entry.category || "Amateur").slice(0, 60),
     categories: Array.isArray(entry.categories) ? entry.categories.slice(0, 8).map(c => String(c).slice(0, 60)) : [],
     tags: Array.isArray(entry.tags) ? entry.tags.slice(0, 20).map(t => String(t).slice(0, 60)) : [],

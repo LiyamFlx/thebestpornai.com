@@ -122,11 +122,15 @@ export default async function handler(req, res) {
       new PutObjectCommand({ Bucket: R2_BUCKET, Key: key, ContentType: contentType }),
       { expiresIn: 900 }   // 15 min
     );
+    const isImage = /^(jpg|jpeg|png|webp)$/i.test(ext);
+    const publicUrl = isImage
+      ? `https://www.thebestpornai.com/r2/media/uploads/${encodeURIComponent(unique)}`
+      : `${PUBLIC_BASE}/media/uploads/${encodeURIComponent(unique)}`;
     return res.status(200).json({
       putUrl,
       contentType,
       src: `../media/uploads/${unique}`,
-      url: `${PUBLIC_BASE}/media/uploads/${encodeURIComponent(unique)}`,
+      url: publicUrl,
       path: key,
     });
   } catch (e) {

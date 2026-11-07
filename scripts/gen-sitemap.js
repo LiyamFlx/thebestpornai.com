@@ -44,6 +44,10 @@ function mediaUrl(src) {
 // (content_loc) stay on R2 so mp4 traffic is not proxied through Vercel.
 function thumbProxyUrl(src) {
   if (!src) return "";
+  if (/^https?:\/\/pub-[a-f0-9]+\.r2\.dev\/media\//i.test(src)) {
+    const rel = src.replace(/^https?:\/\/pub-[a-f0-9]+\.r2\.dev\/media\//i, "");
+    return `${ORIGIN}/r2/media/` + rel.split("/").map(encodeURIComponent).join("/");
+  }
   if (/^https?:\/\//i.test(src)) return src;
   const rel = src.replace(/^(\.\.\/)?media\//, "");
   return `${ORIGIN}/r2/media/` + rel.split("/").map(encodeURIComponent).join("/");

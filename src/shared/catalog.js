@@ -81,10 +81,20 @@ function mediaUrl(src){
     result = "";
   } else if(src.startsWith("/")) {
     result = esc(src);
+  } else if(/^https?:\/\/pub-[a-f0-9]+\.r2\.dev\/media\//i.test(src)) {
+    const rel = src.replace(/^https?:\/\/pub-[a-f0-9]+\.r2\.dev\/media\//i, "");
+    if (/\.(jpg|jpeg|png|webp|avif)$/i.test(rel) || rel.includes("thumbs/")) {
+      result = "/r2/media/" + rel;
+    } else {
+      result = src;
+    }
+    result = esc(result);
   } else if(!/^https?:\/\//i.test(src) && !src.startsWith("blob:") && !src.startsWith("data:")) {
-    if(MEDIA_BASE) {
-      const rel = src.replace(/^(\.\.\/)?media\//, "");
-      const path = rel.split("/").map(seg => encodeURIComponent(seg).replace(/'/g, "%27")).join("/");
+    const rel = src.replace(/^(\.\.\/)?media\//, "");
+    const path = rel.split("/").map(seg => encodeURIComponent(seg).replace(/'/g, "%27")).join("/");
+    if (/\.(jpg|jpeg|png|webp|avif)$/i.test(rel) || rel.startsWith("thumbs/")) {
+      result = "/r2/media/" + path;
+    } else if(MEDIA_BASE) {
       result = MEDIA_BASE.replace(/\/$/,"") + "/" + path;
     }
     result = esc(result);
