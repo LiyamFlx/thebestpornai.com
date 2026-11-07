@@ -14,12 +14,31 @@
 .brand{
   font-weight:800;
   letter-spacing:0.5px;
-  font-size:15px;
+  font-size:14px;
   color:var(--accent);
-  padding:6px 10px 14px;
+  padding:10px 10px 14px;
   display:flex;align-items:center;gap:8px;
+  text-decoration:none;
 }
-.brand img{height:20px}
+.brand img{
+  height:22px;
+  width:auto;
+  max-width:130px;
+  object-fit:contain;
+  display:block;
+}
+.brand .brand-badge{
+  background:rgba(229,9,20,0.15);
+  color:var(--accent);
+  border:1px solid rgba(229,9,20,0.4);
+  font-size:10px;
+  font-weight:800;
+  padding:2px 6px;
+  border-radius:4px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  flex:none;
+}
 .nav-label{
   font-size:10px;text-transform:uppercase;letter-spacing:1px;
   color:var(--muted);margin:12px 10px 4px;

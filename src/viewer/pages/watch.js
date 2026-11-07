@@ -308,19 +308,18 @@ function promptBox(v){
       <div class="prompt-box-header">
         <div class="prompt-box-title">
           <span>✨</span>
-          <span>AI Generation Prompt &amp; Parameters</span>
+          <span>AI Scene Prompt &amp; Parameters</span>
         </div>
         <span class="prompt-badge">Diffusion Model 2026</span>
       </div>
-      <p class="prompt-box-sub">Recreate or customize this scene with the exact positive diffusion prompt:</p>
       <div class="prompt-box-code-wrap">
         <pre class="prompt-box-code" id="spaPromptText_${v.id}">${esc(promptText)}</pre>
-        <button type="button" class="prompt-copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('spaPromptText_${v.id}').innerText).then(() => { this.innerText = '✓ Copied!'; setTimeout(() => this.innerText = '📋 Copy Prompt', 2500); })">📋 Copy Prompt</button>
+        <button type="button" class="prompt-copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('spaPromptText_${v.id}').innerText).then(() => { this.innerText = '✓ Copied!'; setTimeout(() => this.innerText = '📋 Copy', 2500); })">📋 Copy</button>
       </div>
       <div class="prompt-box-footer">
-        <span class="prompt-footer-hint">Render this prompt in 4K on OurDream:</span>
+        <span class="prompt-footer-hint">Ready to render in 4K?</span>
         <a href="${ourdreamUrl}" target="_blank" rel="${AFFILIATE_REL}" class="prompt-generate-btn">
-          <span>🚀 Generate on OurDream.ai →</span>
+          <span>🚀 Generate on OurDream →</span>
         </a>
       </div>
     </div>`;
