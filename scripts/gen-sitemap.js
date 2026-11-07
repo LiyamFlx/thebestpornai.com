@@ -85,23 +85,20 @@ const pages = [
   { loc: "/author/anna-k.html", changefreq: "monthly", priority: "0.5", lastmod: today },
   { loc: "/pornstars/", changefreq: "weekly", priority: "0.9", lastmod: today },
   { loc: "/categories/", changefreq: "weekly", priority: "0.9", lastmod: today },
-  { loc: "/categories/ai-generated.html", changefreq: "weekly", priority: "0.9", lastmod: today },
-  { loc: "/categories/blonde.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/categories/latina.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/categories/big-ass.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/categories/big-tits.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/categories/milf.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/categories/amateur.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/categories/anal.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/categories/blowjob.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/categories/pov.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/categories/redhead.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/categories/ebony.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/categories/asian.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/categories/babe.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/categories/lesbian.html", changefreq: "weekly", priority: "0.8", lastmod: today },
-  { loc: "/categories/creampie.html", changefreq: "weekly", priority: "0.8", lastmod: today },
 ];
+
+const catDir = path.join(REPO, "categories");
+if (fs.existsSync(catDir)) {
+  for (const f of fs.readdirSync(catDir).filter((x) => x.endsWith(".html") && x !== "index.html").sort()) {
+    const isMain = !f.includes("-page-");
+    pages.push({
+      loc: `/categories/${f}`,
+      changefreq: "weekly",
+      priority: isMain ? "0.9" : "0.7",
+      lastmod: today
+    });
+  }
+}
 
 const pornstarDir = path.join(REPO, "pornstars");
 if (fs.existsSync(pornstarDir)) {
@@ -145,9 +142,10 @@ function lastmodFor(loc) {
   if (loc === "/" || loc === "/categories/" || loc === "/pornstars/") return catalogNewest || siteNewest;
   if (loc === "/blog/" || loc.startsWith("/blog/best-ai-")) return postsNewest || siteNewest;
   if (loc === "/The-Best-Porn-AI-in-2026" || loc.startsWith("/author/")) return postsNewest || siteNewest;
-  if ((m = loc.match(/^\/categories\/(.+)\.html$/))) {
+  if ((m = loc.match(/^\/categories\/(.+?)(-page-\d+)?\.html$/))) {
+    const baseSlug = m[1];
     const inCat = VIDEOS.filter((v) =>
-      [v.category, ...(v.categories || [])].some((c) => slugOf(c) === m[1])
+      [v.category, ...(v.categories || [])].some((c) => slugOf(c) === baseSlug)
     );
     return newest(inCat.map((v) => dayOf(v.uploaded))) || catalogNewest || siteNewest;
   }

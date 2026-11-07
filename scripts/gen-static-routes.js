@@ -739,7 +739,7 @@ function videoCardHtml(v, { eager = false, fetchpriority } = {}) {
     </a>`;
 }
 
-function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, activeNav, bodyContent }) {
+function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, activeNav, bodyContent, extraHead = "" }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -754,6 +754,7 @@ function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, active
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link rel="canonical" href="${canonical}"/>
+  ${extraHead}
   <meta property="og:type" content="website"/>
   <meta property="og:site_name" content="thebestpornai"/>
   <meta property="og:title" content="${esc(title)}"/>
@@ -1180,6 +1181,74 @@ function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, active
       color: #94a3b8;
     }
 
+    /* Category Pagination */
+    .pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 40px 0 24px;
+      flex-wrap: wrap;
+    }
+    .page-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 9px 18px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: #fff;
+      font-size: 13.5px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .page-nav-btn:hover:not(.disabled) {
+      border-color: var(--accent);
+      background: rgba(229,9,20,0.12);
+    }
+    .page-nav-btn.disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .page-numbers {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .page-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 36px;
+      height: 36px;
+      padding: 0 6px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      font-size: 13.5px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .page-num:hover {
+      border-color: rgba(255,255,255,0.4);
+      color: #fff;
+    }
+    .page-num.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 700;
+    }
+    .page-ellipsis {
+      color: #64748b;
+      padding: 0 4px;
+      font-weight: 700;
+    }
+
     @media(max-width: 768px) {
       .site-nav { display: none; }
       .page-hero h1 { font-size: 26px; }
@@ -1421,21 +1490,48 @@ function genCategoriesHub() {
   console.log("✔ categories/index.html generated");
 }
 
-// 4. Generate /categories/<slug>.html
+function paginationNavHtml(slug, pageNum, totalPages) {
+  if (totalPages <= 1) return "";
+  const prevHref = pageNum === 2 ? `/categories/${slug}.html` : `/categories/${slug}-page-${pageNum - 1}.html`;
+  const nextHref = `/categories/${slug}-page-${pageNum + 1}.html`;
+
+  const pages = [];
+  for (let p = 1; p <= totalPages; p++) {
+    if (p === 1 || p === totalPages || (p >= pageNum - 2 && p <= pageNum + 2)) {
+      pages.push(p);
+    } else if (pages[pages.length - 1] !== "...") {
+      pages.push("...");
+    }
+  }
+
+  return `
+    <nav class="pagination-bar" aria-label="Pagination">
+      ${pageNum > 1 ? `<a class="page-nav-btn" href="${prevHref}" rel="prev">← Previous</a>` : `<span class="page-nav-btn disabled">← Previous</span>`}
+      <div class="page-numbers">
+        ${pages.map(p => {
+          if (p === "...") return `<span class="page-ellipsis">…</span>`;
+          const href = p === 1 ? `/categories/${slug}.html` : `/categories/${slug}-page-${p}.html`;
+          const isCur = p === pageNum;
+          return `<a class="page-num${isCur ? ' active' : ''}" href="${href}"${isCur ? ' aria-current="page"' : ''}>${p}</a>`;
+        }).join("")}
+      </div>
+      ${pageNum < totalPages ? `<a class="page-nav-btn" href="${nextHref}" rel="next">Next →</a>` : `<span class="page-nav-btn disabled">Next →</span>`}
+    </nav>`;
+}
+
+// 4. Generate /categories/<slug>.html and /categories/<slug>-page-<n>.html
 function genCategoryPages() {
+  const PAGE_SIZE = 48;
+  let totalCategoryPagesWritten = 0;
+
   for (const cat of TOP_CATEGORIES) {
     const slug = cat.slug || slugify(cat.name);
-    const title = `${cat.headline || `${cat.name} AI Porn Videos`} | thebestpornai`;
-    const description = cat.desc || `Stream the best ${cat.name} AI porn videos in 4K resolution. Free high-speed streaming on thebestpornai.`;
-    const canonical = `${ORIGIN}/categories/${slug}.html`;
-
-    const categoryVideos = VIDEOS.filter((v) =>
+    const allVideos = VIDEOS.filter((v) =>
       (v.category && v.category.toLowerCase() === cat.name.toLowerCase()) ||
       (v.categories && v.categories.some((c) => c.toLowerCase() === cat.name.toLowerCase()))
-    ).slice(0, 48);
+    );
 
-    const videoCards = categoryVideos.map((v, i) => videoCardHtml(v, { eager: i < 4, fetchpriority: i === 0 ? "high" : undefined })).join("\n");
-    const sampleThumb = categoryVideos[0]?.thumb ? imgUrl(categoryVideos[0].thumb) : LOGO;
+    const totalPages = Math.max(1, Math.ceil(allVideos.length / PAGE_SIZE));
 
     const chips = TOP_CATEGORIES.map((c) => {
       const cSlug = c.slug || slugify(c.name);
@@ -1447,110 +1543,154 @@ function genCategoryPages() {
       return `<a class="filter-pill" href="/categories/${cSlug}.html">${esc(c.name)}</a>`;
     }).join("");
 
-    const bodyContent = `
-      <div class="home-chips-strip" style="margin-bottom:12px">${chips}</div>
+    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+      const isFirst = pageNum === 1;
+      const categoryVideos = allVideos.slice((pageNum - 1) * PAGE_SIZE, pageNum * PAGE_SIZE);
+      const videoCards = categoryVideos.map((v, i) => videoCardHtml(v, { eager: i < 4 && isFirst, fetchpriority: i === 0 && isFirst ? "high" : undefined })).join("\n");
+      const sampleThumb = categoryVideos[0]?.thumb ? imgUrl(categoryVideos[0].thumb) : LOGO;
 
-      <div class="cat-hero-wrap">
-        <div class="cat-editorial-tag">Niche Collection · 4K Ultra HD</div>
-        <h1 class="cat-hero-title">${esc(cat.headline || `${cat.name} AI Porn Videos`)}</h1>
-        <p class="cat-hero-lead">${esc(cat.lead || cat.desc)}</p>
-        ${cat.guideSlug ? `
-        <div class="cat-guide-banner">
-          <div class="cat-guide-text">
-            📖 <strong>2026 Editor's Guide:</strong> Deep dive into top ${esc(cat.name)} AI performers, prompt engineering, and scene curation.
+      const title = isFirst
+        ? `${cat.headline || `${cat.name} AI Porn Videos`} | thebestpornai`
+        : `${cat.headline || `${cat.name} AI Porn Videos`} — Page ${pageNum} | thebestpornai`;
+
+      const description = isFirst
+        ? (cat.desc || `Stream the best ${cat.name} AI porn videos in 4K resolution. Free high-speed streaming on thebestpornai.`)
+        : `Stream 4K ${cat.name} AI porn videos (Page ${pageNum} of ${totalPages}). High-definition free streaming on thebestpornai.`;
+
+      const canonical = isFirst
+        ? `${ORIGIN}/categories/${slug}.html`
+        : `${ORIGIN}/categories/${slug}-page-${pageNum}.html`;
+
+      const prevUrl = pageNum === 2
+        ? `${ORIGIN}/categories/${slug}.html`
+        : pageNum > 2
+        ? `${ORIGIN}/categories/${slug}-page-${pageNum - 1}.html`
+        : null;
+
+      const nextUrl = pageNum < totalPages
+        ? `${ORIGIN}/categories/${slug}-page-${pageNum + 1}.html`
+        : null;
+
+      const extraHead = [
+        prevUrl ? `<link rel="prev" href="${prevUrl}"/>` : "",
+        nextUrl ? `<link rel="next" href="${nextUrl}"/>` : "",
+      ].filter(Boolean).join("\n  ");
+
+      const pagination = paginationNavHtml(slug, pageNum, totalPages);
+
+      const bodyContent = `
+        <div class="home-chips-strip" style="margin-bottom:12px">${chips}</div>
+
+        <div class="cat-hero-wrap">
+          <div class="cat-editorial-tag">Niche Collection · 4K Ultra HD${totalPages > 1 ? ` · Page ${pageNum} of ${totalPages}` : ""}</div>
+          <h1 class="cat-hero-title">${esc(cat.headline || `${cat.name} AI Porn Videos`)}${pageNum > 1 ? ` — Page ${pageNum}` : ""}</h1>
+          <p class="cat-hero-lead">${esc(cat.lead || cat.desc)}</p>
+          ${cat.guideSlug && isFirst ? `
+          <div class="cat-guide-banner">
+            <div class="cat-guide-text">
+              📖 <strong>2026 Editor's Guide:</strong> Deep dive into top ${esc(cat.name)} AI performers, prompt engineering, and scene curation.
+            </div>
+            <a class="cat-guide-btn" href="/blog/${esc(cat.guideSlug)}.html">Read Guide →</a>
+          </div>` : ""}
+        </div>
+
+        <div class="v-grid">
+          ${videoCards.length ? videoCards : '<p class="sub">New scenes being generated daily.</p>'}
+        </div>
+
+        ${pagination}
+
+        ${isFirst ? `
+        <section class="cat-editorial-deep">
+          <h2>The 2026 ${esc(cat.name)} AI Video Landscape</h2>
+          <p>${esc(cat.editorial1)}</p>
+          <p>${esc(cat.editorial2)}</p>
+        </section>
+
+        ${cat.faqs && cat.faqs.length ? `
+        <section class="cat-faq-section" id="faq">
+          <h2>Frequently Asked Questions about ${esc(cat.name)} AI Porn</h2>
+          <div class="cat-faq-list">
+            ${cat.faqs.map((f, i) => `
+            <details class="cat-faq-item"${i === 0 ? " open" : ""}>
+              <summary>${esc(f.q)}</summary>
+              <p>${esc(f.a)}</p>
+            </details>`).join("")}
           </div>
-          <a class="cat-guide-btn" href="/blog/${esc(cat.guideSlug)}.html">Read Guide →</a>
-        </div>` : ""}
-      </div>
+        </section>` : ""}
+        ` : ""}
 
-      <div class="v-grid">
-        ${videoCards.length ? videoCards : '<p class="sub">New scenes being generated daily.</p>'}
-      </div>
+        <div style="margin: 40px 0 16px;">
+          <h3 style="font-size:16px;font-weight:700;color:#fff;margin:0 0 12px;">Explore Related Adult AI Niches</h3>
+          <div class="home-chips-strip">
+            ${neighborChips}
+          </div>
+        </div>`;
 
-      <section class="cat-editorial-deep">
-        <h2>The 2026 ${esc(cat.name)} AI Video Landscape</h2>
-        <p>${esc(cat.editorial1)}</p>
-        <p>${esc(cat.editorial2)}</p>
-      </section>
-
-      ${cat.faqs && cat.faqs.length ? `
-      <section class="cat-faq-section" id="faq">
-        <h2>Frequently Asked Questions about ${esc(cat.name)} AI Porn</h2>
-        <div class="cat-faq-list">
-          ${cat.faqs.map((f, i) => `
-          <details class="cat-faq-item"${i === 0 ? " open" : ""}>
-            <summary>${esc(f.q)}</summary>
-            <p>${esc(f.a)}</p>
-          </details>`).join("")}
-        </div>
-      </section>` : ""}
-
-      <div style="margin: 40px 0 16px;">
-        <h3 style="font-size:16px;font-weight:700;color:#fff;margin:0 0 12px;">Explore Related Adult AI Niches</h3>
-        <div class="home-chips-strip">
-          ${neighborChips}
-        </div>
-      </div>`;
-
-    const graph = [
-      {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": `${ORIGIN}/` },
-          { "@type": "ListItem", "position": 2, "name": "Categories", "item": `${ORIGIN}/categories/` },
-          { "@type": "ListItem", "position": 3, "name": cat.name, "item": canonical }
-        ]
-      },
-      {
-        "@type": "CollectionPage",
-        "@id": `${canonical}#page`,
-        "name": cat.headline || `${cat.name} AI Porn Videos`,
-        "description": description,
-        "url": canonical,
-        "mainEntity": {
-          "@type": "ItemList",
-          "itemListElement": categoryVideos.slice(0, 16).map((v, i) => ({
-            "@type": "ListItem",
-            "position": i + 1,
-            "url": `${ORIGIN}/video/${v.id}.html`,
-            "name": v.title
-          }))
-        }
-      }
-    ];
-
-    if (cat.faqs && cat.faqs.length) {
-      graph.push({
-        "@type": "FAQPage",
-        "mainEntity": cat.faqs.map((f) => ({
-          "@type": "Question",
-          "name": f.q,
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": f.a
+      const graph = [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": `${ORIGIN}/` },
+            { "@type": "ListItem", "position": 2, "name": "Categories", "item": `${ORIGIN}/categories/` },
+            { "@type": "ListItem", "position": 3, "name": isFirst ? cat.name : `${cat.name} (Page ${pageNum})`, "item": canonical }
+          ]
+        },
+        {
+          "@type": "CollectionPage",
+          "@id": `${canonical}#page`,
+          "name": isFirst ? (cat.headline || `${cat.name} AI Porn Videos`) : `${cat.headline || `${cat.name} AI Porn Videos`} — Page ${pageNum}`,
+          "description": description,
+          "url": canonical,
+          "mainEntity": {
+            "@type": "ItemList",
+            "itemListElement": categoryVideos.slice(0, 16).map((v, i) => ({
+              "@type": "ListItem",
+              "position": i + 1,
+              "url": `${ORIGIN}/video/${v.id}.html`,
+              "name": v.title
+            }))
           }
-        }))
+        }
+      ];
+
+      if (isFirst && cat.faqs && cat.faqs.length) {
+        graph.push({
+          "@type": "FAQPage",
+          "mainEntity": cat.faqs.map((f) => ({
+            "@type": "Question",
+            "name": f.q,
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": f.a
+            }
+          }))
+        });
+      }
+
+      const jsonLd = {
+        "@context": "https://schema.org",
+        "@graph": graph
+      };
+
+      const html = renderHtmlPage({
+        title,
+        description,
+        canonical,
+        ogImage: sampleThumb,
+        jsonLd,
+        activeNav: "categories",
+        bodyContent,
+        extraHead,
       });
+
+      const fileName = isFirst ? `${slug}.html` : `${slug}-page-${pageNum}.html`;
+      fs.writeFileSync(path.join(CATEGORIES_DIR, fileName), html);
+      totalCategoryPagesWritten++;
     }
-
-    const jsonLd = {
-      "@context": "https://schema.org",
-      "@graph": graph
-    };
-
-    const html = renderHtmlPage({
-      title,
-      description,
-      canonical,
-      ogImage: sampleThumb,
-      jsonLd,
-      activeNav: "categories",
-      bodyContent,
-    });
-
-    fs.writeFileSync(path.join(CATEGORIES_DIR, `${slug}.html`), html);
-    console.log(`✔ categories/${slug}.html generated`);
+    console.log(`✔ categories/${slug} pages generated (${totalPages} page${totalPages > 1 ? "s" : ""})`);
   }
+  console.log(`🎉 Total category pagination pages generated: ${totalCategoryPagesWritten}`);
 }
 
 // 5. Generate /video/<id>.html for top curated & popular scenes with rich Schema VideoObject and OurDream.ai affiliate conversion
@@ -1580,9 +1720,19 @@ function genVideoPages() {
     const seoThumb = v.thumb ? imgUrl(v.thumb) : LOGO;
     const catSlug = slugify(v.category || "ai");
 
-    // Related 6 videos in same category or overall
-    const related = VIDEOS.filter(other => other.id !== v.id && (other.category === v.category || !v.category)).slice(0, 6);
+    // Related 12 videos in same category or overall
+    const related = VIDEOS.filter(other => other.id !== v.id && (other.category === v.category || !v.category)).slice(0, 12);
     const relatedCards = related.map((r) => videoCardHtml(r, { eager: false })).join("\n");
+
+    const catMeta = TOP_CATEGORIES.find(c => c.name.toLowerCase() === (v.category || "").toLowerCase());
+    const guideSlug = catMeta?.guideSlug;
+    const guideBannerHtml = guideSlug ? `
+      <div class="video-guide-banner" style="margin:24px 0 32px;padding:16px 20px;border-radius:12px;background:radial-gradient(120% 160% at 100% 50%, rgba(229,9,20,0.12), rgba(20,20,20,0.95) 75%);border:1px solid rgba(229,9,20,0.3);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div style="font-size:14px;color:#cbd5e1;line-height:1.5">
+          📖 <strong>2026 Editorial Guide:</strong> Explore top performers, prompts &amp; scene curation in our <a href="/blog/${esc(guideSlug)}.html" style="color:var(--accent);font-weight:700">Best AI ${esc(v.category)} Scenes in 2026 Guide →</a>
+        </div>
+        <a href="/blog/${esc(guideSlug)}.html" style="color:#fff;font-size:12.5px;font-weight:700;text-decoration:none;padding:7px 16px;background:var(--accent);border-radius:999px;flex:none">Read Guide →</a>
+      </div>` : "";
 
     const bodyContent = `
       <main class="video-view-wrap">
@@ -1630,6 +1780,8 @@ function genVideoPages() {
           </a>
         </div>
 
+        ${guideBannerHtml}
+
         <div style="margin-top:40px">
           <h2 style="font-size:18px;font-weight:700;margin-bottom:20px;color:#fff">Related 4K Scenes</h2>
           <div class="v-grid">
@@ -1652,6 +1804,7 @@ function genVideoPages() {
           "url": canonical,
           ...(mediaStreamUrl ? { "contentUrl": mediaStreamUrl } : {}),
           "isFamilyFriendly": false,
+          "requiresSubscription": false,
           "interactionStatistic": {
             "@type": "InteractionCounter",
             "interactionType": { "@type": "WatchAction" },
