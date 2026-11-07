@@ -29,7 +29,7 @@ const PUBLIC_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev";
 const _hits = new Map();
 function rateLimited(ip) {
   const now = Date.now();
-  const windowMs = 60_000, max = 10;   // 10 presigns / minute / IP, per warm instance
+  const windowMs = 60_000, max = 100;   // 100 presigns / minute / IP, supports batch folder uploads
   const rec = _hits.get(ip) || { n: 0, t: now };
   if (now - rec.t > windowMs) { rec.n = 0; rec.t = now; }
   rec.n++; _hits.set(ip, rec);

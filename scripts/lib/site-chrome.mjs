@@ -76,6 +76,10 @@ export function appShellHtml(activeNav, bodyContent) {
           <input class="search-input" type="search" name="q" placeholder="Search videos, creators, tags…" aria-label="Search" autocomplete="off"/>
           <button class="search-go" type="submit" aria-label="Search">${ICO.search}</button>
         </form>
+        <a href="/creator/index.html?page=upload" class="topbar-upload-btn" aria-label="Upload videos" style="text-decoration:none;">
+          <span class="upload-ico">⬆</span>
+          <span class="upload-text">Upload</span>
+        </a>
       </div>
     </div>
     <div class="content" id="main-content">

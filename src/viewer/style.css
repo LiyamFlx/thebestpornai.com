@@ -95,6 +95,40 @@
 .icon-btn:active{transform:scale(.92)}
 .icon-btn.on{border-color:var(--accent2);color:var(--accent2);background:rgba(255,59,59,0.1)}
 
+.topbar-upload-btn{
+  height:var(--ctrl-size);
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:0 14px;
+  border-radius:var(--ctrl-radius);
+  cursor:pointer;
+  font-size:13px;
+  font-weight:700;
+  transition:all .15s ease;
+  white-space:nowrap;
+  flex:none;
+}
+.topbar-upload-btn:hover{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#fff;
+  box-shadow:0 2px 14px rgba(229,9,20,0.35);
+}
+.topbar-upload-btn:active{
+  transform:scale(.95);
+}
+.topbar-upload-btn .upload-ico{
+  font-size:13px;
+  line-height:1;
+}
+@media (max-width: 640px) {
+  .topbar-upload-btn { display:none; }
+}
+
 /* Sidebar account trigger — same rounded-square language as .icon-btn, sized
    to sit naturally among the nav rail's icon+label buttons above it. */
 .sidebar-account{width:100%;margin-top:auto;display:flex;justify-content:center}

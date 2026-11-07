@@ -19,7 +19,17 @@ function freshUpload(){ return {step:0, title:"", desc:"", visibility:"public", 
   sample5:null, sample30:null, capturingClip:"",
   rightsConfirmed:false,
   progress:0, uploading:false, verifying:false}; }   // search query per picker
-let cstate = { page:"dashboard", upload:freshUpload(), editingProfile:false };
+let cstate = {
+  page: "dashboard",
+  upload: freshUpload(),
+  queue: [],
+  activeIdx: 0,
+  singleView: false,
+  batchRightsConfirmed: false,
+  isBatchUploading: false,
+  batchProgress: 0,
+  editingProfile: false
+};
 // Inline oninput/onclick/onchange handlers in the rendered HTML run in GLOBAL
 // scope (type="module" keeps module vars private), so cstate must be on window
 // or every inline handler throws "cstate is not defined".
@@ -173,53 +183,266 @@ function renderPickerList(pk){
 /* format seconds -> M:SS */
 function fmtDur(sec){ if(!isFinite(sec)) return "0:00"; sec=Math.round(sec||0); const m=Math.floor(sec/60), s=sec%60; return m+":"+String(s).padStart(2,"0"); }
 
-/* User picked a real file: create object URL, read real duration, advance to Processing */
-function uPickFile(input){
-  const file = (input.files || [])[0];
-  if(!file) return;
+/* Recursive reader for dragged folders and files using HTML5 File System Entry API */
+async function getFilesFromDataTransfer(dataTransfer) {
+  const files = [];
+  const items = Array.from((dataTransfer && dataTransfer.items) || []);
 
-  if(!file.type.startsWith("video/")){
-    toast("Skipped non-video file: " + file.name);
+  async function traverseEntry(entry) {
+    if (!entry) return;
+    if (entry.isFile) {
+      const file = await new Promise((resolve) => entry.file(resolve, () => resolve(null)));
+      if (file && (file.type.startsWith("video/") || /\.(mp4|mov|webm|m4v)$/i.test(file.name))) {
+        files.push(file);
+      }
+    } else if (entry.isDirectory) {
+      const reader = entry.createReader();
+      let entries = [];
+      let batch;
+      do {
+        batch = await new Promise((resolve) => reader.readEntries(resolve, () => resolve([])));
+        if (batch && batch.length) entries.push(...batch);
+      } while (batch && batch.length > 0);
+
+      for (const child of entries) {
+        await traverseEntry(child);
+      }
+    }
+  }
+
+  const entriesToTraverse = [];
+  for (const item of items) {
+    if (item.webkitGetAsEntry) {
+      const entry = item.webkitGetAsEntry();
+      if (entry) entriesToTraverse.push(entry);
+    }
+  }
+
+  if (entriesToTraverse.length > 0) {
+    for (const entry of entriesToTraverse) {
+      await traverseEntry(entry);
+    }
+  } else if (dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
+    for (const file of Array.from(dataTransfer.files)) {
+      if (file.type.startsWith("video/") || /\.(mp4|mov|webm|m4v)$/i.test(file.name)) {
+        files.push(file);
+      }
+    }
+  }
+
+  return files;
+}
+
+function createQueueItem(file) {
+  let cleanTitle = (file.name || "Video")
+    .replace(/\.[^.]+$/, "")
+    .replace(/[-_]+/g, " ")
+    .trim();
+  cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+
+  return {
+    id: "q_" + Math.random().toString(36).slice(2, 9) + "_" + Date.now(),
+    file,
+    title: cleanTitle,
+    desc: "",
+    category: "Amateur",
+    categories: ["Amateur"],
+    tags: ["4K", "AI"],
+    visibility: "public",
+    createdWith: [],
+    url: URL.createObjectURL(file),
+    duration: "0:00",
+    durationSec: 0,
+    width: null,
+    height: null,
+    orientation: "horizontal",
+    thumb: "",
+    thumbOptions: [],
+    _probing: false,
+    _probed: false,
+    _showThumbs: false,
+    status: "ready", // ready | uploading | verifying | live | failed
+    progress: 0,
+    error: ""
+  };
+}
+
+async function uEnqueueFiles(fileList) {
+  const rawFiles = Array.from(fileList || []);
+  const videoFiles = rawFiles.filter(f => f.type.startsWith("video/") || /\.(mp4|mov|webm|m4v)$/i.test(f.name));
+
+  if (!videoFiles.length) {
+    toast("No video files found (supported formats: MP4, WebM, MOV, M4V).");
     return;
   }
 
-  revokeUploadUrl();   // release the previous pick's blob URL before replacing
-  cstate.upload = freshUpload();
-  cstate.upload.file = file;
-  cstate.upload.url = URL.createObjectURL(file);
-  cstate.upload.title = file.name.replace(/\.[^.]+$/,"").replace(/[-_]/g," ");
-  cstate.upload.step = 0; // will be probed
-
-  // Probe metadata + generate thumbs (async)
-  uProbeQueueItem(cstate.upload);
-
+  const newItems = videoFiles.map(createQueueItem);
+  cstate.queue.push(...newItems);
+  cstate.activeIdx = 0;
+  cstate.upload = cstate.queue[0];
+  cstate.singleView = false;
   cstate.page = "upload";
+  render();
+
+  toast(`Added ${videoFiles.length} video${videoFiles.length === 1 ? '' : 's'} to upload queue!`);
+
+  probeQueueItems();
+}
+
+let _isProbingQueue = false;
+async function probeQueueItems() {
+  if (_isProbingQueue) return;
+  _isProbingQueue = true;
+  try {
+    for (const item of cstate.queue) {
+      if (!item._probed && !item._probing) {
+        await new Promise(resolve => {
+          uProbeQueueItem(item, resolve);
+        });
+      }
+    }
+  } finally {
+    _isProbingQueue = false;
+  }
+}
+
+function uPickFiles(input) {
+  if (!input || !input.files) return;
+  uEnqueueFiles(input.files);
+  input.value = "";
+}
+
+function uPickFile(input) {
+  uPickFiles(input);
+}
+
+function uClearQueue() {
+  cstate.queue.forEach(item => {
+    if (item.url && item.url.startsWith("blob:")) {
+      try { URL.revokeObjectURL(item.url); } catch(_) {}
+    }
+  });
+  cstate.queue = [];
+  cstate.upload = freshUpload();
+  cstate.singleView = false;
+  render();
+}
+
+function uRemoveQueueItem(id) {
+  const idx = cstate.queue.findIndex(i => i.id === id);
+  if (idx >= 0) {
+    const item = cstate.queue[idx];
+    if (item.url && item.url.startsWith("blob:")) {
+      try { URL.revokeObjectURL(item.url); } catch(_) {}
+    }
+    cstate.queue.splice(idx, 1);
+    if (cstate.queue.length > 0) {
+      cstate.activeIdx = Math.min(cstate.activeIdx, cstate.queue.length - 1);
+      cstate.upload = cstate.queue[cstate.activeIdx];
+    } else {
+      cstate.upload = freshUpload();
+      cstate.singleView = false;
+    }
+    render();
+  }
+}
+
+function uUpdateItemTitle(id, val) {
+  const item = cstate.queue.find(i => i.id === id);
+  if (item) item.title = val;
+}
+
+function uUpdateItemCategory(id, val) {
+  const item = cstate.queue.find(i => i.id === id);
+  if (item) {
+    item.category = val;
+    item.categories = [val];
+  }
+}
+
+function uUpdateItemVisibility(id, val) {
+  const item = cstate.queue.find(i => i.id === id);
+  if (item) item.visibility = val;
+}
+
+function uApplyBatchCategory() {
+  const sel = document.getElementById("batchCategorySelect");
+  if (!sel) return;
+  const cat = sel.value;
+  cstate.queue.forEach(item => {
+    item.category = cat;
+    item.categories = [cat];
+  });
+  render();
+  toast(`Applied category "${cat}" to all ${cstate.queue.length} videos!`);
+}
+
+function uApplyBatchVisibility() {
+  const sel = document.getElementById("batchVisibilitySelect");
+  if (!sel) return;
+  const vis = sel.value;
+  cstate.queue.forEach(item => {
+    item.visibility = vis;
+  });
+  render();
+  toast(`Applied visibility "${vis}" to all ${cstate.queue.length} videos!`);
+}
+
+function uToggleThumbPicker(id) {
+  const item = cstate.queue.find(i => i.id === id);
+  if (item) {
+    item._showThumbs = !item._showThumbs;
+    render();
+  }
+}
+
+function uSelectQueueThumb(id, idx) {
+  const item = cstate.queue.find(i => i.id === id);
+  if (item && item.thumbOptions[idx]) {
+    item.thumb = item.thumbOptions[idx];
+    render();
+  }
+}
+
+function uSetBatchRightsConfirmed(checked) {
+  cstate.batchRightsConfirmed = checked;
+  render();
+}
+
+function uOpenSingleEditor(idx) {
+  if (cstate.queue[idx]) {
+    cstate.activeIdx = idx;
+    cstate.upload = cstate.queue[idx];
+    cstate.singleView = true;
+    render();
+  }
+}
+
+function uBackToQueue() {
+  cstate.singleView = false;
   render();
 }
 
 // Probe a single item (duration + thumbnails)
-function uProbeQueueItem(u){
-  if(!u || u._probing) return;
+function uProbeQueueItem(u, done){
+  if(!u || u._probing) { if(done) done(); return; }
   u._probing = true;
 
   const v = document.createElement("video");
   v.preload = "metadata"; v.muted = true; v.src = u.url;
 
-  // If loadedmetadata never fires (bad file, R2/network stall), _probing
-  // would otherwise stay true forever and silently block Publish on every
-  // click with no visible error — same failure class as captureFrames' seek
-  // timeout below.
   let metaTimedOut = false;
   const metaTimer = setTimeout(() => {
     metaTimedOut = true;
     u._probing = false;
-    v.onloadedmetadata = null; v.onerror = null; v.src = "";   // stop loading, release
-    toast("Could not read video metadata (timed out) — you can still publish.");
-    render();
+    u._probed = true;
+    v.onloadedmetadata = null; v.onerror = null; v.src = "";
+    if (cstate.page === "upload") render();
+    if (done) done();
   }, 8000);
 
   v.onloadedmetadata = () => {
-    if(metaTimedOut) return;   // timeout already gave up and rendered; ignore late event
+    if(metaTimedOut) return;
     clearTimeout(metaTimer);
     u.duration = fmtDur(v.duration);
     u.durationSec = isFinite(v.duration) ? Math.round(v.duration) : 0;
@@ -231,13 +454,11 @@ function uProbeQueueItem(u){
 
     const dur = v.duration;
     if(!isFinite(dur) || dur <= 0){
-      // Streams/odd containers report Infinity/0 — seeking to NaN stamps would
-      // just burn six 2s timeouts in captureFrames. Skip frame capture, but
-      // tell the creator why the thumbnail grid is empty instead of leaving
-      // them guessing.
-      u._probing = false; v.onerror = null; v.src = "";
-      toast("Couldn't extract thumbnails from this file — pick one manually or publish without one.");
-      render();
+      u._probing = false;
+      u._probed = true;
+      v.onerror = null; v.src = "";
+      if (cstate.page === "upload") render();
+      if (done) done();
       return;
     }
     const stamps = [0.05,0.15,0.30,0.50,0.70,0.85].map(p => Math.max(0.05, Math.min(dur * p, dur - 0.1)));
@@ -246,16 +467,19 @@ function uProbeQueueItem(u){
       u.thumbOptions = thumbs;
       u.thumb = thumbs[0] || "";
       u._probing = false;
-      render();
+      u._probed = true;
+      if (cstate.page === "upload") render();
+      if (done) done();
     });
   };
 
   v.onerror = () => {
     clearTimeout(metaTimer);
     u._probing = false;
-    v.onerror = null; v.src = "";   // null first — clearing src can re-fire error
-    toast("Could not read: " + (u.title || "video"));
-    render();   // clear the "Extracting video metadata…" overlay
+    u._probed = true;
+    v.onerror = null; v.src = "";
+    if (cstate.page === "upload") render();
+    if (done) done();
   };
 }
 
@@ -598,7 +822,216 @@ function retryUpload(id){
   render();
 }
 
-/* ==================== MULTI UPLOAD QUEUE (up to 10 videos) ==================== */
+/* ==================== MULTI UPLOAD QUEUE & BATCH PROCESSING ==================== */
+
+async function uPublishBatch() {
+  if (cstate.isBatchUploading) {
+    toast("Upload batch already running…");
+    return;
+  }
+  if (!cstate.queue.length) {
+    toast("No videos in upload queue.");
+    return;
+  }
+  if (!cstate.batchRightsConfirmed) {
+    toast("Please confirm the 18+ legal rights statement before publishing.");
+    return;
+  }
+
+  const pending = cstate.queue.filter(i => i.status !== "live");
+  if (!pending.length) {
+    toast("All videos in queue are already published!");
+    return;
+  }
+
+  cstate.isBatchUploading = true;
+  cstate.batchProgress = 0;
+  render();
+
+  try {
+    await ShAPI.attestUpload({
+      rightsConfirmed: true,
+      ageConfirmed: true,
+      title: "Batch Upload (" + pending.length + " videos)",
+      confirmedAt: new Date().toISOString(),
+    });
+  } catch (e) {
+    cstate.isBatchUploading = false;
+    render();
+    toast("Could not record legal attestation: " + (e.message || "unknown error"));
+    return;
+  }
+
+  let completedCount = 0;
+  let successCount = 0;
+  const queueToProcess = [...pending];
+  const total = pending.length;
+
+  function updateOverallBatchProgress() {
+    const totalProg = cstate.queue.reduce((acc, i) => acc + (i.progress || 0), 0);
+    cstate.batchProgress = Math.round(totalProg / (cstate.queue.length || 1));
+    const pEl = document.getElementById("batchProgressBar");
+    if (pEl) pEl.style.width = cstate.batchProgress + "%";
+    const pctEl = document.getElementById("batchProgressPct");
+    if (pctEl) pctEl.textContent = cstate.batchProgress + "%";
+    const stEl = document.getElementById("batchStatusText");
+    if (stEl) stEl.textContent = `Completed ${completedCount} of ${total} videos (${cstate.batchProgress}%)`;
+  }
+
+  function updateItemProgressInDOM(id, pct) {
+    const bar = document.getElementById("prog_bar_" + id);
+    if (bar) bar.style.width = pct + "%";
+    const num = document.getElementById("prog_num_" + id);
+    if (num) num.textContent = pct + "%";
+  }
+
+  async function uploadWorker() {
+    while (queueToProcess.length > 0) {
+      const item = queueToProcess.shift();
+      if (!item) break;
+
+      item.status = "uploading";
+      item.progress = 0;
+      const card = document.getElementById("q_card_" + item.id);
+      if (card) {
+        card.className = "queue-card uploading";
+        const statusCol = card.querySelector(".queue-status-col");
+        if (statusCol) {
+          statusCol.innerHTML = `
+            <div class="mini-progress-track"><div class="mini-progress-bar" id="prog_bar_${item.id}" style="width:0%"></div></div>
+            <span class="small" id="prog_num_${item.id}" style="font-weight:700;color:var(--accent);font-family:monospace;">0%</span>
+          `;
+        }
+      }
+
+      try {
+        const seedViews = 10000 + Math.floor(Math.random() * 5001);
+        const seedLikes = 100 + Math.floor(Math.random() * 201);
+        const localId = Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 10000);
+
+        DATA.videos.unshift({
+          id: localId,
+          title: item.title || "Untitled Upload",
+          creator: MY,
+          type: "ugc",
+          category: item.categories[0] || "Amateur",
+          categories: item.categories.slice(),
+          views: seedViews,
+          likes: seedLikes,
+          dislikes: 5,
+          comments: 0,
+          favorites: 0,
+          duration: item.duration || "0:00",
+          uploaded: new Date().toISOString().slice(0, 10),
+          src: item.url,
+          thumb: item.thumb || "",
+          createdWith: item.createdWith ? item.createdWith.slice() : [],
+          tags: item.tags ? item.tags.slice() : [],
+          status: item.visibility === "private" ? "private" : "published",
+          flagged: false
+        });
+
+        const mainP = ShAPI.uploadVideo(item.file, item.title || "Untitled", (pct) => {
+          item.progress = pct;
+          updateItemProgressInDOM(item.id, pct);
+          updateOverallBatchProgress();
+        });
+
+        let thumbP = Promise.resolve({ url: item.thumb || "" });
+        if (item.thumb && item.thumb.startsWith("data:")) {
+          const thumbFile = dataURLtoFile(item.thumb, `thumb_${localId}.jpg`);
+          thumbP = ShAPI.uploadVideo(thumbFile, item.title + " Thumbnail", () => {})
+            .catch(() => ({ url: "" }));
+        }
+
+        const [uploadInfo, thumbInfo] = await Promise.all([mainP, thumbP]);
+        const cdnSrc = uploadInfo.src;
+        const thumbUrl = thumbInfo.url || "";
+        item.progress = 100;
+        item.status = "verifying";
+
+        const cardVerifying = document.getElementById("q_card_" + item.id);
+        if (cardVerifying) {
+          const col = cardVerifying.querySelector(".queue-status-col");
+          if (col) col.innerHTML = `<span class="tag-pill blue" style="font-size:11px;">Verifying…</span>`;
+        }
+
+        const verified = await ShAPI.verifyUpload({
+          path: uploadInfo.path,
+          title: item.title || "Untitled",
+          width: item.width || null,
+          height: item.height || null,
+          durationS: item.durationSec || null,
+        });
+
+        const manifestEntry = {
+          id: localId,
+          uploadId: verified.uploadId,
+          title: item.title || "Untitled",
+          creator: MY,
+          type: "ugc",
+          src: cdnSrc,
+          thumb: thumbUrl,
+          category: item.categories[0] || "Amateur",
+          categories: item.categories.slice(),
+          tags: item.tags ? item.tags.slice() : [],
+          duration: item.duration || "",
+          uploaded: new Date().toISOString().slice(0, 10),
+          views: seedViews,
+          likes: seedLikes,
+          dislikes: 0,
+          comments: 0,
+          favorites: 0,
+          visibility: item.visibility,
+          flagged: false,
+          orientation: item.orientation || "horizontal"
+        };
+        await ShAPI.saveToManifest(manifestEntry);
+
+        const vid = DATA.videos.find(v => v.id === localId);
+        if (vid) {
+          vid.src = cdnSrc;
+          if (thumbUrl) vid.thumb = thumbUrl;
+          if (verified.status !== "live") vid.status = "pending";
+        }
+
+        item.status = "live";
+        successCount++;
+        const cardDone = document.getElementById("q_card_" + item.id);
+        if (cardDone) {
+          cardDone.className = "queue-card live";
+          const col = cardDone.querySelector(".queue-status-col");
+          if (col) col.innerHTML = `<span class="tag-pill green" style="font-size:11px;">✓ Live</span>`;
+        }
+      } catch (err) {
+        console.error("Failed to upload " + item.title, err);
+        item.status = "failed";
+        item.error = err.message || "Upload failed";
+        const cardFail = document.getElementById("q_card_" + item.id);
+        if (cardFail) {
+          cardFail.className = "queue-card failed";
+          const col = cardFail.querySelector(".queue-status-col");
+          if (col) col.innerHTML = `<span class="tag-pill red" style="font-size:11px;">✕ Failed</span>`;
+        }
+      } finally {
+        completedCount++;
+        updateOverallBatchProgress();
+      }
+    }
+  }
+
+  await Promise.all([uploadWorker(), uploadWorker()]);
+
+  cstate.isBatchUploading = false;
+  syncCreatorManifest();
+  render();
+
+  if (successCount === total) {
+    toast(`🎉 All ${successCount} videos published successfully!`);
+  } else {
+    toast(`Batch completed: ${successCount} published, ${total - successCount} failed.`);
+  }
+}
 
 function uUpdateScrub(val) {
   const scrubVid = document.getElementById("thumbScrubVideo");
@@ -613,8 +1046,111 @@ function uUpdateScrub(val) {
 
 function uCancelUpload() {
   revokeUploadUrl();
-  cstate.upload = freshUpload();
-  render();
+  uClearQueue();
+}
+
+function renderQueueItemCard(item, idx) {
+  const isUploading = item.status === "uploading";
+  const isLive = item.status === "live";
+  const isFailed = item.status === "failed";
+  const isVerifying = item.status === "verifying";
+
+  return `
+    <div class="queue-card ${item.status}" id="q_card_${item.id}">
+      <div class="queue-thumb-wrap" onclick="uToggleThumbPicker('${item.id}')" title="Click to change thumbnail frame" style="cursor:pointer;">
+        ${item.thumb ? `<img class="queue-thumb-img" src="${item.thumb}" alt="Thumbnail"/>` : `<div class="small" style="color:var(--muted)">⋯</div>`}
+        <span class="queue-dur-badge">${esc(item.duration || '0:00')}</span>
+        <span class="queue-orient-badge tag-pill ${item.orientation === 'vertical' ? 'purple' : 'blue'}" style="font-size:9px;padding:1px 4px;">
+          ${item.orientation === 'vertical' ? '📱' : '🖥'}
+        </span>
+      </div>
+
+      <div class="queue-info">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input class="queue-title-input" value="${esc(item.title)}" placeholder="Video title"
+            oninput="uUpdateItemTitle('${item.id}', this.value)"
+            ${cstate.isBatchUploading ? 'disabled' : ''}/>
+        </div>
+        <div class="queue-meta-row">
+          <span>📁 ${(item.file.size / 1024 / 1024).toFixed(1)} MB</span>
+          <span>•</span>
+          <label style="display:inline-flex;align-items:center;gap:4px;">
+            <span>Category:</span>
+            <select class="fld" onchange="uUpdateItemCategory('${item.id}', this.value)" ${cstate.isBatchUploading ? 'disabled' : ''}>
+              ${CATEGORY_LIBRARY.map(cat => `<option value="${esc(cat)}" ${item.category === cat ? 'selected' : ''}>${esc(cat)}</option>`).join("")}
+            </select>
+          </label>
+          <span>•</span>
+          <label style="display:inline-flex;align-items:center;gap:4px;">
+            <span>Visibility:</span>
+            <select class="fld" onchange="uUpdateItemVisibility('${item.id}', this.value)" ${cstate.isBatchUploading ? 'disabled' : ''}>
+              <option value="public" ${item.visibility === 'public' ? 'selected' : ''}>Public</option>
+              <option value="unlisted" ${item.visibility === 'unlisted' ? 'selected' : ''}>Unlisted</option>
+              <option value="private" ${item.visibility === 'private' ? 'selected' : ''}>Private</option>
+            </select>
+          </label>
+          <span>•</span>
+          <button type="button" class="chip" onclick="uOpenSingleEditor(${idx})" style="font-size:11px;padding:3px 8px;">
+            ⚙ Detailed Settings
+          </button>
+        </div>
+
+        ${item._showThumbs && item.thumbOptions.length ? `
+          <div class="queue-thumb-picker">
+            <span class="small" style="color:var(--muted);align-self:center;margin-right:4px;">Select frame:</span>
+            ${item.thumbOptions.map((t, ti) => `
+              <div class="queue-thumb-opt ${item.thumb === t ? 'active' : ''}" onclick="uSelectQueueThumb('${item.id}', ${ti})">
+                <img src="${t}" alt="Frame ${ti + 1}"/>
+              </div>
+            `).join("")}
+          </div>
+        ` : ''}
+      </div>
+
+      <div class="queue-actions">
+        <div class="queue-status-col">
+          ${isUploading ? `
+            <div class="mini-progress-track"><div class="mini-progress-bar" id="prog_bar_${item.id}" style="width:${item.progress}%"></div></div>
+            <span class="small" id="prog_num_${item.id}" style="font-weight:700;color:var(--accent);font-family:monospace;">${item.progress}%</span>
+          ` : isVerifying ? `
+            <span class="tag-pill blue" style="font-size:11px;">Verifying…</span>
+          ` : isLive ? `
+            <span class="tag-pill green" style="font-size:11px;">✓ Live</span>
+          ` : isFailed ? `
+            <span class="tag-pill red" style="font-size:11px;" title="${esc(item.error || 'Failed')}">✕ Failed</span>
+          ` : `
+            <span class="tag-pill muted" style="font-size:11px;">Ready</span>
+          `}
+        </div>
+        <button type="button" class="icon-btn sm" onclick="uRemoveQueueItem('${item.id}')" title="Remove video"
+          ${cstate.isBatchUploading ? 'disabled' : ''} style="width:28px;height:28px;border-radius:6px;font-size:11px;">✕</button>
+      </div>
+    </div>
+  `;
+}
+
+function attachDropzoneEvents() {
+  const dz = document.getElementById("uploadDropzone");
+  if (!dz) return;
+
+  dz.ondragover = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dz.classList.add("is-dragover");
+  };
+  dz.ondragleave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dz.classList.remove("is-dragover");
+  };
+  dz.ondrop = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dz.classList.remove("is-dragover");
+    toast("Reading dropped files / folders…");
+    const files = await getFilesFromDataTransfer(e.dataTransfer);
+    uEnqueueFiles(files);
+  };
 }
 
 function renderDashboard(){
@@ -652,38 +1188,25 @@ function renderContent(){
     </tbody></table></div>`;
 }
 
-function renderUpload() {
+function renderSingleUploadEditor() {
   const u = cstate.upload;
-  
-  if (!u.file) {
-    return `
-      <div class="upload-start-container">
-        <h1>Upload Video</h1>
-        <p class="sub">Publish high-quality vertical or horizontal videos to the bestpornai catalog.</p>
-        
-        <label class="upload-dropzone" id="uploadDropzone">
-          <span class="upload-icon">⤒</span>
-          <span class="upload-title">Select video file to upload</span>
-          <span class="upload-sub">Or drag and drop a file here</span>
-          <span class="upload-formats">MP4, WebM, MOV (Max 500MB)</span>
-          <input type="file" accept="video/*" style="display:none" onchange="uPickFile(this)"/>
-        </label>
-      </div>
-    `;
-  }
-
   const isProbing = u._probing;
   const isUploading = u.uploading;
 
   return `
     <div class="upload-flow-header">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div>
-          <h1 style="margin:0;">Video Details</h1>
-          <p class="sub" style="margin:0;margin-top:4px;">Configure details and publish your video.</p>
+        <div style="display:flex;align-items:center;gap:12px;">
+          ${cstate.queue.length > 1 ? `<button class="btn ghost sm" onclick="uBackToQueue()">← Back to Queue (${cstate.queue.length})</button>` : ''}
+          <div>
+            <h1 style="margin:0;">Video Details</h1>
+            <p class="sub" style="margin:0;margin-top:4px;">Configure details and preview for "${esc(u.title)}".</p>
+          </div>
         </div>
         <div>
-          <button class="btn ghost sm" onclick="uCancelUpload()">Cancel</button>
+          ${cstate.queue.length > 1
+            ? `<button class="btn sm" onclick="uBackToQueue()">Done Editing</button>`
+            : `<button class="btn ghost sm" onclick="uCancelUpload()">Cancel</button>`}
         </div>
       </div>
     </div>
@@ -795,9 +1318,152 @@ function renderUpload() {
               upload this content, and any required 2257 documentation is on file.</span>
           </label>
           <div style="margin-top:16px; display:flex; justify-content:flex-end; gap:12px;">
-            <button type="button" class="btn" style="padding:10px 24px;" onclick="uPublish()"
-              ${isProbing || isUploading || !u.rightsConfirmed ? 'disabled' : ''}>
-              ${isUploading ? 'Publishing…' : '🚀 Publish Video'}
+            ${cstate.queue.length > 1 ? `
+              <button type="button" class="btn ghost" onclick="uBackToQueue()">Save & Back to Queue</button>
+            ` : `
+              <button type="button" class="btn" style="padding:10px 24px;" onclick="uPublish()"
+                ${isProbing || isUploading || !u.rightsConfirmed ? 'disabled' : ''}>
+                ${isUploading ? 'Publishing…' : '🚀 Publish Video'}
+              </button>
+            `}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderUpload() {
+  if (cstate.singleView && cstate.upload && cstate.upload.file) {
+    return renderSingleUploadEditor();
+  }
+
+  if (!cstate.queue.length) {
+    return `
+      <div class="upload-start-container">
+        <span class="upload-badge">COMMUNITY & CREATOR UPLOADS</span>
+        <h1 style="margin:0 0 8px;">Upload Videos or Entire Folders</h1>
+        <p class="sub" style="margin:0 auto 20px;max-width:540px;">
+          Publish vertical shorts or widescreen 4K scenes. Drag and drop multiple videos or select a complete directory in seconds.
+        </p>
+
+        <div class="upload-dropzone" id="uploadDropzone">
+          <div class="upload-icon">⤒</div>
+          <div class="upload-title">Drop videos or folders anywhere here</div>
+          <div class="upload-sub">Files are processed instantly directly in your browser.</div>
+
+          <div class="upload-btn-row">
+            <label class="btn upload-action-btn" style="cursor:pointer;">
+              <span>🎬 Select Videos</span>
+              <input type="file" accept="video/*" multiple style="display:none" onchange="uPickFiles(this)"/>
+            </label>
+            <label class="btn ghost upload-action-btn" style="cursor:pointer;">
+              <span>📁 Select Entire Folder</span>
+              <input type="file" accept="video/*" webkitdirectory directory style="display:none" onchange="uPickFiles(this)"/>
+            </label>
+          </div>
+
+          <div class="upload-formats">Supported: MP4, WebM, MOV, M4V • Up to 2GB per video • Fast Direct-to-CDN Upload</div>
+        </div>
+
+        <div class="upload-highlights">
+          <div class="upload-hl-item">
+            <span class="hl-ico">⚡</span>
+            <div><strong>Instant CDN Streaming</strong><span>Uploaded videos are pushed directly to edge CDN with 4K streaming.</span></div>
+          </div>
+          <div class="upload-hl-item">
+            <span class="hl-ico">📁</span>
+            <div><strong>Batch & Folder Ingestion</strong><span>Upload dozens of scenes at once with automatic metadata and thumbnail extraction.</span></div>
+          </div>
+          <div class="upload-hl-item">
+            <span class="hl-ico">🛡</span>
+            <div><strong>Open Community Access</strong><span>No complex account setup required — upload as a guest or manage your channel.</span></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="upload-queue-container">
+      <div class="upload-queue-header">
+        <div>
+          <h1 style="margin:0;display:flex;align-items:center;gap:12px;">
+            Upload Queue
+            <span class="tag-pill blue" style="font-size:12px;padding:3px 10px;">${cstate.queue.length} video${cstate.queue.length === 1 ? '' : 's'}</span>
+          </h1>
+          <p class="sub" style="margin:4px 0 0 0;">Review titles and categories, then publish your batch.</p>
+        </div>
+        <div class="queue-header-actions">
+          <label class="btn ghost sm" style="cursor:pointer;" ${cstate.isBatchUploading ? 'style="pointer-events:none;opacity:0.5;"' : ''}>
+            <span>＋ Add More</span>
+            <input type="file" accept="video/*" multiple style="display:none" onchange="uPickFiles(this)"/>
+          </label>
+          <label class="btn ghost sm" style="cursor:pointer;" ${cstate.isBatchUploading ? 'style="pointer-events:none;opacity:0.5;"' : ''}>
+            <span>📁 Add Folder</span>
+            <input type="file" accept="video/*" webkitdirectory directory style="display:none" onchange="uPickFiles(this)"/>
+          </label>
+          <button class="btn ghost sm" onclick="uClearQueue()" ${cstate.isBatchUploading ? 'disabled' : ''}>Clear All</button>
+        </div>
+      </div>
+
+      ${cstate.queue.length > 1 ? `
+        <div class="batch-toolbar">
+          <div class="batch-tb-title">⚡ Batch Quick-Set (Apply to All ${cstate.queue.length} Videos)</div>
+          <div class="batch-tb-controls">
+            <div class="batch-tb-group">
+              <label class="small" style="color:var(--muted)">Category:</label>
+              <select class="fld" id="batchCategorySelect" ${cstate.isBatchUploading ? 'disabled' : ''}>
+                ${CATEGORY_LIBRARY.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("")}
+              </select>
+              <button class="btn ghost sm" onclick="uApplyBatchCategory()" ${cstate.isBatchUploading ? 'disabled' : ''}>Apply</button>
+            </div>
+            <div class="batch-tb-group">
+              <label class="small" style="color:var(--muted)">Visibility:</label>
+              <select class="fld" id="batchVisibilitySelect" ${cstate.isBatchUploading ? 'disabled' : ''}>
+                <option value="public">Public</option>
+                <option value="unlisted">Unlisted</option>
+                <option value="private">Private</option>
+              </select>
+              <button class="btn ghost sm" onclick="uApplyBatchVisibility()" ${cstate.isBatchUploading ? 'disabled' : ''}>Apply</button>
+            </div>
+          </div>
+        </div>
+      ` : ''}
+
+      <div class="queue-list">
+        ${cstate.queue.map((item, idx) => renderQueueItemCard(item, idx)).join("")}
+      </div>
+
+      ${cstate.isBatchUploading ? `
+        <div class="panel" style="margin-top:20px;border-color:var(--accent);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-weight:700;font-size:13.5px;">Uploading Batch to Cloudflare R2 Storage…</span>
+            <span style="font-family:monospace;font-weight:700;color:var(--accent);" id="batchProgressPct">${cstate.batchProgress || 0}%</span>
+          </div>
+          <div class="upload-progress-track">
+            <div class="upload-progress-bar" id="batchProgressBar" style="width:${cstate.batchProgress || 0}%;"></div>
+          </div>
+          <p class="small" id="batchStatusText" style="margin:8px 0 0 0;color:var(--muted);">
+            Processing files in parallel…
+          </p>
+        </div>
+      ` : ''}
+
+      <div class="panel queue-publish-bar" style="margin-top:24px;padding:20px;">
+        <label class="small" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;">
+          <input type="checkbox" id="batchRightsConfirm" ${cstate.batchRightsConfirmed ? 'checked' : ''}
+            onchange="uSetBatchRightsConfirmed(this.checked)" style="margin-top:2px;" ${cstate.isBatchUploading ? 'disabled' : ''}/>
+          <span><strong>18+ Age & Rights Confirmation:</strong> I confirm all performers depicted in these videos are 18+ years of age, I hold the rights to upload this content, and any required 2257 documentation is on file.</span>
+        </label>
+        <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-top:1px solid var(--border);padding-top:16px;">
+          <div class="small" style="color:var(--muted);">
+            ${cstate.queue.filter(i => i.status === 'live').length} of ${cstate.queue.length} published
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button type="button" class="btn" style="padding:10px 28px;font-weight:700;" onclick="uPublishBatch()"
+              ${cstate.isBatchUploading || !cstate.batchRightsConfirmed ? 'disabled' : ''}>
+              ${cstate.isBatchUploading ? '⏳ Uploading…' : `🚀 Publish All (${cstate.queue.length}) Videos`}
             </button>
           </div>
         </div>
@@ -1010,6 +1676,9 @@ function render(){
   else v.innerHTML=renderDashboard();
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
   syncChrome();
+  if (p === "upload") {
+    setTimeout(attachDropzoneEvents, 0);
+  }
 }
 
 /* Keep the shared session alive on load. If the user signed in anywhere on the
@@ -1090,6 +1759,20 @@ window.uChooseThumb = uChooseThumb;
 window.uCaptureCurrentFrame = uCaptureCurrentFrame;
 window.uCaptureClip = uCaptureClip;
 window.uPickFile = uPickFile;
+window.uPickFiles = uPickFiles;
+window.uClearQueue = uClearQueue;
+window.uRemoveQueueItem = uRemoveQueueItem;
+window.uUpdateItemTitle = uUpdateItemTitle;
+window.uUpdateItemCategory = uUpdateItemCategory;
+window.uUpdateItemVisibility = uUpdateItemVisibility;
+window.uApplyBatchCategory = uApplyBatchCategory;
+window.uApplyBatchVisibility = uApplyBatchVisibility;
+window.uToggleThumbPicker = uToggleThumbPicker;
+window.uSelectQueueThumb = uSelectQueueThumb;
+window.uSetBatchRightsConfirmed = uSetBatchRightsConfirmed;
+window.uOpenSingleEditor = uOpenSingleEditor;
+window.uBackToQueue = uBackToQueue;
+window.uPublishBatch = uPublishBatch;
 window.uPublish = uPublish;
 window.uUpdateScrub = uUpdateScrub;
 window.uCancelUpload = uCancelUpload;

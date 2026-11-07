@@ -62,6 +62,36 @@ html,body{margin:0;background:var(--bg);color:var(--text);
   cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;
 }
 .search-go .ico{width:16px;height:16px}
+.topbar-upload-btn{
+  height:var(--ctrl-size);
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:0 14px;
+  border-radius:var(--ctrl-radius);
+  cursor:pointer;
+  font-size:13px;
+  font-weight:700;
+  transition:all .15s ease;
+  white-space:nowrap;
+  flex:none;
+}
+.topbar-upload-btn:hover{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#fff;
+  box-shadow:0 2px 14px rgba(229,9,20,0.35);
+}
+.topbar-upload-btn .upload-ico{
+  font-size:13px;
+  line-height:1;
+}
+@media (max-width: 640px) {
+  .topbar-upload-btn { display:none; }
+}
 .content{padding:24px;flex:1}
 .row-heading{font-size:18px;font-weight:700;margin:0 0 8px;color:#fff}
 .sub{color:var(--muted);font-size:13px;margin:0 0 18px}
