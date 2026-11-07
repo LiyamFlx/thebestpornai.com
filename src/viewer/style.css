@@ -488,7 +488,7 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.2px;margin:26px 0 12px}
   background:var(--surface2);border:1px solid var(--border);color:var(--text);cursor:pointer;
 }
 .home-more-btn:hover{border-color:var(--accent);color:#fff}
-.card-when{opacity:.75;font-weight:600}
+.card-when{opacity:.95;font-weight:600;color:rgba(255,255,255,.72)}
 
 /* Library hub */
 .library-page h2{margin:0 0 4px}

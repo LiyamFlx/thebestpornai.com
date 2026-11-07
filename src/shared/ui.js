@@ -161,5 +161,5 @@ export function rowSection(title, list, opts={}){
   // title may include trusted HTML (e.g. a reason span) when allowHtmlTitle is set;
   // callers must escape any untrusted text themselves.
   const heading = opts.allowHtmlTitle ? title : esc(title);
-  return `<h3 class="row-heading">${heading}</h3><div class="row-scroll">${list.map(v=>videoCard(v, opts)).join("")}</div>`;
+  return `<h2 class="row-heading">${heading}</h2><div class="row-scroll">${list.map(v=>videoCard(v, opts)).join("")}</div>`;
 }

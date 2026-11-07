@@ -1705,14 +1705,15 @@ function prerenderHomepageSkeleton() {
     }
   }
 
-  const featuredCards = featured.map(v => {
+  const featuredCards = featured.map((v, i) => {
     const thumbUrl = v.thumb ? imgUrl(v.thumb) : LOGO;
     const dur = v.duration ? esc(v.duration) : "";
     const views = fmtViews(v.views || 1200);
+    const loadingAttr = i < 2 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
     return `        <article class="card">
           <a href="/video/${v.id}.html" title="${esc(v.title)}" style="text-decoration:none;color:inherit;display:block">
             <div class="video-thumb">
-              <img class="thumb-video" src="${thumbUrl}" alt="${esc(v.title)}" width="320" height="180" loading="lazy" decoding="async"/>
+              <img class="thumb-video" src="${thumbUrl}" alt="${esc(v.title)}" width="320" height="180" ${loadingAttr} decoding="async"/>
               <span class="quality-badge" style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.7);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">4K</span>
               ${dur ? `<span class="dur-badge" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.8);color:#fff;font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px">${dur}</span>` : ""}
             </div>

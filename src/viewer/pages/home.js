@@ -181,7 +181,7 @@ function pornstarsFilterBody(){
     return emptyState("No pornstars yet. Check back soon.", POPULAR_TAGS.slice(0, 6), { emoji: "⭐" });
   }
   return `
-    <h3 class="row-heading">Pornstars <span class="small">(${stars.length})</span></h3>
+    <h2 class="row-heading">Pornstars <span class="small">(${stars.length})</span></h2>
     <p class="sub" style="margin-top:-4px">Intro + Shorts packs — tap a star to open their page</p>
     <div class="pornstars-grid">
       ${stars.map(c => {
@@ -205,12 +205,12 @@ function pornstarsFilterBody(){
 }
 
 const moviesRow = (allMovies) =>
-  `<h3 class="row-heading">Movies</h3><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`, layout:'row'})).join("")}</div>`;
+  `<h2 class="row-heading">Movies</h2><div class="row-scroll">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`, layout:'row'})).join("")}</div>`;
 
 function topCreatorsRow(){
   const top = DATA.creators.filter(c => c.kind !== "pornstar").slice().sort((a,b)=>(b.subs||0)-(a.subs||0)).slice(0, 8);
   if(!top.length) return "";
-  return `<h3 class="row-heading">Top Creators</h3><div class="row-scroll creator-circle-row">
+  return `<h2 class="row-heading">Top Creators</h2><div class="row-scroll creator-circle-row">
     ${top.map(c=>`
       <div class="creator-circle" onclick="openCreator('${jsq(c.id)}')">
         <div class="creator-circle-avatar">${esc((c.name||"?")[0])}</div>
@@ -225,7 +225,7 @@ function pornstarsRow(){
   if(!stars.length) return "";
   return `
     <div class="row-heading-wrap">
-      <h3 class="row-heading">Pornstars</h3>
+      <h2 class="row-heading">Pornstars</h2>
       <button type="button" class="row-heading-link" onclick="go('pornstars')">See all →</button>
     </div>
     <div class="row-scroll creator-circle-row pornstar-circle-row">
@@ -252,8 +252,8 @@ function homeHero(hero){
   const heroIsVideo = hero.src && !ytId(hero.src);
   const laterOn = vstate.later.includes(hero.id);
   const media = heroIsVideo
-    ? `<video class="home-hero-img" src="${mediaUrl(hero.src)}" ${hero.thumb ? `poster="${mediaUrl(hero.thumb)}"` : ''} muted autoplay loop playsinline preload="auto"></video>`
-    : (hero.thumb ? `<img class="home-hero-img" src="${mediaUrl(hero.thumb)}" alt="" loading="eager" decoding="async"/>` : ``);
+    ? `<video class="home-hero-img" src="${mediaUrl(hero.src)}" ${hero.thumb ? `poster="${mediaUrl(hero.thumb)}"` : ''} muted autoplay loop playsinline preload="metadata"></video>`
+    : (hero.thumb ? `<img class="home-hero-img" src="${mediaUrl(hero.thumb)}" alt="" fetchpriority="high" loading="eager" decoding="async"/>` : ``);
   const liveCount = pubVideos().filter(v => !v.flagged).length.toLocaleString("en-US");
   return `
     <section class="home-hero" aria-label="Featured video" data-hero-id="${hero.id}">
@@ -332,7 +332,7 @@ function fromTheBlogRow(){
   }).join("");
   return `
     <div class="row-heading-wrap">
-      <h3 class="row-heading">From the Blog</h3>
+      <h2 class="row-heading">From the Blog</h2>
       <a class="row-heading-link" href="/blog/">See all →</a>
     </div>
     <div class="row-scroll blog-home-row">${cards}</div>`;
@@ -401,7 +401,7 @@ function _renderHomeBody(){
     const shown = matches.slice(0, vstate.limit);
     const html = `
       ${homeFilterBar()}
-      <h3 class="row-heading">${esc(cat)} <span class="small">(${matches.length})</span></h3>
+      <h2 class="row-heading">${esc(cat)} <span class="small">(${matches.length})</span></h2>
       ${shown.length
         ? `<div class="video-list">${shown.map(v=>videoCard(v,{layout:'row'})).join("")}</div>`
         : emptyState(`No ${cat} videos yet.`, POPULAR_TAGS.filter(t=>t!==cat).slice(0,8))}
@@ -419,7 +419,7 @@ function _renderHomeBody(){
     const html = `
       ${homeFilterBar()}
       ${all.length
-        ? `<h3 class="row-heading">${icon} ${label} <span class="small">(${pub.length} videos)</span></h3><div class="video-list">${all.map(v=>videoCard(v,{layout:'row'})).join("")}</div>`
+        ? `<h2 class="row-heading">${icon} ${label} <span class="small">(${pub.length} videos)</span></h2><div class="video-list">${all.map(v=>videoCard(v,{layout:'row'})).join("")}</div>`
         : emptyState("No videos match this sort yet.", POPULAR_TAGS.slice(0, 8), { emoji: "📭" })}
       ${pub.length > vstate.limit ? `<button class="btn ghost" style="margin:16px auto;display:block" onclick="loadMore()">Load more videos</button>` : ''}
       ${homeEditorialSection()}
@@ -430,7 +430,7 @@ function _renderHomeBody(){
   if(filter==="movies"){
     const allMovies = movies();
     const html = `${homeFilterBar()}${allMovies.length
-      ? `<h3 class="row-heading">Movies <span class="small">(${allMovies.length})</span></h3><div class="video-list">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`, layout:'row'})).join("")}</div>`
+      ? `<h2 class="row-heading">Movies <span class="small">(${allMovies.length})</span></h2><div class="video-list">${allMovies.map(m=>videoCard(m.poster, {onClick:`openMovie('${jsq(m.title)}')`, layout:'row'})).join("")}</div>`
       : emptyState("No movies yet. Browse clips and scenes instead.", POPULAR_TAGS.slice(0, 6), { emoji: "🎬" })}
       ${homeEditorialSection()}`;
     return { html, empty: !allMovies.length };
@@ -489,7 +489,7 @@ function homeAffiliatePromoStrip(){
 
     ${continueWatching.length ? rowSection("Continue Watching", continueWatching, { layout: "row" }) : ""}
     ${becauseYouWatchedRow()}
-    <h3 class="row-heading">Fresh Uploads <span class="small">(${newestUploads().length})</span></h3>
+    <h2 class="row-heading">Fresh Uploads <span class="small">(${newestUploads().length})</span></h2>
     <div class="video-list">${newestUploads().slice(0, vstate.limit).map(v => videoCard(v, { layout: "row" })).join("")}</div>
     ${homeAffiliatePromoStrip()}
     ${rowSection("Recommended for you", recommended, { layout: "row" })}

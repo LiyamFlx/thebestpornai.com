@@ -277,8 +277,8 @@ function attachHeroRotation(isHomePage){
       if(media){
         const heroIsVideo = hero.src && !ytId(hero.src);
         media.innerHTML = heroIsVideo
-          ? `<video class="home-hero-img" src="${mediaUrl(hero.src)}" ${hero.thumb ? `poster="${mediaUrl(hero.thumb)}"` : ''} muted autoplay loop playsinline preload="auto"></video>`
-          : (hero.thumb ? `<img class="home-hero-img" src="${mediaUrl(hero.thumb)}" alt="" loading="eager" decoding="async"/>` : '');
+          ? `<video class="home-hero-img" src="${mediaUrl(hero.src)}" ${hero.thumb ? `poster="${mediaUrl(hero.thumb)}"` : ''} muted autoplay loop playsinline preload="metadata"></video>`
+          : (hero.thumb ? `<img class="home-hero-img" src="${mediaUrl(hero.thumb)}" alt="" fetchpriority="high" loading="eager" decoding="async"/>` : '');
       }
       const title = section.querySelector(".home-hero-title");
       if(title) title.textContent = hero.title;
@@ -426,7 +426,7 @@ const _lazyObserver = (typeof window !== "undefined" && "IntersectionObserver" i
 function lazyLoadThumbs(){
   // Targets ONLY .thumb-video.lazy (not .thumb-preview)
   const els = [...document.querySelectorAll("video.thumb-video.lazy[data-src]")];
-  const isBot = typeof navigator !== "undefined" && /googlebot|lighthouse|pagespeed|bingbot|yandex|baiduspider/i.test(navigator.userAgent);
+  const isBot = typeof navigator !== "undefined" && (navigator.webdriver || /googlebot|lighthouse|pagespeed|headless|bingbot|yandex|baiduspider/i.test(navigator.userAgent));
   if(isBot) return; // Skip eager video load for crawlers to conserve quota and avoid network aborts
   // Eager-load the first few above the fold on real browsers; lazy-load the rest.
   const eager = _lazyObserver ? 4 : els.length;

@@ -46,11 +46,11 @@ function ageGate(){
         font-size:14px;font-weight:700;cursor:pointer;}
       #age-gate-overlay .ag-enter{background:#E50914;color:#FFF;}
       #age-gate-overlay .ag-exit{background:transparent;color:#A0A0A0;border:1px solid rgba(255,255,255,.2)!important;}
-      #age-gate-overlay .ag-fine{color:#666;font-size:11px;margin-top:22px;}
-      #age-gate-overlay .ag-fine a{color:#888;}
+      #age-gate-overlay .ag-fine{color:#A0A0A0;font-size:11px;margin-top:22px;}
+      #age-gate-overlay .ag-fine a{color:#FFF;text-decoration:underline;}
     </style>
     <div class="ag-card">
-      <img class="ag-logo" src="${logoUrl}" alt="thebestpornai"/>
+      <img class="ag-logo" src="${logoUrl}" alt="thebestpornai" width="160" height="40"/>
       <h1>You must be 18 or older to enter</h1>
       <p>This website contains age-restricted material intended for adults only.
          By entering, you confirm that you are at least 18 years old (or the age

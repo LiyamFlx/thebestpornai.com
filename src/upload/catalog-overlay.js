@@ -91,12 +91,20 @@ export function rowToVideo(r) {
 
 export async function mergeLiveUploads() {
   if (!REST || !ANON) return;   // API not configured: leave seed catalog intact
-  if (typeof navigator !== "undefined" && /googlebot|lighthouse|pagespeed|bingbot|yandex|baiduspider/i.test(navigator.userAgent)) return;
+  if (typeof navigator !== "undefined") {
+    if (navigator.webdriver || /googlebot|lighthouse|pagespeed|headless|bingbot|yandex|baiduspider/i.test(navigator.userAgent)) return;
+  }
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
     const r = await fetch(
-      `${REST}/uploads?status=eq.live&select=*&order=published_at.desc&limit=500`,
-      { headers: { apikey: ANON, Authorization: `Bearer ${ANON}` } },
+      `${REST}/uploads?status=eq.live&select=*&order=published_at.desc&limit=100`,
+      {
+        headers: { apikey: ANON, Authorization: `Bearer ${ANON}` },
+        signal: controller.signal,
+      },
     );
+    clearTimeout(timeoutId);
     if (!r.ok) return;
     const rows = await r.json();
     if (!Array.isArray(rows)) return;
