@@ -299,6 +299,50 @@ function affiliatePromoBanner(v){
     </a>`;
 }
 
+function promptBox(v){
+  if (!v) return "";
+  const promptText = `(masterpiece, 8K UHD, photorealistic:1.3), 1girl, cinematic lighting, ${v.title}, flawless skin texture, shallow depth of field, 60fps video diffusion, trending on OurDream`;
+  const ourdreamUrl = "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=watch-prompt";
+  return `
+    <div class="video-prompt-box">
+      <div class="prompt-box-header">
+        <div class="prompt-box-title">
+          <span>✨</span>
+          <span>AI Generation Prompt &amp; Parameters</span>
+        </div>
+        <span class="prompt-badge">Diffusion Model 2026</span>
+      </div>
+      <p class="prompt-box-sub">Recreate or customize this scene with the exact positive diffusion prompt:</p>
+      <div class="prompt-box-code-wrap">
+        <pre class="prompt-box-code" id="spaPromptText_${v.id}">${esc(promptText)}</pre>
+        <button type="button" class="prompt-copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('spaPromptText_${v.id}').innerText).then(() => { this.innerText = '✓ Copied!'; setTimeout(() => this.innerText = '📋 Copy Prompt', 2500); })">📋 Copy Prompt</button>
+      </div>
+      <div class="prompt-box-footer">
+        <span class="prompt-footer-hint">Render this prompt in 4K on OurDream:</span>
+        <a href="${ourdreamUrl}" target="_blank" rel="${AFFILIATE_REL}" class="prompt-generate-btn">
+          <span>🚀 Generate on OurDream.ai →</span>
+        </a>
+      </div>
+    </div>`;
+}
+
+function stickyAffiliateBar(){
+  const ourdreamUrl = "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=172&s1=watch-sticky";
+  return `
+    <div class="video-sticky-bar" id="spaStickyBar">
+      <div class="sticky-bar-content">
+        <span class="sticky-bar-pill">⚡ AI GENERATOR</span>
+        <span class="sticky-bar-text">Create uncensored 4K adult videos like this in seconds on <strong>OurDream</strong></span>
+      </div>
+      <div class="sticky-bar-actions">
+        <a href="${ourdreamUrl}" target="_blank" rel="${AFFILIATE_REL}" class="sticky-bar-cta">
+          <span>Try Free →</span>
+        </a>
+        <button type="button" class="sticky-bar-close" onclick="document.getElementById('spaStickyBar').remove(); sessionStorage.setItem('dismiss_sticky_cta', '1');" aria-label="Close notification">✕</button>
+      </div>
+    </div>`;
+}
+
 
 function tagChipsInline(tagList){
   return tagList.slice(0,2).map(t=>`<button type="button" class="tag-chip-inline" data-act="search-tag" data-tag="${jsq(t)}">#${esc(t)}</button>`).join(" ");
@@ -350,6 +394,7 @@ function metadataBlockDesktop(v, catList, tagList, live, hasCreator){
         ${actionBar(v, live, hasCreator)}
       </div>
       ${affiliatePromoBanner(v)}
+      ${promptBox(v)}
       ${blogStoryChip(v)}
     </div>`;
 }
@@ -471,6 +516,7 @@ export function renderWatch(){
       </section>
       <main class="watch-main-v2">
         ${titleBlockMobile(v, catList, tagList, live, c, hasCreator, subbed)}
+        ${promptBox(v)}
         ${watchTabsNav(cms.length)}
         <div class="watch-tab-panel" id="tabPanelUpNext" role="tabpanel" aria-labelledby="tab-upnext" ${vstate.watchTab!=='upnext'?'hidden':''}>
           ${upNextPanel(related, false)}
@@ -510,7 +556,7 @@ export function renderWatch(){
       </main>
     </div>`;
 
-  return `${isMobile() ? mobileLayout : desktopLayout}${sheetsAndModals(v, c)}`;
+  return `${isMobile() ? mobileLayout : desktopLayout}${sheetsAndModals(v, c)}${stickyAffiliateBar()}`;
 }
 
 /* =========================================================================

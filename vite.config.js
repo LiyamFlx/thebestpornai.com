@@ -68,6 +68,24 @@ const authorInputs = existsSync(authorDir)
     )
   : {};
 
+const tagsDir = resolve(__dirname, "tags");
+const tagInputs = existsSync(tagsDir)
+  ? Object.fromEntries(
+      readdirSync(tagsDir)
+        .filter((f) => f.endsWith(".html"))
+        .map((f) => [`tags-${f.replace(/\.html$/, "")}`, resolve(tagsDir, f)])
+    )
+  : {};
+
+const channelsDir = resolve(__dirname, "channels");
+const channelInputs = existsSync(channelsDir)
+  ? Object.fromEntries(
+      readdirSync(channelsDir)
+        .filter((f) => f.endsWith(".html"))
+        .map((f) => [`channels-${f.replace(/\.html$/, "")}`, resolve(channelsDir, f)])
+    )
+  : {};
+
 const SPA_PATH = /^\/(movies|scenes|clips|watch\/|shorts|search|browse\/|library|creator\/|movie\/|explore|trending|subscriptions|profile|settings|originals)(\/|$)/;
 
 function spaFallback() {
@@ -114,6 +132,8 @@ export default defineConfig({
         ...blogPostInputs,
         ...pornstarInputs,
         ...categoryInputs,
+        ...tagInputs,
+        ...channelInputs,
         ...videoInputs,
         ...authorInputs,
       },

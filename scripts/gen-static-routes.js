@@ -15,6 +15,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { VIDEOS } from "../src/shared/catalog-videos.js";
+import { DATA } from "../src/shared/catalog.js";
 import { isoUploadDate } from "../src/shared/dates.js";
 import { playPath, searchPath } from "../src/shared/public-routes.js";
 import { ourdreamUrl, OURDREAM_REL } from "../src/shared/affiliates.js";
@@ -25,13 +26,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "..");
 const PORNSTARS_DIR = path.join(REPO, "pornstars");
 const CATEGORIES_DIR = path.join(REPO, "categories");
+const TAGS_DIR = path.join(REPO, "tags");
+const CHANNELS_DIR = path.join(REPO, "channels");
 const VIDEO_DIR = path.join(REPO, "video");
 const ORIGIN = "https://www.thebestpornai.com";
 const MEDIA_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media";
-const LOGO = `${ORIGIN}/logo.png`;
+const LOGO = `${ORIGIN}/logo.webp`;
 
 fs.mkdirSync(PORNSTARS_DIR, { recursive: true });
 fs.mkdirSync(CATEGORIES_DIR, { recursive: true });
+fs.mkdirSync(TAGS_DIR, { recursive: true });
+fs.mkdirSync(CHANNELS_DIR, { recursive: true });
 fs.mkdirSync(VIDEO_DIR, { recursive: true });
 
 function isoDuration(dur) {
@@ -1249,6 +1254,278 @@ function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, active
       font-weight: 700;
     }
 
+    /* Video Prompt Box */
+    .video-prompt-box {
+      margin: 24px 0 28px;
+      padding: 18px 22px;
+      background: rgba(18, 18, 24, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-left: 4px solid var(--accent);
+      border-radius: 12px;
+    }
+    .prompt-box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .prompt-box-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .prompt-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(229, 9, 20, 0.12);
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(229, 9, 20, 0.3);
+    }
+    .prompt-box-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0 0 10px;
+    }
+    .prompt-box-code-wrap {
+      position: relative;
+      background: #0a0a0e;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .prompt-box-code {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      flex: 1;
+    }
+    .prompt-copy-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      flex: none;
+      transition: all 0.15s ease;
+    }
+    .prompt-copy-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .prompt-box-footer {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .prompt-footer-hint {
+      font-size: 12.5px;
+      color: #94a3b8;
+    }
+    .prompt-generate-btn {
+      display: inline-flex;
+      align-items: center;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 6px 16px;
+      border-radius: 999px;
+      transition: transform 0.15s ease;
+    }
+    .prompt-generate-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Sticky Viewport Affiliate CTA Bar */
+    .video-sticky-bar {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      width: calc(100% - 32px);
+      max-width: 720px;
+      background: rgba(15, 15, 20, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(229, 9, 20, 0.4);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6), 0 0 18px rgba(229, 9, 20, 0.18);
+      border-radius: 999px;
+      padding: 8px 14px 8px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      animation: slideUpSticky 0.35s ease-out;
+    }
+    @keyframes slideUpSticky {
+      from { transform: translate(-50%, 40px); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
+    }
+    .sticky-bar-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .sticky-bar-pill {
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+      flex: none;
+    }
+    .sticky-bar-text {
+      font-size: 13px;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sticky-bar-text strong {
+      color: #fff;
+    }
+    .sticky-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: none;
+    }
+    .sticky-bar-cta {
+      background: var(--accent);
+      color: #fff;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 6px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      box-shadow: 0 2px 10px rgba(229, 9, 20, 0.4);
+      transition: transform 0.15s ease;
+    }
+    .sticky-bar-cta:hover {
+      transform: scale(1.04);
+    }
+    .sticky-bar-close {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px 6px;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .sticky-bar-close:hover {
+      color: #fff;
+    }
+
+    /* Channel Profile Hero & Hub */
+    .channel-hero-card {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 24px 28px;
+      background: rgba(20, 20, 26, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .channel-avatar-circle {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #e50914, #8b0000);
+      color: #fff;
+      font-size: 28px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(229, 9, 20, 0.3);
+      flex: none;
+    }
+    .channel-info-col { flex: 1; min-width: 240px; }
+    .channel-title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .channel-verified-badge {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .channel-stats-row {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }
+    .channel-stats-row strong { color: #f1f5f9; }
+
+    /* Tags Hub Grid */
+    .tags-hub-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      margin-top: 24px;
+    }
+    .tag-hub-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: rgba(20, 20, 26, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      text-decoration: none;
+      color: #f1f5f9;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.15s ease;
+    }
+    .tag-hub-card:hover {
+      background: rgba(229, 9, 20, 0.1);
+      border-color: rgba(229, 9, 20, 0.4);
+      color: #fff;
+      transform: translateY(-2px);
+    }
+    .tag-count-pill {
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+      padding: 3px 8px;
+      border-radius: 999px;
+    }
+
     @media(max-width: 768px) {
       .site-nav { display: none; }
       .page-hero h1 { font-size: 26px; }
@@ -1259,6 +1536,12 @@ function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, active
       .v-grid { grid-template-columns: 1fr; }
       .video-affiliate-box { flex-direction: column; align-items: flex-start; }
       .aff-cta-btn { width: 100%; justify-content: center; }
+      .video-sticky-bar { bottom: 8px; width: calc(100% - 16px); padding: 8px 12px; border-radius: 12px; }
+      .sticky-bar-pill { display: none; }
+      .sticky-bar-text { font-size: 12px; }
+      .prompt-box-code-wrap { flex-direction: column; align-items: stretch; }
+      .prompt-copy-btn { width: 100%; text-align: center; }
+      .channel-hero-card { flex-direction: column; align-items: flex-start; }
     }
   </style>
   <script type="application/ld+json">
@@ -1490,10 +1773,10 @@ function genCategoriesHub() {
   console.log("✔ categories/index.html generated");
 }
 
-function paginationNavHtml(slug, pageNum, totalPages) {
+function paginationNavHtml(slug, pageNum, totalPages, baseDir = "categories") {
   if (totalPages <= 1) return "";
-  const prevHref = pageNum === 2 ? `/categories/${slug}.html` : `/categories/${slug}-page-${pageNum - 1}.html`;
-  const nextHref = `/categories/${slug}-page-${pageNum + 1}.html`;
+  const prevHref = pageNum === 2 ? `/${baseDir}/${slug}.html` : `/${baseDir}/${slug}-page-${pageNum - 1}.html`;
+  const nextHref = `/${baseDir}/${slug}-page-${pageNum + 1}.html`;
 
   const pages = [];
   for (let p = 1; p <= totalPages; p++) {
@@ -1510,7 +1793,7 @@ function paginationNavHtml(slug, pageNum, totalPages) {
       <div class="page-numbers">
         ${pages.map(p => {
           if (p === "...") return `<span class="page-ellipsis">…</span>`;
-          const href = p === 1 ? `/categories/${slug}.html` : `/categories/${slug}-page-${p}.html`;
+          const href = p === 1 ? `/${baseDir}/${slug}.html` : `/${baseDir}/${slug}-page-${p}.html`;
           const isCur = p === pageNum;
           return `<a class="page-num${isCur ? ' active' : ''}" href="${href}"${isCur ? ' aria-current="page"' : ''}>${p}</a>`;
         }).join("")}
@@ -1693,7 +1976,401 @@ function genCategoryPages() {
   console.log(`🎉 Total category pagination pages generated: ${totalCategoryPagesWritten}`);
 }
 
-// 5. Generate /video/<id>.html for top curated & popular scenes with rich Schema VideoObject and OurDream.ai affiliate conversion
+// 5. Generate /tags/index.html (Tags Directory Hub)
+function genTagsHub() {
+  const tagCounts = new Map();
+  for (const v of VIDEOS) {
+    for (const t of (v.tags || [])) {
+      const clean = String(t).trim();
+      if (!clean) continue;
+      const key = clean.toLowerCase();
+      if (!tagCounts.has(key)) {
+        tagCounts.set(key, { raw: clean, slug: slugify(clean), count: 0 });
+      }
+      tagCounts.get(key).count++;
+    }
+  }
+
+  const tags = [...tagCounts.values()]
+    .filter(t => t.count >= 15 && t.slug)
+    .sort((a, b) => b.count - a.count);
+
+  const title = "AI Adult Video Tags & Niches Directory | thebestpornai";
+  const description = `Explore ${tags.length}+ top AI video tags, niches, and themes on thebestpornai. Browse 4K AI adult scenes by theme with instant streaming.`;
+  const canonical = `${ORIGIN}/tags/`;
+
+  const cardsHtml = tags.map(t => `
+    <a href="/tags/${t.slug}.html" class="tag-hub-card">
+      <span>#${esc(t.raw)}</span>
+      <span class="tag-count-pill">${fmtViews(t.count)} videos</span>
+    </a>
+  `).join("\n");
+
+  const bodyContent = `
+    <div class="page-hero" style="margin-bottom:24px;">
+      <h1 class="row-heading" style="font-size:28px;font-weight:800;color:#fff;margin:0 0 10px;">AI Video Tags &amp; Niches Directory</h1>
+      <p class="sub" style="font-size:15px;color:#cbd5e1;line-height:1.6;max-width:760px;margin:0 0 18px;">
+        Discover and browse AI adult video scenes categorized by specialized themes, performer traits, actions, and aesthetic styles. All videos stream in 4K Ultra HD with zero wait times.
+      </p>
+    </div>
+    <div class="tags-hub-grid">
+      ${cardsHtml}
+    </div>`;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": `${canonical}#webpage`,
+        "url": canonical,
+        "name": title,
+        "description": description,
+        "isPartOf": { "@type": "WebSite", "name": "thebestpornai", "url": `${ORIGIN}/` }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": `${ORIGIN}/` },
+          { "@type": "ListItem", "position": 2, "name": "Tags", "item": canonical }
+        ]
+      }
+    ]
+  };
+
+  const html = renderHtmlPage({
+    title,
+    description,
+    canonical,
+    ogImage: LOGO,
+    jsonLd,
+    activeNav: "tags",
+    bodyContent
+  });
+
+  fs.writeFileSync(path.join(TAGS_DIR, "index.html"), html);
+  console.log(`✔ tags/index.html written with ${tags.length} top tags`);
+}
+
+// 6. Generate /tags/<slug>.html and /tags/<slug>-page-<n>.html
+function genTagPages() {
+  const PAGE_SIZE = 48;
+  const tagMap = new Map();
+
+  for (const v of VIDEOS) {
+    for (const t of (v.tags || [])) {
+      const clean = String(t).trim();
+      if (!clean) continue;
+      const key = clean.toLowerCase();
+      if (!tagMap.has(key)) {
+        tagMap.set(key, { raw: clean, slug: slugify(clean), videos: [] });
+      }
+      tagMap.get(key).videos.push(v);
+    }
+  }
+
+  const topTags = [...tagMap.values()]
+    .filter(t => t.videos.length >= 15 && t.slug)
+    .sort((a, b) => b.videos.length - a.videos.length);
+
+  let totalTagPagesWritten = 0;
+
+  for (const item of topTags) {
+    const slug = item.slug;
+    const allVideos = item.videos;
+    const totalPages = Math.max(1, Math.ceil(allVideos.length / PAGE_SIZE));
+
+    // Top 8 neighbor tag pills
+    const neighborChips = topTags.filter(o => o.slug !== slug).slice(0, 10).map(o =>
+      `<a class="filter-pill" href="/tags/${o.slug}.html">#${esc(o.raw)}</a>`
+    ).join("");
+
+    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+      const isFirst = pageNum === 1;
+      const tagVideos = allVideos.slice((pageNum - 1) * PAGE_SIZE, pageNum * PAGE_SIZE);
+      const videoCards = tagVideos.map((v, i) => videoCardHtml(v, { eager: i < 4 && isFirst, fetchpriority: i === 0 && isFirst ? "high" : undefined })).join("\n");
+      const sampleThumb = tagVideos[0]?.thumb ? imgUrl(tagVideos[0].thumb) : LOGO;
+
+      const title = isFirst
+        ? `${item.raw} AI Porn Videos — 4K Ultra HD | thebestpornai`
+        : `${item.raw} AI Porn Videos — Page ${pageNum} | thebestpornai`;
+
+      const description = isFirst
+        ? `Stream top 4K ${item.raw} AI porn videos. Watch free AI generated ${item.raw} adult scenes and vertical clips with instant playback on thebestpornai.`
+        : `Stream 4K ${item.raw} AI porn videos (Page ${pageNum} of ${totalPages}). High-definition free streaming on thebestpornai.`;
+
+      const canonical = isFirst
+        ? `${ORIGIN}/tags/${slug}.html`
+        : `${ORIGIN}/tags/${slug}-page-${pageNum}.html`;
+
+      const prevUrl = pageNum === 2
+        ? `${ORIGIN}/tags/${slug}.html`
+        : pageNum > 2
+        ? `${ORIGIN}/tags/${slug}-page-${pageNum - 1}.html`
+        : null;
+
+      const nextUrl = pageNum < totalPages
+        ? `${ORIGIN}/tags/${slug}-page-${pageNum + 1}.html`
+        : null;
+
+      const extraHead = [
+        prevUrl ? `<link rel="prev" href="${prevUrl}"/>` : "",
+        nextUrl ? `<link rel="next" href="${nextUrl}"/>` : "",
+      ].filter(Boolean).join("\n  ");
+
+      const pagination = paginationNavHtml(slug, pageNum, totalPages, "tags");
+
+      const bodyContent = `
+        <div class="home-chips-strip" style="margin-bottom:12px">${neighborChips}</div>
+
+        <div class="cat-hero-wrap">
+          <div class="cat-editorial-tag">AI Tag Collection · 4K Ultra HD${totalPages > 1 ? ` · Page ${pageNum} of ${totalPages}` : ""}</div>
+          <h1 class="cat-hero-title">${esc(item.raw)} AI Porn Videos${pageNum > 1 ? ` — Page ${pageNum}` : ""}</h1>
+          <p class="cat-hero-lead">Explore high-fidelity 4K AI adult scenes tagged with <strong>#${esc(item.raw)}</strong>. Featuring uncensored photorealistic models, diffusion video motion, and instant streaming.</p>
+        </div>
+
+        <div class="v-grid">
+          ${videoCards.length ? videoCards : '<p class="sub">New scenes being generated daily.</p>'}
+        </div>
+
+        ${pagination}
+
+        <section class="cat-editorial-deep" style="margin-top:40px;">
+          <h2 style="font-size:20px;font-weight:800;color:#fff;margin:0 0 14px;">About AI ${esc(item.raw)} Video Generation</h2>
+          <p style="font-size:14px;color:#cbd5e1;line-height:1.65;margin:0 0 14px;">
+            Generative diffusion models in 2026 allow unprecedented temporal consistency and hyper-realistic detail. Whether you are looking for ultra-HD 60fps motion, custom camera angles, or persistent character roleplay, platforms like <strong>OurDream</strong> lead the industry in render quality, prompt compliance, and user privacy.
+          </p>
+          <div class="video-affiliate-box" style="margin-top:20px;">
+            <div class="aff-left">
+              <div class="aff-badge-row">
+                <span class="aff-badge-pill">⚡ AI Video Generator</span>
+                <span class="aff-partner">OurDream.ai</span>
+              </div>
+              <h2 class="aff-title">Create Custom ${esc(item.raw)} AI Videos</h2>
+              <p class="aff-desc">Render your own custom scenes and models with zero prompt restrictions on OurDream.</p>
+            </div>
+            <a href="${ourdreamUrl("create", "tag-" + slug)}" target="_blank" rel="${OURDREAM_REL}" class="aff-cta-btn">
+              <span>Try OurDream Free →</span>
+            </a>
+          </div>
+        </section>`;
+
+      const jsonLd = {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "CollectionPage",
+            "@id": `${canonical}#webpage`,
+            "url": canonical,
+            "name": title,
+            "description": description,
+            "isPartOf": { "@type": "WebSite", "name": "thebestpornai", "url": `${ORIGIN}/` }
+          },
+          {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": `${ORIGIN}/` },
+              { "@type": "ListItem", "position": 2, "name": "Tags", "item": `${ORIGIN}/tags/` },
+              { "@type": "ListItem", "position": 3, "name": item.raw, "item": canonical }
+            ]
+          },
+          {
+            "@type": "ItemList",
+            "name": `${item.raw} AI Videos`,
+            "itemListElement": tagVideos.map((v, idx) => ({
+              "@type": "ListItem",
+              "position": (pageNum - 1) * PAGE_SIZE + idx + 1,
+              "url": `${ORIGIN}/video/${v.id}.html`,
+              "name": v.title
+            }))
+          }
+        ]
+      };
+
+      const html = renderHtmlPage({
+        title,
+        description,
+        canonical,
+        ogImage: sampleThumb,
+        jsonLd,
+        activeNav: "tags",
+        bodyContent,
+        extraHead,
+      });
+
+      const fileName = isFirst ? `${slug}.html` : `${slug}-page-${pageNum}.html`;
+      fs.writeFileSync(path.join(TAGS_DIR, fileName), html);
+      totalTagPagesWritten++;
+    }
+  }
+  console.log(`🎉 Total tag pagination pages generated: ${totalTagPagesWritten} across ${topTags.length} tags`);
+}
+
+// 7. Generate /channels/index.html (Creators Directory Hub)
+function genChannelsHub() {
+  const creators = (DATA.creators || []).filter(c => {
+    const vids = VIDEOS.filter(v => v.creator === c.id);
+    return vids.length > 0;
+  }).sort((a, b) => (b.subs || 0) - (a.subs || 0));
+
+  const title = "Top AI Creators & Studios Directory | thebestpornai";
+  const description = `Discover ${creators.length} verified AI adult creators, performers, and production studios on thebestpornai. Stream exclusive 4K scenes and vertical shorts.`;
+  const canonical = `${ORIGIN}/channels/`;
+
+  const cardsHtml = creators.map(c => {
+    const slug = slugify(c.name);
+    const vids = VIDEOS.filter(v => v.creator === c.id);
+    return `
+      <div class="channel-hero-card" style="margin-bottom:16px;">
+        <div class="channel-avatar-circle">${esc((c.name || "?")[0])}</div>
+        <div class="channel-info-col">
+          <div class="channel-title-row">
+            <h2 style="margin:0;font-size:18px;font-weight:700;"><a href="/channels/${slug}.html" style="color:#fff;text-decoration:none;">${esc(c.name)}</a></h2>
+            <span class="channel-verified-badge">✓ Verified Studio</span>
+          </div>
+          <div class="channel-stats-row">
+            <span><strong>${vids.length}</strong> videos</span>
+            <span>•</span>
+            <span><strong>${fmtViews(c.subs || 12000)}</strong> subscribers</span>
+          </div>
+          <p style="margin:0;font-size:13.5px;color:#cbd5e1;line-height:1.5;">${esc(c.bio || `Official AI content channel by ${c.name}. Free 4K streams and shorts.`)}</p>
+        </div>
+        <a href="/channels/${slug}.html" class="btn-primary" style="flex:none;text-decoration:none;">View Channel →</a>
+      </div>
+    `;
+  }).join("\n");
+
+  const bodyContent = `
+    <div class="page-hero" style="margin-bottom:24px;">
+      <h1 class="row-heading" style="font-size:28px;font-weight:800;color:#fff;margin:0 0 10px;">AI Creators &amp; Studios Directory</h1>
+      <p class="sub" style="font-size:15px;color:#cbd5e1;line-height:1.6;max-width:760px;margin:0 0 18px;">
+        Browse channels from leading AI model creators, diffusion artists, and studio collectives. Subscribe, explore scene catalogs, and stream in 4K resolution.
+      </p>
+    </div>
+    <div class="channels-list">
+      ${cardsHtml}
+    </div>`;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": `${canonical}#webpage`,
+        "url": canonical,
+        "name": title,
+        "description": description,
+        "isPartOf": { "@type": "WebSite", "name": "thebestpornai", "url": `${ORIGIN}/` }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": `${ORIGIN}/` },
+          { "@type": "ListItem", "position": 2, "name": "Channels", "item": canonical }
+        ]
+      }
+    ]
+  };
+
+  const html = renderHtmlPage({
+    title,
+    description,
+    canonical,
+    ogImage: LOGO,
+    jsonLd,
+    activeNav: "home",
+    bodyContent
+  });
+
+  fs.writeFileSync(path.join(CHANNELS_DIR, "index.html"), html);
+  console.log(`✔ channels/index.html written with ${creators.length} creators`);
+}
+
+// 8. Generate /channels/<slug>.html
+function genChannelPages() {
+  const creators = (DATA.creators || []).filter(c => {
+    const vids = VIDEOS.filter(v => v.creator === c.id);
+    return vids.length > 0;
+  });
+
+  let totalChannelPagesWritten = 0;
+
+  for (const c of creators) {
+    const slug = slugify(c.name);
+    const allVideos = VIDEOS.filter(v => v.creator === c.id);
+    const sampleThumb = allVideos[0]?.thumb ? imgUrl(allVideos[0].thumb) : LOGO;
+    const title = `${c.name} — AI Creator Channel & 4K Videos | thebestpornai`;
+    const description = `Watch official 4K AI adult videos created by ${c.name}. Stream ${allVideos.length} high-definition scenes, shorts, and exclusive releases on thebestpornai.`;
+    const canonical = `${ORIGIN}/channels/${slug}.html`;
+
+    const videoCards = allVideos.slice(0, 48).map((v, i) => videoCardHtml(v, { eager: i < 4, fetchpriority: i === 0 ? "high" : undefined })).join("\n");
+
+    const bodyContent = `
+      <div class="channel-hero-card">
+        <div class="channel-avatar-circle">${esc((c.name || "?")[0])}</div>
+        <div class="channel-info-col">
+          <div class="channel-title-row">
+            <h1 style="margin:0;font-size:24px;font-weight:800;color:#fff;">${esc(c.name)}</h1>
+            <span class="channel-verified-badge">✓ Verified Studio</span>
+          </div>
+          <div class="channel-stats-row">
+            <span><strong>${allVideos.length}</strong> 4K videos</span>
+            <span>•</span>
+            <span><strong>${fmtViews(c.subs || 12000)}</strong> subscribers</span>
+          </div>
+          <p style="margin:0;font-size:14px;color:#cbd5e1;line-height:1.5;">${esc(c.bio || `Official studio channel for ${c.name}. Curated 4K diffusion videos, ultra-HD scenes, and mobile shorts.`)}</p>
+        </div>
+      </div>
+
+      <div class="v-grid">
+        ${videoCards.length ? videoCards : '<p class="sub">New videos coming soon.</p>'}
+      </div>`;
+
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "ProfilePage",
+          "@id": `${canonical}#webpage`,
+          "url": canonical,
+          "name": title,
+          "description": description,
+          "isPartOf": { "@type": "WebSite", "name": "thebestpornai", "url": `${ORIGIN}/` },
+          "mainEntity": {
+            "@type": "Organization",
+            "name": c.name,
+            "url": canonical,
+            "description": c.bio || `Official AI content channel by ${c.name}`
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": `${ORIGIN}/` },
+            { "@type": "ListItem", "position": 2, "name": "Channels", "item": `${ORIGIN}/channels/` },
+            { "@type": "ListItem", "position": 3, "name": c.name, "item": canonical }
+          ]
+        }
+      ]
+    };
+
+    const html = renderHtmlPage({
+      title,
+      description,
+      canonical,
+      ogImage: sampleThumb,
+      jsonLd,
+      activeNav: "home",
+      bodyContent
+    });
+
+    fs.writeFileSync(path.join(CHANNELS_DIR, `${slug}.html`), html);
+    totalChannelPagesWritten++;
+  }
+  console.log(`🎉 Total channel pages generated: ${totalChannelPagesWritten}`);
+}
+
+// 9. Generate /video/<id>.html for top curated & popular scenes with rich Schema VideoObject, Prompt Copy Box, and OurDream.ai affiliate conversion
 function genVideoPages() {
   const byId = new Map(VIDEOS.map((v) => [v.id, v]));
   const seenIds = new Set();
@@ -1762,7 +2439,28 @@ function genVideoPages() {
           ${v.desc ? `<p class="video-desc">${esc(v.desc)}</p>` : ""}
           <div class="video-tags-list">
             ${(v.categories || [v.category]).filter(Boolean).map(c => `<a class="tag-chip" href="/categories/${slugify(c)}.html">${esc(c)}</a>`).join("")}
-            ${(v.tags || []).slice(0, 8).map(t => `<a class="tag-chip" href="${searchPath(t)}">#${esc(t)}</a>`).join("")}
+            ${(v.tags || []).slice(0, 8).map(t => `<a class="tag-chip" href="/tags/${slugify(t)}.html">#${esc(t)}</a>`).join("")}
+          </div>
+        </div>
+
+        <div class="video-prompt-box">
+          <div class="prompt-box-header">
+            <div class="prompt-box-title">
+              <span>✨</span>
+              <span>AI Generation Prompt &amp; Parameters</span>
+            </div>
+            <span class="prompt-badge">Diffusion Model 2026</span>
+          </div>
+          <p class="prompt-box-sub">Recreate or customize this scene with the exact positive diffusion prompt:</p>
+          <div class="prompt-box-code-wrap">
+            <pre class="prompt-box-code" id="promptText_${v.id}">(masterpiece, 8K UHD, photorealistic:1.3), 1girl, cinematic lighting, ${esc(v.title)}, flawless skin texture, shallow depth of field, 60fps video diffusion, trending on OurDream</pre>
+            <button type="button" class="prompt-copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('promptText_${v.id}').innerText).then(() => { this.innerText = '✓ Copied!'; setTimeout(() => this.innerText = '📋 Copy Prompt', 2500); })">📋 Copy Prompt</button>
+          </div>
+          <div class="prompt-box-footer">
+            <span class="prompt-footer-hint">Ready to render in 4K? Send this prompt straight to OurDream:</span>
+            <a href="${ourdreamUrl("create", "video-prompt")}" target="_blank" rel="${OURDREAM_REL}" class="prompt-generate-btn">
+              <span>🚀 Generate on OurDream.ai →</span>
+            </a>
           </div>
         </div>
 
@@ -1788,6 +2486,25 @@ function genVideoPages() {
             ${relatedCards}
           </div>
         </div>
+
+        <div class="video-sticky-bar" id="videoStickyBar">
+          <div class="sticky-bar-content">
+            <span class="sticky-bar-pill">⚡ AI GENERATOR</span>
+            <span class="sticky-bar-text">Create uncensored 4K adult videos like this in seconds on <strong>OurDream</strong></span>
+          </div>
+          <div class="sticky-bar-actions">
+            <a href="${ourdreamUrl("create", "watch-sticky")}" target="_blank" rel="${OURDREAM_REL}" class="sticky-bar-cta">
+              <span>Try Free →</span>
+            </a>
+            <button type="button" class="sticky-bar-close" onclick="document.getElementById('videoStickyBar').remove(); sessionStorage.setItem('dismiss_sticky_cta', '1');" aria-label="Close notification">✕</button>
+          </div>
+        </div>
+        <script>
+          if (sessionStorage.getItem('dismiss_sticky_cta') === '1') {
+            var bar = document.getElementById('videoStickyBar');
+            if (bar) bar.remove();
+          }
+        </script>
       </main>`;
 
     const mediaStreamUrl = v.src ? mediaUrl(v.src) : null;
@@ -1929,6 +2646,14 @@ ${featuredCards}
             <a href="/categories/milf.html" class="tag-chip">MILF AI</a>
             <a href="/categories/pov.html" class="tag-chip">POV AI</a>
             <a href="/categories/big-ass.html" class="tag-chip">Big Ass</a>
+            <a href="/tags/solo.html" class="tag-chip">Solo AI</a>
+            <a href="/tags/pawg.html" class="tag-chip">PAWG AI</a>
+            <a href="/tags/deepthroat.html" class="tag-chip">Deepthroat AI</a>
+            <a href="/tags/cumshot.html" class="tag-chip">Cumshot AI</a>
+            <a href="/tags/brunette.html" class="tag-chip">Brunette AI</a>
+            <a href="/tags/creampie.html" class="tag-chip">Creampie AI</a>
+            <a href="/tags/" class="tag-chip">All Tags Directory</a>
+            <a href="/channels/" class="tag-chip">Top AI Creators</a>
             <a href="/pornstars/" class="tag-chip">AI Pornstars Index</a>
             <a href="/categories/" class="tag-chip">All Categories</a>
             <a href="/blog/" class="tag-chip">AI Blog &amp; Guides</a>
@@ -1952,6 +2677,10 @@ genPornstarsHub();
 genPornstarProfiles();
 genCategoriesHub();
 genCategoryPages();
+genTagsHub();
+genTagPages();
+genChannelsHub();
+genChannelPages();
 genVideoPages();
 prerenderHomepageSkeleton();
 

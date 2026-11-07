@@ -19,6 +19,7 @@ export function sharedHeaderHtml(activeNav = "") {
         <a class="site-nav-link${on("home")}" href="/">Home</a>
         <a class="site-nav-link${on("pornstars")}" href="/pornstars/">AI Pornstars</a>
         <a class="site-nav-link${on("categories")}" href="/categories/">Categories</a>
+        <a class="site-nav-link${on("tags")}" href="/tags/">Tags</a>
         <a class="site-nav-link${on("compare")}" href="/The-Best-Porn-AI-in-2026">Top AI Tools</a>
         <a class="site-nav-link${on("blog")}" href="/blog/"${activeNav === "blog" ? ' aria-current="page"' : ""}>Editorial &amp; Guides</a>
       </nav>
@@ -53,11 +54,11 @@ export function appShellHtml(activeNav, bodyContent) {
     <a class="brand" href="/" aria-label="thebestpornai home"><img src="/favicon-64.png" width="32" height="32" alt="thebestpornai"/></a>
     <nav class="nav" aria-label="Primary">
       <a href="/" class="${on("home")}" aria-label="Home"${activeNav === "home" ? ' aria-current="page"' : ""}>${ICO.home}<span class="nav-label">Home</span></a>
-      <a href="/shorts" aria-label="Shorts" rel="nofollow">${ICO.shorts}<span class="nav-label">Shorts</span></a>
-      <a href="/library" aria-label="Library" rel="nofollow">${ICO.save}<span class="nav-label">Library</span></a>
-      <a href="/subscriptions" aria-label="Subscriptions" rel="nofollow">${ICO.subs}<span class="nav-label">Subs</span></a>
-      <a href="/explore" aria-label="Explore">${ICO.explore}<span class="nav-label">Explore</span></a>
+      <a href="/categories/" class="${on("categories")}" aria-label="Categories"${activeNav === "categories" ? ' aria-current="page"' : ""}>${ICO.explore}<span class="nav-label">Categories</span></a>
+      <a href="/tags/" class="${on("tags")}" aria-label="Tags"${activeNav === "tags" ? ' aria-current="page"' : ""}>${ICO.explore}<span class="nav-label">Tags</span></a>
       <a href="/pornstars/" class="${on("pornstars")}" aria-label="Pornstars"${activeNav === "pornstars" ? ' aria-current="page"' : ""}>${ICO.you}<span class="nav-label">Stars</span></a>
+      <a href="/library" aria-label="Library" rel="nofollow">${ICO.save}<span class="nav-label">Library</span></a>
+      <a href="/shorts" aria-label="Shorts" rel="nofollow">${ICO.shorts}<span class="nav-label">Shorts</span></a>
       <a href="/The-Best-Porn-AI-in-2026" class="${on("compare")}" aria-label="Top AI Tools"${activeNav === "compare" ? ' aria-current="page"' : ""}>${ICO.explore}<span class="nav-label">Top AI</span></a>
       <a href="/blog/" class="${on("blog")}" aria-label="Blog"${activeNav === "blog" ? ' aria-current="page"' : ""}>${ICO.comment}<span class="nav-label">Blog</span></a>
       <a href="/choose.html" aria-label="Creator Studio" rel="nofollow">${ICO.studio}<span class="nav-label">Studio</span></a>

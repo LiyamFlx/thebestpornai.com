@@ -85,6 +85,8 @@ const pages = [
   { loc: "/author/anna-k.html", changefreq: "monthly", priority: "0.5", lastmod: today },
   { loc: "/pornstars/", changefreq: "weekly", priority: "0.9", lastmod: today },
   { loc: "/categories/", changefreq: "weekly", priority: "0.9", lastmod: today },
+  { loc: "/tags/", changefreq: "weekly", priority: "0.9", lastmod: today },
+  { loc: "/channels/", changefreq: "weekly", priority: "0.8", lastmod: today },
 ];
 
 const catDir = path.join(REPO, "categories");
@@ -95,6 +97,31 @@ if (fs.existsSync(catDir)) {
       loc: `/categories/${f}`,
       changefreq: "weekly",
       priority: isMain ? "0.9" : "0.7",
+      lastmod: today
+    });
+  }
+}
+
+const tagsDir = path.join(REPO, "tags");
+if (fs.existsSync(tagsDir)) {
+  for (const f of fs.readdirSync(tagsDir).filter((x) => x.endsWith(".html") && x !== "index.html").sort()) {
+    const isMain = !f.includes("-page-");
+    pages.push({
+      loc: `/tags/${f}`,
+      changefreq: "weekly",
+      priority: isMain ? "0.85" : "0.65",
+      lastmod: today
+    });
+  }
+}
+
+const channelsDir = path.join(REPO, "channels");
+if (fs.existsSync(channelsDir)) {
+  for (const f of fs.readdirSync(channelsDir).filter((x) => x.endsWith(".html") && x !== "index.html").sort()) {
+    pages.push({
+      loc: `/channels/${f}`,
+      changefreq: "weekly",
+      priority: "0.8",
       lastmod: today
     });
   }
