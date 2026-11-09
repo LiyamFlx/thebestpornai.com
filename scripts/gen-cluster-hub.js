@@ -101,7 +101,7 @@ const HUB_FAQS = [
   },
   {
     q: "Who writes and tests these reviews?",
-    a: "All scored reviews are written by Anna K., our New York-based reviews editor, from hands-on testing on paid accounts. Each platform is tested for at least 7 days against the six weighted criteria described in the methodology on this page.",
+    a: "All scored reviews are conducted hands-on on active paid accounts by our New York testing desk, published under the editorial pen name Anna K. Each platform is tested for at least 7 days against the six weighted criteria described in the methodology on this page.",
   },
   {
     q: "Is thebestpornai a generator?",

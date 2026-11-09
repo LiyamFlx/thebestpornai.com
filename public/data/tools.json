@@ -1,0 +1,1425 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "thebestpornai 2026 AI Adult Platform Benchmark Index",
+  "description": "Machine-readable benchmark dataset of tested AI adult generators, companion platforms, and diffusion studios.",
+  "canonical": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026",
+  "updatedAt": "2026-11-09",
+  "totalTools": 42,
+  "podium": [
+    {
+      "rank": 1,
+      "name": "OurDream AI",
+      "score": 9.8
+    },
+    {
+      "rank": 2,
+      "name": "Candy AI",
+      "score": 9.7
+    },
+    {
+      "rank": 3,
+      "name": "Xotic AI",
+      "score": 9.5
+    }
+  ],
+  "tools": [
+    {
+      "rank": 1,
+      "slug": "ourdream-ai",
+      "name": "OurDream AI",
+      "category": "chats",
+      "overallScore": 9.8,
+      "ratings": {
+        "quality": 9.6,
+        "features": 9.8,
+        "customization": 9.8,
+        "privacy": 9.7,
+        "value": 9.9
+      },
+      "bestFor": "Best Overall Experience",
+      "popularityPercent": 100,
+      "features": [
+        "free",
+        "memory",
+        "4k"
+      ],
+      "hasFreeTier": true,
+      "supports4K": true,
+      "supportsMemory": true,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/blog/ourdream-ai-review-2026.html",
+      "outboundUrl": "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=hub",
+      "description": "Our 2026 benchmark winner: uncensored chat, photoreal stills, lip-sync video, and voice on one persistent character, with class-leading memory.",
+      "tags": [
+        "Roleplay Immersion",
+        "Long-Term Memory",
+        "HD Video"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 2,
+      "slug": "candy-ai",
+      "name": "Candy AI",
+      "category": "chats",
+      "overallScore": 9.7,
+      "ratings": {
+        "quality": 9.9,
+        "features": 9.6,
+        "customization": 9.6,
+        "privacy": 9.7,
+        "value": 9.4
+      },
+      "bestFor": "Best Photorealistic Quality",
+      "popularityPercent": 98,
+      "features": [
+        "free",
+        "voice",
+        "memory"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": true,
+      "supportsVoice": true,
+      "reviewUrl": "https://www.thebestpornai.com/blog/candy-ai-review-2026.html",
+      "outboundUrl": "https://candyai.gg/home2?via=jeycxz",
+      "description": "Combines photorealistic AI porn image generation, convincing AI girlfriend dynamics, and immersive AI sex chat with persistent long-term memory.",
+      "tags": [
+        "Persistent Memory",
+        "Voice & Photo",
+        "Free Messages"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 3,
+      "slug": "xotic-ai",
+      "name": "Xotic AI",
+      "category": "chats",
+      "overallScore": 9.5,
+      "ratings": {
+        "quality": 9.6,
+        "features": 9.5,
+        "customization": 9.8,
+        "privacy": 9.6,
+        "value": 9.4
+      },
+      "bestFor": "Prompt Control & 4K Video",
+      "popularityPercent": 96,
+      "features": [
+        "free",
+        "4k"
+      ],
+      "hasFreeTier": true,
+      "supports4K": true,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/blog/xotic-ai-review-2026.html",
+      "outboundUrl": "https://xotic.ai/",
+      "description": "Tighter prompt adherence, accurate explicit scene rendering, and smooth integration between image generation, video, and companion interactions.",
+      "tags": [
+        "Precision Control",
+        "Explicit Video",
+        "High Fidelity"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 4,
+      "slug": "joi-ai",
+      "name": "Joi AI",
+      "category": "chats",
+      "overallScore": 8.8,
+      "ratings": {
+        "quality": 8.8,
+        "features": 8.9,
+        "customization": 8.5,
+        "privacy": 8.9,
+        "value": 8.9
+      },
+      "bestFor": "Fast Conversational Escalation",
+      "popularityPercent": 92,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/blog/joi-ai-review-2026.html",
+      "outboundUrl": "https://joi.ai/",
+      "description": "Fast, high-engagement AI sex chat that escalates naturally from flirtation into intense explicit roleplay scenarios paired with visuals.",
+      "tags": [
+        "Fast Escalation",
+        "Adaptive Roleplay",
+        "Instant Chat"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 5,
+      "slug": "spicychat",
+      "name": "SpicyChat",
+      "category": "chats",
+      "overallScore": 8.8,
+      "ratings": {
+        "quality": 8.9,
+        "features": 8.8,
+        "customization": 8.6,
+        "privacy": 8.8,
+        "value": 9
+      },
+      "bestFor": "100k+ Characters",
+      "popularityPercent": 96,
+      "features": [
+        "free",
+        "memory"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": true,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/blog/spicychat-review-2026.html",
+      "outboundUrl": "https://spicychat.ai/",
+      "description": "Massive community of over 100,000+ custom NSFW chatbots, completely unfiltered roleplays, and a generous free tier.",
+      "tags": [
+        "100k+ Characters",
+        "Free Unlimited",
+        "No Filter"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 6,
+      "slug": "secretdesires",
+      "name": "SecretDesires",
+      "category": "chats",
+      "overallScore": 8.7,
+      "ratings": {
+        "quality": 8.8,
+        "features": 8.7,
+        "customization": 8.5,
+        "privacy": 8.7,
+        "value": 8.9
+      },
+      "bestFor": "Branching Stories",
+      "popularityPercent": 91,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://secretdesires.ai/",
+      "description": "Explore intimate fantasies with specialized roleplay scenarios, interactive branching stories, and vivid descriptions.",
+      "tags": [
+        "Branching Stories",
+        "Rich Fantasy",
+        "Private"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 7,
+      "slug": "crushon-ai",
+      "name": "Crushon.ai",
+      "category": "chats",
+      "overallScore": 8.7,
+      "ratings": {
+        "quality": 8.8,
+        "features": 8.7,
+        "customization": 8.5,
+        "privacy": 8.7,
+        "value": 8.9
+      },
+      "bestFor": "Anime & Real",
+      "popularityPercent": 92,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://crushon.ai/",
+      "description": "Uncensored conversational AI platform supporting both anime waifus and realistic personas with active Discord community.",
+      "tags": [
+        "Anime & Real",
+        "NSFW Toggle",
+        "Mobile Friendly"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 8,
+      "slug": "mylovely",
+      "name": "MyLovely",
+      "category": "chats",
+      "overallScore": 8.6,
+      "ratings": {
+        "quality": 8.7,
+        "features": 8.6,
+        "customization": 8.4,
+        "privacy": 8.6,
+        "value": 8.8
+      },
+      "bestFor": "Relationship Progression",
+      "popularityPercent": 86,
+      "features": [
+        "free",
+        "voice"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": true,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://mylovely.ai/",
+      "description": "Interactive virtual girlfriend platform emphasizing emotional intimacy, relationship progression, and spicy moments.",
+      "tags": [
+        "Relationship Progression",
+        "Emotional AI",
+        "Trial"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 9,
+      "slug": "girlfriendgpt",
+      "name": "GirlfriendGPT",
+      "category": "chats",
+      "overallScore": 8.5,
+      "ratings": {
+        "quality": 8.6,
+        "features": 8.5,
+        "customization": 8.3,
+        "privacy": 8.5,
+        "value": 8.7
+      },
+      "bestFor": "Telegram Bot",
+      "popularityPercent": 84,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://girlfriendgpt.ai/",
+      "description": "Custom LLM-powered erotic chat companion with natural dialogue flow and Telegram integration options.",
+      "tags": [
+        "Telegram Bot",
+        "Natural Dialogue",
+        "Freemium"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 10,
+      "slug": "seduced-ai",
+      "name": "Seduced.ai",
+      "category": "images",
+      "overallScore": 9.4,
+      "ratings": {
+        "quality": 9.7,
+        "features": 9.4,
+        "customization": 9.8,
+        "privacy": 9.5,
+        "value": 9.2
+      },
+      "bestFor": "4K Photorealism & Custom Poses",
+      "popularityPercent": 99,
+      "features": [
+        "free",
+        "4k"
+      ],
+      "hasFreeTier": true,
+      "supports4K": true,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/blog/seduced-ai-review-2026.html",
+      "outboundUrl": "https://seduced-ai.io/",
+      "description": "State-of-the-art realistic adult model generator with character face consistency, high-resolution rendering, and custom poses.",
+      "tags": [
+        "Photorealistic",
+        "Pose Control",
+        "4K Motion"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 11,
+      "slug": "promptchan",
+      "name": "PromptChan",
+      "category": "images",
+      "overallScore": 9.3,
+      "ratings": {
+        "quality": 9.6,
+        "features": 9.5,
+        "customization": 9.7,
+        "privacy": 9.3,
+        "value": 9.1
+      },
+      "bestFor": "High-Motion Video Diffusion",
+      "popularityPercent": 98,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/blog/promptchan-review-2026.html",
+      "outboundUrl": "https://promptchan.com/",
+      "description": "Top-tier uncensored prompt engine for hyper-realistic models, hentai, and anime artwork with zero restrictive filters.",
+      "tags": [
+        "Unfiltered",
+        "Anime & Real",
+        "Daily Free"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 12,
+      "slug": "createporn",
+      "name": "CreatePorn",
+      "category": "images",
+      "overallScore": 8.7,
+      "ratings": {
+        "quality": 8.8,
+        "features": 8.7,
+        "customization": 8.5,
+        "privacy": 8.7,
+        "value": 8.9
+      },
+      "bestFor": "Easy Sliders",
+      "popularityPercent": 95,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://www.createporn.com/",
+      "description": "Intuitive creation studio offering easy tag selection, fine body sliders, and fast generation of erotic model shoots.",
+      "tags": [
+        "Easy Sliders",
+        "Body Customizer",
+        "Freemium"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 13,
+      "slug": "sexy-ai",
+      "name": "Sexy.ai",
+      "category": "images",
+      "overallScore": 8.7,
+      "ratings": {
+        "quality": 8.8,
+        "features": 8.7,
+        "customization": 8.5,
+        "privacy": 8.7,
+        "value": 8.9
+      },
+      "bestFor": "Fast Render",
+      "popularityPercent": 92,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://sexy.ai/",
+      "description": "Fast-rendering prompt generator with versatile style presets, art filters, and responsive community sharing features.",
+      "tags": [
+        "Fast Render",
+        "Style Presets",
+        "Community"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 14,
+      "slug": "pornjoy",
+      "name": "PornJoy",
+      "category": "images",
+      "overallScore": 8.6,
+      "ratings": {
+        "quality": 8.7,
+        "features": 8.6,
+        "customization": 8.4,
+        "privacy": 8.6,
+        "value": 8.8
+      },
+      "bestFor": "Fetish Tags",
+      "popularityPercent": 88,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://pornjoy.ai/",
+      "description": "High-quality NSFW diffusion model designed specifically for realistic intimacy scenes and fetish customization.",
+      "tags": [
+        "Fetish Tags",
+        "HD Upscale",
+        "Trial Available"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 15,
+      "slug": "dreamgf-ai",
+      "name": "DreamGF.ai",
+      "category": "images",
+      "overallScore": 8.8,
+      "ratings": {
+        "quality": 8.9,
+        "features": 8.8,
+        "customization": 8.6,
+        "privacy": 8.8,
+        "value": 9
+      },
+      "bestFor": "Outfit Customizer",
+      "popularityPercent": 94,
+      "features": [
+        "free",
+        "voice"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": true,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://dreamgf.ai/",
+      "description": "Design your ideal virtual partner with deep customization over outfit, ethnicity, body shape, and explicit gallery generators.",
+      "tags": [
+        "Outfit Customizer",
+        "Spicy Gallery",
+        "Companion"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 16,
+      "slug": "pornjourney",
+      "name": "PornJourney",
+      "category": "images",
+      "overallScore": 8.6,
+      "ratings": {
+        "quality": 8.7,
+        "features": 8.6,
+        "customization": 8.4,
+        "privacy": 8.6,
+        "value": 8.8
+      },
+      "bestFor": "Midjourney Style",
+      "popularityPercent": 87,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://pornjourney.com/",
+      "description": "Midjourney-inspired NSFW prompting interface with advanced negative prompts and realistic lighting enhancements.",
+      "tags": [
+        "Midjourney Style",
+        "Advanced Prompts",
+        "Fast Speed"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 17,
+      "slug": "made-porn",
+      "name": "Made.Porn",
+      "category": "images",
+      "overallScore": 8.5,
+      "ratings": {
+        "quality": 8.6,
+        "features": 8.5,
+        "customization": 8.3,
+        "privacy": 8.5,
+        "value": 8.7
+      },
+      "bestFor": "One Click Gen",
+      "popularityPercent": 84,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://made.porn/",
+      "description": "Straightforward web-based NSFW image generator with instant one-click tag presets and zero complicated setup.",
+      "tags": [
+        "One Click Gen",
+        "Beginner Friendly",
+        "Web App"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 18,
+      "slug": "pornx",
+      "name": "PornX",
+      "category": "images",
+      "overallScore": 8.7,
+      "ratings": {
+        "quality": 8.8,
+        "features": 8.7,
+        "customization": 8.5,
+        "privacy": 8.7,
+        "value": 8.9
+      },
+      "bestFor": "All-in-One",
+      "popularityPercent": 91,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://pornx.ai/",
+      "description": "All-in-one NSFW creative hub featuring anime models, realistic characters, and prompt enhancement tools.",
+      "tags": [
+        "All-in-One",
+        "Prompt Assist",
+        "Free Tokens"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 19,
+      "slug": "promptchan-video",
+      "name": "PromptChan Video",
+      "category": "videos",
+      "overallScore": 9.2,
+      "ratings": {
+        "quality": 9.3,
+        "features": 9.2,
+        "customization": 9,
+        "privacy": 9.2,
+        "value": 9.4
+      },
+      "bestFor": "Motion Diffusion",
+      "popularityPercent": 98,
+      "features": [
+        "free",
+        "4k"
+      ],
+      "hasFreeTier": true,
+      "supports4K": true,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/blog/promptchan-review-2026.html",
+      "outboundUrl": "https://promptchan.com/",
+      "description": "Turn any prompt or image into a dynamic, uncensored animated video sequence with customizable motion dynamics.",
+      "tags": [
+        "Motion Diffusion",
+        "Image-to-Video",
+        "HD Output"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 20,
+      "slug": "createporn-video",
+      "name": "CreatePorn Video",
+      "category": "videos",
+      "overallScore": 8.7,
+      "ratings": {
+        "quality": 8.8,
+        "features": 8.7,
+        "customization": 8.5,
+        "privacy": 8.7,
+        "value": 8.9
+      },
+      "bestFor": "Fluid Motion",
+      "popularityPercent": 93,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://www.createporn.com/",
+      "description": "Generate short adult video animations with realistic motion curves, fluid expressions, and customizable camera pans.",
+      "tags": [
+        "Fluid Motion",
+        "Camera Controls",
+        "Freemium"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 21,
+      "slug": "ourdream-video",
+      "name": "OurDream Video",
+      "category": "videos",
+      "overallScore": 8.9,
+      "ratings": {
+        "quality": 9,
+        "features": 8.9,
+        "customization": 8.7,
+        "privacy": 8.9,
+        "value": 9.1
+      },
+      "bestFor": "60 FPS Render",
+      "popularityPercent": 96,
+      "features": [
+        "free",
+        "4k"
+      ],
+      "hasFreeTier": true,
+      "supports4K": true,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/blog/ourdream-ai-review-2026.html",
+      "outboundUrl": "https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=hub",
+      "description": "High-framerate video engine tailored for authentic movement and natural rendering of adult scenes.",
+      "tags": [
+        "60 FPS Render",
+        "Fast Processing",
+        "Top Tier"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 22,
+      "slug": "seduced-video",
+      "name": "Seduced Video",
+      "category": "videos",
+      "overallScore": 9.3,
+      "ratings": {
+        "quality": 9.4,
+        "features": 9.3,
+        "customization": 9.1,
+        "privacy": 9.3,
+        "value": 9.5
+      },
+      "bestFor": "4K Resolution",
+      "popularityPercent": 97,
+      "features": [
+        "4k"
+      ],
+      "hasFreeTier": false,
+      "supports4K": true,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://seduced-ai.io/",
+      "description": "Industry-standard 4K adult video generation pipeline with custom character preservation between frames.",
+      "tags": [
+        "4K Resolution",
+        "Face Lock",
+        "Premium"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 23,
+      "slug": "aitubo",
+      "name": "AiTubo",
+      "category": "videos",
+      "overallScore": 8.5,
+      "ratings": {
+        "quality": 8.6,
+        "features": 8.5,
+        "customization": 8.3,
+        "privacy": 8.5,
+        "value": 8.7
+      },
+      "bestFor": "Anime Video",
+      "popularityPercent": 85,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://aitubo.ai/",
+      "description": "Versatile AI generator specialized in anime video loops, game-inspired characters, and stylized erotic art.",
+      "tags": [
+        "Anime Video",
+        "Loop Clips",
+        "Gaming Style"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 24,
+      "slug": "pornjourney-video",
+      "name": "PornJourney Video",
+      "category": "videos",
+      "overallScore": 8.6,
+      "ratings": {
+        "quality": 8.7,
+        "features": 8.6,
+        "customization": 8.4,
+        "privacy": 8.6,
+        "value": 8.8
+      },
+      "bestFor": "Text to Video",
+      "popularityPercent": 86,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://pornjourney.com/",
+      "description": "Prompt-to-video studio with automated camera transitions, multiple aspect ratios, and rich scenery control.",
+      "tags": [
+        "Text to Video",
+        "Aspect Ratios",
+        "Cloud Render"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 25,
+      "slug": "pornx-video",
+      "name": "PornX Video",
+      "category": "videos",
+      "overallScore": 8.6,
+      "ratings": {
+        "quality": 8.7,
+        "features": 8.6,
+        "customization": 8.4,
+        "privacy": 8.6,
+        "value": 8.8
+      },
+      "bestFor": "Quick Animate",
+      "popularityPercent": 88,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://pornx.ai/",
+      "description": "Transform generated static NSFW images into high-motion video clips with single-click motion triggers.",
+      "tags": [
+        "Quick Animate",
+        "Fast Pipeline",
+        "Free Credits"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 26,
+      "slug": "sexy-ai-video",
+      "name": "Sexy.ai Video",
+      "category": "videos",
+      "overallScore": 8.7,
+      "ratings": {
+        "quality": 8.8,
+        "features": 8.7,
+        "customization": 8.5,
+        "privacy": 8.7,
+        "value": 8.9
+      },
+      "bestFor": "Integrated Suite",
+      "popularityPercent": 90,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://sexy.ai/",
+      "description": "Integrated erotic video animation tool built directly into the Sexy.ai image generation suite.",
+      "tags": [
+        "Integrated Suite",
+        "Smooth Motion",
+        "Freemium"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 27,
+      "slug": "deepswap",
+      "name": "DeepSwap",
+      "category": "faceswap",
+      "overallScore": 9.2,
+      "ratings": {
+        "quality": 9.3,
+        "features": 9.2,
+        "customization": 9,
+        "privacy": 9.2,
+        "value": 9.4
+      },
+      "bestFor": "Video Swap",
+      "popularityPercent": 98,
+      "features": [
+        "free",
+        "4k"
+      ],
+      "hasFreeTier": true,
+      "supports4K": true,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://www.deepswap.ai/",
+      "description": "The benchmark AI face swapping platform for full HD videos, multi-face photos, and seamless skin-tone matching.",
+      "tags": [
+        "Video Swap",
+        "Multi-Face",
+        "High Fidelity"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 28,
+      "slug": "basedlabs",
+      "name": "BasedLabs",
+      "category": "faceswap",
+      "overallScore": 8.8,
+      "ratings": {
+        "quality": 8.9,
+        "features": 8.8,
+        "customization": 8.6,
+        "privacy": 8.8,
+        "value": 9
+      },
+      "bestFor": "Lighting Match",
+      "popularityPercent": 95,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://www.basedlabs.ai/",
+      "description": "Advanced AI image and face replacement suite designed for creators with precise lighting and shadow blending.",
+      "tags": [
+        "Lighting Match",
+        "Creator Suite",
+        "Fast Render"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 29,
+      "slug": "faceswaplab",
+      "name": "FaceswapLab",
+      "category": "faceswap",
+      "overallScore": 8.7,
+      "ratings": {
+        "quality": 8.8,
+        "features": 8.7,
+        "customization": 8.5,
+        "privacy": 8.7,
+        "value": 8.9
+      },
+      "bestFor": "Expression Sync",
+      "popularityPercent": 91,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://faceswaplab.com/",
+      "description": "Fast online face changer supporting high-resolution image uploads and realistic expression alignment.",
+      "tags": [
+        "Expression Sync",
+        "High Res",
+        "No App Needed"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 30,
+      "slug": "pornx-faceswap",
+      "name": "PornX FaceSwap",
+      "category": "faceswap",
+      "overallScore": 8.7,
+      "ratings": {
+        "quality": 8.8,
+        "features": 8.7,
+        "customization": 8.5,
+        "privacy": 8.7,
+        "value": 8.9
+      },
+      "bestFor": "Ecosystem Tool",
+      "popularityPercent": 92,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://pornx.ai/",
+      "description": "Dedicated NSFW face swapping module integrated into the PornX adult content ecosystem.",
+      "tags": [
+        "Ecosystem Tool",
+        "NSFW Optimized",
+        "Free Tokens"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 31,
+      "slug": "ainudes",
+      "name": "AiNudes",
+      "category": "faceswap",
+      "overallScore": 8.6,
+      "ratings": {
+        "quality": 8.7,
+        "features": 8.6,
+        "customization": 8.4,
+        "privacy": 8.6,
+        "value": 8.8
+      },
+      "bestFor": "Private",
+      "popularityPercent": 87,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://ainudes.com/",
+      "description": "Automated adult image swap tool designed for quick model transformations with high privacy safeguards.",
+      "tags": [
+        "Private",
+        "Instant Swap",
+        "Zero Logs"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 32,
+      "slug": "pornworks",
+      "name": "PornWorks",
+      "category": "faceswap",
+      "overallScore": 8.5,
+      "ratings": {
+        "quality": 8.6,
+        "features": 8.5,
+        "customization": 8.3,
+        "privacy": 8.5,
+        "value": 8.7
+      },
+      "bestFor": "Templates",
+      "popularityPercent": 84,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://pornworks.ai/",
+      "description": "Face replacement utility with extensive gallery templates for quick one-click scene generation.",
+      "tags": [
+        "Templates",
+        "Quick Gallery",
+        "Freemium"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 33,
+      "slug": "newfaceporn",
+      "name": "NewFacePorn",
+      "category": "faceswap",
+      "overallScore": 8.5,
+      "ratings": {
+        "quality": 8.6,
+        "features": 8.5,
+        "customization": 8.3,
+        "privacy": 8.5,
+        "value": 8.7
+      },
+      "bestFor": "Simple UI",
+      "popularityPercent": 83,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://newfaceporn.com/",
+      "description": "Simple, no-friction face swap engine featuring fast server processing and clean target image matching.",
+      "tags": [
+        "Simple UI",
+        "Fast Processing",
+        "Freemium"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 34,
+      "slug": "deepstrip-swap",
+      "name": "DeepStrip Swap",
+      "category": "faceswap",
+      "overallScore": 8.4,
+      "ratings": {
+        "quality": 8.5,
+        "features": 8.4,
+        "customization": 8.2,
+        "privacy": 8.4,
+        "value": 8.6
+      },
+      "bestFor": "Side by Side",
+      "popularityPercent": 82,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://deepstrip.ai/",
+      "description": "Integrated swapping tool with fast preview rendering and side-by-side comparison tools.",
+      "tags": [
+        "Side by Side",
+        "Preview Mode",
+        "Trial"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 35,
+      "slug": "ainudez",
+      "name": "AiNudez",
+      "category": "undress",
+      "overallScore": 8.7,
+      "ratings": {
+        "quality": 8.8,
+        "features": 8.7,
+        "customization": 8.5,
+        "privacy": 8.7,
+        "value": 8.9
+      },
+      "bestFor": "Neural Inpainting",
+      "popularityPercent": 94,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://ainudez.com/",
+      "description": "Fast neural inpainting model that analyzes fabric layers and generates anatomically accurate skin and body visualizations.",
+      "tags": [
+        "Neural Inpainting",
+        "High Detail",
+        "Free Trial"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 36,
+      "slug": "undress-cc",
+      "name": "Undress.cc",
+      "category": "undress",
+      "overallScore": 8.8,
+      "ratings": {
+        "quality": 8.9,
+        "features": 8.8,
+        "customization": 8.6,
+        "privacy": 8.8,
+        "value": 9
+      },
+      "bestFor": "Body Customizer",
+      "popularityPercent": 96,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://undress.cc/",
+      "description": "Popular AI photo stripper with body type selectors, multiple lingerie removal modes, and fast cloud processing.",
+      "tags": [
+        "Body Customizer",
+        "Multiple Modes",
+        "Top Rated"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 37,
+      "slug": "clothoff",
+      "name": "ClothOff",
+      "category": "undress",
+      "overallScore": 8.7,
+      "ratings": {
+        "quality": 8.8,
+        "features": 8.7,
+        "customization": 8.5,
+        "privacy": 8.7,
+        "value": 8.9
+      },
+      "bestFor": "Edge Detection",
+      "popularityPercent": 93,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://clothoff.io/",
+      "description": "One-click automated clothes removal with precise edge detection, natural skin tone blending, and fast previews.",
+      "tags": [
+        "Edge Detection",
+        "Skin Blending",
+        "Freemium"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 38,
+      "slug": "nudify-online",
+      "name": "Nudify.online",
+      "category": "undress",
+      "overallScore": 8.6,
+      "ratings": {
+        "quality": 8.7,
+        "features": 8.6,
+        "customization": 8.4,
+        "privacy": 8.6,
+        "value": 8.8
+      },
+      "bestFor": "No Download",
+      "popularityPercent": 89,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://nudify.online/",
+      "description": "Browser-based nudifier application requiring no downloads, offering instant processing and encrypted temporary storage.",
+      "tags": [
+        "No Download",
+        "Encrypted",
+        "Fast Speed"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 39,
+      "slug": "deepmode",
+      "name": "DeepMode",
+      "category": "undress",
+      "overallScore": 8.5,
+      "ratings": {
+        "quality": 8.6,
+        "features": 8.5,
+        "customization": 8.3,
+        "privacy": 8.5,
+        "value": 8.7
+      },
+      "bestFor": "Segmentation",
+      "popularityPercent": 86,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://deepmode.ai/",
+      "description": "AI segmentation tool capable of replacing swimwear, bikinis, and casual clothing with realistic nude textures.",
+      "tags": [
+        "Segmentation",
+        "Bikini Removal",
+        "Trial"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 40,
+      "slug": "deepstrip",
+      "name": "DeepStrip",
+      "category": "undress",
+      "overallScore": 8.5,
+      "ratings": {
+        "quality": 8.6,
+        "features": 8.5,
+        "customization": 8.3,
+        "privacy": 8.5,
+        "value": 8.7
+      },
+      "bestFor": "Quick Strip",
+      "popularityPercent": 85,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://deepstrip.ai/",
+      "description": "Simple interface for quick clothing segmentation, body contour enhancement, and fast cloud rendering.",
+      "tags": [
+        "Quick Strip",
+        "Body Contour",
+        "Freemium"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 41,
+      "slug": "swapperai",
+      "name": "SwapperAI",
+      "category": "undress",
+      "overallScore": 8.6,
+      "ratings": {
+        "quality": 8.7,
+        "features": 8.6,
+        "customization": 8.4,
+        "privacy": 8.6,
+        "value": 8.8
+      },
+      "bestFor": "Hybrid Tool",
+      "popularityPercent": 88,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://swapper.ai/",
+      "description": "Hybrid platform combining clothing removal algorithms with face swap options for complete model customizer workflows.",
+      "tags": [
+        "Hybrid Tool",
+        "Cloth + Face",
+        "Fast Speed"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    },
+    {
+      "rank": 42,
+      "slug": "deepnude",
+      "name": "DeepNude",
+      "category": "undress",
+      "overallScore": 8.4,
+      "ratings": {
+        "quality": 8.5,
+        "features": 8.4,
+        "customization": 8.2,
+        "privacy": 8.4,
+        "value": 8.6
+      },
+      "bestFor": "Classic Tool",
+      "popularityPercent": 81,
+      "features": [
+        "free"
+      ],
+      "hasFreeTier": true,
+      "supports4K": false,
+      "supportsMemory": false,
+      "supportsVoice": false,
+      "reviewUrl": "https://www.thebestpornai.com/The-Best-Porn-AI-in-2026#directory",
+      "outboundUrl": "https://deepnude.cc/",
+      "description": "Classic algorithm benchmark for generating nude renderings from standard portraits with automated clothing removal.",
+      "tags": [
+        "Classic Tool",
+        "Standard Mode",
+        "Trial"
+      ],
+      "testedDate": "2026-08-23",
+      "billingDiscrete": true
+    }
+  ]
+}

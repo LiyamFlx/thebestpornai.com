@@ -52,13 +52,13 @@ function generateAuthorPage() {
         "@type": "Person",
         "@id": `${ORIGIN}/author/anna-k.html#person`,
         "name": "Anna K.",
-        "jobTitle": "Reviews Editor & Adult AI Benchmark Lead",
+        "jobTitle": "Editorial Desk & Adult AI Benchmark Lead (Editorial Pen Name)",
         "worksFor": {
           "@type": "Organization",
           "name": "thebestpornai",
           "url": ORIGIN
         },
-        "description": "Reviews editor at thebestpornai specializing in generative media benchmarks, companion AI memory evaluation, prompt compliance, and data privacy audits.",
+        "description": "Editorial pen name representing the testing desk at thebestpornai, specializing in hands-on generative media benchmarks, companion AI memory evaluation, prompt compliance, and privacy audits.",
         "url": `${ORIGIN}/author/anna-k.html`,
         "sameAs": [
           `${ORIGIN}/The-Best-Porn-AI-in-2026#how-we-test`
@@ -85,14 +85,17 @@ function generateAuthorPage() {
         <div>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
             <h1 style="font-size:28px;font-weight:800;color:#fff;margin:0;">Anna K.</h1>
-            <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,45,85,0.12);color:#ff2d55;border:1px solid rgba(255,45,85,0.3);font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">✓ Verified Editor</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,45,85,0.12);color:#ff2d55;border:1px solid rgba(255,45,85,0.3);font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">Editorial Pen Name</span>
           </div>
-          <p style="font-size:15px;color:#a1a1aa;margin:0;">Reviews Editor &amp; Adult AI Benchmark Lead at thebestpornai</p>
+          <p style="font-size:15px;color:#a1a1aa;margin:0;">Editorial Desk &amp; Adult AI Benchmark Lead at thebestpornai</p>
         </div>
       </div>
       <p style="font-size:15px;line-height:1.6;color:#d4d4d8;margin:0;max-width:780px;">
-        Anna leads benchmarking, reverse-prompt evaluation, and long-term memory audits across 40+ generative adult AI platforms and companion chat engines. Every tool reviewed on this site is tested hands-on on a paid account for a minimum of 7 days before receiving a final score.
+        Anna K. is the editorial pen name representing the testing desk at thebestpornai. Our desk leads benchmarking, reverse-prompt evaluation, and long-term memory audits across 40+ generative adult AI platforms and companion chat engines. Every tool reviewed on this site is tested hands-on on an active paid account for a minimum of 7 days before receiving a final score.
       </p>
+      <div style="background:rgba(255,255,255,0.03);border-left:3px solid #ff2d55;padding:12px 16px;border-radius:4px;font-size:13.5px;color:#a1a1aa;line-height:1.5;">
+        <strong style="color:#fff;">Commercial &amp; Affiliate Disclosure:</strong> We maintain strict testing independence by paying for our own accounts to eliminate trial bias. Outbound links on this site may earn an affiliate commission when you subscribe. Commercial partnerships and affiliate agreements may influence placement order on directory listings, but never alter benchmark scores, test findings, or editorial verdicts.
+      </div>
     </header>
 
     <!-- Testing Methodology & Ethics -->

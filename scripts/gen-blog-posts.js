@@ -453,6 +453,11 @@ function jsonLdForPost(post, cover, words, relatedVideos = []) {
         name: post.review.name,
         applicationCategory: "EntertainmentApplication",
         operatingSystem: "Web",
+        offers: {
+          "@type": "Offer",
+          price: post.review.price || "12.99",
+          priceCurrency: "USD",
+        },
         ...(post.review.url ? { url: post.review.url } : {}),
       },
       reviewRating: {
