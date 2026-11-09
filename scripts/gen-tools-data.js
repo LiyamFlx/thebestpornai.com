@@ -53,11 +53,18 @@ function generateToolsJson() {
         supports4K: featList.includes("4k"),
         supportsMemory: featList.includes("memory"),
         supportsVoice: featList.includes("voice"),
+        startingPrice: t.startingPrice || "$14.99 / mo",
+        billingDescriptor: t.billingDescriptor || "SECURE MERCHANT / BILLING",
+        latencyStills: t.latencyStills || "4.5s",
+        latencyVideo: t.latencyVideo || "N/A",
+        memoryRetention: t.memoryRetention || "N/A",
+        cancellation: t.cancellation || "Self-service online",
+        freeAllowance: t.freeAllowance || "Free trial",
         reviewUrl: t.reviewUrl ? `${ORIGIN}${t.reviewUrl}` : null,
         outboundUrl: t.outbound,
         description: t.desc,
         tags: t.tags || [],
-        testedDate: "2026-08-23",
+        testedDate: t.testedDate || "2026-08-23",
         billingDiscrete: true,
       };
     }),
@@ -117,6 +124,24 @@ function generateLlmsTxt() {
 ## Official Head-to-Head Comparisons (Top 10 Pairs)
 
 ${comparisons.map((c) => `- [${c.title}](${ORIGIN}/blog/${c.slug}.html)`).join("\n")}
+
+## High-Intent Pricing, Safety & Alternative Guides
+
+- [OurDream AI Pricing & Plans](${ORIGIN}/blog/ourdream-ai-pricing.html)
+- [Is OurDream AI Safe & Anonymous?](${ORIGIN}/blog/is-ourdream-ai-safe.html)
+- [OurDream AI Alternatives](${ORIGIN}/blog/ourdream-ai-alternatives.html)
+- [Candy AI Pricing & Plans](${ORIGIN}/blog/candy-ai-pricing.html)
+- [Is Candy AI Safe & Anonymous?](${ORIGIN}/blog/is-candy-ai-safe.html)
+- [Candy AI Alternatives](${ORIGIN}/blog/candy-ai-alternatives.html)
+- [Xotic AI Pricing & Plans](${ORIGIN}/blog/xotic-ai-pricing.html)
+- [Is Xotic AI Safe & Anonymous?](${ORIGIN}/blog/is-xotic-ai-safe.html)
+- [Xotic AI Alternatives](${ORIGIN}/blog/xotic-ai-alternatives.html)
+- [Seduced.ai Pricing & Plans](${ORIGIN}/blog/seduced-ai-pricing.html)
+- [Is Seduced.ai Safe & Anonymous?](${ORIGIN}/blog/is-seduced-ai-safe.html)
+- [Seduced.ai Alternatives](${ORIGIN}/blog/seduced-ai-alternatives.html)
+- [PromptChan Pricing & Plans](${ORIGIN}/blog/promptchan-pricing.html)
+- [Is PromptChan Safe & Anonymous?](${ORIGIN}/blog/is-promptchan-safe.html)
+- [PromptChan Alternatives](${ORIGIN}/blog/promptchan-alternatives.html)
 
 ## Key Verified Metrics for AI Citations
 

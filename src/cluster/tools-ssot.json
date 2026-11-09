@@ -20,7 +20,15 @@
    "Roleplay Immersion",
    "Long-Term Memory",
    "HD Video"
-  ]
+  ],
+  "startingPrice": "$12.99 / mo",
+  "billingDescriptor": "OD MEDIA / REBILL",
+  "latencyStills": "3.2s",
+  "latencyVideo": "24s",
+  "memoryRetention": "30+ days multi-session",
+  "cancellation": "Settings → Manage Billing → 1-Click Cancel",
+  "freeAllowance": "Daily free energy allowance (5 image gens/day)",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 2,
@@ -43,7 +51,15 @@
    "Persistent Memory",
    "Voice & Photo",
    "Free Messages"
-  ]
+  ],
+  "startingPrice": "$12.99 / mo",
+  "billingDescriptor": "EPIC VENTURES / AP SERVICES",
+  "latencyStills": "4.1s",
+  "latencyVideo": "28s",
+  "memoryRetention": "7+ days active context",
+  "cancellation": "Settings → Subscription → Cancel Auto-Renew",
+  "freeAllowance": "50 free text messages per day",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 3,
@@ -66,7 +82,15 @@
    "Precision Control",
    "Explicit Video",
    "High Fidelity"
-  ]
+  ],
+  "startingPrice": "$14.99 / mo",
+  "billingDescriptor": "XT COMPUTING",
+  "latencyStills": "3.8s",
+  "latencyVideo": "26s",
+  "memoryRetention": "Session-based prompt memory",
+  "cancellation": "Profile → Membership → Cancel Subscription",
+  "freeAllowance": "10 free credits upon verified email signup",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 4,
@@ -89,7 +113,15 @@
    "Fast Escalation",
    "Adaptive Roleplay",
    "Instant Chat"
-  ]
+  ],
+  "startingPrice": "$11.99 / mo",
+  "billingDescriptor": "JOI MEDIA GROUP",
+  "latencyStills": "2.9s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "Multi-session conversational",
+  "cancellation": "Account Settings → Subscription → Cancel",
+  "freeAllowance": "Free introductory chat credits",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 5,
@@ -112,7 +144,15 @@
    "100k+ Characters",
    "Free Unlimited",
    "No Filter"
-  ]
+  ],
+  "startingPrice": "$14.95 / mo",
+  "billingDescriptor": "SPICYCHAT WEB",
+  "latencyStills": "6.2s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "Permanent character memory slots",
+  "cancellation": "Billing → Cancel Tier",
+  "freeAllowance": "Free unlimited basic queue messages",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 6,
@@ -135,7 +175,15 @@
    "Branching Stories",
    "Rich Fantasy",
    "Private"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 7,
@@ -158,7 +206,15 @@
    "Anime & Real",
    "NSFW Toggle",
    "Mobile Friendly"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 8,
@@ -181,7 +237,15 @@
    "Relationship Progression",
    "Emotional AI",
    "Trial"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 9,
@@ -204,7 +268,15 @@
    "Telegram Bot",
    "Natural Dialogue",
    "Freemium"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 10,
@@ -227,7 +299,15 @@
    "Photorealistic",
    "Pose Control",
    "4K Motion"
-  ]
+  ],
+  "startingPrice": "$19.99 / mo",
+  "billingDescriptor": "SD DIGITAL ENTERPRISES",
+  "latencyStills": "5.4s",
+  "latencyVideo": "32s",
+  "memoryRetention": "N/A (Studio generator)",
+  "cancellation": "Billing Dashboard → Cancel Plan",
+  "freeAllowance": "Daily free generation tokens with watermarking",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 11,
@@ -250,7 +330,15 @@
    "Unfiltered",
    "Anime & Real",
    "Daily Free"
-  ]
+  ],
+  "startingPrice": "$18.99 / mo",
+  "billingDescriptor": "PC SUBS / PCMEDIA",
+  "latencyStills": "4.6s",
+  "latencyVideo": "30s",
+  "memoryRetention": "N/A (Studio generator)",
+  "cancellation": "Account → Plan Details → Cancel Rebill",
+  "freeAllowance": "Daily replenishing credits for anime/realism",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 12,
@@ -273,7 +361,15 @@
    "Easy Sliders",
    "Body Customizer",
    "Freemium"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 13,
@@ -296,7 +392,15 @@
    "Fast Render",
    "Style Presets",
    "Community"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 14,
@@ -319,7 +423,15 @@
    "Fetish Tags",
    "HD Upscale",
    "Trial Available"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 15,
@@ -342,7 +454,15 @@
    "Outfit Customizer",
    "Spicy Gallery",
    "Companion"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 16,
@@ -365,7 +485,15 @@
    "Midjourney Style",
    "Advanced Prompts",
    "Fast Speed"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 17,
@@ -388,7 +516,15 @@
    "One Click Gen",
    "Beginner Friendly",
    "Web App"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 18,
@@ -411,7 +547,15 @@
    "All-in-One",
    "Prompt Assist",
    "Free Tokens"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 19,
@@ -434,7 +578,15 @@
    "Motion Diffusion",
    "Image-to-Video",
    "HD Output"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "30s",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 20,
@@ -457,7 +609,15 @@
    "Fluid Motion",
    "Camera Controls",
    "Freemium"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 21,
@@ -480,7 +640,15 @@
    "60 FPS Render",
    "Fast Processing",
    "Top Tier"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "30s",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 22,
@@ -503,7 +671,15 @@
    "4K Resolution",
    "Face Lock",
    "Premium"
-  ]
+  ],
+  "startingPrice": "$14.99 / mo",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "30s",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Paid access only",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 23,
@@ -526,7 +702,15 @@
    "Anime Video",
    "Loop Clips",
    "Gaming Style"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 24,
@@ -549,7 +733,15 @@
    "Text to Video",
    "Aspect Ratios",
    "Cloud Render"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 25,
@@ -572,7 +764,15 @@
    "Quick Animate",
    "Fast Pipeline",
    "Free Credits"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 26,
@@ -595,7 +795,15 @@
    "Integrated Suite",
    "Smooth Motion",
    "Freemium"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 27,
@@ -618,7 +826,15 @@
    "Video Swap",
    "Multi-Face",
    "High Fidelity"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "30s",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 28,
@@ -641,7 +857,15 @@
    "Lighting Match",
    "Creator Suite",
    "Fast Render"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 29,
@@ -664,7 +888,15 @@
    "Expression Sync",
    "High Res",
    "No App Needed"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 30,
@@ -687,7 +919,15 @@
    "Ecosystem Tool",
    "NSFW Optimized",
    "Free Tokens"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 31,
@@ -710,7 +950,15 @@
    "Private",
    "Instant Swap",
    "Zero Logs"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 32,
@@ -733,7 +981,15 @@
    "Templates",
    "Quick Gallery",
    "Freemium"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 33,
@@ -756,7 +1012,15 @@
    "Simple UI",
    "Fast Processing",
    "Freemium"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 34,
@@ -779,7 +1043,15 @@
    "Side by Side",
    "Preview Mode",
    "Trial"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 35,
@@ -802,7 +1074,15 @@
    "Neural Inpainting",
    "High Detail",
    "Free Trial"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 36,
@@ -825,7 +1105,15 @@
    "Body Customizer",
    "Multiple Modes",
    "Top Rated"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 37,
@@ -848,7 +1136,15 @@
    "Edge Detection",
    "Skin Blending",
    "Freemium"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 38,
@@ -871,7 +1167,15 @@
    "No Download",
    "Encrypted",
    "Fast Speed"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 39,
@@ -894,7 +1198,15 @@
    "Segmentation",
    "Bikini Removal",
    "Trial"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 40,
@@ -917,7 +1229,15 @@
    "Quick Strip",
    "Body Contour",
    "Freemium"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 41,
@@ -940,7 +1260,15 @@
    "Hybrid Tool",
    "Cloth + Face",
    "Fast Speed"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  },
  {
   "rank": 42,
@@ -963,6 +1291,14 @@
    "Classic Tool",
    "Standard Mode",
    "Trial"
-  ]
+  ],
+  "startingPrice": "Free tier / $14.99",
+  "billingDescriptor": "SECURE MERCHANT / BILLING",
+  "latencyStills": "4.5s",
+  "latencyVideo": "N/A",
+  "memoryRetention": "N/A",
+  "cancellation": "Self-service account billing dashboard",
+  "freeAllowance": "Daily free tier / trial tokens",
+  "testedDate": "2026-08-23"
  }
 ]
