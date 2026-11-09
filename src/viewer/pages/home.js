@@ -8,7 +8,7 @@ import { vstate, persistState } from "../state.js";
 import { jsq, relativeTime } from "../util.js";
 import { displayViews } from "../display-metrics.js";
 import {
-  pubVideos, trending, byCat, byCategoryFilter, sortedVideos, movies,
+  pubVideos, searchableVideos, trending, byCat, byCategoryFilter, sortedVideos, movies,
   actNames, clipsByAct, highlights, originals, byViewsDesc,
   byUploadedDesc, newestUploads, videoById, relatedTo, pornstars,
 } from "../catalog-queries.js";
@@ -254,16 +254,18 @@ function homeHero(hero){
   const media = heroIsVideo
     ? `<video class="home-hero-img" src="${mediaUrl(hero.src)}" ${hero.thumb ? `poster="${mediaUrl(hero.thumb)}"` : ''} muted autoplay loop playsinline preload="metadata"></video>`
     : (hero.thumb ? `<img class="home-hero-img" src="${mediaUrl(hero.thumb)}" alt="" fetchpriority="high" loading="eager" decoding="async"/>` : ``);
-  const liveCount = pubVideos().filter(v => !v.flagged).length.toLocaleString("en-US");
+  const liveCount = searchableVideos().filter(v => !v.flagged).length.toLocaleString("en-US");
   return `
     <section class="home-hero" aria-label="Featured video" data-hero-id="${hero.id}">
       <div class="home-hero-media">${media}</div>
       <div class="home-hero-body">
         <div class="home-hero-badge-row">
-          <span class="home-hero-tag">✨ Featured</span>
-          <span class="home-hero-count">4K Ultra HD · ${liveCount} Videos</span>
-          <span class="home-hero-free-pill">100% Free · No Signup</span>
-          <span class="home-hero-trust-pill">🛡️ 100% Fictional Synthetic Personas · Zero Deepfakes · 18+ Consenting Adults</span>
+          <div class="home-hero-badge-group">
+            <span class="home-hero-tag">✨ Featured</span>
+            <span class="home-hero-count">4K Ultra HD · ${liveCount} Videos</span>
+            <span class="home-hero-free-pill">100% Free · No Signup</span>
+          </div>
+          <span class="home-hero-trust-pill">🛡️ 100% Synthetic Personas · Zero Deepfakes · 18+ Consenting Adults</span>
         </div>
         <h1 class="home-hero-title">${esc(hero.title)}</h1>
         <p class="home-hero-meta">${esc(creatorName(hero.creator))} · <span class="hero-views-num" data-hero-views="${hero.id}">${fmt(displayViews(hero))} views</span>${hero.uploaded ? ` · ${esc(relativeTime(hero.uploaded))}` : ''}</p>
@@ -367,7 +369,7 @@ export function homeEditorialSection(){
       <div class="home-seo-editorial-card">
         <h2 class="home-seo-editorial-title">Free 4K AI Porn &amp; Uncensored Adult Streaming</h2>
         <p class="home-seo-editorial-text">
-          Welcome to <strong>thebestpornai</strong>, the premier streaming destination for high-definition generative adult entertainment. Our growing library features over 6,000+ uncensored 4K AI porn scenes, full-length movies, and exclusive shorts rendered with hyper-realistic detail and 60fps fluidity. Powered by high-speed global edge infrastructure via Cloudflare R2, every video streams instantly with zero buffering and no registration or credit card required. Explore our signature character face packs featuring recurring virtual adult stars, or browse top categories including Blonde, Latina, MILF, POV, and House Originals. All performers are 100% synthetic, ethically generated fictional personas compliant with 18+ adult standards.
+          Welcome to <strong>thebestpornai</strong>, the premier streaming destination for high-definition generative adult entertainment. Our growing library features over 7,000+ uncensored 4K AI porn scenes, full-length movies, and exclusive shorts rendered with hyper-realistic detail and 60fps fluidity. Powered by high-speed global edge infrastructure via Cloudflare R2, every video streams instantly with zero buffering and no registration or credit card required. Explore our signature character face packs featuring recurring virtual adult stars, or browse top categories including Blonde, Latina, MILF, POV, and House Originals. All performers are 100% synthetic, ethically generated fictional personas compliant with 18+ adult standards.
         </p>
         <div class="home-seo-editorial-links">
           <a href="/categories/blonde.html" class="tag-chip">Blonde AI</a>
