@@ -66,99 +66,325 @@
       font-weight: 600;
     }
 
-    /* Hero Header */
+    /* Hero Header - Immersive Adult Streaming Theater */
     .niche-hero {
       position: relative;
-      padding: 44px 32px 36px;
-      background: linear-gradient(180deg, rgba(229, 9, 20, 0.16) 0%, rgba(15, 15, 20, 0.95) 100%);
-      border: 1px solid rgba(229, 9, 20, 0.28);
-      border-radius: 20px;
-      margin-bottom: 40px;
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      padding: 42px 36px 30px;
+      background: #0d0d12;
+      border: 1px solid rgba(229, 9, 20, 0.35);
+      border-radius: 22px;
+      margin-bottom: 44px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75), 0 0 45px rgba(229, 9, 20, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      overflow: hidden;
     }
+
+    /* Ambient Cinema Backdrop */
+    .niche-hero-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .niche-hero-bg-blur {
+      position: absolute;
+      top: -30%;
+      left: -20%;
+      width: 140%;
+      height: 160%;
+      background-size: cover;
+      background-position: center 30%;
+      filter: blur(52px) brightness(0.22) saturate(1.6);
+      transform: scale(1.1);
+      opacity: 0.65;
+    }
+    .niche-hero-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 75% 35%, rgba(229, 9, 20, 0.22) 0%, rgba(13, 13, 18, 0.88) 55%, rgba(10, 10, 14, 0.98) 100%),
+                  linear-gradient(180deg, rgba(13, 13, 18, 0.3) 0%, rgba(10, 10, 14, 0.95) 100%);
+    }
+    .niche-hero-radial-glow {
+      position: absolute;
+      top: -120px;
+      right: -80px;
+      width: 460px;
+      height: 460px;
+      background: radial-gradient(circle, rgba(229, 9, 20, 0.4) 0%, transparent 70%);
+      filter: blur(60px);
+    }
+
+    /* 2-Column Hero Grid */
+    .niche-hero-container {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1.25fr 0.92fr;
+      gap: 36px;
+      align-items: center;
+      margin-bottom: 26px;
+    }
+    .niche-hero-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Badge Row */
     .niche-hero-badge-row {
       display: flex;
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
-    .niche-pill-flame {
+    .niche-pill-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
       background: rgba(229, 9, 20, 0.25);
-      border: 1px solid rgba(229, 9, 20, 0.5);
-      color: #ff4d4d;
+      border: 1px solid rgba(229, 9, 20, 0.6);
+      color: #ff3b3b;
       padding: 4px 12px;
       border-radius: 999px;
-      font-size: 12.5px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+    .live-pulse-dot {
+      width: 7px;
+      height: 7px;
+      background: #e50914;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 10px #ff2222;
+      animation: livePulse 1.6s infinite ease-in-out;
+    }
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(1.35); }
+    }
+    .niche-pill-adult {
+      background: rgba(245, 158, 11, 0.16);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      color: #fbbf24;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
     .niche-pill-tech {
-      background: rgba(56, 189, 248, 0.15);
-      border: 1px solid rgba(56, 189, 248, 0.35);
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.4);
       color: #38bdf8;
       padding: 4px 12px;
       border-radius: 999px;
-      font-size: 12.5px;
-      font-weight: 600;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
     }
-    .niche-pill-date {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #cbd5e1;
+    .niche-pill-free {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #e2e8f0;
       padding: 4px 12px;
       border-radius: 999px;
-      font-size: 12.5px;
-      font-weight: 500;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
     }
+
     .niche-hero-title {
       font-size: 38px;
       font-weight: 850;
       color: #ffffff;
-      line-height: 1.2;
+      line-height: 1.18;
       margin: 0 0 16px;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.6px;
+      text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
     }
     .niche-hero-lead {
-      font-size: 17px;
+      font-size: 16.5px;
       color: #cbd5e1;
       line-height: 1.6;
-      max-width: 920px;
-      margin: 0 0 24px;
+      margin: 0 0 22px;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+      max-width: 640px;
+    }
+
+    /* Adult Streaming Stats Ribbon */
+    .niche-stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+      padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.48);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 14px;
+      backdrop-filter: blur(8px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    .niche-stat-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 19px;
+      font-weight: 850;
+      color: #ffffff;
+      line-height: 1.1;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: linear-gradient(180deg, #ffffff 40%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .stat-lbl {
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 3px;
+    }
+
+    /* Hero CTA Row */
+    .niche-cta-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+    .niche-btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: linear-gradient(135deg, #e50914 0%, #b80610 100%);
+      color: #ffffff;
+      text-decoration: none;
+      padding: 13px 26px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 15px;
+      box-shadow: 0 6px 24px rgba(229, 9, 20, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+    }
+    .niche-btn-primary:hover {
+      background: linear-gradient(135deg, #ff1a26 0%, #c80814 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(229, 9, 20, 0.65);
+    }
+    .btn-play-icon {
+      width: 17px;
+      height: 17px;
+      flex-shrink: 0;
+    }
+    .btn-spark-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      fill: #fbbf24;
+    }
+    .niche-btn-studio {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(229, 9, 20, 0.18) 100%);
+      color: #ffffff;
+      text-decoration: none;
+      padding: 13px 22px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14.5px;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+      transition: transform 0.18s, background 0.18s, border-color 0.18s;
+    }
+    .niche-btn-studio:hover {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.28) 0%, rgba(229, 9, 20, 0.28) 100%);
+      border-color: rgba(245, 158, 11, 0.7);
+      transform: translateY(-2px);
+    }
+    .niche-btn-accent {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(229, 9, 20, 0.18) 100%);
+      color: #ffffff;
+      text-decoration: none;
+      padding: 13px 22px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14.5px;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+      transition: transform 0.18s, background 0.18s, border-color 0.18s;
+    }
+    .niche-btn-accent:hover {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.28) 0%, rgba(229, 9, 20, 0.28) 100%);
+      border-color: rgba(245, 158, 11, 0.7);
+      transform: translateY(-2px);
+    }
+    .niche-btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.06);
+      color: #e2e8f0;
+      text-decoration: none;
+      padding: 13px 20px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transition: background 0.18s, color 0.18s;
+    }
+    .niche-btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
     }
 
     /* Author Bar */
     .niche-author-bar {
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 12px 18px;
+      gap: 12px;
+      padding: 10px 14px;
       background: rgba(0, 0, 0, 0.35);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      max-width: 680px;
-      margin-bottom: 26px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 11px;
+      max-width: 580px;
     }
     .niche-author-avatar {
-      width: 40px;
-      height: 40px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       background: linear-gradient(135deg, #e50914, #ff3b3b);
       color: #fff;
       font-weight: 800;
-      font-size: 14px;
+      font-size: 13px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+      box-shadow: 0 2px 8px rgba(229, 9, 20, 0.4);
       flex-shrink: 0;
     }
     .niche-author-details {
-      font-size: 13.5px;
-      line-height: 1.4;
+      font-size: 12.5px;
+      line-height: 1.35;
     }
     .niche-author-name {
-      color: #f8fafc;
+      color: #f1f5f9;
       font-weight: 600;
     }
     .niche-author-name a {
@@ -171,70 +397,193 @@
     }
     .niche-author-credentials {
       color: #94a3b8;
-      font-size: 12.5px;
+      font-size: 11.5px;
     }
 
-    /* Hero CTA Row */
-    .niche-cta-row {
+    /* Right Column: Interactive #1 Video Spotlight Card */
+    .niche-hero-spotlight {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    .niche-spotlight-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #fbbf24;
+      margin-bottom: 8px;
+      padding-left: 2px;
+    }
+    .spotlight-pulse-star {
+      color: #fbbf24;
+      animation: livePulse 1.8s infinite ease-in-out;
+    }
+    .niche-spotlight-card {
+      display: block;
+      text-decoration: none;
+      background: rgba(18, 18, 24, 0.88);
+      border: 1px solid rgba(229, 9, 20, 0.38);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 24px rgba(229, 9, 20, 0.22);
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s, border-color 0.22s;
+      backdrop-filter: blur(10px);
+    }
+    .niche-spotlight-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(229, 9, 20, 0.75);
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.8), 0 0 38px rgba(229, 9, 20, 0.45);
+    }
+    .niche-spotlight-poster {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: #000;
+    }
+    .niche-spotlight-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .niche-spotlight-card:hover .niche-spotlight-img {
+      transform: scale(1.05);
+    }
+    .niche-spotlight-ph {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1a1a24;
+      color: #ff3b3b;
+      font-weight: 800;
+      font-size: 16px;
+    }
+    .niche-spotlight-top-badges {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .spotlight-tag-quality {
+      background: rgba(0, 0, 0, 0.78);
+      border: 1px solid rgba(229, 9, 20, 0.65);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.4px;
+    }
+    .spotlight-tag-dur {
+      background: rgba(0, 0, 0, 0.82);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: ui-monospace, monospace;
+    }
+    .niche-spotlight-play-glow {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .niche-spotlight-play-ring {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: rgba(229, 9, 20, 0.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 24px rgba(229, 9, 20, 0.8), 0 4px 16px rgba(0, 0, 0, 0.6);
+      transition: transform 0.22s, background 0.22s;
+    }
+    .spotlight-svg-play {
+      width: 26px;
+      height: 26px;
+      fill: #ffffff;
+      margin-left: 3px;
+    }
+    .niche-spotlight-card:hover .niche-spotlight-play-ring {
+      transform: scale(1.12);
+      background: #ff1a26;
+    }
+    .niche-spotlight-bottom-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 12px;
+      background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.88) 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #fff;
+      font-weight: 700;
+      z-index: 2;
+    }
+    .spotlight-cue {
+      font-size: 11.5px;
+      color: #e2e8f0;
+      font-weight: 600;
+    }
+    .spotlight-arrow {
+      color: #ff3b3b;
+      font-size: 11px;
+    }
+    .niche-spotlight-caption {
+      padding: 12px 14px 14px;
+      background: #121218;
+    }
+    .niche-spotlight-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #f8fafc;
+      line-height: 1.35;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .niche-spotlight-meta {
       display: flex;
       align-items: center;
       gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 24px;
+      font-size: 12px;
+      color: #94a3b8;
     }
-    .niche-btn-primary {
+    .spotlight-views {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background: #e50914;
-      color: #fff;
-      text-decoration: none;
-      padding: 13px 26px;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 15px;
-      box-shadow: 0 6px 20px rgba(229, 9, 20, 0.35);
-      transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+      gap: 4px;
     }
-    .niche-btn-primary:hover {
-      background: #ff2222;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(229, 9, 20, 0.5);
-    }
-    .niche-btn-accent {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: #fff;
-      text-decoration: none;
-      padding: 13px 26px;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 15px;
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-      transition: transform 0.15s, filter 0.15s;
-    }
-    .niche-btn-accent:hover {
-      filter: brightness(1.1);
-      transform: translateY(-2px);
-    }
-    .niche-btn-ghost {
-      display: inline-flex;
-      align-items: center;
-      background: rgba(255, 255, 255, 0.08);
-      color: #f1f5f9;
-      text-decoration: none;
-      padding: 13px 22px;
-      border-radius: 999px;
+    .spotlight-score {
+      color: #f59e0b;
       font-weight: 600;
-      font-size: 14.5px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      transition: background 0.15s, color 0.15s;
     }
-    .niche-btn-ghost:hover {
-      background: rgba(255, 255, 255, 0.15);
-      color: #fff;
+    .spotlight-watch-tag {
+      color: #ff4d4d;
+      font-weight: 700;
+      margin-left: auto;
     }
 
     /* Quick Nav */
@@ -243,30 +592,35 @@
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
-      padding-top: 16px;
+      padding-top: 18px;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       font-size: 13px;
+      position: relative;
+      z-index: 2;
     }
     .niche-quick-label {
-      color: #64748b;
-      font-weight: 600;
+      color: #94a3b8;
+      font-weight: 700;
       text-transform: uppercase;
       font-size: 11px;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
+      margin-right: 4px;
     }
     .niche-nav-chip {
       color: #cbd5e1;
       text-decoration: none;
       background: rgba(255, 255, 255, 0.05);
-      padding: 4px 10px;
-      border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 600;
       transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
     .niche-nav-chip:hover {
-      background: rgba(229, 9, 20, 0.15);
-      color: #ff4d4d;
-      border-color: rgba(229, 9, 20, 0.35);
+      background: rgba(229, 9, 20, 0.2);
+      color: #ffffff;
+      border-color: rgba(229, 9, 20, 0.5);
     }
 
     /* General Section Structure */
@@ -973,6 +1327,14 @@
 
     /* Responsive adjustments */
     @media (max-width: 900px) {
+      .niche-hero-container {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+      .niche-hero-spotlight {
+        max-width: 480px;
+        margin: 0 auto;
+      }
       .ourdream-spotlight-body {
         grid-template-columns: 1fr;
       }
@@ -983,7 +1345,7 @@
         font-size: 30px;
       }
       .niche-hero {
-        padding: 30px 20px;
+        padding: 30px 20px 24px;
       }
       .ourdream-spotlight-card {
         padding: 24px 20px;
@@ -997,11 +1359,26 @@
       .niche-guide-page {
         padding: 12px 14px 40px;
       }
+      .niche-hero {
+        padding: 24px 16px 20px;
+        border-radius: 16px;
+      }
       .niche-hero-title {
-        font-size: 25px;
+        font-size: 24px;
       }
       .niche-hero-lead {
         font-size: 15px;
+      }
+      .niche-stats-strip {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        padding: 10px;
+      }
+      .stat-num {
+        font-size: 17px;
+      }
+      .niche-hero-spotlight {
+        max-width: 100%;
       }
       .niche-author-bar {
         flex-direction: column;
@@ -1011,7 +1388,7 @@
         flex-direction: column;
         align-items: stretch;
       }
-      .niche-btn-primary, .niche-btn-accent, .niche-btn-ghost {
+      .niche-btn-primary, .niche-btn-studio, .niche-btn-accent, .niche-btn-ghost {
         justify-content: center;
       }
       .niche-grid {
@@ -1084,48 +1461,119 @@
 
         <!-- Hero Header -->
         <header class="niche-hero">
-          <div class="niche-hero-badge-row">
-            <span class="niche-pill-flame">🔥 2026 Curated Guide</span>
-            <span class="niche-pill-tech">4K 60FPS Neural Video</span>
-            <span class="niche-pill-date">Updated November 2026</span>
+          <!-- Ambient blurred backdrop for adult cinema depth -->
+          <div class="niche-hero-backdrop" aria-hidden="true">
+            <div class="niche-hero-bg-blur" style="background-image: url('https://www.thebestpornai.com/r2/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass1.jpg');"></div>
+            <div class="niche-hero-vignette"></div>
+            <div class="niche-hero-radial-glow"></div>
           </div>
 
-          <h1 class="niche-hero-title">Best AI Big Ass &amp; PAWG Video Scenes in 2026</h1>
-          <p class="niche-hero-lead">Watch hypnotic big booty and PAWG AI video scenes in stunning 4K Ultra HD. Hypnotic jiggle physics, doggystyle close-ups, oil-slicked glutes, and reverse cowgirl rides with flawless anatomical consistency.</p>
-
-          <!-- Author attribution & testing credentials -->
-          <div class="niche-author-bar">
-            <div class="niche-author-avatar">AK</div>
-            <div class="niche-author-details">
-              <div class="niche-author-name">
-                Curated by <a href="/author/anna-k.html">Anna K.</a>, Senior Reviews Editor
+          <div class="niche-hero-container">
+            <!-- Left Column: Editorial & Streaming Intent -->
+            <div class="niche-hero-content">
+              <div class="niche-hero-badge-row">
+                <span class="niche-pill-live">
+                  <span class="live-pulse-dot"></span> 4K STREAMING
+                </span>
+                <span class="niche-pill-adult">18+ UNCENSORED</span>
+                <span class="niche-pill-tech">60 FPS ULTRA-HD</span>
+                <span class="niche-pill-free">ZERO PAYWALLS</span>
               </div>
-              <div class="niche-author-credentials">
-                Benchmarked across 35+ neural checkpoints · Scored 9.8/10 · 100% Free Streaming
+
+              <h1 class="niche-hero-title">Best AI Big Ass &amp; PAWG Video Scenes in 2026</h1>
+              <p class="niche-hero-lead">Watch hypnotic big booty and PAWG AI video scenes in stunning 4K Ultra HD. Hypnotic jiggle physics, doggystyle close-ups, oil-slicked glutes, and reverse cowgirl rides with flawless anatomical consistency.</p>
+
+              <!-- Adult Streaming Quick Stats Bar -->
+              <div class="niche-stats-strip">
+                <div class="niche-stat-box">
+                  <span class="stat-num">12+</span>
+                  <span class="stat-lbl">4K Scenes</span>
+                </div>
+                <div class="niche-stat-box">
+                  <span class="stat-num">156.0K+</span>
+                  <span class="stat-lbl">Scene Streams</span>
+                </div>
+                <div class="niche-stat-box">
+                  <span class="stat-num">100%</span>
+                  <span class="stat-lbl">Free Access</span>
+                </div>
+                <div class="niche-stat-box">
+                  <span class="stat-num">0s</span>
+                  <span class="stat-lbl">Instant Play</span>
+                </div>
+              </div>
+
+              <!-- Primary Streaming CTAs -->
+              <div class="niche-cta-row">
+                <a href="#featured-scenes" class="niche-btn-primary">
+                  <svg class="btn-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  <span>Watch 4K Scenes (12)</span>
+                </a>
+                <a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=guide-best-ai-big-ass-scenes-2026" target="_blank" rel="noopener sponsored nofollow" class="niche-btn-studio">
+                  <svg class="btn-spark-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+                  <span>Create on OurDream →</span>
+                </a>
+                <a href="/categories/big-ass.html" class="niche-btn-ghost">Browse Archive</a>
+              </div>
+
+              <!-- Author / Editorial Verification -->
+              <div class="niche-author-bar">
+                <div class="niche-author-avatar">AK</div>
+                <div class="niche-author-details">
+                  <div class="niche-author-name">
+                    Curated by <a href="/author/anna-k.html">Anna K.</a>, Senior Reviews Editor
+                  </div>
+                  <div class="niche-author-credentials">
+                    Tested across 35+ neural checkpoints · Verified 60fps · Scored 9.8/10
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Top Hero Action CTA Row -->
-          <div class="niche-cta-row">
-            <a href="#featured-scenes" class="niche-btn-primary">
-              <span class="btn-icon">⬇</span> Watch 4K Scenes (12)
-            </a>
-            <a href="https://www.ourdreamersai13.com/9B73ZMB/2CTPL/?uid=3&s1=guide-best-ai-big-ass-scenes-2026" target="_blank" rel="noopener sponsored nofollow" class="niche-btn-accent">
-              <span class="btn-icon">⚡</span> Create Custom Model on OurDream →
-            </a>
-            <a href="/categories/big-ass.html" class="niche-btn-ghost">Browse Full Archive</a>
+            <!-- Right Column: Interactive #1 Featured Video Spotlight Card -->
+            
+            <div class="niche-hero-spotlight">
+              <div class="niche-spotlight-kicker">
+                <span class="spotlight-pulse-star">★</span> #1 FEATURED SCENE IN THIS GUIDE
+              </div>
+              <a href="/video/54.html" class="niche-spotlight-card" title="Stream Ass Appreciation in 4K">
+                <div class="niche-spotlight-poster">
+                  <img src="https://www.thebestpornai.com/r2/media/thumbs/all%20mp4%20porn%20/Amazing%20Ass1.jpg" alt="Ass Appreciation" class="niche-spotlight-img" loading="eager" />
+                  <div class="niche-spotlight-top-badges">
+                    <span class="spotlight-tag-quality">4K 60FPS</span>
+                    <span class="spotlight-tag-dur">0:06</span>
+                  </div>
+                  <div class="niche-spotlight-play-glow">
+                    <div class="niche-spotlight-play-ring">
+                      <svg class="spotlight-svg-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                  </div>
+                  <div class="niche-spotlight-bottom-bar">
+                    <span class="spotlight-cue">Stream Full Resolution</span>
+                    <span class="spotlight-arrow">▶</span>
+                  </div>
+                </div>
+                <div class="niche-spotlight-caption">
+                  <div class="niche-spotlight-title">Ass Appreciation</div>
+                  <div class="niche-spotlight-meta">
+                    <span class="spotlight-views">👁️ 10.2K streams</span>
+                    <span class="spotlight-score">🔥 99.4% Rating</span>
+                    <span class="spotlight-watch-tag">Watch Now →</span>
+                  </div>
+                </div>
+              </a>
+            </div>
           </div>
 
           <!-- Quick Navigation Bar -->
           <div class="niche-quick-nav">
             <span class="niche-quick-label">Jump to:</span>
-            <a href="#featured-scenes" class="niche-nav-chip">4K Scenes (12)</a>
-            <a href="#generator-spotlight" class="niche-nav-chip">OurDream Spotlight</a>
-            <a href="#editorial-analysis" class="niche-nav-chip">Technical Breakdown</a>
-            <a href="#prompt-blueprint" class="niche-nav-chip">Prompt Blueprint</a>
-            <a href="#comparison-table" class="niche-nav-chip">Streaming vs Generator</a>
-            <a href="#frequently-asked-questions" class="niche-nav-chip">FAQ</a>
+            <a href="#featured-scenes" class="niche-nav-chip">🎬 4K Scenes (12)</a>
+            <a href="#generator-spotlight" class="niche-nav-chip">⭐ OurDream Spotlight</a>
+            <a href="#editorial-analysis" class="niche-nav-chip">⚙️ Technical Breakdown</a>
+            <a href="#prompt-blueprint" class="niche-nav-chip">💡 Prompt Blueprint</a>
+            <a href="#comparison-table" class="niche-nav-chip">📊 Streaming vs Generator</a>
+            <a href="#frequently-asked-questions" class="niche-nav-chip">❓ FAQ</a>
           </div>
         </header>
 
