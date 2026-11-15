@@ -27,6 +27,7 @@ import { STRIPPER_QUESTIONS_POST } from "./10-questions-to-ask-your-stripper-pos
 import { CLUSTER_POSTS } from "./cluster-posts.js";
 import { INDUSTRY_TRENDS_2026_POSTS } from "./industry-trends-2026-posts.js";
 import { CANDY_AI_GUIDE_2026_POST } from "./candy-ai-guide-2026-post.js";
+import { BEST_AI_PORN_VIDEO_SITES_2026_POST } from "./best-ai-porn-video-sites-2026-post.js";
 import { AI_PORNSTARS_GUIDE_POST } from "./ai-pornstars-guide-post.js";
 import { PORNSTAR_PROFILE_POSTS } from "./pornstar-profile-posts.js";
 import { WHAT_IS_GENERATOR_POSTS } from "./what-is-generator-posts.js";
@@ -2847,6 +2848,7 @@ export const FEATURED_BLOG_SLUG = "ourdream-ai-review-2026";
 /** Newest first so hub + RSS lead with fresh posts. */
 const WRITER_NO_DUP = WRITER_POSTS.filter((p) => p.slug !== GENERATORS_2026_POST.slug);
 export const POSTS = [
+  BEST_AI_PORN_VIDEO_SITES_2026_POST,
   ...WRITER_NO_DUP,
   GENERATORS_2026_POST,
   NSFW_AI_IMAGE_GENERATORS_2026_POST,
