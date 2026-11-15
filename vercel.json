@@ -34,7 +34,17 @@
       "permanent": true
     },
     {
+      "source": "/the-best-porn-ai-in-2026/",
+      "destination": "/The-Best-Porn-AI-in-2026",
+      "permanent": true
+    },
+    {
       "source": "/The-Best-Porn-AI-in-2026.html",
+      "destination": "/The-Best-Porn-AI-in-2026",
+      "permanent": true
+    },
+    {
+      "source": "/The-Best-Porn-AI-in-2026/",
       "destination": "/The-Best-Porn-AI-in-2026",
       "permanent": true
     },
@@ -42,12 +52,77 @@
       "source": "/blog/candy-ai-vs-ourdream-ai.html",
       "destination": "/blog/ourdream-ai-vs-candy-ai-comparison.html",
       "permanent": true
+    },
+    {
+      "source": "/guides",
+      "destination": "/blog/",
+      "permanent": true
+    },
+    {
+      "source": "/guides/",
+      "destination": "/blog/",
+      "permanent": true
+    },
+    {
+      "source": "/video",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/video/",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/author",
+      "destination": "/author/anna-k.html",
+      "permanent": true
+    },
+    {
+      "source": "/author/",
+      "destination": "/author/anna-k.html",
+      "permanent": true
+    },
+    {
+      "source": "/author/anna-k",
+      "destination": "/author/anna-k.html",
+      "permanent": true
+    },
+    {
+      "source": "/creator/ps-:slug",
+      "destination": "/pornstars/:slug.html",
+      "permanent": true
+    },
+    {
+      "source": "/creator/ps-:slug/",
+      "destination": "/pornstars/:slug.html",
+      "permanent": true
     }
   ],
   "rewrites": [
     {
       "source": "/The-Best-Porn-AI-in-2026",
       "destination": "/The-Best-Porn-AI-in-2026.html"
+    },
+    {
+      "source": "/blog/:slug",
+      "destination": "/blog/:slug.html"
+    },
+    {
+      "source": "/pornstars/:slug",
+      "destination": "/pornstars/:slug.html"
+    },
+    {
+      "source": "/categories/:slug",
+      "destination": "/categories/:slug.html"
+    },
+    {
+      "source": "/tags/:slug",
+      "destination": "/tags/:slug.html"
+    },
+    {
+      "source": "/channels/:slug",
+      "destination": "/channels/:slug.html"
     },
     {
       "source": "/guides/:slug",

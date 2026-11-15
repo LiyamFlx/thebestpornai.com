@@ -15,10 +15,11 @@ function findVideo(id) {
   return (videoSource || DATA.videos).find((v) => v.id === id);
 }
 
-/** In-app player URL (Watch or Shorts). */
+/** Direct SEO landing page for video card clicks. */
 export function videoWatchUrl(id) {
-  const v = findVideo(id);
-  return v ? playPath(v) : playPath(id);
+  const v = typeof id === "object" ? id : findVideo(id);
+  const num = v ? v.id : Number(id);
+  return num ? `/video/${num}.html` : "/";
 }
 
 export function postCoverUrl(post) {

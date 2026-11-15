@@ -82,9 +82,9 @@ function findVideo(id) {
 }
 
 function videoWatchUrl(vOrId) {
-  if (vOrId && typeof vOrId === "object") return playPath(vOrId);
-  const v = findVideo(vOrId);
-  return v ? playPath(v) : playPath(vOrId);
+  const v = typeof vOrId === "object" ? vOrId : findVideo(vOrId);
+  const id = v ? v.id : Number(vOrId);
+  return id ? `/video/${id}.html` : "/";
 }
 
 function formatDate(iso) {

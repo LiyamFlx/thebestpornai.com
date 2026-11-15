@@ -140,7 +140,7 @@ export const INDUSTRY_TRENDS_2026_POSTS = [
         <li><strong>Open Shorts with a time box</strong> — ten minutes, then exit. The feed will not stop for you.</li>
         <li><strong>Prefer named packs</strong> — Red Velvet, Dakota J, face packs, themed series beat anonymous hash files.</li>
         <li><strong>Use sound when you can</strong> — breath and motion audio sell immersion more than another 200 pixels of resolution.</li>
-        <li><strong>Graduate to landscape when you want arc</strong> — Shorts discover; longer watch pages satisfy. Tap through to <a href="/watch/1">full player</a> when a clip deserves more than a swipe.</li>
+        <li><strong>Graduate to landscape when you want arc</strong> — Shorts discover; longer watch pages satisfy. Tap through to <a href="/video/1.html">full player</a> when a clip deserves more than a swipe.</li>
         <li><strong>Pair with categories</strong> — after a Shorts session, reset taste in <a href="/categories/ai-generated.html">AI Generated</a>, <a href="/categories/blonde.html">Blonde</a>, or <a href="/pornstars/">Pornstars</a>.</li>
       </ol>
 
