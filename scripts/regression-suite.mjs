@@ -483,6 +483,61 @@ await asyncCheck("Media URL proxy contract: thumbnails and images route to /r2/ 
   assert(mediaUrl("../media/Vixen/Vixen 34.mp4").startsWith("https://pub-"));
 });
 
+// --- SECTION 7: Mobile Responsiveness, Accessibility & Technical Debt Invariance ---
+check("Mobile shell CSS and static pages contain complete mobile drawer and bottom-nav contracts", () => {
+  const appShellPath = path.join(REPO, "public", "app-shell.css");
+  assert(fs.existsSync(appShellPath), "public/app-shell.css must exist");
+  const css = fs.readFileSync(appShellPath, "utf8");
+
+  // Verify mobile responsive block exists
+  assert(css.includes("@media (max-width: 760px)") || css.includes("@media(max-width:760px)"), "Must include @media(max-width:760px)");
+  assert(css.includes(".bottom-nav"), "Must style .bottom-nav");
+  assert(css.includes(".mobile-drawer"), "Must style .mobile-drawer");
+  assert(css.includes(".topbar-drawer-toggle"), "Must style .topbar-drawer-toggle");
+  assert(css.includes("env(safe-area-inset-bottom)"), "Must handle safe-area-inset-bottom");
+  assert(css.includes("env(safe-area-inset-top)"), "Must handle safe-area-inset-top");
+
+  // Verify static HTML pages contain mobile navigation elements
+  const samplePages = ["pornstars/index.html", "categories/index.html"];
+  for (const page of samplePages) {
+    const pageHtml = fs.readFileSync(path.join(REPO, page), "utf8");
+    assert(pageHtml.includes('class="topbar-drawer-toggle"'), `${page} must include topbar drawer toggle`);
+    assert(pageHtml.includes('class="bottom-nav"'), `${page} must include mobile bottom nav`);
+    assert(pageHtml.includes('id="staticDrawer"'), `${page} must include staticDrawer`);
+  }
+});
+
+check("Viewer style.css defines optimized mobile watch and touch controls", () => {
+  const viewerCssPath = path.join(REPO, "src", "viewer", "style.css");
+  assert(fs.existsSync(viewerCssPath), "src/viewer/style.css must exist");
+  const viewerCss = fs.readFileSync(viewerCssPath, "utf8");
+
+  assert(viewerCss.includes(".watch-v2-mobile .player-overlay-v2"), "Must define mobile player overlay");
+  assert(viewerCss.includes(".watch-creator-row-mobile"), "Must define mobile creator row");
+  assert(viewerCss.includes(".watch-action-bar--icons"), "Must define mobile watch action bar icons");
+  assert(viewerCss.includes("100dvh"), "Must utilize 100dvh for dynamic mobile viewport stability");
+});
+
+check("Creator actions (openCreator, subscribe) safely reject null/empty/malformed inputs", async () => {
+  const { openCreator, subscribe } = await import("../src/viewer/actions.js");
+  const { vstate } = await import("../src/viewer/state.js");
+
+  // Test empty/null/undefined creatorId
+  const initialPage = vstate.page;
+  const initialCreatorId = vstate.creatorId;
+  const initialSubsCount = vstate.subs.length;
+
+  assert.doesNotThrow(() => openCreator(""));
+  assert.doesNotThrow(() => openCreator(null));
+  assert.doesNotThrow(() => openCreator(undefined));
+  assert.equal(vstate.page, initialPage, "Empty openCreator must be a no-op");
+
+  assert.doesNotThrow(() => subscribe(""));
+  assert.doesNotThrow(() => subscribe(null));
+  assert.doesNotThrow(() => subscribe(undefined));
+  assert.equal(vstate.subs.length, initialSubsCount, "Empty subscribe must not pollute vstate.subs");
+});
+
 // --- SUMMARY ---
 console.log("\n==================================================");
 console.log(`Regression Test Summary: ${passed} PASSED, ${failed} FAILED`);

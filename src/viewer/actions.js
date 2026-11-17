@@ -245,6 +245,7 @@ export function openMovie(title){
 }
 
 export function openCreator(cid){
+  if (!cid) return;
   cid = jsdec(cid);   // arrives URI-encoded from inline onclick (see jsq)
   vstate.creatorId = cid;
   vstate.page = "creator";
@@ -475,6 +476,7 @@ export const likeVideo    = id => vote(id, "like");
 export const dislikeVideo = id => vote(id, "dislike");
 
 export function subscribe(cid){
+  if (!cid) return;
   cid = jsdec(cid);
   const on = vstate.subs.includes(cid);
   on ? vstate.subs=vstate.subs.filter(x=>x!==cid) : vstate.subs.push(cid);

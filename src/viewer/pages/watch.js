@@ -246,9 +246,7 @@ function creatorRowMobile(c, hasCreator, subbed){
   const avatarHtml = c.avatar
     ? `<img src="${esc(mediaUrl(c.avatar))}" class="creator-mobile-avatar" alt="" width="34" height="34" loading="lazy" decoding="async"/>`
     : `<span class="creator-mobile-avatar creator-mobile-avatar--initial">${esc((c.name||"?")[0])}</span>`;
-  return `
-    <div class="watch-creator-row-mobile">
-      <button type="button" class="creator-mobile-id" data-act="open-creator" data-creator="${jsq(c.id)}" aria-label="Open ${esc(c.name)}'s channel">
+  const metaInner = `
         ${avatarHtml}
         <div class="creator-mobile-meta">
           <div class="creator-name-row">
@@ -256,8 +254,12 @@ function creatorRowMobile(c, hasCreator, subbed){
             ${c.verified ? `<span class="watch-creator-verified-sm">✓</span>` : ''}
           </div>
           <span class="creator-mobile-subs">${fmt(c.subs)} subs</span>
-        </div>
-      </button>
+        </div>`;
+  return `
+    <div class="watch-creator-row-mobile">
+      ${hasCreator
+        ? `<button type="button" class="creator-mobile-id" data-act="open-creator" data-creator="${jsq(c.id)}" aria-label="Open ${esc(c.name)}'s channel">${metaInner}</button>`
+        : `<div class="creator-mobile-id">${metaInner}</div>`}
       ${hasCreator
         ? `<button type="button" class="subscribe-btn-sm ${subbed?'subscribed':''}" data-act="subscribe" data-creator="${jsq(c.id)}" id="subscribeBtnV2" aria-pressed="${subbed?'true':'false'}">
              <span id="subscribeTextV2">${subbed?'Subscribed':'Subscribe'}</span>
@@ -681,10 +683,10 @@ function dispatch(el, evtType, evt){
       call("downloadWithFeedback", +el.dataset.id);
       break;
     case "open-creator":
-      call("openCreator", el.dataset.creator);
+      if (el.dataset.creator) call("openCreator", el.dataset.creator);
       break;
     case "subscribe":
-      call("subscribe", el.dataset.creator);
+      if (el.dataset.creator) call("subscribe", el.dataset.creator);
       break;
     case "search-tag":
       call("searchTag", el.dataset.tag);

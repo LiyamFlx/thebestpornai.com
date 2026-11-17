@@ -2609,7 +2609,8 @@ iframe.player{object-fit:contain}
   border-radius:10px;padding:6px 10px;color:inherit;
   transition:background .15s;
 }
-.creator-mobile-id:active{background:rgba(255,255,255,.1)}
+div.creator-mobile-id{cursor:default}
+button.creator-mobile-id:active{background:rgba(255,255,255,.1)}
 .creator-mobile-avatar{
   width:32px;height:32px;border-radius:50%;object-fit:cover;flex:none;
 }
