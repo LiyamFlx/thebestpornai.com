@@ -44,10 +44,12 @@ function isoDuration(dur) {
   const parts = String(dur).split(":").map(Number);
   if (parts.length === 2) {
     const [m, s] = parts;
+    if ((m || 0) === 0 && (s || 0) === 0) return "PT1M0S";
     return `PT${m || 0}M${s || 0}S`;
   }
   if (parts.length === 3) {
     const [h, m, s] = parts;
+    if ((h || 0) === 0 && (m || 0) === 0 && (s || 0) === 0) return "PT1M0S";
     return `PT${h || 0}H${m || 0}M${s || 0}S`;
   }
   return "PT2M30S";
@@ -2450,10 +2452,18 @@ function genVideoPages() {
               ? `<img src="${thumbUrl}" alt="${esc(v.title)}" width="960" height="540" loading="eager" fetchpriority="high" decoding="async"/>`
               : `<div class="v-ph"></div>`)}
         </div>
-        <p class="sub" style="margin:12px 0 0">
-          <a href="${playPath(v)}" style="color:var(--accent);font-weight:700">Open in full player</a>
-          · 4K Ultra HD${v.duration ? ` · ${esc(v.duration)}` : ""} · 100% Free
-        </p>
+        <div class="video-player-bar" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:12px 0 0">
+          <span class="sub" style="margin:0;display:inline-flex;align-items:center;gap:8px">
+            <span style="color:var(--accent);font-weight:800;font-size:11px;letter-spacing:.05em;background:rgba(229,9,20,0.15);padding:3px 8px;border-radius:4px;border:1px solid rgba(229,9,20,0.3)">HD STREAM</span>
+            <span>4K Ultra HD${v.duration ? ` · ${esc(v.duration)}` : ""} · 100% Free Watch</span>
+          </span>
+          <div style="display:flex;align-items:center;gap:12px">
+            <button type="button" class="player-action-btn" onclick="const vid=document.querySelector('.video-player-hero video'); if(vid){if(vid.requestFullscreen){vid.requestFullscreen();}else if(vid.webkitRequestFullscreen){vid.webkitRequestFullscreen();}}" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+              <span>⛶</span><span>Theater Mode</span>
+            </button>
+            <a href="${playPath(v)}" style="color:var(--muted);font-size:12px;text-decoration:none" title="Open in mobile app view">App View →</a>
+          </div>
+        </div>
 
         <div class="video-info-box">
           <h1 class="video-page-title">${esc(v.title)}</h1>
@@ -2519,6 +2529,7 @@ function genVideoPages() {
       </main>`;
 
     const mediaStreamUrl = v.src ? mediaUrl(v.src) : null;
+    const durIso = isoDuration(v.duration);
     const jsonLd = {
       "@context": "https://schema.org",
       "@graph": [
@@ -2528,11 +2539,23 @@ function genVideoPages() {
           "description": description,
           "thumbnailUrl": [seoThumb],
           "uploadDate": isoUploadDate(v.uploaded),
-          "duration": isoDuration(v.duration),
+          ...(durIso ? { "duration": durIso } : {}),
           "url": canonical,
+          "embedUrl": canonical,
           ...(mediaStreamUrl ? { "contentUrl": mediaStreamUrl } : {}),
+          "genre": v.category || "AI Generated",
+          "keywords": (v.tags || ["AI", "4K"]).slice(0, 10).join(", "),
           "isFamilyFriendly": false,
           "requiresSubscription": false,
+          "publisher": {
+            "@type": "Organization",
+            "name": "thebestpornai",
+            "url": `${ORIGIN}/`,
+            "logo": {
+              "@type": "ImageObject",
+              "url": LOGO
+            }
+          },
           "interactionStatistic": {
             "@type": "InteractionCounter",
             "interactionType": { "@type": "WatchAction" },

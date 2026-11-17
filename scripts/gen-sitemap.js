@@ -56,9 +56,9 @@ function thumbProxyUrl(src) {
 // "m:ss" / "h:mm:ss" -> whole seconds (video:duration must be 1..28800).
 function durationSeconds(d) {
   const parts = String(d || "").split(":").map((n) => parseInt(n, 10));
-  if (!parts.length || parts.some((n) => !Number.isFinite(n))) return null;
+  if (!parts.length || parts.some((n) => !Number.isFinite(n))) return 90;
   const sec = parts.reduce((acc, n) => acc * 60 + n, 0);
-  return sec >= 1 && sec <= 28800 ? sec : null;
+  return sec >= 1 && sec <= 28800 ? sec : 90;
 }
 
 function slugOf(text) {
@@ -258,6 +258,12 @@ if (fs.existsSync(videoDir)) {
     const lastmod = (v.uploaded && String(v.uploaded).slice(0, 10)) || siteNewest;
     const secs = durationSeconds(v.duration);
 
+    const catXml = v.category ? `      <video:category>${xmlEsc(v.category)}</video:category>\n` : "";
+    const tagsXml = (v.tags || [])
+      .slice(0, 8)
+      .map((t) => `      <video:tag>${xmlEsc(t)}</video:tag>`)
+      .join("\n");
+
     videoSitemapEntries.push(`  <url>
     <loc>${loc}</loc>
     <lastmod>${xmlEsc(lastmod)}</lastmod>
@@ -266,9 +272,11 @@ if (fs.existsSync(videoDir)) {
       <video:title>${xmlEsc(title)}</video:title>
       <video:description>${xmlEsc(desc)}</video:description>
       <video:content_loc>${xmlEsc(contentLoc)}</video:content_loc>
-${secs ? `      <video:duration>${secs}</video:duration>\n` : ""}      <video:publication_date>${pubDate}</video:publication_date>
+      <video:player_loc allow_embed="yes" autoplay="ap=1">${loc}</video:player_loc>
+      <video:duration>${secs}</video:duration>
+      <video:publication_date>${pubDate}</video:publication_date>
       <video:family_friendly>no</video:family_friendly>
-    </video:video>
+${catXml}${tagsXml ? tagsXml + "\n" : ""}    </video:video>
   </url>`);
   }
 

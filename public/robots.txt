@@ -12,6 +12,15 @@ Disallow: /library/
 Disallow: /movie/
 Disallow: /api/
 
+# Video Crawlers (Explicitly Allowed for Video Rich Results & Indexing)
+User-agent: Googlebot-Video
+User-agent: Googlebot-Image
+Allow: /
+Disallow: /creator/
+Disallow: /manager/
+Disallow: /internal/
+Disallow: /api/
+
 # AI Search & Retrieval Crawlers (Explicitly Allowed for Citations & AI Answer Engines)
 User-agent: ChatGPT-User
 User-agent: GPTBot
