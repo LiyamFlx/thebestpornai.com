@@ -31,6 +31,7 @@ import { BEST_AI_PORN_VIDEO_SITES_2026_POST } from "./best-ai-porn-video-sites-2
 import { AI_PORNSTARS_GUIDE_POST } from "./ai-pornstars-guide-post.js";
 import { PORNSTAR_PROFILE_POSTS } from "./pornstar-profile-posts.js";
 import { WHAT_IS_GENERATOR_POSTS } from "./what-is-generator-posts.js";
+import { BOKEP_AI_GENERATED_POST } from "./bokep-ai-generated-post.js";
 import { isRedirectedSlug } from "./redirects.js";
 
 export const BLOG_AUTHOR = {
@@ -2848,6 +2849,7 @@ export const FEATURED_BLOG_SLUG = "ourdream-ai-review-2026";
 /** Newest first so hub + RSS lead with fresh posts. */
 const WRITER_NO_DUP = WRITER_POSTS.filter((p) => p.slug !== GENERATORS_2026_POST.slug);
 export const POSTS = [
+  BOKEP_AI_GENERATED_POST,
   BEST_AI_PORN_VIDEO_SITES_2026_POST,
   ...WRITER_NO_DUP,
   GENERATORS_2026_POST,
