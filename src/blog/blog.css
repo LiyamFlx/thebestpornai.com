@@ -1488,8 +1488,15 @@ a { color: inherit; }
   border: 1px solid var(--border);
   -webkit-overflow-scrolling: touch;
 }
+.blog-article-body {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
 .blog-article-body table {
-  width: 100%;
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-collapse: collapse;
   font-size: 13.5px;
   background: var(--black-card);

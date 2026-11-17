@@ -196,11 +196,11 @@ function actionBar(v, live, hasCreator, { compact = false } = {}){
     return `
     <div class="watch-action-bar watch-action-bar--icons" role="toolbar" aria-label="Video actions">
       <button type="button" id="btnLike" class="act-ico ${live.myVote==="like"?"on":""}" data-act="like" data-id="${v.id}" aria-pressed="${live.myVote==="like"?"true":"false"}" aria-label="Like this video"><svg class="ic ico"><use href="#icon-like"/></svg><span id="likeNum">${fmt(v.likes + live.like)}</span></button>
-      <button type="button" id="btnDislike" class="act-ico ${live.myVote==="dislike"?"on":""}" data-act="dislike" data-id="${v.id}" aria-pressed="${live.myVote==="dislike"?"true":"false"}" aria-label="Dislike this video"><svg class="ic ico"><use href="#icon-dislike"/></svg></button>
-      <button type="button" class="act-ico" data-act="switch-tab" data-tab="comments" aria-label="Comments"><svg class="ic ico"><use href="#icon-comment"/></svg></button>
-      <button type="button" class="act-ico" data-act="open-sheet" data-sheet="shareSheet" aria-label="Share"><svg class="ic ico"><use href="#icon-share"/></svg></button>
-      <button type="button" class="act-ico ${laterOn?'on':''}" id="btnLater" data-act="toggle-later" data-id="${v.id}" aria-pressed="${laterOn?'true':'false'}" aria-label="Save"><svg class="ic ico"><use href="#icon-save"/></svg></button>
-      <button type="button" class="act-ico ${favOn?'on':''}" id="btnFav" data-act="toggle-fav" data-id="${v.id}" aria-pressed="${favOn?'true':'false'}" aria-label="Favorite"><svg class="ic ico"><use href="#icon-heart"/></svg></button>
+      <button type="button" id="btnDislike" class="act-ico ${live.myVote==="dislike"?"on":""}" data-act="dislike" data-id="${v.id}" aria-pressed="${live.myVote==="dislike"?"true":"false"}" aria-label="Dislike this video"><svg class="ic ico"><use href="#icon-dislike"/></svg><span>Dislike</span></button>
+      <button type="button" class="act-ico" data-act="switch-tab" data-tab="comments" aria-label="Comments"><svg class="ic ico"><use href="#icon-comment"/></svg><span>Chat</span></button>
+      <button type="button" class="act-ico" data-act="open-sheet" data-sheet="shareSheet" aria-label="Share"><svg class="ic ico"><use href="#icon-share"/></svg><span>Share</span></button>
+      <button type="button" class="act-ico ${laterOn?'on':''}" id="btnLater" data-act="toggle-later" data-id="${v.id}" aria-pressed="${laterOn?'true':'false'}" aria-label="Save"><svg class="ic ico"><use href="#icon-save"/></svg><span>Save</span></button>
+      <button type="button" class="act-ico ${favOn?'on':''}" id="btnFav" data-act="toggle-fav" data-id="${v.id}" aria-pressed="${favOn?'true':'false'}" aria-label="Favorite"><svg class="ic ico"><use href="#icon-heart"/></svg><span>Fav</span></button>
     </div>`;
   }
   return `
@@ -243,12 +243,20 @@ function creatorRow(c, hasCreator, subbed){
 
 
 function creatorRowMobile(c, hasCreator, subbed){
+  const avatarHtml = c.avatar
+    ? `<img src="${esc(mediaUrl(c.avatar))}" class="creator-mobile-avatar" alt="" width="34" height="34" loading="lazy" decoding="async"/>`
+    : `<span class="creator-mobile-avatar creator-mobile-avatar--initial">${esc((c.name||"?")[0])}</span>`;
   return `
     <div class="watch-creator-row-mobile">
       <button type="button" class="creator-mobile-id" data-act="open-creator" data-creator="${jsq(c.id)}" aria-label="Open ${esc(c.name)}'s channel">
-        <span class="creator-mobile-name">${esc(c.name)}</span>
-        ${c.verified ? `<span class="watch-creator-verified-sm">✓</span>` : ''}
-        <span class="creator-mobile-subs">${fmt(c.subs)}</span>
+        ${avatarHtml}
+        <div class="creator-mobile-meta">
+          <div class="creator-name-row">
+            <span class="creator-mobile-name">${esc(c.name)}</span>
+            ${c.verified ? `<span class="watch-creator-verified-sm">✓</span>` : ''}
+          </div>
+          <span class="creator-mobile-subs">${fmt(c.subs)} subs</span>
+        </div>
       </button>
       ${hasCreator
         ? `<button type="button" class="subscribe-btn-sm ${subbed?'subscribed':''}" data-act="subscribe" data-creator="${jsq(c.id)}" id="subscribeBtnV2" aria-pressed="${subbed?'true':'false'}">

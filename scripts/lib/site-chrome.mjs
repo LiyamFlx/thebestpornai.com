@@ -67,6 +67,7 @@ export function appShellHtml(activeNav, bodyContent) {
   </aside>
   <div class="main">
     <div class="topbar">
+      <button type="button" class="topbar-drawer-toggle" onclick="var d=document.getElementById('staticDrawer'),b=document.getElementById('staticBackdrop');if(d&&b){d.classList.toggle('open');b.classList.toggle('show');document.body.classList.toggle('drawer-open');}" aria-label="Open navigation menu">☰</button>
       <div class="left">
         <a href="/" class="topbar-brand" aria-label="thebestpornai home">
           <img src="/logo-wordmark.webp" alt="thebestpornai" width="160" height="24" decoding="async"/>
@@ -91,6 +92,41 @@ export function appShellHtml(activeNav, bodyContent) {
         <a href="/legal/dmca.html">DMCA</a>
         <a href="/legal/2257.html">2257</a>
       </p>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="bottom-nav" aria-label="Primary navigation">
+    <a href="/" class="bottom-nav-item${activeNav === 'home' ? ' active' : ''}">${ICO.home}<span>Home</span></a>
+    <a href="/shorts" class="bottom-nav-item${activeNav === 'shorts' ? ' active' : ''}" rel="nofollow">${ICO.shorts}<span>Shorts</span></a>
+    <a href="/categories/" class="bottom-nav-item${activeNav === 'categories' ? ' active' : ''}">${ICO.explore}<span>Categories</span></a>
+    <a href="/pornstars/" class="bottom-nav-item${activeNav === 'pornstars' ? ' active' : ''}">${ICO.you}<span>Stars</span></a>
+    <a href="/blog/" class="bottom-nav-item${activeNav === 'blog' ? ' active' : ''}">${ICO.comment}<span>Blog</span></a>
+  </nav>
+
+  <!-- Mobile Navigation Drawer -->
+  <div class="mobile-drawer-backdrop" id="staticBackdrop" onclick="var d=document.getElementById('staticDrawer'),b=document.getElementById('staticBackdrop');if(d&&b){d.classList.remove('open');b.classList.remove('show');document.body.classList.remove('drawer-open');}"></div>
+  <div class="mobile-drawer" id="staticDrawer" role="dialog" aria-modal="true" aria-label="Navigation menu">
+    <div class="mobile-drawer-head">
+      <a class="brand" href="/"><img src="/logo-wordmark.webp" alt="thebestpornai" width="125" height="22" decoding="async"/></a>
+      <button type="button" class="drawer-close-btn" onclick="var d=document.getElementById('staticDrawer'),b=document.getElementById('staticBackdrop');if(d&&b){d.classList.remove('open');b.classList.remove('show');document.body.classList.remove('drawer-open');}" aria-label="Close menu">✕</button>
+    </div>
+    <div class="mobile-drawer-nav">
+      <a href="/creator/index.html?page=upload" class="nav-upload"><span class="ico">⬆</span> Upload Video</a>
+      <div class="nav-label-group">Browse</div>
+      <a href="/" class="${activeNav === 'home' ? 'active' : ''}"><span class="ico">🏠</span> Home</a>
+      <a href="/shorts" rel="nofollow"><span class="ico">📱</span> Shorts</a>
+      <a href="/categories/" class="${activeNav === 'categories' ? 'active' : ''}"><span class="ico">▦</span> Categories</a>
+      <a href="/pornstars/" class="${activeNav === 'pornstars' ? 'active' : ''}"><span class="ico">⭐</span> AI Pornstars</a>
+      <a href="/tags/" class="${activeNav === 'tags' ? 'active' : ''}"><span class="ico">🏷️</span> Tags Directory</a>
+      <a href="/The-Best-Porn-AI-in-2026" class="${activeNav === 'compare' ? 'active' : ''}"><span class="ico">⚡</span> Top AI Tools</a>
+      <div class="nav-label-group">More</div>
+      <a href="/blog/" class="${activeNav === 'blog' ? 'active' : ''}"><span class="ico">📝</span> Editorial &amp; Guides</a>
+      <a href="/choose.html" rel="nofollow"><span class="ico">🛡</span> Creator Studio</a>
+    </div>
+    <div class="mobile-drawer-foot">
+      18+ Adults Only — All performers 18+<br/>
+      <a href="/blog/">Blog</a> · <a href="/legal/terms.html">Terms</a> · <a href="/legal/privacy.html">Privacy</a> · <a href="/legal/dmca.html">DMCA</a>
     </div>
   </div>
 </div>`;

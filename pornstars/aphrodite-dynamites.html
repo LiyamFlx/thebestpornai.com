@@ -900,6 +900,7 @@
   </aside>
   <div class="main">
     <div class="topbar">
+      <button type="button" class="topbar-drawer-toggle" onclick="var d=document.getElementById('staticDrawer'),b=document.getElementById('staticBackdrop');if(d&&b){d.classList.toggle('open');b.classList.toggle('show');document.body.classList.toggle('drawer-open');}" aria-label="Open navigation menu">☰</button>
       <div class="left">
         <a href="/" class="topbar-brand" aria-label="thebestpornai home">
           <img src="/logo-wordmark.webp" alt="thebestpornai" width="160" height="24" decoding="async"/>
@@ -1240,6 +1241,41 @@
         <a href="/legal/dmca.html">DMCA</a>
         <a href="/legal/2257.html">2257</a>
       </p>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="bottom-nav" aria-label="Primary navigation">
+    <a href="/" class="bottom-nav-item"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg><span>Home</span></a>
+    <a href="/shorts" class="bottom-nav-item" rel="nofollow"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z"/></svg><span>Shorts</span></a>
+    <a href="/categories/" class="bottom-nav-item"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m15 9-3.5 6.5L8 12l3.5-6.5L15 9Z"/></svg><span>Categories</span></a>
+    <a href="/pornstars/" class="bottom-nav-item active"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg><span>Stars</span></a>
+    <a href="/blog/" class="bottom-nav-item"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg><span>Blog</span></a>
+  </nav>
+
+  <!-- Mobile Navigation Drawer -->
+  <div class="mobile-drawer-backdrop" id="staticBackdrop" onclick="var d=document.getElementById('staticDrawer'),b=document.getElementById('staticBackdrop');if(d&&b){d.classList.remove('open');b.classList.remove('show');document.body.classList.remove('drawer-open');}"></div>
+  <div class="mobile-drawer" id="staticDrawer" role="dialog" aria-modal="true" aria-label="Navigation menu">
+    <div class="mobile-drawer-head">
+      <a class="brand" href="/"><img src="/logo-wordmark.webp" alt="thebestpornai" width="125" height="22" decoding="async"/></a>
+      <button type="button" class="drawer-close-btn" onclick="var d=document.getElementById('staticDrawer'),b=document.getElementById('staticBackdrop');if(d&&b){d.classList.remove('open');b.classList.remove('show');document.body.classList.remove('drawer-open');}" aria-label="Close menu">✕</button>
+    </div>
+    <div class="mobile-drawer-nav">
+      <a href="/creator/index.html?page=upload" class="nav-upload"><span class="ico">⬆</span> Upload Video</a>
+      <div class="nav-label-group">Browse</div>
+      <a href="/" class=""><span class="ico">🏠</span> Home</a>
+      <a href="/shorts" rel="nofollow"><span class="ico">📱</span> Shorts</a>
+      <a href="/categories/" class=""><span class="ico">▦</span> Categories</a>
+      <a href="/pornstars/" class="active"><span class="ico">⭐</span> AI Pornstars</a>
+      <a href="/tags/" class=""><span class="ico">🏷️</span> Tags Directory</a>
+      <a href="/The-Best-Porn-AI-in-2026" class=""><span class="ico">⚡</span> Top AI Tools</a>
+      <div class="nav-label-group">More</div>
+      <a href="/blog/" class=""><span class="ico">📝</span> Editorial &amp; Guides</a>
+      <a href="/choose.html" rel="nofollow"><span class="ico">🛡</span> Creator Studio</a>
+    </div>
+    <div class="mobile-drawer-foot">
+      18+ Adults Only — All performers 18+<br/>
+      <a href="/blog/">Blog</a> · <a href="/legal/terms.html">Terms</a> · <a href="/legal/privacy.html">Privacy</a> · <a href="/legal/dmca.html">DMCA</a>
     </div>
   </div>
 </div>
