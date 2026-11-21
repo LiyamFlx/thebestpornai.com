@@ -26,10 +26,10 @@ const REPO = path.join(__dirname, "..");
 const ORIGIN = "https://www.thebestpornai.com";
 const MEDIA_BASE = "https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev/media";
 const today = new Date().toISOString().slice(0, 10);
-/** Max /video/*.html URLs in sitemap-video.xml (Google allows up to 50,000 URLs per sitemap). */
-const VIDEO_SITEMAP_LIMIT = 50000;
+/** Max /video/*.html URLs in sitemap-video.xml (focus crawl budget on top priority, high-converting scenes). */
+const VIDEO_SITEMAP_LIMIT = 2500;
 /** Reserve slots for recent structured / star-pack clips inside the cap. */
-const VIDEO_SITEMAP_RECENT_SLOTS = 80;
+const VIDEO_SITEMAP_RECENT_SLOTS = 1800;
 
 function mediaUrl(src) {
   if (!src) return "";
@@ -91,12 +91,11 @@ const pages = [
 
 const catDir = path.join(REPO, "categories");
 if (fs.existsSync(catDir)) {
-  for (const f of fs.readdirSync(catDir).filter((x) => x.endsWith(".html") && x !== "index.html").sort()) {
-    const isMain = !f.includes("-page-");
+  for (const f of fs.readdirSync(catDir).filter((x) => x.endsWith(".html") && x !== "index.html" && !x.includes("-page-")).sort()) {
     pages.push({
       loc: `/categories/${f}`,
       changefreq: "weekly",
-      priority: isMain ? "0.9" : "0.7",
+      priority: "0.9",
       lastmod: today
     });
   }
@@ -104,12 +103,11 @@ if (fs.existsSync(catDir)) {
 
 const tagsDir = path.join(REPO, "tags");
 if (fs.existsSync(tagsDir)) {
-  for (const f of fs.readdirSync(tagsDir).filter((x) => x.endsWith(".html") && x !== "index.html").sort()) {
-    const isMain = !f.includes("-page-");
+  for (const f of fs.readdirSync(tagsDir).filter((x) => x.endsWith(".html") && x !== "index.html" && !x.includes("-page-")).sort()) {
     pages.push({
       loc: `/tags/${f}`,
       changefreq: "weekly",
-      priority: isMain ? "0.85" : "0.65",
+      priority: "0.85",
       lastmod: today
     });
   }
@@ -117,7 +115,7 @@ if (fs.existsSync(tagsDir)) {
 
 const channelsDir = path.join(REPO, "channels");
 if (fs.existsSync(channelsDir)) {
-  for (const f of fs.readdirSync(channelsDir).filter((x) => x.endsWith(".html") && x !== "index.html").sort()) {
+  for (const f of fs.readdirSync(channelsDir).filter((x) => x.endsWith(".html") && x !== "index.html" && !x.includes("-page-")).sort()) {
     pages.push({
       loc: `/channels/${f}`,
       changefreq: "weekly",
@@ -228,10 +226,29 @@ if (fs.existsSync(videoDir)) {
     .filter(isPriorityPack)
     .sort((a, b) => uploadedMs(b) - uploadedMs(a) || b.id - a.id);
 
+  // Ensure any videos currently under GSC coverage validation are prioritized
+  const gscValidationCsv = "/Users/liyam/Downloads/thebestpornai.com-Coverage-Validation-2026-11-21/Table.csv";
+  const gscVideoIds = new Set();
+  if (fs.existsSync(gscValidationCsv)) {
+    try {
+      const csvLines = fs.readFileSync(gscValidationCsv, "utf8").split("\n");
+      for (const line of csvLines) {
+        const m = line.match(/\/video\/(\d+)\.html/);
+        if (m) gscVideoIds.add(parseInt(m[1], 10));
+      }
+    } catch {}
+  }
+  const byGscValidation = [...eligible].filter((v) => gscVideoIds.has(v.id));
+
   const selected = [];
   const seen = new Set();
   const recentSlots = Math.min(VIDEO_SITEMAP_RECENT_SLOTS, VIDEO_SITEMAP_LIMIT);
 
+  for (const v of byGscValidation) {
+    if (seen.has(v.id)) continue;
+    seen.add(v.id);
+    selected.push(v);
+  }
   for (const v of byRecentPack) {
     if (selected.length >= recentSlots) break;
     if (seen.has(v.id)) continue;

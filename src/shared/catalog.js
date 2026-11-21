@@ -146,8 +146,8 @@ const DATA = {
       tags: ["Mia Nympo", "Pornstar", "Blonde", "Babe", "AI", "Solo"],
       categories: ["Babe", "AI Generated"],
       // avatar/banner paths relative to media/; filled for R2 via mediaUrl()
-      avatar: "../media/Mia Nympo PornStar/Mia Nympo6.avif",
-      banner: "../media/Mia Nympo PornStar/Mia Nympo7.avif",
+      avatar: "../media/thumbs/Mia Nympo PornStar/Mia Nympo Intro.jpg",
+      banner: "../media/thumbs/Mia Nympo PornStar/Mia Nympo Intro.jpg",
       introVideoId: 5168, // Mia Nympo — Intro
     },
     {
@@ -161,8 +161,8 @@ const DATA = {
       bio: "AI pornstar pack — full intro plus vertical Shorts. Curves first, zero apology.",
       tags: ["Sabrina Ass", "Pornstar", "Big Ass", "Babe", "AI", "Solo", "PAWG"],
       categories: ["Big Ass", "AI Generated"],
-      avatar: "../media/Sabrina Ass/Sabrina.avif",
-      banner: "../media/Sabrina Ass/Sabrina 2.avif",
+      avatar: "../media/thumbs/Sabrina Ass/Sabrina Ass Intro.jpg",
+      banner: "../media/thumbs/Sabrina Ass/Sabrina Ass Intro.jpg",
       introVideoId: 5248, // Sabrina Ass — Intro
     },
     {
@@ -176,8 +176,8 @@ const DATA = {
       bio: "AI pornstar pack — slow-burn energy, full intro, and vertical Shorts. Soft heat with a spine.",
       tags: ["Marsha Banks", "Pornstar", "MILF", "Babe", "AI", "Solo", "Romantic"],
       categories: ["MILF", "AI Generated"],
-      avatar: "../media/Marsha Banks/Marsha Banks.avif",
-      banner: "../media/Marsha Banks/Marsha Banks pool.avif",
+      avatar: "../media/thumbs/blog-marsha/Marsha Banks - Part 1.jpg",
+      banner: "../media/thumbs/blog-marsha/Marsha Banks - Part 1.jpg",
       introVideoId: 5257, // Marsha Banks — Intro
     },
     {

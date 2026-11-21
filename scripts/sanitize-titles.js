@@ -30,9 +30,19 @@ let genericFixed = 0;
 
 for (const v of VIDEOS) {
   let t = v.title.trim();
+  const catPrefix = v.category && v.category !== "AI Generated" ? `${v.category} ` : "";
   if (uuidRegex.test(t)) {
     v.title = `AI Hardcore 4K Scene #${v.id}`;
     uuidFixed++;
+  } else if (/^AHR0c/i.test(t)) {
+    v.title = `${catPrefix}AI Diffusion 4K Scene #${v.id}`;
+    genericFixed++;
+  } else if (/^https?:\/\//i.test(t)) {
+    v.title = `${catPrefix}AI 4K Scene #${v.id}`;
+    genericFixed++;
+  } else if (/^grok-video-[0-9a-f-]{16,}/i.test(t) || /^[0-9a-f]{16,}/i.test(t)) {
+    v.title = `${catPrefix}AI Cyber Scene #${v.id}`;
+    genericFixed++;
   } else if (imagineHexRegex.test(t)) {
     v.title = `AI Fantasy 4K Scene #${v.id}`;
     genericFixed++;

@@ -11,6 +11,7 @@ Disallow: /browse/
 Disallow: /library/
 Disallow: /movie/
 Disallow: /api/
+Disallow: /r2/
 
 # Video Crawlers (Explicitly Allowed for Video Rich Results & Indexing)
 User-agent: Googlebot-Video
@@ -42,6 +43,7 @@ Disallow: /browse/
 Disallow: /library/
 Disallow: /movie/
 Disallow: /api/
+Disallow: /r2/
 
 # Aggressive Training Scrapers & Bulk Harvesters (Disallowed to Conserve Edge Resources)
 User-agent: Bytespider

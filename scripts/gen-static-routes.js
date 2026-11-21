@@ -113,8 +113,8 @@ const PORNSTARS = [
     bio: "AI pornstar sensation — blonde, bold, and built for repeat viewing. Featuring full-length intro scenes and ultra-realistic 4K vertical Shorts.",
     tags: ["Mia Nympo", "Pornstar", "Blonde", "Babe", "AI", "Solo"],
     categories: ["Babe", "AI Generated", "Blonde"],
-    avatar: "../media/Mia Nympo PornStar/Mia Nympo6.avif",
-    banner: "../media/Mia Nympo PornStar/Mia Nympo7.avif",
+    avatar: "../media/thumbs/Mia Nympo PornStar/Mia Nympo Intro.jpg",
+    banner: "../media/thumbs/Mia Nympo PornStar/Mia Nympo Intro.jpg",
     introVideoId: 5168,
     blogSlug: "ai-pornstar-profiles-mia-nympo-case-study",
   },
@@ -127,8 +127,8 @@ const PORNSTARS = [
     bio: "AI pornstar powerhouse — legendary curves, PAWG perfection, and unapologetic big-ass scenes. Uncut 4K videos and viral TikTok-style Shorts.",
     tags: ["Sabrina Ass", "Pornstar", "Big Ass", "Babe", "AI", "Solo", "PAWG"],
     categories: ["Big Ass", "AI Generated", "Latina"],
-    avatar: "../media/Sabrina Ass/Sabrina.avif",
-    banner: "../media/Sabrina Ass/Sabrina 2.avif",
+    avatar: "../media/thumbs/Sabrina Ass/Sabrina Ass Intro.jpg",
+    banner: "../media/thumbs/Sabrina Ass/Sabrina Ass Intro.jpg",
     introVideoId: 5248,
     blogSlug: "sabrina-ass-ai-pornstar-profile-intro-shorts",
   },
@@ -141,8 +141,8 @@ const PORNSTARS = [
     bio: "AI mature star — confident elegance, irresistible MILF energy, and slow-burn sensual heat. Exclusive full scenes and cinematic close-ups.",
     tags: ["Marsha Banks", "Pornstar", "MILF", "Babe", "AI", "Solo", "Romantic"],
     categories: ["MILF", "AI Generated", "Mature"],
-    avatar: "../media/Marsha Banks/Marsha Banks.avif",
-    banner: "../media/Marsha Banks/Marsha Banks pool.avif",
+    avatar: "../media/thumbs/blog-marsha/Marsha Banks - Part 1.jpg",
+    banner: "../media/thumbs/blog-marsha/Marsha Banks - Part 1.jpg",
     introVideoId: 5257,
     blogSlug: "marsha-banks-ai-pornstar-profile-intro-shorts",
   },
@@ -2401,6 +2401,56 @@ function genChannelPages() {
 }
 
 // 9. Generate /video/<id>.html for top curated & popular scenes with rich Schema VideoObject, Prompt Copy Box, and OurDream.ai affiliate conversion
+function generateRichVideoDescription(v) {
+  const isGenericBoilerplate = !v.desc || v.desc.includes("Stream this and more AI-generated & community adult videos in stunning quality");
+  if (!isGenericBoilerplate && v.desc && v.desc.trim().length > 70) {
+    return v.desc.trim();
+  }
+
+  const title = v.title || "4K AI Scene";
+  const cat = v.category || "AI Generated";
+  const tags = (v.tags || []).slice(0, 5).join(", ");
+  const isVertical = v.orientation === "vertical";
+  const formatStr = isVertical ? "mobile-optimized 9:16 vertical Short" : "cinematic 16:9 widescreen 4K video";
+
+  let durPhrase = "high-definition scene";
+  if (v.duration) {
+    const parts = String(v.duration).split(":").map(Number);
+    if (parts.length === 2) {
+      const [m, s] = parts;
+      if (m === 0 && s <= 15) {
+        durPhrase = `${s}-second ultra-short teaser clip`;
+      } else if (m === 0) {
+        durPhrase = `${s}-second high-energy clip`;
+      } else {
+        durPhrase = `${m} minute ${s > 0 ? `${s} second ` : ""}extended scene`;
+      }
+    }
+  }
+
+  return `Watch ${title} in 4K Ultra HD on thebestpornai. This ${durPhrase} features premium ${cat} aesthetics, rendered in stunning ${formatStr} format. Produced with state-of-the-art 2026 AI diffusion models, the scene highlights photorealistic skin textures, cinematic lighting, and 60 FPS motion fidelity. Explore ${tags ? `key themes including ${tags}` : `exclusive ${cat} curation`} with free instant playback in high bitrate, theater mode support, and prompt parameters.`;
+}
+
+function getRelatedVideos(v, allVideos, count = 12) {
+  const pool = allVideos.filter(o => o.id !== v.id && o.src && o.thumb);
+  if (!pool.length) return [];
+  const sameCatOrTag = pool.filter(o =>
+    o.category === v.category ||
+    (v.tags && o.tags && o.tags.some(t => v.tags.includes(t)))
+  );
+  const list = sameCatOrTag.length >= count ? sameCatOrTag : pool;
+  const len = list.length;
+  const startIdx = Math.abs((Number(v.id) || 1) * 7 + 13) % len;
+  const result = [];
+  for (let i = 0; i < len && result.length < count; i++) {
+    const candidate = list[(startIdx + i * 5) % len];
+    if (!result.includes(candidate) && candidate.id !== v.id) {
+      result.push(candidate);
+    }
+  }
+  return result;
+}
+
 function genVideoPages() {
   const byId = new Map(VIDEOS.map((v) => [v.id, v]));
   const seenIds = new Set();
@@ -2421,22 +2471,23 @@ function genVideoPages() {
 
   for (const v of prioritized) {
     const title = `${v.title} — 4K AI Porn Video | thebestpornai`;
-    const description = v.desc || `Watch ${v.title} in 4K Ultra HD on thebestpornai. Free AI adult video stream featuring ${v.category || 'curated'} scenes with instant playback and no signups.`;
+    const description = generateRichVideoDescription(v);
     const canonical = `${ORIGIN}/video/${v.id}.html`;
     const thumbUrl = v.thumb ? imgUrl(v.thumb) : LOGO;
     const seoThumb = v.thumb ? imgUrl(v.thumb) : LOGO;
     const catSlug = slugify(v.category || "ai");
 
-    // Related 12 videos in same category or overall
-    const related = VIDEOS.filter(other => other.id !== v.id && (other.category === v.category || !v.category)).slice(0, 12);
+    // Dynamic, diverse related 12 videos tailored to scene & tags
+    const related = getRelatedVideos(v, VIDEOS, 12);
     const relatedCards = related.map((r) => videoCardHtml(r, { eager: false })).join("\n");
 
     const catMeta = TOP_CATEGORIES.find(c => c.name.toLowerCase() === (v.category || "").toLowerCase());
     const guideSlug = catMeta?.guideSlug;
+    const catNameClean = (v.category || "AI Generated").replace(/^AI\s+/i, "");
     const guideBannerHtml = guideSlug ? `
       <div class="video-guide-banner" style="margin:24px 0 32px;padding:16px 20px;border-radius:12px;background:radial-gradient(120% 160% at 100% 50%, rgba(229,9,20,0.12), rgba(20,20,20,0.95) 75%);border:1px solid rgba(229,9,20,0.3);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
         <div style="font-size:14px;color:#cbd5e1;line-height:1.5">
-          📖 <strong>2026 Editorial Guide:</strong> Explore top performers, prompts &amp; scene curation in our <a href="/blog/${esc(guideSlug)}.html" style="color:var(--accent);font-weight:700">Best AI ${esc(v.category)} Scenes in 2026 Guide →</a>
+          📖 <strong>2026 Editorial Guide:</strong> Explore top performers, prompts &amp; scene curation in our <a href="/blog/${esc(guideSlug)}.html" style="color:var(--accent);font-weight:700">Best AI ${esc(catNameClean)} Scenes in 2026 Guide →</a>
         </div>
         <a href="/blog/${esc(guideSlug)}.html" style="color:#fff;font-size:12.5px;font-weight:700;text-decoration:none;padding:7px 16px;background:var(--accent);border-radius:999px;flex:none">Read Guide →</a>
       </div>` : "";
@@ -2474,7 +2525,7 @@ function genVideoPages() {
             <span>•</span>
             <span>Category: <a href="/categories/${catSlug}.html" style="color:var(--accent);text-decoration:none;font-weight:700">${esc(v.category || "AI")}</a></span>
           </div>
-          ${v.desc ? `<p class="video-desc">${esc(v.desc)}</p>` : ""}
+          <p class="video-desc">${esc(description)}</p>
           <div class="video-tags-list">
             ${(v.categories || [v.category]).filter(Boolean).map(c => `<a class="tag-chip" href="/categories/${slugify(c)}.html">${esc(c)}</a>`).join("")}
             ${(v.tags || []).slice(0, 8).map(t => `<a class="tag-chip" href="/tags/${slugify(t)}.html">#${esc(t)}</a>`).join("")}
@@ -2494,7 +2545,7 @@ function genVideoPages() {
             <button type="button" class="prompt-copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('promptText_${v.id}').innerText).then(() => { this.innerText = '✓ Copied!'; setTimeout(() => this.innerText = '📋 Copy', 2500); })">📋 Copy</button>
           </div>
           <div class="prompt-box-footer">
-            ${guideSlug ? `<div class="prompt-footer-guide">📖 <span>Featured in: <a href="/blog/${esc(guideSlug)}.html">Best AI ${esc(v.category)} Scenes Guide →</a></span></div>` : `<div></div>`}
+            ${guideSlug ? `<div class="prompt-footer-guide">📖 <span>Featured in: <a href="/blog/${esc(guideSlug)}.html">Best AI ${esc(catNameClean)} Scenes Guide →</a></span></div>` : `<div></div>`}
             <a href="${ourdreamUrl("create", "video-prompt")}" target="_blank" rel="${OURDREAM_REL}" class="prompt-generate-btn">
               <span>🚀 Generate on OurDream →</span>
             </a>

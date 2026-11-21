@@ -39,6 +39,11 @@
       "permanent": true
     },
     {
+      "source": "/blog/the-best-porn-ai-2026.html",
+      "destination": "/The-Best-Porn-AI-in-2026",
+      "permanent": true
+    },
+    {
       "source": "/The-Best-Porn-AI-in-2026.html",
       "destination": "/The-Best-Porn-AI-in-2026",
       "permanent": true
@@ -280,6 +285,19 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/blog/rss.xml",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
         }
       ]
     },
