@@ -1659,16 +1659,38 @@ function genPornstarProfiles() {
 
     const videoCards = creatorVideos.map((v, i) => videoCardHtml(v, { eager: i < 4, fetchpriority: i === 0 ? "high" : undefined })).join("\n");
 
+    const relatedStars = PORNSTARS.filter(c => c.slug !== ps.slug && (c.categories || [c.category]).some(cat => (ps.categories || [ps.category]).includes(cat))).slice(0, 4);
+    const relatedStarsHtml = relatedStars.length ? `
+      <div class="ps-related-stars" style="margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border);">
+        <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 16px;">More Trending AI Pornstars</h3>
+        <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+          ${relatedStars.map(s => `
+            <a href="/pornstars/${s.slug}.html" style="display: inline-flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: 999px; text-decoration: none; color: #fff; font-size: 13.5px; font-weight: 600; transition: border-color .15s;">
+              <span style="color: var(--accent);">★</span>
+              <span>${esc(s.name)}</span>
+            </a>
+          `).join("")}
+        </div>
+      </div>` : "";
+
     const bodyContent = `
       <header class="ps-profile-hero" style="margin-bottom: 24px;">
         <h1 class="row-heading" style="font-size:26px;font-weight:800;color:#fff;margin:0 0 8px;">${esc(ps.name)} — AI Pornstar</h1>
-        <p class="sub" style="font-size:14.5px;color:#cbd5e1;line-height:1.5;margin:0 0 12px;">${esc(ps.bio)}</p>
-        <p class="sub"><a href="/blog/${guideSlug}.html" style="color:var(--accent);font-weight:600;">Explore the ${esc(ps.name)} AI Pornstar Guide &amp; Face Pack &rarr;</a></p>
+        <p class="sub" style="font-size:14.5px;color:#cbd5e1;line-height:1.6;margin:0 0 14px;max-width:850px;">
+          ${esc(ps.bio)} Explore full-length 4K scenes, mobile vertical Shorts, and prompt-consistent diffusion generation starring ${esc(ps.name)}. All videos stream free in high bitrate with zero buffering and no account required.
+        </p>
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:0 0 16px;">
+          <span style="font-size:12.5px;background:rgba(229,9,20,0.15);color:var(--accent);border:1px solid rgba(229,9,20,0.3);padding:4px 10px;border-radius:6px;font-weight:700;">${creatorVideos.length} 4K Scenes</span>
+          <span style="font-size:12.5px;color:var(--muted);">${fmtViews(ps.subs || 10000)} Fans</span>
+          ${(ps.categories || [ps.category]).filter(Boolean).map(c => `<a href="/categories/${slugify(c)}.html" style="font-size:12px;background:var(--surface2);border:1px solid var(--border);color:#cbd5e1;padding:4px 10px;border-radius:6px;text-decoration:none;">${esc(c)}</a>`).join("")}
+        </div>
+        <p class="sub" style="margin:0;"><a href="/blog/${guideSlug}.html" style="color:var(--accent);font-weight:600;">Explore the ${esc(ps.name)} AI Pornstar Guide &amp; Face Pack &rarr;</a></p>
       </header>
       <h2 class="sub" style="font-size:16px;font-weight:700;color:#fff;margin:24px 0 14px;">4K Scenes &amp; Shorts Starring ${esc(ps.name)}</h2>
       <div class="v-grid">
         ${videoCards.length ? videoCards : '<p class="sub">More videos coming soon.</p>'}
-      </div>`;
+      </div>
+      ${relatedStarsHtml}`;
 
     const jsonLd = {
       "@context": "https://schema.org",
@@ -2484,6 +2506,7 @@ function genVideoPages() {
     const catMeta = TOP_CATEGORIES.find(c => c.name.toLowerCase() === (v.category || "").toLowerCase());
     const guideSlug = catMeta?.guideSlug;
     const catNameClean = (v.category || "AI Generated").replace(/^AI\s+/i, "");
+    const creatorMeta = PORNSTARS.find(c => c.id === v.creator || c.slug === String(v.creator || "").replace(/^ps-/, ""));
     const guideBannerHtml = guideSlug ? `
       <div class="video-guide-banner" style="margin:24px 0 32px;padding:16px 20px;border-radius:12px;background:radial-gradient(120% 160% at 100% 50%, rgba(229,9,20,0.12), rgba(20,20,20,0.95) 75%);border:1px solid rgba(229,9,20,0.3);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
         <div style="font-size:14px;color:#cbd5e1;line-height:1.5">
@@ -2524,6 +2547,7 @@ function genVideoPages() {
             <span>Published ${esc(v.uploaded || "Recently")}</span>
             <span>•</span>
             <span>Category: <a href="/categories/${catSlug}.html" style="color:var(--accent);text-decoration:none;font-weight:700">${esc(v.category || "AI")}</a></span>
+            ${creatorMeta ? `<span>•</span><span>Starring: <a href="/pornstars/${creatorMeta.slug}.html" style="color:var(--accent);text-decoration:none;font-weight:700">${esc(creatorMeta.name)}</a></span>` : ""}
           </div>
           <p class="video-desc">${esc(description)}</p>
           <div class="video-tags-list">
@@ -2596,6 +2620,13 @@ function genVideoPages() {
           ...(mediaStreamUrl ? { "contentUrl": mediaStreamUrl } : {}),
           "genre": v.category || "AI Generated",
           "keywords": (v.tags || ["AI", "4K"]).slice(0, 10).join(", "),
+          ...(creatorMeta ? {
+            "actor": {
+              "@type": "Person",
+              "name": creatorMeta.name,
+              "url": `${ORIGIN}/pornstars/${creatorMeta.slug}.html`
+            }
+          } : {}),
           "isFamilyFriendly": false,
           "requiresSubscription": false,
           "publisher": {

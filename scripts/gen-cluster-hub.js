@@ -248,11 +248,22 @@ const body = `
 
   <section class="watch-callout">
     <h2>Already know what you want to watch?</h2>
-    <p>Skip the credit grind. House scenes and Shorts stay on the player — this page does not change playback.</p>
+    <p>Skip the credit grind. Stream thousands of 4K scenes, mobile vertical Shorts, and recurring AI pornstars free — with zero account required.</p>
     <div class="cta-row">
       <a class="btn btn-primary" href="/">Open the catalog</a>
+      <a class="btn btn-secondary" href="/pornstars/">⭐ AI Pornstars</a>
       <a class="btn btn-secondary" href="/shorts">Shorts</a>
       <a class="btn btn-secondary" href="/blog/">Editorial &amp; guides</a>
+    </div>
+    <div style="margin-top: 20px; font-size: 13px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+      <span>Featured Stars:</span>
+      <a href="/pornstars/pinky-hart.html" style="color: var(--accent); font-weight: 600; text-decoration: none;">Pinky Hart</a>
+      <span>·</span>
+      <a href="/pornstars/mia-nympo.html" style="color: var(--accent); font-weight: 600; text-decoration: none;">Mia Nympo</a>
+      <span>·</span>
+      <a href="/pornstars/sabrina-ass.html" style="color: var(--accent); font-weight: 600; text-decoration: none;">Sabrina Ass</a>
+      <span>·</span>
+      <a href="/pornstars/marsha-banks.html" style="color: var(--accent); font-weight: 600; text-decoration: none;">Marsha Banks</a>
     </div>
   </section>
 </div>
