@@ -35,13 +35,20 @@ jobs:
           if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
             echo "No changes — nothing to propose."; exit 0
           fi
-          branch="auto/weekly-roundup-$(date -u +%Y-%m-%d)"
+
+          # Clean up any stale weekly roundup PRs & branches so they never accumulate
+          for old_pr in $(gh pr list --state open --search "Weekly roundup in:title" --json number -q '.[].number'); do
+            echo "Closing stale PR #$old_pr..."
+            gh pr close "$old_pr" --delete-branch --comment "Superseded by fresh weekly roundup." || true
+          done
+
+          branch="auto/weekly-roundup"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$branch"
+          git checkout -B "$branch"
           git add -A
           git commit -m "content: weekly roundup $(date -u +%Y-%m-%d)"
-          git push -u origin "$branch"
+          git push -u origin "$branch" --force
           gh pr create --base main --head "$branch" \
             --title "Weekly roundup $(date -u +%Y-%m-%d)" \
-            --body "Auto-generated from catalog uploads in the last 7 days. Review the post under /blog/, then merge to publish (deploys automatically)."
+            --body "Auto-generated from catalog uploads in the last 7 days. Review the post under /blog/, then merge to publish (deploys automatically)." || true
