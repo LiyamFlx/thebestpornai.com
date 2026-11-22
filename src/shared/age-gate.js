@@ -20,7 +20,6 @@ function isAgeVerified() {
 }
 
 function markAgeVerified() {
-  const val = JSON.stringify({ verified: true, at: Date.now() });
   try {
     localStorage.setItem(AGE_GATE_KEY, "1");
     sessionStorage.setItem(AGE_GATE_KEY, "1");
@@ -63,15 +62,15 @@ function ageGate(){
     </style>
     <div class="ag-card">
       <img class="ag-logo" src="${logoUrl}" alt="thebestpornai" width="160" height="40"/>
-      <h1 id="ag-title">You must be 18 or older to enter</h1>
-      <p>This website contains age-restricted material intended for adults only.
+      <h1 id="ag-title">Adults Only (18+)</h1>
+      <p>This website streams uncensored, 100% synthetically generated adult entertainment.
          By entering, you confirm that you are at least 18 years old (or the age
-         of majority in your jurisdiction) and consent to viewing adult content.</p>
+         of majority in your jurisdiction) and consent to viewing sexually explicit material.</p>
       <div class="ag-btns">
-        <button class="ag-enter" id="ag-enter">I am 18+ — Enter</button>
-        <button class="ag-exit" id="ag-exit">Exit</button>
+        <button class="ag-enter" id="ag-enter">I am 18 or Older — Enter</button>
+        <button class="ag-exit" id="ag-exit">Leave Site</button>
       </div>
-      <div class="ag-fine">By entering you agree to our
+      <div class="ag-fine">All performers are 18+ synthetic personas · Zero real-person deepfakes.<br/>By entering you agree to our
         <a href="/legal/terms.html">Terms</a> and
         <a href="/legal/privacy.html">Privacy Policy</a>.</div>
     </div>`;

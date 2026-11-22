@@ -197,7 +197,7 @@ function actionBar(v, live, hasCreator, { compact = false } = {}){
     <div class="watch-action-bar watch-action-bar--icons" role="toolbar" aria-label="Video actions">
       <button type="button" id="btnLike" class="act-ico ${live.myVote==="like"?"on":""}" data-act="like" data-id="${v.id}" aria-pressed="${live.myVote==="like"?"true":"false"}" aria-label="Like this video"><svg class="ic ico"><use href="#icon-like"/></svg><span id="likeNum">${fmt(v.likes + live.like)}</span></button>
       <button type="button" id="btnDislike" class="act-ico ${live.myVote==="dislike"?"on":""}" data-act="dislike" data-id="${v.id}" aria-pressed="${live.myVote==="dislike"?"true":"false"}" aria-label="Dislike this video"><svg class="ic ico"><use href="#icon-dislike"/></svg><span>Dislike</span></button>
-      <button type="button" class="act-ico" data-act="switch-tab" data-tab="comments" aria-label="Comments"><svg class="ic ico"><use href="#icon-comment"/></svg><span>Chat</span></button>
+      <button type="button" class="act-ico" data-act="switch-tab" data-tab="comments" aria-label="Comments"><svg class="ic ico"><use href="#icon-comment"/></svg><span>Comments</span></button>
       <button type="button" class="act-ico" data-act="open-sheet" data-sheet="shareSheet" aria-label="Share"><svg class="ic ico"><use href="#icon-share"/></svg><span>Share</span></button>
       <button type="button" class="act-ico ${laterOn?'on':''}" id="btnLater" data-act="toggle-later" data-id="${v.id}" aria-pressed="${laterOn?'true':'false'}" aria-label="Save"><svg class="ic ico"><use href="#icon-save"/></svg><span>Save</span></button>
       <button type="button" class="act-ico ${favOn?'on':''}" id="btnFav" data-act="toggle-fav" data-id="${v.id}" aria-pressed="${favOn?'true':'false'}" aria-label="Favorite"><svg class="ic ico"><use href="#icon-heart"/></svg><span>Fav</span></button>
@@ -293,8 +293,10 @@ function blogStoryChip(v){
 
 function affiliatePromoBanner(v){
   const offer = getAffiliateOffer({ category: v?.category, tags: v?.tags, src: "watch-banner" });
+  const kicker = `<div class="ourdream-promo-kicker" style="font-size:11px;font-weight:700;letter-spacing:0.5px;color:rgba(255,255,255,0.55);text-transform:uppercase;margin:0 0 6px">Sponsored · Create Custom AI Models &amp; Chat Live</div>`;
   if (offer.network === "candy") {
     return `
+      ${kicker}
       <a href="${offer.url}" target="_blank" rel="${AFFILIATE_REL}" class="ourdream-promo-link" aria-label="Create Your Dream AI Companion on Candy.ai">
         <div class="ourdream-promo-card">
           <img src="/affiliate/candy/Candy.ai 728x90/asset10.gif" alt="Candy.ai — Create Your Dream AI Companion &amp; Chat in Seconds" class="ourdream-promo-img" loading="lazy" decoding="async" width="728" height="90"/>
@@ -302,6 +304,7 @@ function affiliatePromoBanner(v){
       </a>`;
   }
   return `
+    ${kicker}
     <a href="${offer.url}" target="_blank" rel="${AFFILIATE_REL}" class="ourdream-promo-link" aria-label="Create Your Dream AI Companion on OurDream.ai">
       <div class="ourdream-promo-card">
         <img src="/ourdream-banner-ad.jpg?v=20260821" alt="OurDream.ai — Create Your Dream AI Companion &amp; Chat in Seconds" class="ourdream-promo-img" loading="lazy" decoding="async" width="2176" height="912"/>

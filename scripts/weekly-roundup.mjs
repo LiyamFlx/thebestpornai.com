@@ -54,10 +54,23 @@ const rows = ranked.slice(0, 12).map(([id, vids]) => {
 
 const fmtDate = (d) => new Date(d + "T00:00:00Z").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 const cover = fresh.slice().sort((a, b) => b.id - a.id)[0];
+const standout = fresh.slice().sort((a, b) => ((b.likes || 0) * 2 + (b.views || 0)) - ((a.likes || 0) * 2 + (a.views || 0)))[0] || cover;
+const standoutCreator = standout ? creators.get(standout.creator) : null;
+const standoutCreatorName = standoutCreator?.name || standout?.creator || "Featured Creator";
+const standoutHref = standout ? `/video/${standout.id}.html` : "/";
 const related = ranked.slice(0, 6).map(([, v]) => v[0].id);
 
 const body = `
-<p>${fresh.length} new videos landed on <a href="/">thebestpornai</a> between ${fmtDate(since)} and ${fmtDate(today)}${vertical ? `, ${vertical} of them vertical Shorts` : ""}. Here is where to start.</p>
+<p>${fresh.length} new 4K AI scenes landed on <a href="/">thebestpornai</a> between ${fmtDate(since)} and ${fmtDate(today)}${vertical ? `, including ${vertical} high-definition vertical Shorts` : ""}. Here is where to start.</p>
+
+${standout ? `
+<div class="weekly-standout-card" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:20px;margin:24px 0">
+  <div style="font-size:12px;font-weight:700;letter-spacing:0.5px;color:#E50914;text-transform:uppercase;margin-bottom:6px">⭐ Editor's Pick of the Week</div>
+  <h3 style="margin:0 0 8px;font-size:18px"><a href="${standoutHref}">${esc(standout.title)}</a></h3>
+  <p style="margin:0 0 12px;font-size:14px;color:rgba(255,255,255,0.75)">Starring <strong>${esc(standoutCreatorName)}</strong> · ${standout.category || "Featured"} · 4K Ultra HD</p>
+  <a href="${standoutHref}" style="display:inline-block;background:#E50914;color:#fff;text-decoration:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:700">▶ Watch Featured Scene</a>
+</div>
+` : ""}
 
 <h2>New this week by performer</h2>
 <table>
@@ -71,7 +84,7 @@ ${topCats.length ? `<h2>What the new clips cover</h2>
 <p>The most common categories in this batch: ${topCats.map(([c, n]) => `<a href="/categories/${catSlug(c)}.html">${esc(c)}</a> (${n})`).join(", ")}.</p>` : ""}
 
 <h2>Keep browsing</h2>
-<p>See every named performer in the <a href="/pornstars/">AI Pornstars directory</a>, or open the <a href="/">homepage</a> for the newest uploads first.</p>
+<p>Browse every virtual model in the <a href="/pornstars/">AI Pornstars directory</a>, or explore the <a href="/?sort=latest">latest video releases</a>.</p>
 `;
 
 const post = {

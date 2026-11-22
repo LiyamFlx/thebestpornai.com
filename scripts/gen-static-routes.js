@@ -2695,7 +2695,7 @@ function prerenderHomepageSkeleton() {
     const thumbUrl = v.thumb ? imgUrl(v.thumb) : LOGO;
     const dur = v.duration ? esc(v.duration) : "";
     const views = fmtViews(v.views || 1200);
-    const loadingAttr = i < 2 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
+    const loadingAttr = i === 0 ? 'loading="eager"' : 'loading="lazy"';
     return `        <article class="card">
           <a href="/video/${v.id}.html" title="${esc(v.title)}" style="text-decoration:none;color:inherit;display:block">
             <div class="video-thumb">
@@ -2720,11 +2720,10 @@ function prerenderHomepageSkeleton() {
         <h1 style="font-size:clamp(22px,3vw,32px);font-weight:800;margin:0 0 8px;line-height:1.2;color:#fff">thebestpornai — Free 4K AI Porn &amp; Uncensored Adult Streaming</h1>
         <div class="home-hero-badge-row" style="margin-bottom:12px">
           <div class="home-hero-badge-group">
-            <span class="home-hero-tag">✨ Featured</span>
+            <span class="home-hero-tag">✨ Featured Scene</span>
             <span class="home-hero-count">4K Ultra HD · ${exactActiveFormatted} Videos</span>
-            <span class="home-hero-free-pill">100% Free · No Signup</span>
           </div>
-          <span class="home-hero-trust-pill">🛡️ 100% Synthetic Personas · Zero Deepfakes · 18+ Consenting Adults</span>
+          <span class="home-hero-trust-pill">🛡️ 100% Free · Synthetic Personas Only</span>
         </div>
         <p style="font-size:14px;color:rgba(255,255,255,0.8);max-width:800px;margin:0 0 16px;line-height:1.5">
           Stream over ${thousandRounded} high-definition AI generated adult videos, photorealistic face packs, uncensored movies, and exclusive clips. Instant high-speed cloud playback with zero buffering.

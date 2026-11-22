@@ -58,10 +58,10 @@ export function appShellHtml(activeNav, bodyContent) {
       <a href="/tags/" class="${on("tags")}" aria-label="Tags"${activeNav === "tags" ? ' aria-current="page"' : ""}>${ICO.explore}<span class="nav-label">Tags</span></a>
       <a href="/pornstars/" class="${on("pornstars")}" aria-label="Pornstars"${activeNav === "pornstars" ? ' aria-current="page"' : ""}>${ICO.you}<span class="nav-label">Stars</span></a>
       <a href="/library" aria-label="Library" rel="nofollow">${ICO.save}<span class="nav-label">Library</span></a>
-      <a href="/shorts" aria-label="Shorts" rel="nofollow">${ICO.shorts}<span class="nav-label">Shorts</span></a>
+      <a href="/shorts" aria-label="Shorts">${ICO.shorts}<span class="nav-label">Shorts</span></a>
       <a href="/The-Best-Porn-AI-in-2026" class="${on("compare")}" aria-label="Top AI Tools"${activeNav === "compare" ? ' aria-current="page"' : ""}>${ICO.explore}<span class="nav-label">Top AI</span></a>
       <a href="/blog/" class="${on("blog")}" aria-label="Blog"${activeNav === "blog" ? ' aria-current="page"' : ""}>${ICO.comment}<span class="nav-label">Blog</span></a>
-      <a href="/choose.html" aria-label="Creator Studio" rel="nofollow">${ICO.studio}<span class="nav-label">Studio</span></a>
+      <a href="/creator/" aria-label="Creator Studio" rel="nofollow">${ICO.studio}<span class="nav-label">Studio</span></a>
     </nav>
     <a class="sidebar-you" href="/profile" aria-label="Your account" rel="nofollow">${ICO.you}<span class="nav-label">You</span></a>
   </aside>
@@ -98,7 +98,7 @@ export function appShellHtml(activeNav, bodyContent) {
   <!-- Mobile Bottom Navigation -->
   <nav class="bottom-nav" aria-label="Primary navigation">
     <a href="/" class="bottom-nav-item${activeNav === 'home' ? ' active' : ''}">${ICO.home}<span>Home</span></a>
-    <a href="/shorts" class="bottom-nav-item${activeNav === 'shorts' ? ' active' : ''}" rel="nofollow">${ICO.shorts}<span>Shorts</span></a>
+    <a href="/shorts" class="bottom-nav-item${activeNav === 'shorts' ? ' active' : ''}">${ICO.shorts}<span>Shorts</span></a>
     <a href="/categories/" class="bottom-nav-item${activeNav === 'categories' ? ' active' : ''}">${ICO.explore}<span>Categories</span></a>
     <a href="/pornstars/" class="bottom-nav-item${activeNav === 'pornstars' ? ' active' : ''}">${ICO.you}<span>Stars</span></a>
     <a href="/blog/" class="bottom-nav-item${activeNav === 'blog' ? ' active' : ''}">${ICO.comment}<span>Blog</span></a>
@@ -115,14 +115,14 @@ export function appShellHtml(activeNav, bodyContent) {
       <a href="/creator/index.html?page=upload" class="nav-upload"><span class="ico">⬆</span> Upload Video</a>
       <div class="nav-label-group">Browse</div>
       <a href="/" class="${activeNav === 'home' ? 'active' : ''}"><span class="ico">🏠</span> Home</a>
-      <a href="/shorts" rel="nofollow"><span class="ico">📱</span> Shorts</a>
+      <a href="/shorts"><span class="ico">📱</span> Shorts</a>
       <a href="/categories/" class="${activeNav === 'categories' ? 'active' : ''}"><span class="ico">▦</span> Categories</a>
       <a href="/pornstars/" class="${activeNav === 'pornstars' ? 'active' : ''}"><span class="ico">⭐</span> AI Pornstars</a>
       <a href="/tags/" class="${activeNav === 'tags' ? 'active' : ''}"><span class="ico">🏷️</span> Tags Directory</a>
       <a href="/The-Best-Porn-AI-in-2026" class="${activeNav === 'compare' ? 'active' : ''}"><span class="ico">⚡</span> Top AI Tools</a>
       <div class="nav-label-group">More</div>
       <a href="/blog/" class="${activeNav === 'blog' ? 'active' : ''}"><span class="ico">📝</span> Editorial &amp; Guides</a>
-      <a href="/choose.html" rel="nofollow"><span class="ico">🛡</span> Creator Studio</a>
+      <a href="/creator/" rel="nofollow"><span class="ico">🛡</span> Creator Studio</a>
     </div>
     <div class="mobile-drawer-foot">
       18+ Adults Only — All performers 18+<br/>

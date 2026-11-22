@@ -122,7 +122,7 @@ export function renderSubs(){
     <div class="pill-row">${DATA.creators.filter(c=>vstate.subs.includes(c.id)).map(c=>`<button class="filter-pill active" onclick="openCreator('${jsq(c.id)}')">${esc(c.name)}</button>`).join("")}</div>
     ${list.length
       ? pagedGrid(list, v=>videoCard(v,{layout:'row'}), {cls:'video-list'})
-      : emptyState("Nothing from your subscriptions yet. Follow creators to fill this feed.", POPULAR_TAGS.slice(0, 6), { emoji: "📺" })}`;
+      : emptyState("You haven’t subscribed to any stars yet. Follow your favorite AI performers to curate your personal feed.", POPULAR_TAGS.slice(0, 6), { emoji: "⭐" })}`;
 }
 
 export function renderProfile(){
@@ -317,7 +317,7 @@ export function renderSearch(){
       ${vids.length
         ? `<h3 class="row-heading">Videos</h3>${pagedGrid(vids, v=>videoCard(v,{layout:'row'}), {cls:'video-list'})}`
         : `
-        ${emptyState(`No videos found for “${raw}”.`, POPULAR_TAGS.slice(0, 8))}
+        ${emptyState(`No exact matches for “${raw}”. Try searching by performer name, style (POV, 4K), or popular tags below:`, POPULAR_TAGS.slice(0, 8))}
         ${fallback.length ? rowSection("Trending instead", fallback, { layout: "row" }) : ""}
         `}
     </div>`;

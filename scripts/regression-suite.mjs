@@ -538,6 +538,26 @@ check("Creator actions (openCreator, subscribe) safely reject null/empty/malform
   assert.equal(vstate.subs.length, initialSubsCount, "Empty subscribe must not pollute vstate.subs");
 });
 
+// --- SECTION 8: Security Policy, Compliance & Shorts Crawlability Contracts ---
+check("index.html CSP policy is hardened and allows production domain & R2", () => {
+  const indexHtml = fs.readFileSync(path.join(REPO, "index.html"), "utf8");
+  const cspMatch = indexHtml.match(/<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]*)"/i);
+  assert(cspMatch, "index.html must have Content-Security-Policy meta tag");
+  const csp = cspMatch[1];
+  assert(csp.includes("https://www.thebestpornai.com"), "CSP must include production origin");
+  assert(!csp.includes("*.vercel.app"), "CSP must NOT wildcard allow *.vercel.app");
+  assert(csp.includes("object-src 'none'"), "CSP must block object-src");
+  assert(csp.includes("base-uri 'self'"), "CSP must restrict base-uri");
+  assert(!indexHtml.includes('href="/shorts" data-page="feed" data-nav="feed" aria-label="Shorts" rel="nofollow"'), "Shorts in index.html must not be nofollow");
+  assert(indexHtml.includes('/legal/2257.html'), "2257 compliance link must exist in index.html");
+});
+
+check("site-chrome.mjs enables Shorts crawling and links Studio to /creator/", () => {
+  const siteChrome = fs.readFileSync(path.join(REPO, "scripts", "lib", "site-chrome.mjs"), "utf8");
+  assert(!siteChrome.includes('href="/shorts" data-nav="feed" aria-label="Shorts" rel="nofollow"'), "site-chrome.mjs must not mark Shorts as nofollow");
+  assert(siteChrome.includes('href="/creator/"'), "Studio link must route to /creator/");
+});
+
 // --- SUMMARY ---
 console.log("\n==================================================");
 console.log(`Regression Test Summary: ${passed} PASSED, ${failed} FAILED`);

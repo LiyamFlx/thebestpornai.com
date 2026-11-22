@@ -1,4 +1,4 @@
-import { DATA, esc, creatorName, fmt, mediaUrl } from "../../shared/catalog.js";
+import { DATA, esc, fmt, mediaUrl } from "../../shared/catalog.js";
 import { pubVerticalVideos, creatorById, visible } from "../catalog-queries.js";
 import { vstate, markFeedWatched } from "../state.js";
 
@@ -8,13 +8,18 @@ import { storedVoteFor, writeStoredVote } from "../../shared/vote-logic.js";
 import { ShAPI } from "../../shared/streamhub-api.js";
 import { setHash, takePendingFeedFocus } from "../router.js";
 
-// Global pointers to track observer, active video, and audio mute state
 let feedObserver = null;
 let currentActiveVideo = null;
+let activeIndex = -1;
 let feedMuted = true;
 let activeProgressVideo = null;
+let activeProgressBar = null;
 let _progressRaf = null;
 let _lastProgressTs = 0;
+let _tapSoundTimer = null;
+let _resumeOnVisible = false;
+let _boundContainer = null;
+let _boundRoot = null;
 const PROGRESS_MIN_MS = 50;
 
 let tapSoundSeen = false;
@@ -32,30 +37,19 @@ function markTapSoundSeen() {
     localStorage.setItem("tap_for_sound_seen", "true");
     localStorage.setItem("tap_for_sound_dismissed", "true");
   } catch (_) {}
-  document.querySelectorAll(".feed-unmute-banner").forEach((el) => {
-    el.classList.add("hidden");
-  });
+  hideUnmuteBanners();
 }
 
-/* ---- Virtualization ----
-   The feed's public/originals catalog can run into the hundreds of vertical
-   entries; renderFeed() used to map() every single one into one innerHTML
-   write, meaning a full-featured .feed-item (progress bar, overlay,
-   4-button sidebar, and a <video> with an eager `poster` — a ~346-image
-   stampede on feed open by itself) sat in the DOM for all of them from
-   first paint, even though only ~3 are ever near the viewport at once.
+function hideUnmuteBanners() {
+  document.querySelectorAll(".feed-unmute-banner").forEach((el) => el.classList.add("hidden"));
+}
 
-   Fix: renderFeed() emits only cheap, empty full-height shells (a div with
-   data-index/data-video-id, nothing else) for EVERY item up front — needed
-   so total scrollHeight/scroll-snap geometry is correct no matter where in
-   the feed the user is. Only a small window of shells around the active
-   one (active ± WINDOW) ever gets its heavy inner content (video/poster/
-   overlay/sidebar) injected — see hydrateWindow(). Measured on a simulated
-   iPhone 12 loading a 448-clip feed: 16,147 DOM nodes -> 791, 448 <video>
-   elements -> 3, 346 poster requests on open -> ~5. */
-const WINDOW = 2;   // hydrate active ± WINDOW (5 items live at once)
-let _feedData = [];       // index-aligned render data, rebuilt each renderFeed()
-const _hydrated = new Set();   // indices currently holding heavy content
+// Virtualization: every item is an empty full-height shell (keeps scroll-snap geometry exact);
+// only active ± WINDOW shells hold real content. 448-clip feed: 16k DOM nodes -> ~800, 448 <video> -> 5.
+const WINDOW = 2;
+let _feedVideos = [];
+let _baseCommentCounts = new Map();
+const _hydrated = new Set();
 
 function isDataSaverMode(){
   const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
@@ -72,19 +66,7 @@ function shuffle(list){
   return a;
 }
 
-/* pubVerticalVideos() itself is memoized on the catalog (same array/order
-   every call — deliberately, other callers may rely on that stability). The
-   feed's own presentation order is a separate concern: recomputed fresh
-   every time renderFeed() runs (i.e. every time the viewer navigates to the
-   Shorts tab), it shuffles so repeat visits aren't the same fixed order,
-   and puts videos the viewer hasn't actually watched yet (see
-   markFeedWatched()) ahead of ones they have — so new/unseen clips surface
-   first, with already-seen ones as shuffled filler at the end rather than
-   disappearing (the feed still needs enough content to keep scrolling once
-   everything's been seen once).
-
-   Deep links (#shorts/N): when vstate.feedFocusId is set, that clip is
-   forced to index 0 so the shared reel is the first thing on screen. */
+// Fresh order per visit: unwatched shuffled first, watched shuffled after; deep-linked clip pinned to 0.
 function orderedFeedVideos(){
   const all = pubVerticalVideos();
   const seen = new Set(vstate.feedWatched);
@@ -99,7 +81,6 @@ function orderedFeedVideos(){
       const [pinned] = list.splice(idx, 1);
       list.unshift(pinned);
     } else if(idx < 0){
-      // Not in the public vertical list yet (or edge case) — try raw catalog
       const raw = DATA.videos.find((v) => v.id === pinId && v.orientation === "vertical" && visible(v));
       if(raw) list = [raw].concat(list.filter((v) => v.id !== pinId));
     }
@@ -107,87 +88,113 @@ function orderedFeedVideos(){
   return list;
 }
 
-export function toggleFeedMute(){
-  feedMuted = !feedMuted;
-  markTapSoundSeen();
-  document.querySelectorAll(".feed-video").forEach(v => {
-    // Unmute only after user gesture (this handler runs on click).
-    try { v.muted = feedMuted; } catch(_){ v.muted = true; }
-  });
-  document.querySelectorAll(".feed-sound-btn").forEach(b => {
-    b.innerHTML = `<svg class="ico"><use href="#icon-${feedMuted ? 'mute' : 'unmute'}"/></svg>`;
-  });
-  document.querySelectorAll(".feed-sound-label").forEach(l => {
-    l.textContent = feedMuted ? "Muted" : "Sound";
-  });
-  document.querySelectorAll(".feed-unmute-banner").forEach(el => {
-    el.classList.add("hidden");
+function syncMuteUi(){
+  const icon = `<svg class="ico"><use href="#icon-${feedMuted ? "mute" : "unmute"}"/></svg>`;
+  document.querySelectorAll(".feed-sound-btn").forEach((b) => { b.innerHTML = icon; });
+  document.querySelectorAll(".feed-sound-label").forEach((l) => { l.textContent = feedMuted ? "Unmute" : "Mute"; });
+}
+
+function setAllMuted(muted){
+  document.querySelectorAll(".feed-video").forEach((v) => {
+    try { v.muted = muted; } catch (_) { v.muted = true; }
   });
 }
 
-/* Heavy inner content for a single feed item — only injected into shells that
-   fall inside the active window (see hydrateWindow). Keeping the <video>
-   (and therefore its eager `poster`) out of the DOM until an item is near the
-   viewport is what turns the old 448-video / 346-poster-request open into a
-   handful of live elements. */
+export function toggleFeedMute(){
+  feedMuted = !feedMuted;
+  markTapSoundSeen();
+  setAllMuted(feedMuted);
+  syncMuteUi();
+  hideUnmuteBanners();
+  if(!feedMuted){
+    const v = activeVideoEl();
+    if(v && v.paused && v.dataset.userPaused !== "1") playVideo(v);
+  }
+}
+
+// Only NotAllowedError means "unmuted autoplay blocked"; AbortError is just a superseded play() during fast swipes.
+function playVideo(videoEl){
+  if(!videoEl) return null;
+  if(!videoEl.getAttribute("src") && videoEl.dataset.src) videoEl.src = videoEl.dataset.src;
+  videoEl.muted = feedMuted;
+  let p;
+  try { p = videoEl.play(); } catch (_) { return null; }
+  if(p && p.catch){
+    p.catch((err) => {
+      if(!err || err.name !== "NotAllowedError" || videoEl.muted) return;
+      feedMuted = true;
+      setAllMuted(true);
+      syncMuteUi();
+      if(videoEl.isConnected) videoEl.play().catch(() => {});
+    });
+  }
+  return p;
+}
+
+function itemView(v){
+  const c = creatorById(v.creator) || { name: "Unknown", id: "", verified: false };
+  const stored = storedVoteFor(v.id);
+  let live = vstate.live[v.id];
+  if(!live && stored) live = vstate.live[v.id] = { like: 0, dislike: 0 };
+  if(live && !live.myVote && stored) live.myVote = stored;
+  live = live || { like: 0, dislike: 0 };
+  const liveComments = (live.comments && live.comments.length) || 0;
+  return {
+    v, c, live,
+    commentCount: (_baseCommentCounts.get(v.id) || 0) + liveComments,
+    subbed: vstate.subs.includes(v.creator),
+    hasCreator: !!c.id,
+  };
+}
+
 function feedItemInner(d){
   const { v, c, live, commentCount, subbed, hasCreator } = d;
+  const liked = live.myVote === "like";
   return `
-    <!-- Top Video Scrub / Playback Progress Bar -->
     <div class="feed-progress-wrap" aria-hidden="true">
       <div class="feed-progress-bar"></div>
     </div>
 
-    <!-- Video element -->
-    <video class="feed-video" playsinline preload="none" ${feedMuted ? 'muted' : ''} data-src="${mediaUrl(v.src)}" poster="${mediaUrl(v.thumb)}"></video>
+    <video class="feed-video" playsinline preload="none" ${feedMuted ? "muted" : ""} data-src="${mediaUrl(v.src)}" poster="${mediaUrl(v.thumb)}"></video>
 
-    <!-- Floating Tap for Sound banner (visible when muted on first visit only) -->
-    <button type="button" class="feed-unmute-banner ${feedMuted && !tapSoundSeen ? '' : 'hidden'}" data-action="toggleMute" aria-label="Tap for sound">
-      <span class="ico-sound">🔊</span> Tap for Sound
+    <button type="button" class="feed-unmute-banner ${feedMuted && !tapSoundSeen ? "" : "hidden"}" data-action="toggleMute" aria-label="Tap to unmute">
+      <span class="ico-sound">🔊</span> Tap to Unmute
     </button>
 
-    <!-- Play / Pause / Playback State Toast Badge Overlay -->
     <div class="feed-state-badge" aria-hidden="true"></div>
 
-    <!-- Video Details Overlay (Bottom) -->
     <div class="feed-overlay">
       <div class="feed-creator-row">
         <span class="feed-creator" data-action="openCreator" data-creator="${esc(c.id)}">@${esc(c.name)}</span>
-        ${c.verified ? '<span class="verified-badge">✓</span>' : ''}
+        ${c.verified ? '<span class="verified-badge">✓</span>' : ""}
       </div>
       <div class="feed-title">${esc(v.title)}</div>
-      ${v.category ? `<div class="feed-category"><span class="vtag-cat">${esc(v.category)}</span></div>` : ''}
+      ${v.category ? `<div class="feed-category"><span class="vtag-cat">${esc(v.category)}</span></div>` : ""}
     </div>
 
-    <!-- Engagement Action Sidebar (Right) -->
     <div class="feed-sidebar">
-      <!-- Creator Avatar (+ overlapping follow badge) -->
       <div class="feed-avatar-wrap">
         <div class="feed-avatar" data-action="openCreator" data-creator="${esc(c.id)}">${esc((c.name || "?")[0])}</div>
         ${hasCreator ? `
-          <button type="button" class="feed-follow-dot ${subbed ? 'subbed' : ''}" data-action="subscribe" data-creator="${esc(c.id)}" aria-label="${subbed ? 'Following' : 'Follow'} ${esc(c.name)}">${subbed ? '✓' : '+'}</button>
-        ` : ''}
+          <button type="button" class="feed-follow-dot ${subbed ? "subbed" : ""}" data-action="subscribe" data-creator="${esc(c.id)}" aria-label="${subbed ? "Following" : "Follow"} ${esc(c.name)}">${subbed ? "✓" : "+"}</button>
+        ` : ""}
       </div>
 
-      <!-- Sound / Mute Toggle -->
       <div class="feed-action">
-        <button type="button" class="feed-btn feed-sound-btn" data-action="toggleMute" aria-label="Toggle sound"><svg class="ico"><use href="#icon-${feedMuted ? 'mute' : 'unmute'}"/></svg></button>
-        <span class="feed-label feed-sound-label">${feedMuted ? 'Muted' : 'Sound'}</span>
+        <button type="button" class="feed-btn feed-sound-btn" data-action="toggleMute" aria-label="Toggle sound"><svg class="ico"><use href="#icon-${feedMuted ? "mute" : "unmute"}"/></svg></button>
+        <span class="feed-label feed-sound-label">${feedMuted ? "Unmute" : "Mute"}</span>
       </div>
 
-      <!-- Like Button -->
       <div class="feed-action">
-        <button type="button" class="feed-btn feed-like-btn ${(live && live.myVote === "like") ? 'liked' : ''}" data-action="like" data-video="${v.id}" aria-label="Like video"><svg class="ico"><use href="#icon-heart"/></svg></button>
-        <span class="feed-label" id="feedLike_${v.id}">${fmt(v.likes + live.like)}</span>
+        <button type="button" class="feed-btn feed-like-btn ${liked ? "liked" : ""}" data-action="like" data-video="${v.id}" aria-label="Like video" aria-pressed="${liked}"><svg class="ico"><use href="#icon-heart"/></svg></button>
+        <span class="feed-label" id="feedLike_${v.id}">${fmt((v.likes || 0) + (live.like || 0))}</span>
       </div>
 
-      <!-- Comments Button -->
       <div class="feed-action">
         <button type="button" class="feed-btn" data-action="comments" data-video="${v.id}" aria-label="View comments"><svg class="ico"><use href="#icon-comment"/></svg></button>
         <span class="feed-label" id="feedComment_${v.id}">${commentCount}</span>
       </div>
 
-      <!-- Share Button -->
       <div class="feed-action">
         <button type="button" class="feed-btn" data-action="share" data-video="${v.id}" aria-label="Share video"><svg class="ico"><use href="#icon-share"/></svg></button>
         <span class="feed-label">Share</span>
@@ -199,58 +206,40 @@ function feedItemInner(d){
 export function renderFeed() {
   const videos = orderedFeedVideos();
   if (!videos.length) {
+    _feedVideos = [];
+    _hydrated.clear();
     return `<div class="empty">
       <div class="empty-emoji">📱</div>
-      <div class="empty-msg">No vertical videos published yet.</div>
-      <button type="button" class="btn ghost sm empty-home-btn" data-action="goHome">Browse Home</button>
+      <div class="empty-msg">You’re all caught up on Shorts! Explore full 4K scenes on the homepage.</div>
+      <button type="button" class="btn ghost sm empty-home-btn" data-action="goHome">Explore Home</button>
     </div>`;
   }
 
-  const commentCountByVideo = new Map();
+  _baseCommentCounts = new Map();
   for (const cm of DATA.comments) {
-    commentCountByVideo.set(cm.video, (commentCountByVideo.get(cm.video) || 0) + 1);
-  }
-  for (const [vidKey, live] of Object.entries(vstate.live)) {
-    if (live && live.comments && live.comments.length) {
-      const id = Number(vidKey);
-      commentCountByVideo.set(id, (commentCountByVideo.get(id) || 0) + live.comments.length);
-    }
+    _baseCommentCounts.set(cm.video, (_baseCommentCounts.get(cm.video) || 0) + 1);
   }
 
-  // Build the index-aligned render-data table used to hydrate item content on
-  // demand, and emit only lightweight full-height shells up front.
-  _feedData = videos.map((v) => {
-    const c = creatorById(v.creator) || { name: "Unknown", id: "", verified: false };
-    const live = vstate.live[v.id] || { like: 0, dislike: 0 };
-    // Filled heart after a reload: the vote is remembered locally; server
-    // counts + the authoritative vote arrive via hydrateFeedVote().
-    if (!live.myVote) live.myVote = storedVoteFor(v.id);
-    return {
-      v, c, live,
-      commentCount: commentCountByVideo.get(v.id) || 0,
-      subbed: vstate.subs.includes(v.creator),
-      hasCreator: !!c.id,
-    };
-  });
+  _feedVideos = videos;
   _hydrated.clear();
+  activeIndex = -1;
 
-  const shellsHtml = _feedData.map((d, index) =>
-    `<div class="feed-item" data-index="${index}" data-video-id="${d.v.id}"></div>`
-  ).join("");
+  let shellsHtml = "";
+  for (let i = 0; i < videos.length; i++) {
+    shellsHtml += `<div class="feed-item" data-index="${i}" data-video-id="${videos[i].id}"></div>`;
+  }
 
   return `
     <div class="feed-container" id="feedContainer">
       ${shellsHtml}
     </div>
 
-    <!-- Feed Comments Backdrop -->
     <div class="feed-comments-backdrop" id="feedCommentsBackdrop" data-action="closeComments"></div>
 
-    <!-- Feed Comments Slide-up Drawer -->
-    <div class="feed-comments-drawer" id="feedCommentsDrawer">
+    <div class="feed-comments-drawer" id="feedCommentsDrawer" role="dialog" aria-modal="true" aria-label="Comments">
       <div class="feed-comments-header">
         <span>Comments</span>
-        <button type="button" class="feed-comments-close" data-action="closeComments">✕</button>
+        <button type="button" class="feed-comments-close" data-action="closeComments" aria-label="Close comments">✕</button>
       </div>
       <div class="feed-comments-body" id="feedCommentsBody"></div>
       <div class="feed-comments-footer" id="feedCommentsFooter"></div>
@@ -258,12 +247,7 @@ export function renderFeed() {
   `;
 }
 
-/* Mark a video "watched" (for orderedFeedVideos()'s unwatched-first sort)
-   only once real playback happened — a fast scroll-past shouldn't count the
-   same as actually watching the clip. Shared by the teardown path in
-   hydrateWindow() (item scrolled far enough to be devirtualized) and the
-   IntersectionObserver's inactive branch below (item merely scrolled just
-   out of the 50% threshold) — either can be the first to notice. */
+// A fast scroll-past must not count as watched.
 function markIfWatchedEnough(videoEl, videoId){
   if(!videoEl || !Number.isFinite(videoId)) return;
   const watchedEnough = videoEl.currentTime > 3 ||
@@ -271,50 +255,89 @@ function markIfWatchedEnough(videoEl, videoId){
   if(watchedEnough) markFeedWatched(videoId);
 }
 
-/* Hydrate the shells inside [active-WINDOW, active+WINDOW] and tear down the
-   ones that fell outside it (pausing + releasing their video/poster). This is
-   the core of the virtualization: it bounds live media to ~5 items regardless
-   of how many hundred clips the feed holds. */
-function hydrateWindow(container, activeIndex){
-  const lo = Math.max(0, activeIndex - WINDOW);
-  const hi = Math.min(_feedData.length - 1, activeIndex + WINDOW);
+function shellAt(container, idx){
+  const el = container.children[idx];
+  if(el && el.dataset.index === String(idx)) return el;
+  return container.querySelector(`.feed-item[data-index="${idx}"]`);
+}
 
-  // Tear down anything now outside the window.
+function activeVideoEl(){
+  const container = _boundContainer || document.getElementById("feedContainer");
+  if(!container || activeIndex < 0) return null;
+  const shell = shellAt(container, activeIndex);
+  return shell ? shell.querySelector(".feed-video") : null;
+}
+
+function isCommentsOpen(){
+  const drawer = document.getElementById("feedCommentsDrawer");
+  return !!(drawer && drawer.classList.contains("open"));
+}
+
+function hydrateWindow(container, active){
+  const lo = Math.max(0, active - WINDOW);
+  const hi = Math.min(_feedVideos.length - 1, active + WINDOW);
+
   for(const idx of Array.from(_hydrated)){
-    if(idx < lo || idx > hi){
-      const shell = container.querySelector(`.feed-item[data-index="${idx}"]`);
-      if(shell){
-        const vid = shell.querySelector(".feed-video");
-        if(vid){
-          markIfWatchedEnough(vid, +shell.dataset.videoId);
-          try{ vid.pause(); }catch(_){}
-          vid.removeAttribute("src"); try{ vid.load(); }catch(_){}
-        }
-        shell.innerHTML = "";
-      }
-      _hydrated.delete(idx);
-    }
-  }
-
-  // Bring anything now inside the window to life.
-  for(let idx = lo; idx <= hi; idx++){
-    if(_hydrated.has(idx)) continue;
-    const shell = container.querySelector(`.feed-item[data-index="${idx}"]`);
-    const d = _feedData[idx];
-    if(!shell || !d) continue;
-    shell.innerHTML = feedItemInner(d);
-    _hydrated.add(idx);
-    const vid = shell.querySelector(".feed-video");
-    if(vid){
-      // Warm adjacent clips (not the active one — the observer plays that) so a
-      // swipe lands on an already-buffering video instead of a black frame.
-      if(idx !== activeIndex && vid.dataset.src && !isDataSaverMode()){
-        vid.src = vid.dataset.src;
+    if(idx >= lo && idx <= hi) continue;
+    const shell = shellAt(container, idx);
+    if(shell){
+      const vid = shell.querySelector(".feed-video");
+      if(vid){
+        markIfWatchedEnough(vid, +shell.dataset.videoId);
+        if(vid === activeProgressVideo) stopProgressLoop();
+        try{ vid.pause(); }catch(_){}
+        vid.removeAttribute("src");
         try{ vid.load(); }catch(_){}
       }
-      bindAutoAdvance(shell);
+      shell.innerHTML = "";
     }
+    _hydrated.delete(idx);
   }
+
+  const dataSaver = isDataSaverMode();
+  for(let idx = lo; idx <= hi; idx++){
+    const shell = shellAt(container, idx);
+    const v = _feedVideos[idx];
+    if(!shell || !v) continue;
+    if(!_hydrated.has(idx)){
+      shell.innerHTML = feedItemInner(itemView(v));
+      _hydrated.add(idx);
+      bindVideoEvents(shell);
+    }
+    if(idx === active) continue;
+    const vid = shell.querySelector(".feed-video");
+    if(!vid) continue;
+    if(!vid.paused){ try{ vid.pause(); }catch(_){} }
+    // preload="none" + load() buffers nothing, so the preload hint must be raised before assigning src.
+    if(dataSaver || Math.abs(idx - active) !== 1 || vid.getAttribute("src")) continue;
+    vid.preload = idx > active ? "auto" : "metadata";
+    vid.src = vid.dataset.src;
+    try{ vid.load(); }catch(_){}
+  }
+}
+
+function activateIndex(container, index){
+  const shell = shellAt(container, index);
+  if(!shell) return;
+  const videoId = parseInt(shell.dataset.videoId, 10);
+  const changed = index !== activeIndex;
+  activeIndex = index;
+  currentActiveVideo = videoId;
+
+  if(Number.isFinite(videoId) && vstate.page === "feed"){
+    const want = "/shorts/" + videoId;
+    if(location.pathname !== want) setHash("shorts/" + videoId, { replace: true });
+    vstate.feedFocusId = videoId;
+  }
+
+  hydrateWindow(container, index);
+  hydrateFeedVote(_feedVideos[index]);
+
+  const videoEl = shell.querySelector(".feed-video");
+  if(!videoEl) return;
+  if(changed) delete videoEl.dataset.userPaused;
+  bindVideoProgress(shell, videoEl);
+  if(!isDataSaverMode() && videoEl.dataset.userPaused !== "1") playVideo(videoEl);
 }
 
 function stopProgressLoop(){
@@ -323,248 +346,238 @@ function stopProgressLoop(){
     _progressRaf = null;
   }
   activeProgressVideo = null;
+  activeProgressBar = null;
   _lastProgressTs = 0;
 }
 
+function paintProgress(){
+  const v = activeProgressVideo;
+  if(!v || !activeProgressBar || !v.duration) return;
+  activeProgressBar.style.width = `${((v.currentTime / v.duration) * 100).toFixed(1)}%`;
+}
+
 function tickProgress(now){
-  if(!activeProgressVideo){
+  const v = activeProgressVideo;
+  if(!v || !v.isConnected){
     _progressRaf = null;
     return;
   }
-  if(!_lastProgressTs || (now - _lastProgressTs) >= PROGRESS_MIN_MS){
-    const item = activeProgressVideo.closest(".feed-item");
-    const bar = item && item.querySelector(".feed-progress-bar");
-    if(bar){
-      const dur = activeProgressVideo.duration || 1;
-      const pct = (activeProgressVideo.currentTime / dur) * 100;
-      bar.style.width = `${pct.toFixed(1)}%`;
-    }
+  if(v.paused || !_lastProgressTs || (now - _lastProgressTs) >= PROGRESS_MIN_MS){
+    paintProgress();
     _lastProgressTs = now;
   }
-  _progressRaf = requestAnimationFrame(tickProgress);
+  _progressRaf = v.paused ? null : requestAnimationFrame(tickProgress);
+}
+
+function startProgressLoop(){
+  if(!_progressRaf) _progressRaf = requestAnimationFrame(tickProgress);
 }
 
 function bindVideoProgress(item, videoEl){
   if(!videoEl || activeProgressVideo === videoEl) return;
+  if(_progressRaf){ cancelAnimationFrame(_progressRaf); _progressRaf = null; }
   activeProgressVideo = videoEl;
-  if(!_progressRaf) _progressRaf = requestAnimationFrame(tickProgress);
+  activeProgressBar = item.querySelector(".feed-progress-bar");
+  _lastProgressTs = 0;
+  startProgressLoop();
 }
+
+function bindVideoEvents(shell){
+  const videoEl = shell.querySelector(".feed-video");
+  if(!videoEl || videoEl.dataset.eventsBound) return;
+  videoEl.dataset.eventsBound = "1";
+
+  videoEl.addEventListener("play", () => {
+    if(videoEl === activeProgressVideo) startProgressLoop();
+  });
+  videoEl.addEventListener("seeked", () => {
+    if(videoEl === activeProgressVideo) paintProgress();
+  });
+
+  // Auto-advance (no `loop` attribute). Direct scrollTop, not smooth scrollIntoView: smooth scroll fights mandatory snap.
+  videoEl.addEventListener("ended", () => {
+    const container = shell.closest(".feed-container");
+    if(!container) return;
+    const index = parseInt(shell.dataset.index, 10);
+    markFeedWatched(parseInt(shell.dataset.videoId, 10));
+    const nextIdx = index + 1 < _feedVideos.length ? index + 1 : 0;
+    if(nextIdx === index || isCommentsOpen()){
+      videoEl.currentTime = 0;
+      playVideo(videoEl);
+      return;
+    }
+    const next = shellAt(container, nextIdx);
+    if(next) container.scrollTop = next.offsetTop;
+  });
+}
+
+const FEED_ACTIONS = {
+  toggleMute: () => toggleFeedMute(),
+  openCreator: (el) => { if(el.dataset.creator) openCreator(el.dataset.creator); },
+  subscribe: (el) => { if(el.dataset.creator) subscribe(el.dataset.creator); },
+  like: (el, id) => { if(Number.isFinite(id)) likeVideo(id); },
+  comments: (el, id) => { if(Number.isFinite(id)) openFeedComments(id); },
+  share: (el, id) => { if(Number.isFinite(id)) shareVideo(id); },
+  closeComments: () => closeFeedComments(),
+  postComment: (el, id) => { if(Number.isFinite(id)) submitFeedComment(id); },
+  goHome: () => go("home"),
+};
 
 function onFeedActionClick(e){
   const el = e.target.closest("[data-action]");
-  if(!el) return;
-  const action = el.dataset.action;
-  if(!action) return;
+  if(!el || !el.closest("#feedContainer, #feedCommentsDrawer, #feedCommentsBackdrop")) return;
+  const handler = FEED_ACTIONS[el.dataset.action];
+  if(!handler) return;
   e.stopPropagation();
-  const videoId = Number(el.dataset.video);
-  const creator = el.dataset.creator;
-  switch(action){
-    case "toggleMute":
+  handler(el, Number(el.dataset.video));
+}
+
+function onVisibilityChange(){
+  const v = activeVideoEl();
+  if(!v) return;
+  if(document.hidden){
+    _resumeOnVisible = !v.paused;
+    v.pause();
+  } else if(_resumeOnVisible){
+    _resumeOnVisible = false;
+    if(v.dataset.userPaused !== "1") playVideo(v);
+  }
+}
+
+function scrollToIndex(idx){
+  const container = _boundContainer;
+  if(!container || idx < 0 || idx >= _feedVideos.length) return;
+  const shell = shellAt(container, idx);
+  if(shell) container.scrollTop = shell.offsetTop;
+}
+
+function onFeedKeydown(e){
+  if(e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+  if(e.key === "Escape"){
+    if(isCommentsOpen()){ e.preventDefault(); closeFeedComments(); }
+    return;
+  }
+  const t = e.target;
+  if(t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+  if(isCommentsOpen() || activeIndex < 0) return;
+  switch(e.key){
+    case "ArrowDown":
+      e.preventDefault();
+      scrollToIndex(activeIndex + 1);
+      break;
+    case "ArrowUp":
+      e.preventDefault();
+      scrollToIndex(activeIndex - 1);
+      break;
+    case " ":
+      if(t && t.tagName === "BUTTON") return;
+      e.preventDefault();
+      togglePlayback(shellAt(_boundContainer, activeIndex));
+      break;
+    case "m":
+    case "M":
       toggleFeedMute();
-      break;
-    case "openCreator":
-      if(creator) openCreator(creator);
-      break;
-    case "subscribe":
-      if(creator) subscribe(creator);
-      break;
-    case "like":
-      if(Number.isFinite(videoId)) likeVideo(videoId);
-      break;
-    case "comments":
-      if(Number.isFinite(videoId)) openFeedComments(videoId);
-      break;
-    case "share":
-      if(Number.isFinite(videoId)) shareVideo(videoId);
-      break;
-    case "closeComments":
-      closeFeedComments();
-      break;
-    case "postComment":
-      if(Number.isFinite(videoId)) submitFeedComment(videoId);
-      break;
-    case "goHome":
-      go("home");
       break;
   }
 }
 
-/** Tear down observer, listeners, timers when leaving Shorts. */
 export function detachFeedObserver(){
   if(feedObserver){
     feedObserver.disconnect();
     feedObserver = null;
   }
   stopProgressLoop();
-  const container = document.getElementById("feedContainer");
-  const root = container && container.parentElement;
-  if(container){
-    container.removeEventListener("pointerup", onFeedPointerUp);
-  }
-  if(root){
-    root.removeEventListener("click", onFeedActionClick);
-  }
+  if(_boundContainer) _boundContainer.removeEventListener("pointerup", onFeedPointerUp);
+  if(_boundRoot) _boundRoot.removeEventListener("click", onFeedActionClick);
+  _boundContainer = null;
+  _boundRoot = null;
+  document.removeEventListener("visibilitychange", onVisibilityChange);
+  document.removeEventListener("keydown", onFeedKeydown);
   clearTimeout(_singleTapTimer);
+  clearTimeout(_tapSoundTimer);
   _singleTapTimer = null;
+  _tapSoundTimer = null;
   _lastTapItem = null;
   _lastTapTime = 0;
+  _resumeOnVisible = false;
   currentActiveVideo = null;
+  activeIndex = -1;
 }
 
-/* IntersectionObserver to handle autoplay, hydration/virtualization window,
-   and pausing offscreen videos */
 export function attachFeedObserver() {
   const container = document.getElementById("feedContainer");
   if (!container) return;
 
   detachFeedObserver();
 
-  const items = Array.from(container.querySelectorAll(".feed-item"));
   const root = container.parentElement;
+  _boundContainer = container;
+  _boundRoot = root;
 
   feedObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      const el = entry.target;
-      const index = parseInt(el.dataset.index, 10);
-      const videoId = parseInt(el.dataset.videoId, 10);
-
+    let best = null;
+    for (const entry of entries) {
       if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-        currentActiveVideo = videoId;
-        // Keep the URL pointed at the active reel so "Copy link" / native share
-        // of the address bar matches the clip on screen (IG Reel behaviour).
-        // replace:true — swipe-through must not flood the Back stack.
-        if(Number.isFinite(videoId) && vstate.page === "feed"){
-          const want = "/shorts/" + videoId;
-          if(location.pathname !== want) setHash("shorts/" + videoId, { replace: true });
-          vstate.feedFocusId = videoId;
-        }
-        // Hydrate this item + neighbours and devirtualize anything that
-        // scrolled out of the window; this also injects the active item's
-        // <video> if it wasn't already hydrated.
-        hydrateWindow(container, index);
-        hydrateFeedVote(DATA.videos.find(x => x.id === videoId));
-
-        const dataSaver = isDataSaverMode();
-        const videoEl = el.querySelector(".feed-video");
-        if (videoEl && !dataSaver) {
-          if (!videoEl.src) videoEl.src = videoEl.dataset.src;
-          videoEl.muted = feedMuted;
-          bindVideoProgress(el, videoEl);
-
-          const p = videoEl.play();
-          if(p && p.catch) {
-            p.catch(() => {
-              videoEl.muted = true;
-              videoEl.play().catch(() => {});
-            });
-          }
-        }
+        if (!best || entry.intersectionRatio > best.intersectionRatio) best = entry;
       } else {
-        const videoEl = el.querySelector(".feed-video");
+        const videoEl = entry.target.querySelector(".feed-video");
         if (videoEl) {
-          markIfWatchedEnough(videoEl, videoId);
+          markIfWatchedEnough(videoEl, parseInt(entry.target.dataset.videoId, 10));
           videoEl.pause();
         }
       }
-    });
+    }
+    if (best) activateIndex(container, parseInt(best.target.dataset.index, 10));
   }, {
     threshold: 0.5,
     root: container
   });
 
-  items.forEach(item => feedObserver.observe(item));
-  attachFeedGestures(container);
-  if(root) root.addEventListener("click", onFeedActionClick);
-  if (!tapSoundSeen) setTimeout(markTapSoundSeen, 4000);
+  for (const item of container.children) feedObserver.observe(item);
+  container.addEventListener("pointerup", onFeedPointerUp);
+  if (root) root.addEventListener("click", onFeedActionClick);
+  document.addEventListener("visibilitychange", onVisibilityChange);
+  document.addEventListener("keydown", onFeedKeydown);
+  if (!tapSoundSeen) _tapSoundTimer = setTimeout(markTapSoundSeen, 4000);
 
-  // Deep link: jump to the pinned/shared clip before first paint settles.
-  // takePendingFeedFocus is set by applyHash for #shorts/N; fall back to
-  // vstate.feedFocusId when the pending token was already consumed.
   const focusId = takePendingFeedFocus() ?? vstate.feedFocusId;
+  const hasFocus = focusId != null && Number.isFinite(+focusId);
   let startIndex = 0;
-  if(focusId != null && Number.isFinite(+focusId)){
+  if (hasFocus) {
     const pinned = container.querySelector(`.feed-item[data-video-id="${+focusId}"]`);
-    if(pinned){
+    if (pinned) {
       startIndex = parseInt(pinned.dataset.index, 10) || 0;
-      // Instant jump (no smooth scroll) — snap container + deep link must land
-      // on the exact reel without animating past other clips first.
       container.scrollTop = pinned.offsetTop;
     }
   }
 
-  // Paint the focused screen's content immediately rather than waiting for the
-  // observer's first async callback.
-  hydrateWindow(container, startIndex);
-  // Kick playback on the focused item if it was hydrated above.
-  const startItem = container.querySelector(`.feed-item[data-index="${startIndex}"]`);
-  const startVid = startItem && startItem.querySelector(".feed-video");
-  if(startVid && !isDataSaverMode()){
-    if(!startVid.src && startVid.dataset.src) startVid.src = startVid.dataset.src;
-    startVid.muted = feedMuted;
-    bindVideoProgress(startItem, startVid);
-    const playP = startVid.play();
-    if(playP && playP.catch){
-      playP.catch(() => {
-        startVid.muted = true;
-        startVid.play().catch(() => {});
-      });
+  activateIndex(container, startIndex);
+
+  if (hasFocus) {
+    const startVideo = _feedVideos[startIndex];
+    if (startVideo && location.pathname !== "/shorts/" + startVideo.id) {
+      setHash("shorts/" + startVideo.id, { replace: true });
     }
   }
-  if(focusId != null && Number.isFinite(+focusId)){
-    setHash("shorts/" + (+focusId), { replace: true });
-  }
 }
 
-/* Auto-advance: when a clip finishes, scroll to the next item in the feed
-   (wrapping to the first after the last) instead of looping in place —
-   .feed-video no longer has the `loop` attribute, so "ended" actually fires.
-   Bound per-item at hydrate time; the target shell always exists (shells are
-   never virtualized away, only their inner content is). */
-function bindAutoAdvance(item){
-  const videoEl = item.querySelector(".feed-video");
-  if(!videoEl || videoEl.dataset.autoAdvanceBound) return;
-  videoEl.dataset.autoAdvanceBound = "1";
-  videoEl.addEventListener("ended", () => {
-    const index = parseInt(item.dataset.index, 10);
-    const container = item.closest(".feed-container");
-    if(!container) return;
-    const nextIdx = (index + 1 < _feedData.length) ? index + 1 : 0;
-    const next = container.querySelector(`.feed-item[data-index="${nextIdx}"]`);
-    if(!next) return;
-    // Set scrollTop directly rather than next.scrollIntoView({behavior:"smooth"}):
-    // .feed-container has scroll-snap-type:y mandatory, and a smooth
-    // programmatic scroll fights the browser's own snap-scroll — it was
-    // observed getting stuck a few px into the animation and never
-    // completing. offsetTop respects snap points without that conflict.
-    container.scrollTop = next.offsetTop;
-  });
-}
-
-/* Double-tap-to-like & Tap-to-Pause Gestures */
 const DOUBLE_TAP_MS = 300;
 let _lastTapTime = 0;
 let _lastTapItem = null;
 let _singleTapTimer = null;
 
-function attachFeedGestures(container){
-  container.removeEventListener("pointerup", onFeedPointerUp);
-  container.addEventListener("pointerup", onFeedPointerUp);
-}
-
 function spawnHeartBurst(item, x, y){
   const rect = item.getBoundingClientRect();
   const relX = x - rect.left;
   const relY = y - rect.top;
-
-  // Multi-particle heart explosion
   const offsets = [
     { dx: 0, dy: 0, delay: 0 },
     { dx: -18, dy: -12, delay: 40 },
     { dx: 18, dy: -24, delay: 80 }
   ];
-
   offsets.forEach(({ dx, dy, delay }) => {
     setTimeout(() => {
+      if(!item.isConnected) return;
       const heart = document.createElement("div");
       heart.className = "feed-heart-burst";
       heart.textContent = "❤️";
@@ -581,13 +594,34 @@ function showPlaybackBadge(item, text){
   if(!badge) return;
   badge.textContent = text;
   badge.classList.remove("show");
-  void badge.offsetWidth; // trigger reflow
+  void badge.offsetWidth;
   badge.classList.add("show");
   setTimeout(() => badge.classList.remove("show"), 650);
 }
 
+function togglePlayback(item){
+  const videoEl = item && item.querySelector(".feed-video");
+  if(!videoEl) return;
+  if(videoEl.paused){
+    delete videoEl.dataset.userPaused;
+    const p = playVideo(videoEl);
+    if(p && p.then) p.then(() => showPlaybackBadge(item, "▶"), () => {});
+    else showPlaybackBadge(item, "▶");
+  } else {
+    videoEl.dataset.userPaused = "1";
+    videoEl.pause();
+    showPlaybackBadge(item, "⏸");
+  }
+}
+
+function isLiked(videoId){
+  const L = vstate.live[videoId];
+  return ((L && L.myVote) || storedVoteFor(videoId)) === "like";
+}
+
 function onFeedPointerUp(e){
-  if (e.target.closest(".feed-sidebar, .feed-creator-row, .feed-category, .feed-comments-drawer")) return;
+  if (e.pointerType === "mouse" && e.button !== 0) return;
+  if (e.target.closest("[data-action], .feed-sidebar, .feed-creator-row, .feed-category, .feed-comments-drawer")) return;
   const item = e.target.closest(".feed-item");
   if (!item) return;
 
@@ -596,11 +630,13 @@ function onFeedPointerUp(e){
 
   if (isDoubleTap) {
     clearTimeout(_singleTapTimer);
+    _singleTapTimer = null;
     _lastTapTime = 0;
     _lastTapItem = null;
     const videoId = parseInt(item.dataset.videoId, 10);
     if (Number.isFinite(videoId)) {
-      likeVideo(videoId);
+      // Double-tap only ever likes (never un-likes), matching IG/TikTok.
+      if (!isLiked(videoId)) likeVideo(videoId);
       spawnHeartBurst(item, e.clientX, e.clientY);
       if (navigator.vibrate) navigator.vibrate(20);
     }
@@ -609,16 +645,24 @@ function onFeedPointerUp(e){
     _lastTapItem = item;
     clearTimeout(_singleTapTimer);
     _singleTapTimer = setTimeout(() => {
-      const videoEl = item.querySelector(".feed-video");
-      if(!videoEl) return;
-      if(videoEl.paused){
-        videoEl.play().then(() => showPlaybackBadge(item, "▶")).catch(()=>{});
-      } else {
-        videoEl.pause();
-        showPlaybackBadge(item, "⏸");
-      }
+      _singleTapTimer = null;
+      togglePlayback(item);
     }, DOUBLE_TAP_MS);
   }
+}
+
+function findVideo(videoId){
+  return _feedVideos.find((x) => x.id === videoId) || DATA.videos.find((x) => x.id === videoId);
+}
+
+function refreshFeedComments(v){
+  const drawer = document.getElementById("feedCommentsDrawer");
+  const body = document.getElementById("feedCommentsBody");
+  if (body && drawer && drawer.classList.contains("open") && drawer.dataset.videoId === String(v.id)) {
+    body.innerHTML = renderCommentList(v);
+  }
+  const label = document.getElementById(`feedComment_${v.id}`);
+  if (label) label.textContent = String(commentsFor(v).length);
 }
 
 function openFeedComments(videoId) {
@@ -629,18 +673,19 @@ function openFeedComments(videoId) {
   const footer = document.getElementById("feedCommentsFooter");
   if (!drawer || !body || !footer) return;
 
-  const v = DATA.videos.find(x => x.id === videoId);
+  const v = findVideo(videoId);
   if (!v) return;
 
+  drawer.dataset.videoId = String(v.id);
   body.innerHTML = renderCommentList(v);
   footer.innerHTML = `
-    <input class="fld" id="feedCbox" placeholder="Add a comment…" autocomplete="off"/>
+    <input class="fld" id="feedCbox" placeholder="Add a comment…" autocomplete="off" enterkeyhint="send" aria-label="Add a comment"/>
     <button type="button" class="btn" data-action="postComment" data-video="${v.id}">Post</button>
   `;
   const cbox = footer.querySelector("#feedCbox");
-  if(cbox){
+  if (cbox) {
     cbox.addEventListener("keydown", (ev) => {
-      if(ev.key === "Enter"){
+      if (ev.key === "Enter" && !ev.isComposing) {
         ev.preventDefault();
         submitFeedComment(v.id);
       }
@@ -648,26 +693,27 @@ function openFeedComments(videoId) {
   }
 
   drawer.classList.add("open");
-  drawer.dataset.videoId = String(v.id);
   if (backdrop) backdrop.classList.add("show");
   hydrateFeedComments(v).catch(() => {});
-  requestAnimationFrame(() => {
-    const input = document.getElementById("feedCbox");
-    if (input) try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-  });
+  // Auto-focus only with a fine pointer: on touch it pops the keyboard over the list.
+  if (cbox && window.matchMedia && window.matchMedia("(pointer: fine)").matches) {
+    requestAnimationFrame(() => {
+      try { cbox.focus({ preventScroll: true }); } catch (_) { cbox.focus(); }
+    });
+  }
 }
 
 function closeFeedComments() {
   const drawer = document.getElementById("feedCommentsDrawer");
   const backdrop = document.getElementById("feedCommentsBackdrop");
-  if (drawer) drawer.classList.remove("open");
+  if (drawer) {
+    drawer.classList.remove("open");
+    const active = document.activeElement;
+    if (active && drawer.contains(active)) active.blur();
+  }
   if (backdrop) backdrop.classList.remove("show");
 }
 
-/* Shorts never fetched saved likes: after a reload the heart was empty and the
-   count showed only the catalog seed even though the like was stored (the watch
-   page hydrates via hydrateWatch(); the feed had no equivalent). Runs once per
-   video when it becomes the active reel. */
 const _voteHydrated = new Set();
 async function hydrateFeedVote(v) {
   if (!v || !ShAPI || !ShAPI.enabled || _voteHydrated.has(v.id)) return;
@@ -676,7 +722,6 @@ async function hydrateFeedVote(v) {
   const before = L.myVote || null;
   try {
     const [counts, mine] = await Promise.all([ShAPI.likeCounts(v.id), ShAPI.myVote(v.id)]);
-    // The viewer voted while this was in flight: their optimistic state wins.
     if ((L.myVote || null) !== before) return;
     L.like = counts.like || 0;
     L.dislike = counts.dislike || 0;
@@ -693,25 +738,25 @@ async function hydrateFeedComments(v) {
   try {
     const rows = await ShAPI.listComments(v.id);
     if (!rows || !rows.length) return;
+    const known = new Set();
+    for (const m of DATA.comments) known.add(m.id);
+    let added = false;
     for (const c of rows) {
       const key = "db" + c.id;
-      if (!DATA.comments.some((m) => m.id === key)) {
-        DATA.comments.push({
-          id: key,
-          video: v.id,
-          user: c.author,
-          text: c.body,
-          time: "",
-          ts: Date.parse(c.created_at) || 0,
-        });
-      }
+      if (known.has(key)) continue;
+      known.add(key);
+      added = true;
+      // TODO(invariant): DATA mutation — move to a vstate.live overlay once comments.js/commentsFor() reads one.
+      DATA.comments.push({
+        id: key,
+        video: v.id,
+        user: c.author,
+        text: c.body,
+        time: "",
+        ts: Date.parse(c.created_at) || 0,
+      });
     }
-    const body = document.getElementById("feedCommentsBody");
-    if (body && document.getElementById("feedCommentsDrawer")?.classList.contains("open")) {
-      body.innerHTML = renderCommentList(v);
-    }
-    const commentLabel = document.getElementById(`feedComment_${v.id}`);
-    if (commentLabel) commentLabel.textContent = String(commentsFor(v).length);
+    if (added) refreshFeedComments(v);
   } catch (_) { /* offline / API down */ }
 }
 
@@ -721,11 +766,21 @@ function submitFeedComment(videoId) {
   if (!box) return;
   const bodyVal = (box.value || "").trim();
   if (!bodyVal) return;
+  let result;
   try {
-    addComment(videoId, bodyVal);
+    result = addComment(videoId, bodyVal);
   } catch (e) {
     console.error("Failed to post comment", e);
+    return;
   }
+  box.value = "";
+  Promise.resolve(result).then(
+    () => { const v = findVideo(videoId); if (v) refreshFeedComments(v); },
+    (e) => {
+      console.error("Failed to post comment", e);
+      if (box.isConnected && !box.value) box.value = bodyVal;
+    }
+  );
 }
 
 if (typeof window !== "undefined") {
