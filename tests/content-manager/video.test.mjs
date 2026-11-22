@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { parseVideoId } from "./video.mjs";
+import { parseVideoId } from "../../tools/content-manager/lib/video.mjs";
 
 test("parseVideoId accepts hash and query forms", () => {
   assert.equal(parseVideoId("https://www.thebestpornai.com/#video/4301"), 4301);

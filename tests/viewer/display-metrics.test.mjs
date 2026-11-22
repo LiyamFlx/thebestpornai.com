@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { vstate } from "./state.js";
-import { displayViews, displayLikes } from "./display-metrics.js";
+import { vstate } from "../../src/viewer/state.js";
+import { displayViews, displayLikes } from "../../src/viewer/display-metrics.js";
 
 test("displayViews returns seed views when live state is absent", () => {
   delete vstate.live[99991];

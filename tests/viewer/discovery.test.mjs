@@ -1,9 +1,9 @@
 import "dotenv/config";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { DATA } from "../shared/catalog.js";
-import { byCategoryFilter, relatedTo } from "./catalog-queries.js";
-import { ALL_TAGS, CATEGORIES, isPopularTag } from "../shared/taxonomy.js";
+import { DATA } from "../../src/shared/catalog.js";
+import { byCategoryFilter, relatedTo } from "../../src/viewer/catalog-queries.js";
+import { ALL_TAGS, CATEGORIES, isPopularTag } from "../../src/shared/taxonomy.js";
 
 test("taxonomy - categories and tags are non-empty and de-duplicated", () => {
   assert.ok(CATEGORIES.length > 20);
@@ -43,7 +43,7 @@ test("relatedTo - ranks by shared tag/category overlap, excludes self", () => {
 });
 
 test("parseDurationSec & sortedVideos - handles all sort modes including duration and trending", async () => {
-  const { parseDurationSec, sortedVideos } = await import("./catalog-queries.js");
+  const { parseDurationSec, sortedVideos } = await import("../../src/viewer/catalog-queries.js");
   
   assert.equal(parseDurationSec("0:08"), 8);
   assert.equal(parseDurationSec("12:34"), 754);

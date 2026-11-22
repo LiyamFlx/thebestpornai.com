@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { applyVote } from "./vote-logic.js";
+import { applyVote } from "../../src/shared/vote-logic.js";
 
 test("first like increments and records myVote", () => {
   const { live, action } = applyVote({ like: 4, dislike: 1 }, "like");

@@ -1,7 +1,7 @@
 import "dotenv/config";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { DATA } from "../shared/catalog.js";
+import { DATA } from "../../src/shared/catalog.js";
 import {
   pubVideos,
   pubVerticalVideos,
@@ -19,7 +19,7 @@ import {
   newestUploads,
   videoById,
   bumpCatalogGeneration,
-} from "./catalog-queries.js";
+} from "../../src/viewer/catalog-queries.js";
 
 // Fixtures use the real production status vocabulary — api/save-upload.js
 // writes "published" or "pending" (never "public"), and visible() is a

@@ -8,7 +8,7 @@ import {
   hashToPath,
   categoryPagePath,
   browsePath,
-} from "./public-routes.js";
+} from "../../src/shared/public-routes.js";
 
 test("watchPath / shortsPath reject NaN and non-positive ids", () => {
   assert.equal(watchPath(12), "/watch/12");

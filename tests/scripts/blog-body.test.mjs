@@ -5,7 +5,7 @@ import {
   stripLeadingHeroDup,
   toInlineFigures,
   absoluteUrl,
-} from "./blog-body.mjs";
+} from "../../scripts/lib/blog-body.mjs";
 
 const DUP = `
       <div class="blog-feature-media">

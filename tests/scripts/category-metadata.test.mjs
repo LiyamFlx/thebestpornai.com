@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { TOP_CATEGORIES } from "./category-metadata.mjs";
+import { TOP_CATEGORIES } from "../../scripts/lib/category-metadata.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(__dirname, "../..");

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { toDbVideoId } from "./streamhub-api.js";
+import { toDbVideoId } from "../../src/shared/streamhub-api.js";
 
 test("toDbVideoId - preserves standard catalog IDs <= 2147483647", () => {
   assert.equal(toDbVideoId(1), 1);
@@ -29,7 +29,7 @@ test("toDbVideoId - safely handles invalid or zero IDs", () => {
 });
 
 test("batchViewCounts - safely handles invalid inputs without network calls", async () => {
-  const { ShAPI } = await import("./streamhub-api.js");
+  const { ShAPI } = await import("../../src/shared/streamhub-api.js");
   assert.deepEqual(await ShAPI.batchViewCounts([]), {});
   assert.deepEqual(await ShAPI.batchViewCounts(null), {});
   assert.deepEqual(await ShAPI.batchViewCounts([0, -5, NaN, "abc"]), {});

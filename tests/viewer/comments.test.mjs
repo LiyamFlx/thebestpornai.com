@@ -2,9 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 // Isolate DATA + vstate the way comments.js reads them.
-import { DATA } from "../shared/catalog.js";
-import { vstate } from "./state.js";
-import { commentsFor } from "./comments.js";
+import { DATA } from "../../src/shared/catalog.js";
+import { vstate } from "../../src/viewer/state.js";
+import { commentsFor } from "../../src/viewer/comments.js";
 
 test("commentsFor hides overlay rows that already landed in DATA.comments", () => {
   const vid = 900001;

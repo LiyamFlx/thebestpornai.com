@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { parseStructure } from "./parse-structure.js";
+import { parseStructure } from "../../scripts/lib/parse-structure.js";
 
 // Guards a real bug: this function used to set level="scene" as soon as it
 // saw a Scene-N segment and never revisit it, so a genuine clip filename

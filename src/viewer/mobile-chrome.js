@@ -1,37 +1,115 @@
-/* Mobile chrome interactions — tap-to-expand search, and the watch-page
-   action overflow menu.
-
-   Every behavior here is gated to the mobile breakpoint (max-width:760px) so
-   desktop is never touched. The new controls introduced by this pass are wired
-   through a single document-level `data-mobile-action` delegation layer (no
-   inline onclick). The rest of the app predates that and still uses the
-   window-bridge + inline handlers established elsewhere; we leave those as-is. */
+/* App chrome interactions via one document-level `data-mobile-action` delegation layer (no inline handlers):
+   mobile drawer, tap-to-expand search, watch-page action overflow, and the account menu (desktop sidebar too).
+   Breakpoint-specific behaviour is gated on MOBILE; menus and the drawer's a11y wiring apply everywhere. */
 
 const MOBILE = "(max-width:760px)";
-const isMobile = () => !!(window.matchMedia && window.matchMedia(MOBILE).matches);
+let mq = null;
+const isMobile = () => (mq ? mq.matches : !!(window.matchMedia && window.matchMedia(MOBILE).matches));
 
-/* The header is icon-only-search at all scroll positions on mobile now (see
-   .search-input{display:none} in style.css), so there's no longer a
-   collapse/expand state to track on scroll — only the desktop->mobile
-   breakpoint transition needs to reset a lingering open search field. */
-function applyHeaderState(){
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const MENUS = [
+  { sel: ".act-overflow", toggle: "toggle-actions-menu" },
+  { sel: ".account-menu", toggle: "toggle-account-menu" },
+];
+const OPEN_MENU_SEL = MENUS.map((m) => m.sel + ".open").join(", ");
+
+function focusEl(el){
+  if(!el) return;
+  try { el.focus({ preventScroll: true }); } catch(_) { el.focus(); }
+}
+
+function focusables(root){
+  if(!root) return [];
+  return [...root.querySelectorAll(FOCUSABLE)].filter((el) => el.getClientRects().length > 0);
+}
+
+/* ---- Search ---- */
+function setSearch(open, { restoreFocus = false } = {}){
   const topbar = document.querySelector(".topbar");
   if(!topbar) return;
-  if(!isMobile()){
-    topbar.classList.remove("mchrome-search-open");
+  topbar.classList.toggle("mchrome-search-open", open);
+  const toggle = topbar.querySelector('[data-mobile-action="toggle-search"]');
+  if(toggle) toggle.setAttribute("aria-expanded", String(open));
+  const input = document.getElementById("searchInput");
+  if(open){
+    focusEl(input);
+  } else {
+    if(input && document.activeElement === input) input.blur();
+    if(restoreFocus) focusEl(toggle);
   }
 }
 
-/* ---- Fix 2: trailing-edge fade for horizontal chip rows ----
-   scroll events don't bubble, but a capturing listener on the document still
-   receives them, so this one listener covers every chip row across re-renders
-   without needing to re-bind after each render(). */
+function isSearchOpen(){
+  return !!document.querySelector(".topbar.mchrome-search-open");
+}
+
+/* ---- Menus ---- */
+function menuSpec(wrap){
+  return MENUS.find((m) => wrap.matches(m.sel));
+}
+
+function menuTrigger(wrap){
+  const spec = menuSpec(wrap);
+  return spec ? wrap.querySelector(`[data-mobile-action="${spec.toggle}"]`) : null;
+}
+
+function menuItems(wrap){
+  const panel = wrap.querySelector('[role="menu"]') || wrap;
+  return focusables(panel).filter((el) => !el.matches('[data-mobile-action^="toggle-"]'));
+}
+
+function setMenu(wrap, open, { focusFirst = false, restoreFocus = false } = {}){
+  wrap.classList.toggle("open", open);
+  const trigger = menuTrigger(wrap);
+  if(trigger) trigger.setAttribute("aria-expanded", String(open));
+  if(open && focusFirst) focusEl(menuItems(wrap)[0]);
+  if(!open && restoreFocus) focusEl(trigger);
+}
+
+function openMenus(){
+  return [...document.querySelectorAll(OPEN_MENU_SEL)];
+}
+
+function closeOpenMenus(except = null, opts = {}){
+  for(const wrap of openMenus()) if(wrap !== except) setMenu(wrap, false, opts);
+}
+
+/* ---- Drawer ---- */
+function isDrawerOpen(){
+  const drawer = document.getElementById("mobileDrawer");
+  return !!(drawer && drawer.classList.contains("open"));
+}
+
+function setDrawer(open, { restoreFocus = false } = {}){
+  const drawer = document.getElementById("mobileDrawer");
+  const backdrop = document.getElementById("drawerBackdrop");
+  const toggle = document.querySelector('[data-mobile-action="toggle-drawer"]');
+  if(drawer){
+    if(!open && drawer.contains(document.activeElement)) document.activeElement.blur();
+    drawer.classList.toggle("open", open);
+    drawer.setAttribute("aria-hidden", String(!open));
+    // inert keeps the off-canvas drawer out of the Tab order / AT tree while closed.
+    drawer.toggleAttribute("inert", !open);
+  }
+  if(backdrop) backdrop.classList.toggle("show", open);
+  document.body.classList.toggle("drawer-open", open);
+  if(toggle) toggle.setAttribute("aria-expanded", String(open));
+  if(open){
+    closeOpenMenus();
+    if(isSearchOpen()) setSearch(false);
+    focusEl((drawer && drawer.querySelector('[data-mobile-action="close-drawer"]')) || focusables(drawer)[0]);
+  } else if(restoreFocus){
+    focusEl(toggle);
+  }
+}
+
+/* ---- Chip-row trailing fade ---- */
 function updateRowFade(row){
   const max = row.scrollWidth - row.clientWidth;
   row.classList.toggle("at-end", max <= 2 || row.scrollLeft >= max - 2);
 }
 
-// rAF-batched so a fling-scroll doesn't force a layout read on every event.
+// Capturing listener sees non-bubbling scroll from every row across re-renders; rAF-batched layout reads.
 let scrollRaf = null;
 const pendingRows = new Set();
 function onScrollCapture(e){
@@ -46,14 +124,11 @@ function onScrollCapture(e){
   });
 }
 
-/* Recompute the fade state for every chip row (called after each render and on
-   resize, since scrollWidth/clientWidth are only known once laid out). */
+/* Synchronous so the fade is correct right after render(). */
 export function refreshChipRows(){
   document.querySelectorAll(".mchrome-scroll").forEach(updateRowFade);
 }
 
-// rAF-debounced resize path only — direct refreshChipRows() calls (e.g. after
-// render()) stay synchronous so the fade state is correct immediately.
 let resizeRaf = null;
 function onResize(){
   if(resizeRaf) return;
@@ -64,136 +139,122 @@ function onResize(){
 }
 
 function onMediaChange(){
-  applyHeaderState();
+  if(!isMobile()){
+    if(isSearchOpen()) setSearch(false);
+    if(isDrawerOpen()) setDrawer(false);
+    document.querySelectorAll(".act-overflow.open").forEach((w) => setMenu(w, false));
+  }
   refreshChipRows();
 }
 
-/* ---- Delegated clicks for the new mobile controls ---- */
-function closeOpenMenus(except){
-  document.querySelectorAll(".act-overflow.open").forEach(o => {
-    if(!except || !o.contains(except)){
-      o.classList.remove("open");
-      const t = o.querySelector('[data-mobile-action="toggle-actions-menu"]');
-      if(t) t.setAttribute("aria-expanded", "false");
-    }
-  });
-  document.querySelectorAll(".account-menu.open").forEach(o => {
-    if(!except || !o.contains(except)){
-      o.classList.remove("open");
-      const t = o.querySelector('[data-mobile-action="toggle-account-menu"]');
-      if(t) t.setAttribute("aria-expanded", "false");
-    }
-  });
-}
-
-function closeDrawer(){
-  const drawer = document.getElementById("mobileDrawer");
-  const backdrop = document.getElementById("drawerBackdrop");
-  if(drawer){
-    drawer.classList.remove("open");
-    drawer.setAttribute("aria-hidden", "true");
-  }
-  if(backdrop) backdrop.classList.remove("show");
-  document.body.classList.remove("drawer-open");
-  const toggleBtn = document.querySelector('[data-mobile-action="toggle-drawer"]');
-  if(toggleBtn) toggleBtn.setAttribute("aria-expanded", "false");
-}
-
+/* ---- Delegated events ---- */
 function onClick(e){
   const trigger = e.target.closest("[data-mobile-action]");
-  // Any click that isn't a menu's own trigger closes open menus.
-  if(!trigger || (trigger.dataset.mobileAction !== "toggle-actions-menu" && trigger.dataset.mobileAction !== "toggle-account-menu")){
-    closeOpenMenus(trigger);
-  }
-  if(!trigger) return;
+  const action = trigger ? trigger.dataset.mobileAction : null;
+  const spec = MENUS.find((m) => m.toggle === action);
+  const toggledWrap = spec ? trigger.closest(spec.sel) : null;
 
-  const action = trigger.dataset.mobileAction;
-  if(action === "toggle-drawer"){
-    const drawer = document.getElementById("mobileDrawer");
-    const backdrop = document.getElementById("drawerBackdrop");
-    const open = drawer ? drawer.classList.toggle("open") : false;
-    if(backdrop) backdrop.classList.toggle("show", open);
-    document.body.classList.toggle("drawer-open", open);
-    if(drawer) drawer.setAttribute("aria-hidden", open ? "false" : "true");
-    trigger.setAttribute("aria-expanded", open ? "true" : "false");
-    if(open){
-      const closeBtn = drawer ? drawer.querySelector('[data-mobile-action="close-drawer"]') : null;
-      if(closeBtn) closeBtn.focus();
-    }
-  } else if(action === "close-drawer"){
-    closeDrawer();
-    const toggleBtn = document.querySelector('[data-mobile-action="toggle-drawer"]');
-    if(toggleBtn) toggleBtn.focus();
-  } else if(action === "toggle-search"){
-    const topbar = trigger.closest(".topbar");
-    if(!topbar) return;
-    const open = topbar.classList.toggle("mchrome-search-open");
-    trigger.setAttribute("aria-expanded", open ? "true" : "false");
-    const input = document.getElementById("searchInput");
-    if(input){ if(open) input.focus(); else input.blur(); }
-  } else if(action === "toggle-actions-menu"){
+  // Outside clicks and item choices close menus; a click on a menu's own non-interactive padding keeps it open.
+  const insideOpen = e.target.closest(OPEN_MENU_SEL);
+  const onInteractive = !!e.target.closest('button, a, input, select, textarea, [role="menuitem"]');
+  closeOpenMenus(toggledWrap || (insideOpen && !onInteractive ? insideOpen : null));
+
+  if(toggledWrap){
     e.preventDefault();
-    const wrap = trigger.closest(".act-overflow");
-    if(!wrap) return;
-    const open = wrap.classList.toggle("open");
-    trigger.setAttribute("aria-expanded", open ? "true" : "false");
-  } else if(action === "toggle-account-menu"){
-    e.preventDefault();
-    const wrap = trigger.closest(".account-menu");
-    if(!wrap) return;
-    const open = wrap.classList.toggle("open");
-    trigger.setAttribute("aria-expanded", open ? "true" : "false");
+    const open = !toggledWrap.classList.contains("open");
+    // detail === 0 ⇒ keyboard-activated click: move focus into the menu.
+    setMenu(toggledWrap, open, { focusFirst: open && e.detail === 0 });
+    return;
   }
-  
-  // Close drawer if clicking any navigation link inside mobile-drawer
-  if(e.target.closest("#mobileDrawer button, #mobileDrawer a")){
-    closeDrawer();
+
+  switch(action){
+    case "toggle-drawer":
+      setDrawer(!isDrawerOpen());
+      return;
+    case "close-drawer":
+      setDrawer(false, { restoreFocus: true });
+      return;
+    case "toggle-search":
+      setSearch(!isSearchOpen());
+      return;
   }
+
+  if(isDrawerOpen() && e.target.closest("#mobileDrawer a, #mobileDrawer button")) setDrawer(false);
 }
 
 function onKeydown(e){
   if(e.key === "Escape"){
-    const drawer = document.getElementById("mobileDrawer");
-    if(drawer && drawer.classList.contains("open")){
-      closeDrawer();
-      const toggleBtn = document.querySelector('[data-mobile-action="toggle-drawer"]');
-      if(toggleBtn) toggleBtn.focus();
+    if(isDrawerOpen()){ setDrawer(false, { restoreFocus: true }); return; }
+    const menus = openMenus();
+    if(menus.length){
+      const active = document.activeElement;
+      menus.forEach((w) => setMenu(w, false, { restoreFocus: w.contains(active) }));
       return;
     }
-    closeOpenMenus();
+    if(isSearchOpen() && isMobile()) setSearch(false, { restoreFocus: true });
     return;
   }
 
-  // Focus trap for open drawer
-  if(e.key === "Tab"){
+  if(e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Home" || e.key === "End"){
+    const active = document.activeElement;
+    const wrap = active && active.closest ? active.closest(OPEN_MENU_SEL) : null;
+    if(!wrap) return;
+    const items = menuItems(wrap);
+    if(!items.length) return;
+    e.preventDefault();
+    const n = items.length;
+    const i = items.indexOf(active);
+    const next =
+      e.key === "Home" ? 0 :
+      e.key === "End" ? n - 1 :
+      e.key === "ArrowDown" ? (i + 1) % n :
+      (i <= 0 ? n : i) - 1;
+    focusEl(items[next]);
+    return;
+  }
+
+  if(e.key === "Tab" && isDrawerOpen()){
     const drawer = document.getElementById("mobileDrawer");
-    if(drawer && drawer.classList.contains("open")){
-      const focusables = drawer.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-      if(focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      if(e.shiftKey && document.activeElement === first){
-        e.preventDefault();
-        last.focus();
-      } else if(!e.shiftKey && document.activeElement === last){
-        e.preventDefault();
-        first.focus();
-      }
+    const items = focusables(drawer);
+    if(!items.length) return;
+    const first = items[0], last = items[items.length - 1], active = document.activeElement;
+    if(!drawer.contains(active)){
+      e.preventDefault();
+      focusEl(e.shiftKey ? last : first);
+    } else if(e.shiftKey && active === first){
+      e.preventDefault();
+      focusEl(last);
+    } else if(!e.shiftKey && active === last){
+      e.preventDefault();
+      focusEl(first);
     }
   }
 }
 
+// Tabbing out of an open menu closes it.
+function onFocusIn(e){
+  for(const wrap of openMenus()) if(!wrap.contains(e.target)) setMenu(wrap, false);
+}
+
 export function initMobileChrome(){
+  if(window.__mobileChromeBound) return;
+  window.__mobileChromeBound = true;
+
   document.addEventListener("scroll", onScrollCapture, { capture: true, passive: true });
   document.addEventListener("click", onClick);
   document.addEventListener("keydown", onKeydown);
+  document.addEventListener("focusin", onFocusIn);
 
   if(window.matchMedia){
-    const mq = window.matchMedia(MOBILE);
+    mq = window.matchMedia(MOBILE);
     if(mq.addEventListener) mq.addEventListener("change", onMediaChange);
-    else if(mq.addListener) mq.addListener(onMediaChange);   // Safari < 14
+    else if(mq.addListener) mq.addListener(onMediaChange);
   }
   window.addEventListener("resize", onResize, { passive: true });
+  // Webfont swap changes chip widths after first layout.
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(refreshChipRows, () => {});
 
-  applyHeaderState();
+  const drawer = document.getElementById("mobileDrawer");
+  if(drawer && !drawer.classList.contains("open")) drawer.toggleAttribute("inert", true);
+  if(!isMobile() && isSearchOpen()) setSearch(false);
 }

@@ -1,7 +1,7 @@
 import "dotenv/config";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { uuidToStableInt, rowToVideo } from "./catalog-overlay.js";
+import { uuidToStableInt, rowToVideo } from "../../src/upload/catalog-overlay.js";
 
 // uploads.id is a uuid (schema-global-upload.sql). A prior fix here assumed
 // it was a numeric bigint (confusing it with the unrelated upload_attempts

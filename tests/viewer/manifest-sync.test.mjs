@@ -1,8 +1,8 @@
 import "dotenv/config";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { DATA } from "../shared/catalog.js";
-import { mergeManifest } from "./manifest-sync.js";
+import { DATA } from "../../src/shared/catalog.js";
+import { mergeManifest } from "../../src/viewer/manifest-sync.js";
 
 test("manifest sync - mergeManifest deduplication and validation", (t) => {
   const origVideos = DATA.videos;

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { appShellHtml } from "./site-chrome.mjs";
+import { appShellHtml } from "../../scripts/lib/site-chrome.mjs";
 
 test("appShellHtml handles positional arguments correctly", () => {
   const html = appShellHtml("blog", "<article>Positional content</article>");

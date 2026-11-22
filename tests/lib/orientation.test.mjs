@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { deriveOrientation } from "./orientation.js";
+import { deriveOrientation } from "../../lib/orientation.js";
 
 test("deriveOrientation - taller than wide => vertical", () => {
   assert.equal(deriveOrientation(1080, 1920), "vertical");

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ourdreamUrl, OURDREAM, affiliateChoiceHtml, AFFILIATE_REL } from "./affiliates.js";
+import { ourdreamUrl, OURDREAM, affiliateChoiceHtml, AFFILIATE_REL } from "../../src/shared/affiliates.js";
 
 test("CPA homepage and create landings", () => {
   assert.match(OURDREAM.home, /2CTPL\/\?uid=3$/);
