@@ -1120,10 +1120,9 @@ a { color: inherit; }
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35), 0 0 28px rgba(229, 9, 20, 0.08);
 }
 .blog-rank-head {
-  display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
-  gap: 16px 18px;
+  display: flex;
   align-items: center;
+  gap: 16px 18px;
   margin-bottom: 16px;
   padding-bottom: 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -1132,17 +1131,19 @@ a { color: inherit; }
 .blog-rank-logo {
   width: 96px;
   height: 96px;
+  flex: 0 0 96px;
   object-fit: cover;
   object-position: center;
   border-radius: 18px;
   background: #0c0c0c;
   padding: 0;
-  flex-shrink: 0;
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(229, 9, 20, 0.1);
-  justify-self: start;
 }
-.blog-rank-head-text { min-width: 0; }
+.blog-rank-head-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
 .blog-rank-label {
   font-size: 12px;
   font-weight: 800;
@@ -2033,8 +2034,8 @@ a { color: inherit; }
 
 @media (max-width: 600px) {
   .blog-related-cards { grid-template-columns: 1fr; }
-  .blog-rank-head { grid-template-columns: 72px minmax(0, 1fr); gap: 12px 14px; margin-bottom: 12px; padding-bottom: 12px; }
-  .blog-rank-logo { width: 72px; height: 72px; padding: 0; border-radius: 14px; }
+  .blog-rank-head { gap: 12px 14px; margin-bottom: 12px; padding-bottom: 12px; }
+  .blog-rank-logo { width: 72px; height: 72px; flex: 0 0 72px; padding: 0; border-radius: 14px; }
   .table-logo { width: 32px; height: 32px; border-radius: 8px; }
   .blog-rank-card { padding: 16px 14px 14px; }
   .blog-embed { flex-direction: column; }
