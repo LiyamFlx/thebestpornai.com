@@ -2,6 +2,7 @@
 export const BLOG_REDIRECTS = {
   "best-ai-porn-sites-2026": "best-ai-porn-sites-2026-ranking",
   "candy-ai-vs-ourdream-ai": "ourdream-ai-vs-candy-ai-comparison",
+  "the-best-porn-ai-2026": "The-Best-Porn-AI-in-2026",
 };
 
 export function isRedirectedSlug(slug) {

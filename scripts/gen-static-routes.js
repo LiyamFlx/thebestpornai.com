@@ -746,7 +746,17 @@ function videoCardHtml(v, { eager = false, fetchpriority } = {}) {
     </a>`;
 }
 
-function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, activeNav, bodyContent, extraHead = "" }) {
+function renderHtmlPage({
+  title,
+  description,
+  canonical,
+  ogImage,
+  jsonLd,
+  activeNav,
+  bodyContent,
+  extraHead = "",
+  robots = "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+}) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -754,7 +764,7 @@ function renderHtmlPage({ title, description, canonical, ogImage, jsonLd, active
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(description)}"/>
-  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"/>
+  <meta name="robots" content="${esc(robots)}"/>
   <meta name="theme-color" content="#0A0A0A"/>
   <meta name="rating" content="RTA-5042-1996-1400-1577-RTA"/>
   <link rel="preconnect" href="https://pub-b281e1d5ecb94a148bd620f8a2fe9d55.r2.dev" crossorigin/>
@@ -2422,6 +2432,16 @@ function genChannelPages() {
   console.log(`🎉 Total channel pages generated: ${totalChannelPagesWritten}`);
 }
 
+function isUltraShortTemplatedVideo(v) {
+  const isGenericBoilerplate = !v.desc || v.desc.includes("Stream this and more AI-generated & community adult videos in stunning quality");
+  if (!isGenericBoilerplate && v.desc && v.desc.trim().length > 70) return false;
+  if (!v.duration) return false;
+  const parts = String(v.duration).split(":").map(Number);
+  if (parts.length !== 2 || parts.some((n) => !Number.isFinite(n))) return false;
+  const [m, s] = parts;
+  return m === 0 && s <= 15;
+}
+
 // 9. Generate /video/<id>.html for top curated & popular scenes with rich Schema VideoObject, Prompt Copy Box, and OurDream.ai affiliate conversion
 function generateRichVideoDescription(v) {
   const isGenericBoilerplate = !v.desc || v.desc.includes("Stream this and more AI-generated & community adult videos in stunning quality");
@@ -2663,6 +2683,9 @@ function genVideoPages() {
       jsonLd,
       activeNav: "home",
       bodyContent,
+      robots: isUltraShortTemplatedVideo(v)
+        ? "noindex, follow"
+        : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
     });
 
     fs.writeFileSync(path.join(VIDEO_DIR, `${v.id}.html`), html);

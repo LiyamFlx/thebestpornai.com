@@ -203,6 +203,12 @@ function uploadedMs(v) {
   return Number.isFinite(t) ? t : 0;
 }
 
+function isUltraShortTemplatedVideo(v) {
+  const isGenericBoilerplate = !v.desc || v.desc.includes("Stream this and more AI-generated & community adult videos in stunning quality");
+  if (!isGenericBoilerplate && v.desc && v.desc.trim().length > 70) return false;
+  return durationSeconds(v.duration) <= 15;
+}
+
 if (fs.existsSync(videoDir)) {
   const htmlIds = new Set(
     fs.readdirSync(videoDir)
@@ -218,7 +224,8 @@ if (fs.existsSync(videoDir)) {
       v.title &&
       v.thumb &&
       v.status !== "private" &&
-      v.flagged !== true
+      v.flagged !== true &&
+      !isUltraShortTemplatedVideo(v)
   );
 
   const byEngagement = [...eligible].sort((a, b) => engagementScore(b) - engagementScore(a) || b.id - a.id);
@@ -226,8 +233,10 @@ if (fs.existsSync(videoDir)) {
     .filter(isPriorityPack)
     .sort((a, b) => uploadedMs(b) - uploadedMs(a) || b.id - a.id);
 
-  // Ensure any videos currently under GSC coverage validation are prioritized
-  const gscValidationCsv = "/Users/liyam/Downloads/thebestpornai.com-Coverage-Validation-2026-11-21/Table.csv";
+  // Ensure any eligible videos currently under GSC coverage validation are prioritized
+  const gscValidationCsv =
+    process.env.GSC_VALIDATION_CSV ||
+    "/Users/liyam/Downloads/thebestpornai.com-Coverage-Validation-2026-11-26/Table.csv";
   const gscVideoIds = new Set();
   if (fs.existsSync(gscValidationCsv)) {
     try {
